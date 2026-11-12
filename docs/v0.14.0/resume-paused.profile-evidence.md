@@ -2,8 +2,9 @@
 
 ## Step 1 investigation outcome
 
-Step 1 is **incomplete**. Read-only observations on 2026-11-10 did not
-establish a supported profile for either host. This document records the
+Step 1 is **incomplete**. Read-only observations on 2026-11-10 and disposable
+experiments on 2026-11-12 have not established a supported profile for either
+host. This document records the
 feasibility stop required by
 [Step 1 of the implementation plan](plan.v0.14.0.resume-paused.md#step-1-validate-pane-tied-host-profiles-before-input).
 It does not authorize delivery or change a confirmed design decision.
@@ -12,11 +13,12 @@ The observed environment used TUIOS 0.12.1 with its pure-Go backend. Claude
 transcripts reported version 2.1.321. Follow-up kernel-image queries returned
 pane-linked release paths naming Codex 0.167.0 in five processes. The reviewer's
 2026-11-11 image-identity observations resolve the strict attribution contract
-within process metadata; the requestor has not validated it. An observed
+within process metadata; the writer has since reproduced the primitive but
+has not validated a complete profile. An observed
 version alone does not establish a supported input, result, clearing or
 task-state profile. Claude ledger completeness remains unproved.
 
-## Read-only observation boundary
+## Initial read-only observation boundary
 
 The investigation used discovery, pane capture, window details and process
 detection commands. It inspected the process identified by a pane's shell
@@ -30,6 +32,149 @@ identifiers, machine paths, pane identifiers or ownership capabilities are
 included here. No pane input was sent, no conversation was cleared, and no
 background task was enumerated through a live task-management interface,
 started, stopped or duplicated. The bulk launcher was never run.
+
+## Disposable validation boundary on 2026-11-12
+
+The implementation agent subsequently created a dedicated detached TUIOS
+session for diagnostic Claude and Codex instances, then killed that session.
+Only disposable instances received diagnostic input; Claude started bounded
+background commands. Existing working and review panes received no
+input or task control. Existing launcher settings were reused; no hook or
+additional evidence channel was installed. Descendant observations and forced
+termination concerned only the owned disposable Claude process tree, never
+production discovery. The bulk launcher was not invoked.
+
+The candidate versions were Claude 2.1.322 and Codex 0.167.2. These differ
+from the earlier observations and are not supported profiles. Native runtime
+build evidence was Windows build 26200; update revision 9711 was recorded.
+Private scratch probes retain only allowlisted metadata and sanitized
+results. No raw transcript was copied into an artifact.
+
+### Writer-reproduced query-only image results
+
+The disposable Codex process admitted a complete `VirtualQueryEx` walk of
+1869 regions, with exactly one matching committed image allocation.
+`QueryFullProcessImageNameW` and `GetMappedFileNameW` agreed. The native-path
+file handle returned `STATUS_SUCCESS` from class 44; hashing through that
+same handle read 368380208 bytes. The exact eight-key layout-1 manifest
+agreed on entrypoint, version and release directory. Rechecking the retained
+handle and native image name succeeded. The combined probe took 0.386 seconds.
+This establishes primitive feasibility for this candidate, rather than a
+supported profile. The process was launched directly as a pane root; the
+required shell-plus-single-direct-child linkage was not exercised.
+
+A separate disposable copied executable reproduced a unique matching image,
+original-handle acceptance and same-handle hashing. A byte-identical copy
+returned `STATUS_UNSUCCESSFUL` (`0xC0000001`); read-only file access and limited
+process-query rights returned `STATUS_ACCESS_DENIED` (`0xC0000022`). That run
+took 0.105 seconds. Directory rename attempts on copied executables returned
+Windows error 5. They do not validate renamed-original acceptance, stale
+paths, tunneled recreation, replacement, junction retargeting or actual
+updater behavior. Races and supported input/result/clear signatures also
+remain outstanding.
+
+An additional 0.052-second copied-executable probe renamed the executable
+file successfully, retained `STATUS_SUCCESS` for its original handle and
+accepted a newly opened handle to that renamed original. An identical file
+recreated at the old name returned `STATUS_UNSUCCESSFUL`. After rename the
+full image-name/allocation corroboration failed with zero matching
+allocations, which must reject the full profile. Directory rename was denied
+both before and after opening the candidate file handle. This reproduces
+file-identity behavior across a file rename, but does not establish the
+remaining directory/updater and race obligations.
+
+### Writer-observed Claude forced-exit continuity
+
+With existing launcher settings and managed integration reported as not
+installed, the disposable Claude transcript recorded `SessionStart:startup`
+before the first typed user entry. Typed input had `origin.kind` equal to
+`human` and `promptSource` equal to `typed`. A 15-second PowerShell background
+command produced `toolUseResult.backgroundTaskId`, a terminal
+`queue-operation` enqueue with status `completed`, its dequeue, and a user
+record with `origin.kind` equal to `task-notification` and `promptSource`
+equal to `system`. These are observations of this mechanism, not complete
+generation coverage.
+
+A second 120-second PowerShell command recorded its background start. After
+forced termination of the disposable Claude process, its owned PowerShell
+and console-host descendants immediately survived with unchanged creation
+identities. A later complete transcript read contained two background starts
+and one terminal notification, with all 87 records parsed and a complete
+final newline. All saved descendants were absent at a subsequent check;
+their natural completion was not observed. The transcript's unmatched start
+cannot establish either present liveness or termination.
+
+This counterexample prevents assuming forced parent exit cleans up all
+background work. The consolidated design already requires pending for
+unproved continuity or cleanup; this result does not establish that ordinary
+same-generation positive absence is impossible. It also does not authorize
+a new evidence source. Startup generation binding, the remaining marker-source
+checks and complete coverage of every enabled host-managed waiting mechanism remain
+unvalidated.
+
+### Writer-observed Monitor and schedule records
+
+A second disposable Claude session used the same existing launcher settings.
+Its startup attachment had session, version and timestamp fields, but no
+explicit host process id or creation identity. The `session-owner` records
+contained account, organization and session fields rather than process
+generation. These shapes alone do not validate complete-generation binding.
+
+A bounded `Monitor` watched a disposable signal file. Its successful start
+used `toolUseResult.taskId`, `timeoutMs` and `persistent`, rather than the
+PowerShell start's `backgroundTaskId`. Creating the signal produced a terminal
+enqueue with status `completed`, then dequeue and a system task notification.
+The start-to-notification interval was about 43.5 seconds; this includes the
+deliberate delay before the signal, not a notification-latency guarantee.
+A complete read then parsed 91 records and 562386 bytes with a final newline.
+The monitor finished before subsequent probes.
+
+One nonrecurring, session-scoped `CronCreate` probe recorded input keys
+`cron`, `prompt`, `recurring` and `durable`. Its result supplied `id`,
+`humanSchedule`, `recurring`, `durable` and `nextFireAt`. `CronDelete` then
+confirmed cancellation of that exact job before its scheduled time; its
+result supplied `id`. A complete read after cancellation parsed 146 records
+and 832906 bytes with a final newline. No scheduled wakeup was allowed to
+run. This establishes creation/deletion shapes only, not restored-schedule
+coverage or positive absence across every enabled mechanism.
+
+A requested foreground sleep was rejected by the diagnostic host before
+execution. Foreground-to-background movement therefore remains untested;
+the rejected command is not evidence of a lifecycle-contract failure.
+
+### Writer-observed Codex direct-child linkage
+
+A second disposable Codex instance ran as the single direct child of a CMD
+pane root. Its idle banner reported 0.167.2 and empty input. The query-only
+probe found 1985 regions and one matching image allocation; the native name,
+class-44 identity, retained-handle recheck and eight-key layout-1 manifest
+agreed. The same-handle hash again read 368380208 bytes and matched the first
+probe. This run took 0.369 seconds. It adds an observed direct-child launch
+shape without establishing linkage races or the full supported profile.
+
+Read-only [official Codex command documentation](https://learn.chatgpt.com/docs/developer-commands?surface=cli)
+describes `/new` as starting a fresh conversation and `/clear` as starting
+one while also clearing the visible terminal. Syntax was confirmed from that
+source; neither command was tried in an existing working or review pane.
+Version-specific clear-result signatures remain unvalidated.
+
+A tool-free diagnostic input produced the requested fixed reply in four
+seconds. Enumerating all 719 regular JSONL files across the configured session
+root's date partitions yielded one candidate modified since the delivery
+boundary. Reading its 151781 bytes found 18 complete records, one
+`session_meta`, matching cwd and version 0.167.2, and the exact latest input
+as `response_item` with role `user`. No `event_msg/user_message` record was
+present. The read was stable and took 0.318 seconds including enumeration.
+The native file needed a read-only stream allowing concurrent write/delete
+sharing; the default whole-file reader failed on the live writer's sharing.
+This identifies an actual input shape, not a supported recovery layout.
+
+That scratch scan used a provisional one-millisecond lower-bound allowance.
+Filesystem timestamp resolution, metadata byte accounting, older-partition
+activity, duplicate matches and linkage races remain unvalidated. UTC
+boundaries must be compared as UTC values; a local-kind PowerShell datetime
+conversion initially excluded the live candidate and was corrected before
+accepting the scan. No raw session content was persisted by the probe.
 
 ## Codex independent version findings
 
@@ -193,6 +338,14 @@ ledger or a positive current zero-task record. These general descriptions do
 not validate restart or abnormal-exit behavior for the observed version.
 No `/tasks` command was sent, and no task interface was operated.
 
+On 2026-11-12 the independent reviewer assessed `/tasks` against the approved
+read-only boundary and did not recommend it. Typing it changes the latest
+input used by Q16 and opens a task-control dialog. Its current-process
+registry cannot exclude commands orphaned by an earlier host process, and
+coverage of monitors, subagents, schedules and wakeups is undocumented.
+Reading the display would also require a validated screen-layout profile.
+This assessment proposes no additional channel and authorizes no pane input.
+
 ### Independent review's Claude lifecycle-ledger proposal
 
 The reviewer proposed a generation-bounded transcript ledger using
@@ -206,8 +359,12 @@ This does not validate the ledger. A start without a terminal record warrants
 pending with no input; the proved-global-wait branch is unavailable for Claude
 in this delivery because there is no permitted current-liveness proof.
 Positive absence separately requires complete
-coverage of every enabled background mechanism and validated cleanup across
-process generations. These guarantees remain unproved for the observed host.
+start/end coverage of every in-scope host-managed waiting mechanism (Q20=A)
+and continued accounting for
+unmatched starts across process generations. Forced termination in the
+writer's disposable 2026-11-12 probes left commands running, so generation
+changes cannot establish cleanup. These guarantees remain unproved for the
+observed host.
 
 ### Review evidence and settled launcher source
 
@@ -235,12 +392,152 @@ reports identity and transcript path for SessionStart. A pane with neither the
 launcher settings nor an installed TUIOS integration has no marker and stays
 pending. Reading a recorded command installs nothing. Validate that startup
 is the first relevant record and covers the complete process generation and
-session. Also validate installed integration alone and both sources together,
-including duplicate or merged SessionStart records. The recorded command
+session. Q18=A now limits eligible profiles to existing explicit launcher
+settings only. An installed TUIOS integration, alone or combined with launcher
+settings, and missing or uncertain provenance remains pending;
+inspect documented excluded sources without installing hooks. Root/nested
+reporting, source exclusion and complete persistence still need validation.
+The recorded command
 cannot distinguish the sources; command-line inspection is excluded because
 it reads process memory. The deferred senv effort must preserve launch settings or
 affected panes remain pending. The shared command installs nothing and
 operates independently of the launcher.
+
+### Independent reviewer observations on 2026-11-12
+
+The reviewer inspected only its own `tuitp`-launched Claude 2.1.322 pane,
+read-only, and reported the following. These are attributed reviewer
+observations, not reproduced writer validation or supported-profile evidence.
+
+| Observation | Reported evidence and limit |
+| --- | --- |
+| Startup ordering | First timestamped record was a TUIOS `SessionStart:startup` `hook_success`, 41 seconds after process creation; five untimestamped metadata records preceded it. The hook ran for 14.8 seconds. This is one ordering observation, not a general persistence guarantee. |
+| Complete transcript read | 850 records, final newline, 17 top-level record types and 20 attachment types. A running `task_status` snapshot followed compaction. Three `backgroundTaskId` starts each had a terminal enqueue. Snapshots are not inventories. |
+| Pane metadata | No process field in the TUIOS pane record; its activity log had evicted its first eight entries, including startup. Neither supplies durable generation binding. |
+| Settings | No user, project or local settings file held TUIOS hooks; their modification times preceded process creation. This does not prove historical configuration continuity or exclude every documented hook source. |
+| Launcher source | `tuitp` generates hooks with `tuios integration install claude-code --no-skill` in a temporary `CLAUDE_CONFIG_DIR`, increases timeouts and passes explicit settings only to root Claude. It uses `--resume` for native restoration and retries failures within five minutes, up to three times, in the same pane shell. A new session can conceal an earlier process's unmatched background start. |
+| Persistence order | Of 703 timestamped records, 43 appeared after records carrying later timestamps, by up to 42.4 seconds. This shows event timestamps and file order can differ; it does not validate timestamp semantics or turn closure for every mechanism. |
+| Unrecorded hooks | Launcher settings defined 14 hook events. Across about 120 calls, the pane activity log showed PreToolUse/PostToolUse execution, while the transcript held only two SessionStart hook records. Hook execution and configuration history cannot be reconstructed from those records. |
+| Interactive marking | Every record carrying `entrypoint` in the reviewer's interactive session had value `cli`. Nested-session discrimination remains an experiment, not a validated binding rule. |
+| Project-directory encoding, 2026-11-12 | The reviewer observed this checkout's Claude project-directory name turning `_` as well as path separators into `-`. This lossy name cannot uniquely identify a checkout. Sessions launched from checkout subdirectories use other project directories. This is reviewer observation, not writer validation. |
+
+The resulting candidate binds the direct child's creation time to the first
+timestamped startup marker and rejects later noncompact SessionStart records.
+Launch-time resume, timestamp semantics and single-writer behavior after root
+exit still need validation. A backward clock step between generations is
+unobservable through approved sources and is a reported Q20=A limit. Late
+records also require a turn-closure experiment: every call and result must
+match, and the validated final turn record must be present. An idle screen
+alone does not prove persistence. Current hook files and modification times
+do not alone exclude earlier or dynamically changed handlers; copies and
+renames can preserve old times, and skill/subagent hooks appear mid-session.
+Record-level root/nested discrimination is separate from that missing history.
+A version-pinned closed-world
+classification rejects unknown records, tools, result shapes and open calls,
+but cannot replace complete persistence proof: a known foreground tool or hook
+could leave work without introducing a new record type.
+
+On 2026-11-12 the user confirmed Q18=A, Q19=A and Q20=A. Q19 requires every
+transcript in this checkout's Claude project directory with activity since
+the last OS boot and complete relevant durable schedule definitions regardless
+of boot, with all enumeration and record bytes accounted. Validate activity
+selection and true-boot semantics, including conservative Windows fast-startup
+handling. Missing history, uncertain activity or schedule restoration stays
+pending. A true boot can bound ordinary surviving processes but does not
+discharge durable schedules restored after reboot.
+
+Q20 limits positive absence to host-managed waiting mechanisms: background
+tasks, Monitor, subagents/commands, schedules/wakeups and foreground work moved
+into background. Complete start/end persistence remains mandatory for every
+enabled in-scope mechanism. Claude reviewer watchers must use host background
+mechanisms. Report three residual limits at activation: processes detached
+by completed foreground commands or hooks may be missed; earlier hook-handler
+configuration history is unavailable; backward clock changes between process
+generations are unobservable. Descendant enumeration remains excluded.
+Ownership fencing and lease expiry cannot prove watcher absence. Optional
+validated rejection of recorded detaching launchers is defense in depth only.
+Unknown or incomplete in-scope evidence stays pending. These decisions approve
+no new source or hook installation and establish no supported profile. Both
+hosts require disposable validation and all other gates. These decisions and
+aligned documents were independently reviewed in exchange 2 round 8 before
+human-authorized consolidation.
+
+Round 4 requires candidate-level recorded `cwd` validation under the design's
+path rules. Exclude another checkout's transcript only on validated evidence;
+otherwise keep it in scope. Include checkout-subdirectory session directories
+unless validation proves they cannot hold a reviewer watcher for this checkout.
+Parse classified structural fields only in memory; never print or retain
+conversation content or tool payloads. Report counts, byte costs and classified
+reasons only. The user confirmed Q21=A, Q22=A and Q23=A on 2026-11-12; their contracts
+below qualify the earlier Q19/Q20 scope statements without replacing their
+historical answer records. Neither host is supported until disposable validation
+and all remaining gates pass.
+
+Q21=A selects a boot instant recorded once at boot from a validated boot
+process's creation timestamp within process metadata. Never select history
+using current time minus uptime. Validate the concrete boot process, timestamp
+stability under clock changes, uptime semantics, comparison tolerance and
+Windows fast startup. Compare fixed and computed instants and keep detected
+net backward movement beyond the validated tolerance pending. The disclosed
+Q20 clock limit now covers undetectable backward changes since boot, including
+offsetting changes, rather than only changes between process generations.
+Only that named boot-instant metadata source is approved; event logs and
+general extra channels remain excluded. No boot source or tolerance is yet
+validated by the choice.
+
+The uptime value must count time spent in sleep and hibernation. Validate this,
+and test suspension between boot and the decision. An uptime that excludes
+suspended time would hide a backward change of up to the suspended duration.
+
+Q22=A excludes from the absence check only validated new work of the proved
+requestor pane's current process generation. Earlier starts, every other
+transcript and recognized reviewer `wait-any-request` starts remain in scope,
+including starts inside the proposed exception and former-reviewer starts
+after role switching, under normal start/end matching.
+Uncertain generation or ordering stays pending. Read and classify the evidence
+needed to establish the exception, account for every byte and refresh exact
+takeover proof and both panes' required bindings before activation. Validate
+initial activation and later continuation; no general live-pane exclusion is
+approved. These are requirements for future experiments, not new observations.
+
+The exception removes only starts that validated creation ordering places after
+the marked resume input, with those starts' own lifecycle records. File position
+alone never places a record after the marker. Terminal, stop and completion
+records after the marker still match in-scope starts ordered before it. This
+includes any such record the host writes into a later session file after a
+clear. A start whose order relative to the marker is uncertain stays in scope.
+
+Inside the excluded range, a start that invokes the review-exchange launcher
+counts as a reviewer watcher unless its operation parses as a validated
+requestor operation. Validate the recognized invocation forms for each pinned
+version. A recognized watcher stays in scope under normal start/end matching
+and blocks until its validated terminal record.
+
+Under Q23=A, bind the proved requestor's post-marker range through the session
+file in which acceptance proved its marked resume. On initial activation and
+later continuation, require current session identity source `report`; a first
+timestamped record that is the validated TUIOS SessionStart marker for `startup`
+or `clear`, at or after creation of the requestor shell's single direct Claude
+child; no later SessionStart other than `compact`; the proved marked input in
+that file; unchanged process identity across the read; and validated ordering
+and single-writer behavior. Missing or uncertain evidence remains pending.
+This covers the command's `--clear` and a manual clear before the run. Q19=A
+retains pre-clear transcripts and Q22=A retains earlier starts and matches
+their lifecycle records across files. Item 1's complete-generation rule still
+governs the reviewer's absence proof. Validate the clear-marker shape, process
+precedence and cross-file lifecycle matching in disposable sessions; timestamp
+comparison retains Q21=A's disclosed clock limitation. No new channel is added,
+and the human choice itself establishes no supported profile.
+
+### Reviewer-reported Claude schedule documentation on 2026-11-12
+
+The reviewer reports that Claude 2.1.322's `CronCreate` description shown to its
+session says `durable` has no effect, jobs are session-only and disappear when
+Claude exits, and recurring jobs expire automatically after seven days. This
+is host documentation, not runtime validation or a launch-time-resume contract.
+Step 1 must determine schedule survival and restoration for each pinned version,
+including launch-time and in-process resume. A validated none makes the relevant
+regardless-of-boot schedule set empty by contract, never by assumption.
 
 The proposed notification-persistence bound proves at most past liveness,
 even if a hard bound could be established. It does not establish current
@@ -279,13 +576,14 @@ selected by this investigation.
 No host adapter, shared synthetic builder or profile test was created.
 Synthetic fixtures can test a validated contract, but cannot establish that
 an actual host provides the necessary evidence. The implementation and
-validation plans remain unchanged; no step has been marked complete, and
-no later step is enabled by these findings.
+validation plans now align their Step 1 expectations with the consolidated
+design. Validation status and evidence placeholders are unchanged; no step
+has been marked complete and no later step is enabled by these findings.
 
-After design consolidation, Step 1 of the implementation and validation plans
-must be revised to the converged Codex identity, build-pinning and image-name
-contract and to the Claude marker-source and pending rules before Step 1
-resumes. The plans are not edited during this design review.
+Following design consolidation, Step 1 of both plans was revised to the
+converged Codex identity, build-pinning and image-name contract and to the
+Claude marker-source and pending rules before the disposable experiments.
+This alignment supplies expectations, not proof that the contracts pass.
 
 Once the design gaps are resolved, Step 1 still needs all planned tests and
 adapters. Its Codex session-file proof must enumerate regular JSONL files
