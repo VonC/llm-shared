@@ -1,4 +1,4 @@
-0.14.0-SNAPSHOT -- Groundhog Shares the Stopwatch
+0.14.0 -- Groundhog Shares the Stopwatch
 
 Consumer pytest runs choose lifecycle budgets, process audits, or both.
 

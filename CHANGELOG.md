@@ -6,7 +6,7 @@ release. The groundhog test loop (ghog), the prompt-workflow cycle (pw),
 and the commit and changelog helpers are mutualized across sibling
 projects.
 
-## [v0.14.0-SNAPSHOT unreleased] Groundhog Shares the Stopwatch - 6f322300fc61e1b0858b7b5aa2389f3c57a32858
+## [v0.14.0] - 2026-11-12 - Groundhog Shares the Stopwatch
 
 Consumer pytest runs choose lifecycle budgets, process audits, or both.
 
