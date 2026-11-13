@@ -67,7 +67,8 @@ individual primitives, without establishing supported profiles.
 | Writer-owned disposable Windows/Codex probes on 2026-11-12 | On build 26200, revision 9711, query-only image walks, same-handle hashes and class-44 identity succeeded for Codex 0.167.2. A renamed copied executable retained identity and a recreated identical file was rejected; full image-name corroboration failed after rename. One diagnostic input matched a unique complete session file and version. Updater, races, timestamp bounds and clear-result signatures remain unvalidated. See the [evidence companion](resume-paused.profile-evidence.md). |
 | Writer-owned disposable Claude probes on 2026-11-12 | Claude 2.1.322 recorded launcher-settings startup, typed input, PowerShell and Monitor start/completion, and CronCreate/CronDelete. Monitor starts use `toolUseResult.taskId`, unlike PowerShell's `backgroundTaskId`. Forced host exit left owned commands alive immediately afterward. Startup and session-owner shapes supplied no explicit process-creation identity; complete-generation binding and all-mechanism coverage remain unvalidated. These observations neither prove invisible lifecycle transitions nor invalidate ordinary same-generation activation by themselves. |
 | Independent reviewer observation on 2026-11-12, Claude 2.1.322, the reviewer's own `tuitp`-launched pane | The first timestamped record was the TUIOS startup `hook_success`, 41 seconds after process creation and after five untimestamped metadata records. A complete read found 17 record types, 20 attachment types and a `task_status` snapshot immediately after compaction. The pane record had no process field; its activity log had evicted its earliest entries. No user, project or local settings file held a TUIOS hook. Reviewer source analysis found temporary `CLAUDE_CONFIG_DIR` hook generation, root-only explicit settings, launch-time `--resume` and retries in the same pane shell. These are reviewer observations, not writer validation of generation binding or ledger completeness. |
-| Writer-owned disposable Claude probes on 2026-11-13 | Claude 2.1.323 persisted a startup marker after direct-child creation. Clear kept that child and began a new file with `SessionStart:clear`; file order differed from event creation order, and a pre-clear background task's terminal enqueue arrived in the new file. A second root using the launcher settings concurrently resumed the same session, wrote `SessionStart:resume`, and continued writing after the original root exited. This disproves unconditional single-writer ownership; the later noncompact marker rejects the observed case. Attach without the launcher settings remains untested. See the [evidence companion](resume-paused.profile-evidence.md). |
+| Writer-owned disposable Claude probes on 2026-11-13 | Claude 2.1.323 persisted a startup marker after direct-child creation. Clear kept that child and began a new file with `SessionStart:clear`; file order differed from event creation order, and a pre-clear background task's terminal enqueue arrived in the new file. A second root using the launcher settings concurrently resumed the same session, wrote `SessionStart:resume`, and continued writing after the original root exited. This disproves unconditional single-writer ownership; the later noncompact marker rejects the observed case. Plain `--resume` without launcher settings also appended to a fresh marked file while the original child lived and after it exited, without a new SessionStart. Its turns closed without the launcher Stop handler summary, and the original's next input shared the foreign input's parent. Item 1 states positive attribution rules for these observations; they remain unvalidated. The profile remains unsupported pending validation of item 1's attribution rules and the remaining append-path matrix. See the [evidence companion](resume-paused.profile-evidence.md). |
+| Independent reviewer observation on 2026-11-13, Claude 2.1.323, the reviewer's own `tuitp`-launched pane | A complete read found 777 records and 2949158 bytes with a final newline. Fifteen parents had two children; each was an assistant record carrying a `tool_use` block, with the tool-result user record and the next assistant record as children. Each of the three closed turns, two started by task notifications, ended with a `stop_hook_summary` whose child was `turn_duration`; each summary had `hookCount` 1 and `hookInfos` entries with `command` and `durationMs`, the command naming TUIOS. The one snapshot linked to its input. The slash-command input carried `origin.kind` `human` without `promptSource`. These are reviewer observations, not writer validation. |
 | [Program status](../../tools/program_status.py) | OSC 7501 reports provide app state. They are supplementary evidence, not proof that an input was accepted. |
 
 The [draft](draft.v0.14.0.resume-paused.md) supplies observed TUIOS delivery
@@ -270,7 +271,7 @@ only (Q18=A). The deferred senv effort must preserve those settings or affected
 Claude panes remain pending. The shared command installs nothing and operates
 independently of the launcher. An installed TUIOS integration, alone or combined
 with launcher settings, and missing or uncertain provenance remains pending.
-Validate launcher-only root/nested discrimination,
+Validate launcher-only root/nested attribution,
 source exclusion, ordering and complete persistence before accepting a profile.
 No senv code change is included in this design discussion.
 
@@ -766,24 +767,38 @@ all of the following:
    or after it exits. Require generation-scoped exclusivity instead: from the
    accepted first timestamped marker through the end of the complete read,
    every record in the file comes from the pane's current direct Claude child.
-   The marker rule carries this proof: any later SessionStart other than
-   `compact`, or another validated attach signature, means pending. Validate
-   for each pinned version that every root able to append to an existing
-   session file leaves such a signature. This covers launch-time `--resume`
-   or `--continue`, in-process `/resume`, launcher retry, backgrounded or
-   reattached sessions, and roots started without the launcher settings,
-   including nested print-mode. Also record whether any of that root's other
-   records can be persisted before its signature. An attach path that leaves
-   no validated signature keeps the profile unsupported and returns to design
-   review with a concrete proposal. A backward step between the earlier
+   Prove it by positive attribution, not by a list of foreign signatures.
+   Any later SessionStart record other than `compact`, whatever its hook
+   outcome, means pending. Every other record from the marker through the
+   end of the read must be attributed to the current root by validated
+   rules: one parent chain from the marker, except validated fan-out shapes
+   such as tool-call fan-out, subagent sidechains and compaction boundaries;
+   every model turn, whatever starts it, closed by a `stop_hook_summary`
+   linked into that turn whose recorded handlers equal the validated
+   launcher Stop handler set, then the validated final record; every
+   `file-history-snapshot` linked to an input record in the chain or
+   matching a validated original-process form; and classified local-command
+   and metadata records. An unattributed record, a second input-bearing
+   child, an unclosed or differently closed turn, or an unlinked snapshot
+   means pending. Validate for each pinned version that every root able to
+   append to an existing session file fails this attribution: launch-time
+   `--resume` or `--continue`, in-process `/resume`, launcher retry,
+   backgrounded or reattached sessions, and roots started without the
+   launcher settings, including nested print-mode and roots whose own
+   explicit settings carry a Stop handler. Also validate persistence before
+   effect: a turn's input record is persisted before that turn runs any tool
+   or starts any waiting mechanism. An append path that passes attribution,
+   or a failed ordering property, keeps the profile unsupported and returns
+   to design review with a concrete proposal. A backward step between the earlier
    root's last write and the new root's creation is undetectable through
    approved sources and is an explicitly reported residual limit (Q20=A).
    Preserve ordering and timestamp-semantics validation within that limit.
    Do not require timestamps
    to increase in file order: healthy observed files persist them out of order.
-   Require validated root-interactive record markings; test whether nested
-   sessions can be distinguished by their own markings rather than assuming
-   hook-file continuity. Timestamp semantics and markings remain to validate.
+   Require validated root-interactive record markings to classify records.
+   Markings do not attribute a record to a root: the 2026-11-13 plain resume
+   carried the original's markings. Nested-session records must fail the
+   attribution above. Timestamp semantics and markings remain to validate.
 2. Classify the complete ledger under a version-pinned closed-world profile:
    every top-level record, attachment, tool name, call and result shape must
    be classified. Unknown records, tools or shapes and open tool calls mean
@@ -824,6 +839,10 @@ all of the following:
    so an idle screen does not prove the last turn is on disk. Require a
    validated turn-closure condition: every tool call has its result, every
    result has its call, and the turn's validated final record is present.
+   Apply this closure condition to the last turn of every in-scope
+   transcript under item 5; an unclosed turn in any of them means pending.
+   This includes the proved requestor's transcript: Q22=A excludes validated
+   post-marker starts, not an unclosed requestor turn.
    Refresh all required state under the execution
    guard immediately before delivery; it is never cached authorization.
 5. Read every transcript in this checkout's Claude project directory with
@@ -1012,7 +1031,7 @@ Dry runs apply the same classification and name-validation failures.
 | A requestor start from before its marked resume ends after it | The terminal record still matches the earlier start, including across a clear; only starts proved created after the marker are excluded (Q22=A). |
 | A reviewer watcher start occurs in the proposed requestor exclusion, or an earlier watcher survives a role switch | Stays in scope under normal start/end matching and blocks until its validated terminal record; ambiguous review-exchange operations stay in scope (Q22=A). |
 | Requestor generation binding or record order cannot be validated | Pending without input; do not apply the Q22=A exception. |
-| Another root attaches to the bound session id, with or without the launcher settings | Pending when a later noncompact SessionStart or other validated attach signature appears; an attach path with no validated signature keeps the profile unsupported and returns to design review. |
+| Another root attaches to the bound session id, with or without the launcher settings | Pending when a later noncompact SessionStart appears or item 1's positive attribution fails. An append path that passes attribution, or failed persistence-before-effect ordering, keeps the profile unsupported and returns to design review. |
 | A Claude reviewer is activated, or preview shows conditional activation | The result includes `limits=claude-wait-scope`, defined in help/reference as the three Q20=A limits, with Q21=A's since-boot clock scope. |
 | A background subagent has no validated completion record | Pending without input. |
 | A recurring/durable schedule or unresolved wakeup remains | Pending without input. |
@@ -1088,23 +1107,35 @@ starts. Validate each of these generation-binding cases:
    pane leaves the old reported session stale and rejected.
 3. A nested print-mode Claude launched through the disposable session's tool
    cannot change the pane's reported session under launcher settings alone;
-   record the nested session's marking and prove discrimination from the
-   root's interactive marking. The reviewer observed `entrypoint: cli` on
+   record the nested session's marking for classification and prove that
+   its records fail item 1's positive attribution. The reviewer observed `entrypoint: cli` on
    every record carrying that field in its own interactive session only.
 4. Launcher `--resume` and early-failure retry paths record their markers and
    whether the session id changes. Restored panes remain pending until a
    separate launch-time resume rule validates.
 5. `/clear` and `--fork-session` remain pending.
-6. A concurrent or later root attaching to the same session id leaves a
-   validated attach signature in the file, with and without the launcher
-   settings, including nested print-mode resume. The 2026-11-13
-   launcher-settings `--resume` wrote `SessionStart:resume`. An attach
-   without the launcher settings is untested.
+6. Every root attaching to the same session id, concurrently or later,
+   with and without the launcher settings, including nested print-mode
+   resume and explicit settings carrying only a Stop handler, fails item
+   1's positive attribution, and its turn input persists before that
+   turn's first tool runs. On 2026-11-13 the launcher-settings `--resume`
+   wrote `SessionStart:resume`. The plain `--resume` wrote no
+   SessionStart, and its turns closed without the launcher Stop handler
+   summary.
 
 Validate timestamp semantics and item 1's generation-scoped exclusivity.
 Reproduce every attach path while the original root runs and after it
-exits, with and without the launcher settings, and record each attach
-signature and its persistence order. The reviewer observed 43 of 703
+exits, with and without the launcher settings, and record where each
+attach first fails attribution and its persistence order. Run ordinary
+original-process controls that attribution must accept: no-tool turns,
+sequential and parallel tool calls, background starts with
+notification-started turns, slash commands and queued input, interruption
+and API retry, compaction, subagent sidechains, Stop-hook error or
+timeout, and file checkpointing disabled. Record rewind or message edit
+as expected pending branches. In an original turn and in each foreign
+root's first turn, a disposable tool reads the bound file and records
+whether its own turn's input and tool-use records are already persisted.
+The reviewer observed 43 of 703
 timestamped records persisted after a later-stamped record, by up to 42.4
 seconds; this proves disorder and lag, not a complete source contract. A clock
 step between generations is unobservable through approved sources and must be
@@ -1116,7 +1147,8 @@ history is a reported Q20=A limit. Current contents and
 modification times alone are insufficient because copies/renames can preserve
 old times and skill/subagent hooks appear mid-session. The reviewer observed
 PreToolUse/PostToolUse execution without transcript records. Test root versus
-nested record markings for binding; detached hook work is a reported limit.
+nested record markings for classification and validate positive attribution;
+detached hook work is a reported limit.
 Validate existing explicit launcher settings only (Q18=A). An installed TUIOS
 integration, alone or combined with launcher settings, and missing or uncertain
 provenance stays pending; inspect excluded sources without
