@@ -213,7 +213,8 @@ across files; it does not validate all host-managed waiting mechanisms.
 
 A second owned pane launched Claude with `--resume` for the first pane's
 current session, using the same explicit launcher settings and its
-SessionStart hook. An attach without those settings remains untested.
+SessionStart hook. The later plain-resume experiment below covers an attach
+without those settings.
 Both distinct, live direct Claude children reported the
 same session id with identity source `report`. The resumed process wrote
 `SessionStart:resume` and a diagnostic turn into that same transcript.
@@ -234,19 +235,107 @@ without a later marker has multiple writers.
 The first independent review requested generation-scoped exclusivity in
 design item 1: every record from the accepted first timestamped marker
 through the complete read must come from the pane's current direct child.
-The design and both plans now require a validated attach signature for
-every append-capable root, including roots without the launcher settings,
-and validation of any records persisted before that signature. Later
-noncompact SessionStart records or another validated attach signature mean
-pending. The follow-up experiments cover launcher and plain CLI resume and
-continue, in-process resume, retry, background/reattach, nested print-mode,
-and fork behavior, while the original root runs and after it exits.
-An append path without a validated signature keeps the profile unsupported
-and returns to design review with a concrete proposal. No replacement
-evidence source, weaker absence rule or new human question has been selected.
-Validation status remains unchanged. Both hosts remain unsupported; the
-remaining feasibility matrix, adapters, tests and implementation gates are
-still outstanding.
+That contract first relied on a validated attach signature for every
+append-capable root. The plain-resume experiment below found an append path
+without one, and the later review replaced the signature list with positive
+attribution, described in the positive attribution section. No replacement
+evidence source, weaker absence rule or new human question has been
+selected. Validation status remains unchanged. Both hosts remain
+unsupported; the remaining feasibility matrix, adapters, tests and
+implementation gates are still outstanding.
+
+### Plain resume observations without launcher settings
+
+A fresh owned diagnostic used Claude 2.1.323 and the existing explicit
+launcher settings for its original process. Its first timestamped record was
+`SessionStart:startup`; its no-tool turn ended with `stop_hook_summary` and
+`turn_duration`. The complete original-only prefix contained 46 records and
+392608 bytes, with a final newline.
+
+A second owned process used plain `--resume` for that session without the
+launcher settings while the original child remained alive. Both children
+were verified alive. The same native file grew to 52 records and 397816
+bytes, ending in a newline. The appended prefix contained two
+`file-history-snapshot` records, then the diagnostic user input, `api-request`,
+assistant reply and `turn_duration`. No new `SessionStart` or
+`stop_hook_summary` appeared. The first snapshot's message id had no matching
+user record; the second matched the new input. This establishes that the
+SessionStart rule alone does not detect this append path. It does not
+establish acceptance by a complete profile.
+
+The plain input carried `isSidechain=false`, `promptSource=typed`,
+`origin.kind=human`, `turnOrigin=human`, `entrypoint=cli` and
+`userType=external`, with the same session, version and checkout. A subsequent
+no-tool control input in the original process carried those same markings
+and the same `turnPosition`. The two inputs shared a parent UUID, creating
+a visible branch only when the original's next input persisted. That
+control turn again ended with `stop_hook_summary` and `turn_duration`. The
+complete read then contained 61 records and 416880 bytes with a final newline.
+Root-interactive markings alone do not distinguish the observed second root;
+a later branch cannot supply detection before that branch exists.
+
+After both earlier children had exited, a third owned process used plain
+`--resume` for the same session. Its diagnostic input and reply also appended
+without a new `SessionStart` or `stop_hook_summary`, preceded by two snapshots
+and followed by `turn_duration`. The complete read contained 75 records and
+426101 bytes. Its orderly exit left 84 records and 428453 bytes; both reads
+ended in a newline. Every owned Claude child was verified absent before the
+diagnostic TUIOS session was removed. The owned experiment ran for about
+seven minutes, including startup, controls and cleanup. No task, schedule,
+new hook or additional evidence source was used. Only allowlisted structural
+facts were retained; conversation and tool payloads remained in memory.
+
+### Positive attribution candidate after plain-resume review
+
+Independent review replaced the initial list of negative rejection checks
+with positive closed-world attribution of every record from the accepted
+marker to the end of the read. Any later SessionStart other than `compact`,
+whatever its hook outcome, means pending. Other records must form one parent
+chain except validated tool-call fan-out, subagent sidechains and compaction
+boundaries. Every model turn, whatever starts it, must close with its own
+linked `stop_hook_summary` whose recorded handlers equal the validated
+launcher Stop handler set, followed by the validated final record. Every
+snapshot must link to an input in the chain or match a validated
+original-process form. Local-command and metadata records need their own
+classification. An unattributed record, second input-bearing child, unclosed
+or differently closed turn, or unlinked snapshot means pending.
+
+These are unvalidated attribution rules, not proven host guarantees.
+Legitimate tool-call fan-out cannot be rejected as arbitrary branching.
+Root-interactive markings classify records but do not identify their writer.
+Apply the closure condition to the last turn of every in-scope history
+transcript as well as the bound file. A later rejection cannot retrospectively
+authorize a read that lacked it.
+
+Validate all agreed E1-E3 append paths against ordinary original-process
+controls, including snapshot-disabled operation, nested print-mode and roots
+whose own explicit settings carry a Stop handler. The latter may match the
+launcher Stop summary without producing a SessionStart marker. Determine
+whether the recorded command distinguishes the pane's launcher settings
+instance. Also validate persistence before effect: a turn's input persists
+before it runs any tool or starts any waiting mechanism. An original-turn
+and foreign-first-turn diagnostic tool must inspect whether its own input
+and tool-use records are already on disk. A lag measurement does not establish
+this property. Record where each attach first fails attribution and the
+persistence order. An attach that passes, or failed ordering, returns to
+design review with a concrete proposal before any new human question.
+
+No new source, hook installation, disclosed limit or human decision is
+introduced. Both profiles remain unsupported; no adapter, fixture,
+validation status or delivery capability is enabled.
+
+### Reviewer observation of branching and closure on 2026-11-13
+
+The independent reviewer reports a complete read of its own `tuitp`-launched
+Claude 2.1.323 session: 777 records and 2949158 bytes with a final newline.
+Fifteen parents had two children; each was an assistant record carrying a
+`tool_use` block, with the tool-result user record and the next assistant
+record as children. Each of three closed turns, two started by task
+notifications, ended with `stop_hook_summary` whose child was `turn_duration`.
+Each summary had `hookCount` 1 and `hookInfos` entries containing `command`
+and `durationMs`; the command named TUIOS. The one snapshot linked to its
+input. A slash-command input carried `origin.kind` `human` without
+`promptSource`. These are reviewer observations, not writer validation.
 
 ## Codex independent version findings
 
