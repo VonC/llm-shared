@@ -3,7 +3,7 @@
 ## Step 1 investigation outcome
 
 Step 1 is **incomplete**. Read-only observations on 2026-11-10 and disposable
-experiments on 2026-11-12 have not established a supported profile for either
+experiments on 2026-11-12 and 2026-11-13 have not established a supported profile for either
 host. This document records the
 feasibility stop required by
 [Step 1 of the implementation plan](plan.v0.14.0.resume-paused.md#step-1-validate-pane-tied-host-profiles-before-input).
@@ -175,6 +175,78 @@ activity, duplicate matches and linkage races remain unvalidated. UTC
 boundaries must be compared as UTC values; a local-kind PowerShell datetime
 conversion initially excluded the live candidate and was corrected before
 accepting the scan. No raw session content was persisted by the probe.
+
+## Claude generation experiments on 2026-11-13
+
+The writer created a new detached diagnostic TUIOS session with Claude
+2.1.323 and the existing explicit launcher settings. No hook was installed;
+existing working and reviewer panes received no input. Native transcripts
+were parsed in memory, with only structural facts and byte counts retained.
+An initial bypass-mode launch stopped at its first-run consent dialog and
+was declined; the successful diagnostic used ordinary permissions.
+
+### Startup and clear observations for Claude 2.1.323
+
+The pane reported its session identity with source `report`. Its shell had
+one direct Claude child. The first timestamped transcript record was
+`SessionStart:startup` `hook_success`, after that child's creation; six
+untimestamped metadata records preceded it. A no-tool turn ended with
+`stop_hook_summary` and `turn_duration`. The complete initial read contained
+46 records and 392680 bytes, with a final newline. These are observed shapes,
+not proof of a universal closure or persistence guarantee.
+
+A bounded background PowerShell sleep returned `backgroundTaskId`. Clearing
+while it ran changed the reported session id without replacing the child
+process. The new file's first timestamped record was
+`SessionStart:clear` `hook_success`. Its subsequently persisted `local_command`
+record had an earlier timestamp, confirming that file order is not event
+creation order. The task's matching terminal `queue-operation` enqueue,
+with status `completed`, arrived in the new file approximately 89 seconds
+after the start result in the old file. A following turn ended with the
+same two closing system record types. The complete reads contained 60
+records and 418279 bytes before the clear boundary and 54 records and
+416144 bytes in the new file after completion, both with final newlines.
+This supports retaining pre-clear starts and matching terminal records
+across files; it does not validate all host-managed waiting mechanisms.
+
+### Concurrent resume counterexample to unconditional single-writer ownership
+
+A second owned pane launched Claude with `--resume` for the first pane's
+current session, using the same explicit launcher settings and its
+SessionStart hook. An attach without those settings remains untested.
+Both distinct, live direct Claude children reported the
+same session id with identity source `report`. The resumed process wrote
+`SessionStart:resume` and a diagnostic turn into that same transcript.
+After orderly exit of the original child was verified, the resumed child
+accepted another no-tool diagnostic input and wrote further records to the
+same file. That complete read contained 76 records and 448429 bytes with a
+final newline. Both diagnostics were then exited and the owned TUIOS session
+was removed after checking cleanup.
+
+Thus a transcript is not unconditionally exclusive to one root process,
+and another root can write after the original exits. This contradicts the
+literal single-writer requirement in the earlier generation contract.
+The later noncompact SessionStart rejection already makes this observed
+case pending; the experiment does **not** establish an unsafe acceptance
+or defeat that rejection rule. It also does not show that a transcript
+without a later marker has multiple writers.
+
+The first independent review requested generation-scoped exclusivity in
+design item 1: every record from the accepted first timestamped marker
+through the complete read must come from the pane's current direct child.
+The design and both plans now require a validated attach signature for
+every append-capable root, including roots without the launcher settings,
+and validation of any records persisted before that signature. Later
+noncompact SessionStart records or another validated attach signature mean
+pending. The follow-up experiments cover launcher and plain CLI resume and
+continue, in-process resume, retry, background/reattach, nested print-mode,
+and fork behavior, while the original root runs and after it exits.
+An append path without a validated signature keeps the profile unsupported
+and returns to design review with a concrete proposal. No replacement
+evidence source, weaker absence rule or new human question has been selected.
+Validation status remains unchanged. Both hosts remain unsupported; the
+remaining feasibility matrix, adapters, tests and implementation gates are
+still outstanding.
 
 ## Codex independent version findings
 
@@ -423,8 +495,8 @@ observations, not reproduced writer validation or supported-profile evidence.
 
 The resulting candidate binds the direct child's creation time to the first
 timestamped startup marker and rejects later noncompact SessionStart records.
-Launch-time resume, timestamp semantics and single-writer behavior after root
-exit still need validation. A backward clock step between generations is
+Launch-time resume, timestamp semantics and item 1's generation-scoped
+exclusivity still need validation. A backward clock step between generations is
 unobservable through approved sources and is a reported Q20=A limit. Late
 records also require a turn-closure experiment: every call and result must
 match, and the validated final turn record must be present. An idle screen
@@ -520,7 +592,7 @@ timestamped record that is the validated TUIOS SessionStart marker for `startup`
 or `clear`, at or after creation of the requestor shell's single direct Claude
 child; no later SessionStart other than `compact`; the proved marked input in
 that file; unchanged process identity across the read; and validated ordering
-and single-writer behavior. Missing or uncertain evidence remains pending.
+and item 1's generation-scoped exclusivity. Missing or uncertain evidence remains pending.
 This covers the command's `--clear` and a manual clear before the run. Q19=A
 retains pre-clear transcripts and Q22=A retains earlier starts and matches
 their lifecycle records across files. Item 1's complete-generation rule still
