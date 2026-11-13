@@ -8335,3 +8335,635 @@ Human choice: Consolidate
 Outcome: continue-owning-workflow
 
 <!-- review-entry-id: human-confirmation-round-8 -->
+
+## Round 1 by requestor (exchange 4)
+
+- Recorded: 2026-11-13T12:53:13+01:00
+- Exchange: specification/design-specification/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/design.v0.14.0.resume-paused.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: unrecorded
+- Outcome: request
+
+### Review identity for design-specification resume-paused (generation feasibility 2026-11-13) (round 1)
+
+Umbrella draft: none
+Reviewed specification: docs/v0.14.0/design.v0.14.0.resume-paused.md
+Review round: 1
+
+### Requestor assessment for design-specification resume-paused (generation feasibility 2026-11-13) (round 1)
+
+Step 1 feasibility return, narrowly scoped to the Claude generation contract.
+The existing consolidated design is unchanged in this
+round. Read the new 2026-11-13 section of
+`docs/v0.14.0/resume-paused.profile-evidence.md` alongside generation item 1
+and Q23. Both hosts remain required and unsupported. The user instructed
+completion of Step 1 and stated that the independent reviewer is standing by.
+
+Observed Claude 2.1.323 with existing explicit launcher settings: startup
+binding, a clear marker under an unchanged process, and a bounded PowerShell
+background start with a matching terminal enqueue in the post-clear file.
+Only owned disposable panes received input; no hooks were installed and no
+bulk command ran. All diagnostic roots have exited and their session was
+removed. Complete native reads retained only structural facts and byte counts.
+
+Concrete counterexample: two simultaneously live root processes reported the
+same session id via `report` and wrote to the same transcript. The second was
+started with `--resume`, and its `SessionStart:resume` was persisted. After
+the first root exited, a further diagnostic turn from the second root wrote
+to that file. This disproves unconditional single-writer ownership and the
+literal prohibition on another writer after root exit. It does not disprove
+generation-scoped ownership for an otherwise eligible transcript: the later
+noncompact SessionStart already makes the observed case pending. Please do
+not treat this result as evidence of unsafe activation or add a new source
+merely because multiple writers can exist in this rejected case.
+
+Please assess whether the current text already intends scoped exclusivity,
+and whether the existing marker rule can establish that scoped contract with
+an explicit remaining experiment. If so, give the precise bounded assertion
+and evidence needed so implementation can continue without unnecessary new
+requirements. Otherwise identify the smallest actual proof gap and its
+design consequence. Preserve all confirmed choices and rejection gates. No
+new human question is asserted by the writer at this point; the existing
+decisions suffice unless this assessment identifies a choice they do not
+resolve. No reviewer wording changes are outstanding from a preceding round.
+
+Writer notes: `.reviews/a.resume-paused.step1.journal.md` and
+`.reviews/a.resume-paused.step1.handoff.md` (read-only; private details must not
+be quoted). Structural evidence is in the step's
+`a.resume-paused.step1.tmp.claude-generation-*.json` files and probe scripts.
+
+No adapter/test code or supported profile has been implemented. The current
+validation status is unchanged. Other feasibility obligations remain open
+and are not being represented as passing by this narrow review request.
+
+### Change summary for design-specification resume-paused (generation feasibility 2026-11-13) (round 1)
+
+Added sanitized observations and exact limits to the host profile evidence
+companion: Claude 2.1.323 startup and clear record shapes, cross-file terminal
+matching, complete-read sizes, and the concurrent-resume ownership
+counterexample. The design, both plans, all settled decisions, implementation
+status and production code are unchanged. This is a feasibility review, not
+an implementation completion request.
+
+### Writer response for design-specification resume-paused (generation feasibility 2026-11-13) (round 1)
+
+Writer response:
+
+The implementation plan explicitly requires design review if a required
+feasibility contract fails. The unconditional writer assertion failed this
+controlled experiment, while the existing later SessionStart rule rejects
+the observed case. Review should distinguish these facts before deciding
+whether a wording correction and focused experiment suffice. No extra
+evidence channel, hook installation, one-host delivery or weaker absence
+rule has been selected. The writer will apply evidence-backed clarification
+within confirmed requirements and continue the authorized implementation
+when the feasibility gate permits it.
+
+### Reviewer focus for design-specification resume-paused (generation feasibility 2026-11-13) (round 1)
+
+Check for missing questions, assess the existing options and answers, and suggest any clearer wording.
+
+<!-- review-entry-id: request-round-1-exchange-4 -->
+
+### LLM nature completion for reviewer (exchange 4)
+
+Recorded nature: `claude`
+
+Completed artifacts:
+
+- `C:/Users/[redacted]/git/llm-shared_resume-paused/.reviews/a.review-active.specification.design-specification.v0.14.0.resume-paused.md`
+- `C:/Users/[redacted]/git/llm-shared_resume-paused/.reviews/a.review-requested.design-specification.v0.14.0.resume-paused.md`
+
+<!-- review-entry-id: llm-nature-completion-reviewer-exchange-4 -->
+
+## Round 1 by reviewer (exchange 4)
+
+- Recorded: 2026-11-13T13:04:57+01:00
+- Exchange: specification/design-specification/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/design.v0.14.0.resume-paused.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Outcome: answer
+
+### Reviewer assessment for design-specification resume-paused (generation feasibility 2026-11-13) round 1
+
+Reviewed against the current design (SHA-256
+`7cc573e4b58297c1833a54eb7f0fbab2cf128186633f03b122d980899b3ca175`), the
+2026-11-13 section of the evidence companion, and the structural records of
+the concurrent-resume probe. I agree with the writer's reading: the
+experiment disproves the literal sentence and shows no unsafe acceptance.
+The observed case already stays pending under the later noncompact
+SessionStart rule. It is not a reason to add a new evidence source.
+
+1. The current text intends scoped exclusivity, but its wording is both
+   too strong and too narrow. The sentence "no other process writes that
+   transcript after the root exits" sits inside item 1's stale-root
+   argument. It states a host-wide property that the 2026-11-13 run
+   disproves, and the proof never needs that property. It also says
+   nothing about a second writer while the root is still alive, which is
+   how the counterexample began, and that is the case the proof does need
+   to exclude.
+
+2. The proof uses exclusivity in three places, and each one needs it only
+   inside the bound file's accepted range:
+
+   - Item 4 turn closure: the pane's idle and empty-input evidence vouches
+     for the file's persistence only if the pane's root is the file's only
+     writer in that range. A second live writer's in-flight turn is not
+     covered by the pane's idle screen.
+   - The latest typed input in the session-id-tied transcript (marked
+     input acceptance and the Q16 reviewer entry) must be the pane's own
+     input.
+   - Q22/Q23 attribution is the safety-relevant use. Starts after the
+     marker in the requestor's bound file are credited to the requestor's
+     current generation and excluded. A second writer's post-marker
+     `Monitor`, schedule or subagent start would be wrongly excluded.
+     Only review-exchange launcher starts stay in scope by parsing.
+
+   Under Q19 a second writer's persisted starts in a reviewer's file are
+   still read and stay in scope, which is conservative. The hazard is
+   attribution and persistence completeness, not hidden records.
+
+3. The existing marker rule establishes the scoped contract only for
+   writers that run the launcher's SessionStart hook. The probe's resumed
+   root wrote `SessionStart:resume` as a `hook_success` attachment, so it
+   ran a SessionStart hook: it used the launcher settings. A `hook_success`
+   record exists only when a SessionStart hook runs. Q18=A makes the
+   explicit launcher settings the only eligible marker source, and the
+   2026-11-12 reviewer observation found no TUIOS hook in user, project or
+   local settings. A root that attaches to the same session id without
+   those settings writes into the file with no SessionStart record. The
+   rejection rule cannot see such a root. Examples are a plain
+   `claude --resume <id>` or `--continue` in a terminal the launcher did
+   not start, a nested print-mode `claude -p --resume <id>` from a tool
+   call, or an SDK client. This is the smallest actual proof gap. The
+   2026-11-13 run did not test it, because it only exercised an attach
+   under the launcher settings.
+
+4. A secondary ordering point follows from the same evidence. The clear
+   observation showed that file order is not creation order. The rule
+   rejects a later noncompact SessionStart wherever it appears, so a
+   late-persisted attach record is harmless once it lands. The only window
+   that matters is an attaching root that persists other records before
+   its SessionStart record. Measure that window in the same experiment
+   rather than assuming it away.
+
+5. Proposed bounded assertion (generation-scoped exclusivity). From the
+   bound file's accepted first timestamped marker through the end of the
+   complete read, every record in the file comes from the pane's current
+   direct Claude child. The host is not assumed to keep a transcript
+   exclusive to one root. A second root can resume the same session id
+   while the first runs or after it exits. The marker rule carries the
+   proof: any later SessionStart other than `compact`, or another
+   validated attach signature, means pending. A profile may claim this
+   assertion only after validation shows that every root able to append to
+   an existing session file leaves such a signature. Validation must also
+   record whether any of that root's other records can be persisted before
+   the signature.
+
+6. Remaining experiment, in disposable sessions on the pinned Claude
+   version:
+
+   - E1, attach paths under the launcher settings. Already observed:
+     launch-time `--resume`. Still to run: `--continue`, in-process
+     `/resume` from a second live session, the launcher's early-failure
+     retry, and backgrounded or reattached sessions. Run each while the
+     original root is alive and after it exits. For each one, record the
+     attach signature, whether the session id is reused, and whether any
+     record of the attaching root precedes its signature in file order.
+   - E2, attach paths without the launcher settings. Run a plain CLI
+     `--resume` and `--continue` from a terminal the launcher did not
+     start, in the same checkout, and a nested print-mode
+     `claude -p --resume <id>` from a tool call of a disposable session.
+     For each one, record whether it writes into the bound file and whether
+     a validated shape tells its records apart. Two candidates come from
+     the transcript channel already in use: a record written on attach that
+     no hook produces, and turns missing the launcher's hook-produced
+     records. The 2026-11-13 turns closed with `stop_hook_summary` and
+     `turn_duration`, and `stop_hook_summary` may exist only because the
+     launcher configures a Stop hook.
+   - E3: confirm that `--fork-session` writes only a new file. It stays
+     pending in any case under validation case 5.
+
+7. Design consequence. If E1 and E2 find a validated signature for every
+   attach path, the existing rejection rule establishes the scoped
+   contract, extended to treat that signature like a later noncompact
+   SessionStart. Implementation continues with no new source and no new
+   human question. If some path writes into the file with no distinguishable
+   record, no bound file can be proved exclusive. Every Claude activation
+   then stays pending, which would make required Claude activation
+   unreachable. The Q17 row rejects never activating, citing requirement
+   Q22=A/Q01=D. That outcome would be a choice the confirmed decisions do
+   not resolve, because it is not one of Q20's three disclosed limits. The
+   design's existing rule for an unobservable in-scope gap then applies:
+   return it to design review with a concrete proposal before asking the
+   human. One candidate proposal is to disclose "a same-session writer
+   started without the launcher settings" as a fourth limit under
+   `limits=claude-wait-scope`, comparable to detached foreground work. Do
+   not ask that question now.
+
+8. Optional defense in depth, not required for the proof: keep pending
+   when the discovery data already read shows another live pane reporting
+   the same `agent_session_id`. This catches an attach under the launcher
+   settings in another pane before its SessionStart record lands. It reads
+   no new source. Adopt it only if E1 shows an attach window in which
+   other records persist before the signature.
+
+9. The clear evidence needs no contract change. The clear kept the same
+   direct child, so Q23's "at or after creation of the direct Claude child"
+   holds trivially for a `clear` marker. A terminal enqueue for a pre-clear
+   start arrived in the new file about 89 seconds later, which supports
+   Q22's cross-file matching. After a clear the reviewer stays pending,
+   because item 1 still requires `startup`, consistent with validation
+   case 5.
+
+10. Cross-document drift. The design says nothing yet about the 2026-11-13
+    experiments. Its source-facts introduction stops at the 2026-11-12
+    experiments and the table has no 2026-11-13 row. "Single-writer"
+    wording also remains at these places:
+
+    - design lines 763-765, 866, 1084, 1140, and the Q23 row;
+    - implementation plan lines 185, 196 and 204;
+    - validation plan lines 34 and 44;
+    - evidence companion lines 487 and 584, which quote the design.
+
+    Each of these needs the scoped term so that the plans do not keep
+    validating the disproved literal property.
+
+### Question verdicts for design-specification resume-paused (generation feasibility 2026-11-13) round 1
+
+The design has no open question, and this round raises none. Q01-Q23 are
+explicit user decisions. I agree with each one, and none is reopened by the
+2026-11-13 evidence.
+
+Q18=A is what bounds the marker source to the explicit launcher settings.
+That is why a root resuming the same session without those settings is the
+remaining proof gap. Q18=A itself stays correct.
+
+Q20=A's three disclosed limits do not cover a same-session writer that
+leaves no attach record. No question is missing today: the scoped
+assertion plus experiments E1-E3 can settle the contract within the
+confirmed decisions.
+
+One conditional choice remains outstanding. If E2 finds an attach path
+that writes into the bound file with no distinguishable record, Claude
+activation becomes unreachable under the current text. The writer must then
+return to design review with a concrete proposal, for example a fourth
+disclosed limit under `limits=claude-wait-scope`, before any human question
+is asked. That is not a human decision yet and must not be recorded as one.
+
+### Requested changes for design-specification resume-paused (generation feasibility 2026-11-13) round 1
+
+Requested changes:
+
+Replacement for the single-writer sentence in item 1:
+
+```text
+The host does not keep a transcript exclusive to one root: a second root
+can resume the same session id while the first runs or after it exits.
+Require generation-scoped exclusivity instead: from the accepted first
+timestamped marker through the end of the complete read, every record in
+the file comes from the pane's current direct Claude child. The marker
+rule carries this proof: any later SessionStart other than `compact`, or
+another validated attach signature, means pending. Validate for each
+pinned version that every root able to append to an existing session file
+leaves such a signature. This covers launch-time `--resume` or
+`--continue`, in-process `/resume`, launcher retry, backgrounded or
+reattached sessions, and roots started without the launcher settings,
+including nested print-mode. Also record whether any of that root's other
+records can be persisted before its signature. An attach path that leaves
+no validated signature keeps the profile unsupported and returns to design
+review with a concrete proposal.
+```
+
+Replacement for the validation sentence "Validate timestamp semantics and
+single-writer behavior after root exit across backgrounding, reattach and
+retry.":
+
+```text
+Validate timestamp semantics and item 1's generation-scoped exclusivity.
+Reproduce every attach path while the original root runs and after it
+exits, with and without the launcher settings, and record each attach
+signature and its persistence order.
+```
+
+New generation-binding validation case 6:
+
+```text
+6. A concurrent or later root attaching to the same session id leaves a
+   validated attach signature in the file, with and without the launcher
+   settings, including nested print-mode resume. The 2026-11-13
+   launcher-settings `--resume` wrote `SessionStart:resume`. An attach
+   without the launcher settings is untested.
+```
+
+In the Q23 text, its duplicate and the Q23 table row, replace "validated
+ordering and single-writer behavior" with "validated ordering and item 1's
+generation-scoped exclusivity".
+
+Add a 2026-11-13 source-facts row and the matching introduction sentence.
+Apply the same scoped term in both plans and in the evidence companion's
+quoted design text.
+
+### Writer instructions for design-specification resume-paused (generation feasibility 2026-11-13) round 1
+
+1. In item 1 (design lines 761-768), keep the stale-root and
+   timestamp-semantics sentences. Replace "Validate a single-writer
+   guarantee: no other process writes that transcript after the root
+   exits, including backgrounded or reattached sessions and retries." with
+   the generation-scoped exclusivity wording given under the requested
+   changes.
+2. In item 5's Q23 paragraph (line 866), the duplicated validation
+   paragraph (line 1140) and the Q23 table row, replace "validated ordering
+   and single-writer behavior" with "validated ordering and item 1's
+   generation-scoped exclusivity".
+3. Replace the validation sentence at line 1084 with the scoped experiment
+   wording. Add generation-binding case 6 for attach paths with and without
+   the launcher settings, as given under the requested changes.
+4. Add a 2026-11-13 row to the confirmed source-facts table and extend the
+   introduction (lines 39-46) to name the 2026-11-13 writer experiments.
+   Keep it to structural facts: Claude 2.1.323, a startup marker after
+   direct-child creation, a clear that kept the child and started a new
+   file with `SessionStart:clear`, file order differing from creation order,
+   a cross-file terminal enqueue, and the launcher-settings concurrent
+   `--resume` counterexample.
+5. Apply the same scoped term in the implementation plan (lines 185, 196,
+   204), the validation plan (lines 34, 44) and the evidence companion's
+   quoted design text (lines 487, 584). In the companion's 2026-11-13
+   section, state that the resumed root ran the launcher's SessionStart
+   hook, so an attach without the launcher settings remains untested.
+6. Do not add a new evidence source, hook installation, weaker absence rule
+   or new human question. The optional same-`agent_session_id` discovery
+   check is defense in depth only. Adopt it only if E1 shows an attach
+   window.
+7. Keep Step 1 incomplete and both hosts unsupported. Generation-binding
+   feasibility stays open until E1-E3 run. If E2 finds an attach path with
+   no distinguishable record, return that concrete gap to design review
+   with a proposal before asking the human.
+
+### Final reviewer decision for design-specification resume-paused (generation feasibility 2026-11-13) round 1
+
+Decision: changes-requested. The writer should apply the concrete instructions and publish another automated review round.
+
+<!-- review-entry-id: answer-round-1-exchange-4 -->
+
+## Round 2 by requestor (exchange 4)
+
+- Recorded: 2026-11-13T13:11:49+01:00
+- Exchange: specification/design-specification/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/design.v0.14.0.resume-paused.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Outcome: request
+
+### Review identity for design-specification resume-paused (generation feasibility 2026-11-13) (round 2)
+
+Umbrella draft: none
+Reviewed specification: docs/v0.14.0/design.v0.14.0.resume-paused.md
+Review round: 2
+
+### Requestor assessment for design-specification resume-paused (generation feasibility 2026-11-13) (round 2)
+
+This round applies the independent review's concrete generation-scoped
+exclusivity wording. The literal host-wide single-writer property is false;
+the observed second root was rejected by the existing noncompact marker.
+No unsafe acceptance or need for a new evidence source has been established.
+
+Item 1 now requires every append-capable attach path to leave a validated
+signature, including roots without launcher settings and nested print-mode,
+and requires measuring writes persisted before that signature. Q23 and both
+plans use the same scoped contract. Source facts include the 2026-11-13
+writer experiments. The companion now explicitly states that the observed
+second root used the launcher's SessionStart hook, so plain attach remains
+untested. Both hosts remain unsupported and Step 1 incomplete.
+
+There are no open questions and none is missing at this stage. All confirmed
+Q01-Q23 decisions remain unchanged and sufficient for experiments E1-E3.
+Reviewer wording suggestions were applied. No extra source, hook installation,
+weaker absence rule or optional duplicate-session defense was adopted.
+
+Please verify the wording and cross-document alignment, and confirm that
+E1-E3 are the next feasibility work. If an attach path is indistinguishable,
+the writer will return a concrete proposal to design review before asking
+the human; no fourth disclosed limit is selected by this round.
+
+### Change summary for design-specification resume-paused (generation feasibility 2026-11-13) (round 2)
+
+Replaced item 1's unconditional writer guarantee with generation-scoped
+exclusivity and explicit attach-signature/persistence-order validation.
+Updated all Q23 copies, the validation paragraph and new generation-binding
+case 6. Added the 2026-11-13 source-facts row and introduction date. Applied
+the same scoped wording in the implementation plan, validation expectations
+and companion; validation status is unchanged. Clarified that concurrent
+resume used launcher settings and that plain attach remains untested.
+
+Targeted markdownlint: four files, zero issues. cSpell: no unknown word.
+CRLF-aware git diff --check passed. No production code, tests, staged changes,
+implementation completion claim or support declaration was added.
+
+### Writer response for design-specification resume-paused (generation feasibility 2026-11-13) (round 2)
+
+Writer response:
+
+Accepted all requested changes without disagreement. The observed later
+SessionStart protects the tested case; the remaining proof is universal
+attach detection and its persistence order inside the accepted range.
+
+Next experiments remain E1 (launcher-settings paths while the original root
+runs and after exit), E2 (plain resume/continue and nested print-mode without
+launcher settings), and E3 (fork writes only a new file). Previously observed
+launcher-settings resume and startup/clear probes will not be repeated merely
+to recreate evidence. Any unresolved signature gap keeps support disabled and
+returns to design review with a concrete proposal before a human question.
+
+This round requests review of the corrected feasibility contract, preserving
+all rejection gates and confirmed decisions. It does not request or imply
+permission for a new source, a new disclosed limit or one-host delivery.
+
+### Reviewer focus for design-specification resume-paused (generation feasibility 2026-11-13) (round 2)
+
+Check for missing questions, assess the existing options and answers, and suggest any clearer wording.
+
+<!-- review-entry-id: request-round-2-exchange-4 -->
+
+## Round 2 by reviewer (exchange 4)
+
+- Recorded: 2026-11-13T13:16:07+01:00
+- Exchange: specification/design-specification/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/design.v0.14.0.resume-paused.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Outcome: answer
+
+### Reviewer assessment for design-specification resume-paused (generation feasibility 2026-11-13) round 2
+
+Reviewed the current design (SHA-256
+`1d348e857e06b805ab321f1275df9b77ef7a90f69fe5508fdcf2d9119dcafa50`) against
+the round 1 requested changes, together with the implementation plan, the
+validation plan and the evidence companion.
+
+1. Item 1 now carries the generation-scoped exclusivity assertion as
+   requested. It names a second root resuming while the first runs or after
+   it exits, puts the proof on the marker rule (a later noncompact
+   SessionStart or another validated attach signature), and lists every
+   append-capable attach path, including roots without the launcher
+   settings and nested print-mode. It requires the persistence-order
+   measurement and returns an unsigned attach path to design review with a
+   concrete proposal. The stale-root, timestamp-semantics and Q20=A
+   clock-limit sentences around it are unchanged and still read
+   coherently.
+
+2. The scoped term is consistent everywhere it is used. Item 5's Q23
+   paragraph, its validation-section copy, the Q23 row, both plans and the
+   companion's quoted design text all now say "item 1's generation-scoped
+   exclusivity". The only remaining "single-writer" occurrences are
+   historical: the new source-facts row and the companion heading and
+   paragraph that record the disproved literal property. That is correct.
+   Q23 inherits the assertion by reference. Item 1 defines it from "the
+   accepted first timestamped marker", so it applies unchanged to the
+   requestor's `startup` or `clear` marker, with "the pane" read as the
+   requestor pane.
+
+3. Validation case 6 and the replacement validation sentence state the
+   attach-path experiment with and without the launcher settings, while the
+   original root runs and after it exits, including persistence order.
+   Together with item 1's list, the design covers E1 and E2 in substance.
+   E3 (fork) is covered by item 1's "every root able to append to an
+   existing session file" together with case 5, which keeps
+   `--fork-session` pending in any case.
+
+4. The source-facts introduction and the new 2026-11-13 row are accurate
+   against the companion and the structural probe records: startup marker
+   after direct-child creation, clear keeping the child, file order
+   differing from creation order, cross-file terminal enqueue, and the
+   concurrent `--resume` under the launcher settings with
+   `SessionStart:resume`. The companion now says plainly that the second
+   root ran the launcher's SessionStart hook, so an attach without the
+   launcher settings remains untested.
+
+5. Only wording-level points remain, none of which changes a contract:
+
+   - The plans write "item 1's generation-scoped exclusivity" without
+     naming the design. This follows the existing "Item 1's
+     complete-generation rule" convention in both plans, but a reader of
+     the plan alone could take it for a plan item. Writing "design item 1"
+     or linking the design's takeover section would remove the ambiguity.
+   - The implementation plan's Step 1 "Exercise clear with running work,
+     fork, ..." bullet and the validation plan's Claude bullet reach the
+     attach-path experiment only through that reference. One clause naming
+     attach paths with and without the launcher settings, nested
+     print-mode resume, and persistence order before the signature would
+     let the plans be checked without opening the design.
+   - Optionally, an acceptance-examples row would give the implementation a
+     scenario-level test anchor for the new rule. Suggested wording is in
+     the covered wording.
+
+6. E1-E3 are the right next feasibility work for the Claude
+   generation-binding gate. They do not complete Step 1. The rest of the
+   feasibility matrix stays outstanding: hooks and other attach shapes,
+   Q19/Q21 boot and history scope, mechanism coverage, turn closure, and
+   the Codex updater and race experiments. The design, plans and companion
+   all already say so. Run E2 only against a disposable session's id and
+   from the same checkout directory, so its records land in the same Claude
+   project directory. Record the case where a plain resume creates a new
+   session id instead of appending, since that is not an attach to the
+   bound file.
+
+### Question verdicts for design-specification resume-paused (generation feasibility 2026-11-13) round 2
+
+The design has no open question, and none is missing. Q01-Q23 are explicit
+user decisions. I agree with each one, and this round changes none of them.
+
+The round 1 conditional choice is still only conditional, and the design now
+states it correctly. Suppose E2 finds an attach path that writes into the
+bound file with no distinguishable record. The profile then stays
+unsupported, and the writer returns a concrete proposal to design review
+before any human question. No fourth disclosed limit is selected, proposed
+as decided, or recorded as a human choice. There is no outstanding human
+decision in the reviewed formulation.
+
+### Convergence evidence for design-specification resume-paused (generation feasibility 2026-11-13) round 2
+
+Covered wording:
+
+Plan clause for the Step 1 "Exercise ..." bullet and the validation plan's
+Claude bullet:
+
+```text
+Include every attach path to an existing session id, with and without the
+launcher settings and including nested print-mode resume, while the
+original root runs and after it exits; record each attach signature and
+whether any of that root's records persist before it (design item 1, case 6).
+```
+
+Optional acceptance-examples row:
+
+```text
+| Another root attaches to the bound session id, with or without the launcher settings | Pending when a later noncompact SessionStart or other validated attach signature appears; an attach path with no validated signature keeps the profile unsupported and returns to design review. |
+```
+
+The reviewed item 1 assertion, the Q23 references and validation case 6
+stand as written.
+
+Convergence rationale:
+
+Every round 1 requested change is applied exactly. Item 1 replaces the
+disproved host-wide property with the scoped assertion and puts the proof on
+the existing marker rule. Q23 and both plans reference that assertion
+consistently. Validation case 6 and the validation sentence name the
+remaining attach experiments, and the source facts and companion record the
+2026-11-13 evidence accurately, including the untested attach without the
+launcher settings.
+
+The remaining points are optional wording that changes no contract, gate or
+decision. No question is missing, all Q01-Q23 user decisions are preserved,
+and no human decision is outstanding. The only conditional choice depends on
+an E2 result and is routed back to design review first.
+
+This recommendation covers the reviewed feasibility contract only. It does
+not authorize consolidation, which stays a separate human choice. It does not
+declare either host supported or Step 1 complete.
+
+### Writer instructions for design-specification resume-paused (generation feasibility 2026-11-13) round 2
+
+1. Optional polish, no contract change. In both plans, write "design item
+   1's generation-scoped exclusivity" in place of "item 1's
+   generation-scoped exclusivity". Make the matching edit to the existing
+   "Item 1's complete-generation rule" sentences.
+2. Optional polish. Add the attach-path clause from the covered wording to
+   the implementation plan's Step 1 "Exercise clear with running work,
+   fork, ..." bullet and to the validation plan's Claude marker-coverage
+   bullet.
+3. Optional. Add the acceptance-examples row from the covered wording after
+   the "Requestor generation binding or record order cannot be validated"
+   row.
+4. Then run E1-E3 in disposable sessions as the next generation-binding
+   feasibility work. Keep Step 1 incomplete and both hosts unsupported.
+   Return any unsigned attach path to design review with a concrete
+   proposal before a human question.
+
+### Final reviewer decision for design-specification resume-paused (generation feasibility 2026-11-13) round 2
+
+Decision: convergence-recommended. This recommendation is advisory; consolidation is not confirmed and remains at the durable human gate.
+
+<!-- review-entry-id: answer-round-2-exchange-4 -->
+
+## Round 2 by human - human-confirmation
+
+- Recorded: 2026-11-13T15:30:42+01:00
+- Exchange: specification/design-specification/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/design.v0.14.0.resume-paused.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Outcome: human-confirmation
+
+Human choice: Consolidate
+Outcome: continue-owning-workflow
+
+<!-- review-entry-id: human-confirmation-round-2 -->
