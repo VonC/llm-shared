@@ -306,10 +306,16 @@ runtime dependency. A release user does not need to know the dependency exists.
 
 Read an exact `[git-cliff] version` from the consuming project's `.release.ini`,
 or the tested llm-shared default when omitted. The proposed default is 2.14.2,
-subject to the compatibility checks below. Never resolve a floating `latest`
-during a release. The fixed location for that pin and platform is
-`<LLM_SHARED_DIR>/.tools/git-cliff/<version>/<platform>/git-cliff.exe` on the
-supported Windows x64 platform. Ignore the cache in llm-shared Git.
+subject to the compatibility checks below. Only tested pins, with recorded
+compatibility evidence, are admitted; another pin is refused before mutation
+with the tested pins listed. An omitted pin follows the tested default of the
+executing llm-shared checkout: it never moves during a release, but an ordinary
+checkout update can change it. Never resolve a floating `latest` during a
+release. The fixed location for that pin and platform is
+`<LLM_SHARED_DIR>/.tools/git-cliff/<version>/<platform>/git-cliff.exe` in the
+executing checkout, on the supported Windows x64 platform, with no
+cross-checkout or per-user fallback. Item 3 ignores the whole cache in
+llm-shared Git before its first write; item 8 verifies that it stays ignored.
 Versioned directories let consumers with different pins share one clone.
 
 `GIT_CLIFF` is a launcher-local value computed from this internal path, not an
@@ -321,12 +327,21 @@ alias in its alias set, both using this same resolver/downloader. The alias is
 available to every user who loads llm-shared aliases, including without global
 senv; scripts call the launcher directly, since doskey aliases do not expand
 in subprocesses. Within a project the alias uses its pin; outside one it uses
-the llm-shared default.
+the llm-shared default. The project is the worktree containing the current
+directory; git-cliff arguments pass through unread and never select another
+repository's pin. Item 3 ships and tests the launcher and alias definition
+without editing the shared `senv.doskey`; item 8 adds the alias there, a shared
+exposure for every console that loads the file, and item 6 brings it to
+consumers that do not load that file yet. A consumer such as my-project, which
+loads the file from llm-shared's main checkout, receives it when the completed
+umbrella reaches main, while its legacy `uc` may keep 2.7.0 until its own
+migration.
 
 Before generated changelog work:
 
-1. Check the selected cache path and executable version. Reuse a valid copy
-   without network access.
+1. Check the selected cache path: verify the executable against its local
+   integrity record before running its `--version`, which must report the pin.
+   Reuse a valid copy without network access.
 2. If absent or invalid, obtain the matching OS/architecture release asset
    from `orhun/git-cliff` on GitHub, verify its published integrity information,
    and extract safely into a unique temporary cache directory. The supported
@@ -334,10 +349,16 @@ Before generated changelog work:
    assume every asset has a `.sha512` sidecar. For example, 2.14.2 lists those
    for tarballs but not Windows ZIPs; the inspected x86_64 MSVC ZIP has a SHA-256
    digest in GitHub's asset metadata. Verify that digest where available;
-   missing verification data is an explicit setup failure.
-3. Validate `--version`, then publish the cache entry atomically under a
-   per-version/platform lock. Concurrent releases must not consume partial
-   installs or replace a binary another release is using.
+   missing verification data is an explicit setup failure for every production
+   pin. Download from GitHub only, through the standard proxy configuration
+   and the operating system's trusted certificates, with certificate
+   verification always on.
+3. Validate `--version`, record the executable's local integrity data, then
+   publish the cache entry atomically under a per-version/platform lock.
+   Concurrent releases must not consume partial installs or replace a binary
+   another release is using. A second caller waits, reporting it, up to a
+   bounded time; a lock is recovered only once its holder is established gone.
+   Every network stage and version probe has a finite time budget.
 4. If the fixed binary still cannot be made available, stop with the requested
    version, internal path and download/verification/execution diagnostic.
    Explain the llm-shared setup, network or permission failure; do not ask the
@@ -351,6 +372,15 @@ or release lifecycle. Therefore `changelog` and generated release `pre` need
 this dependency, while `version`, `versions list|set|check`, `snapshot`, ordinary
 builds, curated validation and fix-rule conversion do not. `fixes dry-run`
 uses existing text. A snapshot command does not regenerate a changelog.
+
+Item 3's compatibility evidence needs the observed 2.7.0, whose Windows ZIP has
+no upstream integrity data (checked 2026-11-13). The user authorized an
+evidence-only exception before its first run: 2.7.0 is obtained from the
+upstream GitHub release over certificate-verified HTTPS, its asset identity and
+SHA-256 are recorded, and it runs solely for the frozen-input comparison. The
+recorded digest identifies those bytes for repetitions; it does not
+authenticate the first download. 2.7.0 is never admitted as a pin or accepted
+as a cache entry, and production provisioning stays fail-closed.
 
 #### 2.7.0 compared with the latest stable release
 
@@ -372,14 +402,19 @@ The following changes matter to this engine; this is release-note and existing
 | Pinning policy | Pros | Cons |
 | --- | --- | --- |
 | Exact `version = 2.14.2` in `.release.ini` (recommended for this cutover) | Reproducible binary, recent worktree/Windows/range fixes, automatic first-use install, reviewable upgrades | Newer parser/default behavior can change output; compatibility fixtures and a deliberate later pin update are required |
-| Retain exact `2.7.0` temporarily | Closest comparison with the observed old tooling | Misses subsequent fixes/features; requires a second tested compatibility target if supported beyond migration evidence |
+| Retain exact `2.7.0` as a production pin | Closest comparison with the observed old tooling | Rejected: its Windows ZIP has no upstream integrity data, so it cannot be admitted; 2.7.0 is only the evidence-only comparison candidate |
 | Floating `latest` on each run | Gets new upstream changes without editing config | Output and CLI behavior can change without project review; network dependence and hard-to-reproduce releases; rejected |
 
-Use 2.14.2 as the proposed initial pin and test the real llm-shared header,
-template, parser/skip rules, snapshot-tag history and archive ranges against it.
-Document intentional differences from 2.7.0 before cutover. Later setup/upgrade
-checks can propose a newer tested exact pin with its diff; ordinary release
-runs never silently move the pin. No binaries are installed by this draft edit.
+Use 2.14.2 as the proposed initial pin. Item 3 compares raw git-cliff output of
+2.7.0 and 2.14.2 on recorded frozen inputs (commit, ranges, dev_workflow
+`cliff.toml` and flags) with a parser, skip-rule, snapshot-tag and
+archive-range matrix, using fixture histories where llm-shared lacks a case,
+and records each difference as intentional or a defect; 2.14.2 joins the
+tested set once that evidence is recorded. Item 4 rechecks its own header,
+template and postprocessing, and item 8's parity rehearsals compare the
+complete pipelines before cutover. Later setup/upgrade checks can propose a
+newer tested exact pin with its diff; ordinary release runs never silently
+move the pin. No binaries are installed by this draft edit.
 
 ### Project build.bat contract
 
@@ -1433,8 +1468,9 @@ release/tag on `main` must be produced by the new engine after cutover.
   `tools/dev_workflow` submodule and its `.gitmodules` entry.
 - Let setup/preparation convert its `.changelog.fixes` (2 rules), and create
   `.release.ini` with the proposed exact git-cliff pin and chosen archive ranges.
-  Ignore the internal `.tools/git-cliff/` cache and expose `gcliff` and the
-  tooling-update alias along with the existing release aliases.
+  Verify that the internal `.tools/git-cliff/` cache stays ignored (item 3
+  ignores it before its first write), and add `gcliff` to the shared
+  `senv.doskey` with the tooling-update alias and the existing release aliases.
 - Update every reference to `tools\dev_workflow\update-changelog.bat`: the
   `prepare_release_notes` Step 5 in `instructions/prepare-release-notes.md` and
   its adapter copies, `instructions/prepare-release.md` (Steps 10 to 14 and the
@@ -1556,9 +1592,9 @@ not a claim that binary compatibility or implementation has been validated.
 | 15 | npm snapshot consistency | Default release-only uses the current anchor's core, never the previous published version; refuse downgrades |
 | 16 | Project identity | Project senv sets identity before its guard; child calls cannot refresh parents. Engine validates an explicit root, aliases use the current worktree, build uses its own root; stale environment is diagnostic |
 | 17 | Environment ownership | Caller/build initializes project senv once if needed; engine never reactivates it; release tooling and git-cliff provisioning need no global senv |
-| 18 | git-cliff installation | llm-shared automatically downloads/verifies the exact pinned GitHub asset into an ignored internal version/platform cache when absent or invalid; reuse offline when valid |
-| 19 | git-cliff pin | Recommend exact `2.14.2` after the documented comparison with 2.7.0; prove compatibility before cutover; later upgrades are deliberate pin changes, never floating latest |
-| 20 | git-cliff invocation | Fixed internal absolute path and launcher-local `GIT_CLIFF`; no executable config or PATH discovery/mutation; provide shared `gcliff` alias and direct launcher |
+| 18 | git-cliff installation | llm-shared automatically downloads/verifies the exact pinned GitHub asset into an ignored internal version/platform cache when absent or invalid; reuse offline when valid, after a local integrity check before `--version`; GitHub through the standard proxy and OS trust store; bounded lock waits and stage budgets |
+| 19 | git-cliff pin | Recommend exact `2.14.2` after the documented comparison with 2.7.0; prove compatibility before cutover; later upgrades are deliberate pin changes, never floating latest; item 3 admits only tested pins and proves 2.14.2 by raw-output evidence, running 2.7.0 only under the user-authorized evidence-only exception |
+| 20 | git-cliff invocation | Fixed internal absolute path and launcher-local `GIT_CLIFF`; no executable config or PATH discovery/mutation; provide shared `gcliff` alias and direct launcher; the current worktree selects the pin; item 8 adds the alias to the shared `senv.doskey` |
 | 21 | Missing git-cliff | Attempt automatic provisioning first; if unavailable, fail generated work before project mutation with an internal setup/download diagnostic; other operations remain usable |
 | 22 | Changelog modes | Generated means commit-derived text with notes/date/fixes; curated means author-maintained bytes validated for exact headings/ranges, with no git-cliff/header dependency |
 | 23 | Release gate and validity | Only main may release; pre creates release files/commit/unvalidated annotated tag; consuming gate owns success; post adds `[valid]` after identity checks; no push. `brel` never triggers the application test suite: the gate re-runs at most the last failed tests, normally none or one (user rule, 2026-11-08) |
@@ -1718,28 +1754,39 @@ implementation mechanisms to the child designs.
 - Boundary rationale: rendering needs predictable availability without exposing
   an installation task to the consumer; no external binary discovery remains.
 - Depends on: `release-project-root`.
-- Ownership: asset selection/download/cache, direct invocation, version checks;
-  setup/cutover expose the alias, while item 4 decides when rendering needs it.
+- Ownership: pin admission, asset selection/download/cache and its ignore
+  rule, direct invocation, version checks and raw-output compatibility
+  evidence; it ships the alias definition, item 8 adds it to the shared
+  `senv.doskey` and item 6 brings it to other consumers, while item 4 decides
+  when rendering needs it.
 - Acceptance criteria:
-  - Read an exact project/default pin, compute its ignored internal
-    version/platform path and reuse a valid cached binary without network.
-    No executable override, PATH search/mutation, PRGS or senv dependency.
+  - Read an exact project/default pin, admitting only tested pins, compute its
+    ignored internal version/platform path in the executing checkout and reuse
+    a cached binary that passes its local integrity and version checks without
+    network. No executable override, PATH search/mutation, PRGS or senv
+    dependency.
   - Automatically download the correct GitHub release asset if absent/invalid,
     verify integrity/version, safely extract and atomically publish under a
-    cache lock; handle concurrent users, interrupted downloads and offline use.
+    cache lock; handle concurrent users with bounded, reported waits,
+    interrupted downloads with owner-aware recovery, stalled stages with finite
+    budgets, and offline use.
     Support Windows x64 only initially and diagnose other platforms before
     project mutation.
   - Report internal path/pin and precise setup/network/verification failure
     when provisioning cannot supply the binary. Never require manual git-cliff
     installation. Do this before consuming-project managed-file/Git mutation.
   - Direct launcher and interactive `gcliff` share provisioning; scripts do not
-    depend on doskey expansion. Inside a project use its pin, outside use the
-    llm-shared default; leave the parent's environment unchanged.
-  - Establish tested compatibility for the proposed exact 2.14.2 pin using
-    real templates/parsers and histories. Record intentional differences from
-    observed 2.7.0; no floating latest or silent pin upgrade at release time.
+    depend on doskey expansion. The current worktree selects the pin, outside
+    one use the llm-shared default; leave the parent's environment unchanged.
+    Item 3 does not edit the shared `senv.doskey`.
+  - Establish raw-output compatibility evidence for the proposed exact 2.14.2
+    pin on recorded frozen inputs with the parser/skip/snapshot-tag/archive
+    matrix. Record intentional differences from observed 2.7.0, run only under
+    the evidence-only exception; no floating latest or silent pin upgrade at
+    release time.
   - Version operations, ordinary builds, curated validation and fix conversion
-    remain available without provisioning; cache state never joins a commit.
+    remain available without provisioning; the cache is ignored before its
+    first write and its state never joins a commit.
 
 #### 4. Manage generated and curated changelogs
 
@@ -1868,7 +1915,9 @@ implementation mechanisms to the child designs.
   - Produce reviewable files, preview/non-interactive forms and idempotent
     repeat runs; report unsupported layouts without replacing arbitrary code.
     Support both sibling discovery and llm-shared's own launcher.
-  - Expose release aliases plus gcliff/update aliases without global senv;
+  - Expose release aliases plus gcliff/update aliases without global senv to
+    consumers not yet loading llm-shared's shared alias file; recommend the
+    `gcliff --version` warm-up without requiring a download;
     automatically convert fixes and identify init/color/filter/submodule
     callers requiring migration. Never remove legacy tooling before checks pass.
   - Check installed/required/latest compatible stable versions and offer a
@@ -1964,7 +2013,8 @@ implementation mechanisms to the child designs.
     keep its real gate and script-derived root, refresh identity before guards,
     expose shared aliases once and remove duplicate legacy initialization.
   - Convert its two fix rules automatically; add explicit config/pin/archive
-    policy and cache ignore; use direct colors/add shcolors on linux branch.
+    policy, add `gcliff` to the shared `senv.doskey` and verify that item 3's
+    cache ignore holds; use direct colors/add shcolors on linux branch.
     Remove dev_workflow/.gitmodules and only the obsolete Git filter after
     callers and parity/recovery checks pass. Every reader in "Snapshot-tag
     readers still to migrate" must be switched or removed first, with the
