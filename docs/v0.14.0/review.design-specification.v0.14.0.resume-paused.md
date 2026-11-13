@@ -8967,3 +8967,694 @@ Human choice: Consolidate
 Outcome: continue-owning-workflow
 
 <!-- review-entry-id: human-confirmation-round-2 -->
+
+## Round 1 by requestor (exchange 5)
+
+- Recorded: 2026-11-13T21:05:20+01:00
+- Exchange: specification/design-specification/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/design.v0.14.0.resume-paused.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: unrecorded
+- Outcome: request
+
+### Review identity for design-specification resume-paused (plain attach feasibility 2026-11-13) (round 1)
+
+Umbrella draft: none
+Reviewed specification: docs/v0.14.0/design.v0.14.0.resume-paused.md
+Review round: 1
+
+### Requestor assessment for design-specification resume-paused (plain attach feasibility 2026-11-13) (round 1)
+
+Step 1 returns to design review at the required feasibility boundary. The
+new evidence companion section records a controlled Claude 2.1.323 plain
+`--resume` experiment without launcher settings. Another root appended to
+the startup-marked file while the original lived and after it exited, with
+no new SessionStart marker. Both plain turns had root-interactive markings
+matching the original's input and lacked `stop_hook_summary`. Extra snapshots
+and a later shared-parent branch were visible. No unsafe acceptance by a
+complete profile or universal impossibility has been established.
+
+Concrete proposal: test conservative rejection of every post-marker unlinked
+`file-history-snapshot`, every root-interactive turn lacking its own validated
+`stop_hook_summary` before `turn_duration`, and ambiguous or branched parent
+graphs. These checks reject the observed sequences, but are not validated
+universal attach signatures. Closure can be delayed, branching can occur
+later, and snapshot configuration needs investigation. Do not treat these
+as established host guarantees or weaken generation-scoped exclusivity.
+
+Please independently assess whether this is a viable candidate under the
+approved sources. Identify a minimal falsification matrix, including ordinary
+original-process controls, snapshot-disabled operation if available, nested
+print-mode and remaining E1-E3 attach paths, with pre-signature ordering. If
+the candidate cannot prove exclusivity, explain the concrete counterexample
+and propose the smallest design resolution before a new human question.
+
+No new open question is missing merely because the profile remains unproved.
+All Q01-Q23 decisions remain unchanged; no fourth residual limit, new hook,
+extra source or one-host delivery is proposed. Existing decisions suffice for
+the candidate's assessment. Earlier reviewer wording was applied in the
+completed prior exchange. Both hosts remain unsupported; Step 1 is incomplete.
+
+Writer notes (read-only):
+
+- `.reviews/a.resume-paused.step1.journal.md`
+- `.reviews/a.resume-paused.step1.handoff.md`
+
+Only sanitized findings may be quoted. Native conversation and tool payloads
+must stay in memory; retained diagnostic artifacts contain structural facts.
+
+### Change summary for design-specification resume-paused (plain attach feasibility 2026-11-13) (round 1)
+
+Updated the design's dated source-facts row to replace the obsolete
+plain-attach-untested statement. Added sanitized plain-resume observations
+and a clearly unvalidated structural rejection proposal to the evidence
+companion. No normative generation rule, decision, plan, validation status,
+production adapter or test changed. Owned diagnostics exited and cleaned up.
+
+### Writer response for design-specification resume-paused (plain attach feasibility 2026-11-13) (round 1)
+
+Writer response:
+
+The previous E1-E3 guidance led to this additional plain-resume experiment.
+SessionStart-only rejection is insufficient for this observed path. The
+proposed closure, snapshot and graph checks are candidates for review, not
+proof that arbitrary roots are distinguishable. Please challenge their
+completeness and ordering before recommending support or a new human choice.
+No reviewer counterpart was started or contacted by this requestor.
+
+### Reviewer focus for design-specification resume-paused (plain attach feasibility 2026-11-13) (round 1)
+
+Check for missing questions, assess the existing options and answers, and suggest any clearer wording.
+
+<!-- review-entry-id: request-round-1-exchange-5 -->
+
+### LLM nature completion for reviewer (exchange 5)
+
+Recorded nature: `claude`
+
+Completed artifacts:
+
+- `C:/Users/[redacted]/git/llm-shared_resume-paused/.reviews/a.review-active.specification.design-specification.v0.14.0.resume-paused.md`
+- `C:/Users/[redacted]/git/llm-shared_resume-paused/.reviews/a.review-requested.design-specification.v0.14.0.resume-paused.md`
+
+<!-- review-entry-id: llm-nature-completion-reviewer-exchange-5 -->
+
+## Round 1 by reviewer (exchange 5)
+
+- Recorded: 2026-11-13T21:20:33+01:00
+- Exchange: specification/design-specification/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/design.v0.14.0.resume-paused.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Outcome: answer
+
+### Reviewer assessment for design-specification resume-paused (plain attach feasibility 2026-11-13) round 1
+
+Reviewed the current design (SHA-256
+`b7b844821a41559ed94c7349e37089e4e82c68e4469dc2c0e0e9917ee73cbf8f`), the
+evidence companion's new plain-resume sections and both plans. The only design
+change is the 2026-11-13 source-facts row.
+
+1. The new evidence is accurate and settles the old rule. A plain `--resume`
+   without the launcher settings appended turns to the startup-marked file
+   while the original child lived and after it exited, with no SessionStart
+   record. Its input carried the same root-interactive markings as the
+   original's. The SessionStart rejection alone therefore cannot carry item
+   1's generation-scoped exclusivity. Root markings classify a record's kind;
+   they do not attribute a record to a root. Keeping both hosts unsupported
+   is correct.
+
+2. As written, the three checks are not a viable proof. Each is a foreign-root
+   signature that is absent or unreliable on some path:
+
+   - An unlinked `file-history-snapshot` depends on the foreign root's file
+     checkpointing configuration, which the pane cannot inspect. Print-mode
+     may write no snapshot. Nothing shows that the snapshot persists before
+     that root's other records. The first snapshot's cause is unknown, so
+     ordinary original-process causes remain untested.
+   - "A root-interactive turn without its own `stop_hook_summary`" is a hook
+     configuration signature. A foreign root with any Stop handler writes the
+     summary. The "root-interactive" qualifier also lets a turn whose input
+     is not marked root-interactive, such as nested print-mode, escape.
+   - "Any ambiguous or branched parent graph" rejects ordinary single-root
+     sessions. Reviewer observation in this reviewer's own `tuitp`-launched
+     session (Claude 2.1.323; 777 records, 2949158 bytes, final newline): 15
+     parents had two children. Every one was an assistant record carrying a
+     `tool_use` block, whose children were the tool-result user record and
+     the next assistant record. Conversely, a foreign root that attaches
+     after the original's last write, with no later original record, leaves
+     a linear chain.
+
+3. The checks become a viable candidate when restated as positive,
+   closed-world attribution of every record from the accepted marker to the
+   end of the read, instead of a list of foreign signatures:
+
+   - Chain: post-marker records form one parent chain from the marker,
+     except validated fan-out shapes (the observed tool-call fan-out,
+     subagent sidechains, compaction boundaries) and classified metadata.
+     Any other second child, such as two input-bearing records sharing an
+     ancestor, a dangling parent or an unclassified null parent, means
+     pending.
+   - Closure: every model turn, whatever starts it, closes with a
+     `stop_hook_summary` linked into that turn's chain whose recorded
+     handlers equal the validated launcher Stop handler set, followed by
+     the validated final record. In this reviewer's session, each of the
+     three closed turns, two of them started by task notifications, ended
+     with a `stop_hook_summary` whose child was `turn_duration`. Each summary
+     had `hookCount` 1 and `hookInfos` entries with `command` and
+     `durationMs`; the command named TUIOS. The slash-command input carried
+     `origin.kind` `human` without `promptSource`, so turn starts cannot be
+     limited to `promptSource` `typed`. Turns closed by interruption, API
+     error, permission denial or Stop-hook failure, and local-command
+     records, need their own validated shapes or stay pending.
+   - Snapshot linkage: every `file-history-snapshot` links to an input
+     record in the chain or matches a validated original-process form. This
+     is defense in depth, not a required signature.
+   - SessionStart rejection stays: any later SessionStart record other than
+     `compact`, whatever its hook outcome, means pending.
+
+   Under this rule the observed plain-resume turns fail for positive reasons:
+   they closed without the launcher Stop handler summary, and the original's
+   next input became a second input-bearing child of the same parent.
+
+4. Two concrete counterexamples remain for the restated candidate, plus a
+   matching gap in the history read:
+
+   - Stop-only settings. A foreign root started with an explicit settings
+     file holding the TUIOS Stop handler, or a copy of it, without a
+     SessionStart handler closes its turns like the original. Root-only
+     explicit settings cannot be inspected through approved sources, since
+     command-line inspection is excluded. Test whether the recorded handler
+     command identifies the pane's own launcher settings instance. If it
+     does not, this attach path has no validated signature.
+   - Persistence before effect. Exclusivity matters because item 4 uses the
+     pane's idle screen and last-turn closure to rule out unpersisted work,
+     and that evidence covers only the pane's own process. A foreign root's
+     in-flight turn has no screen evidence, and the plain experiment shows no
+     attach-time record ahead of that root's turn records. The proof needs
+     an ordering property per pinned version: a turn's input record is
+     persisted before that turn runs any tool or starts any waiting
+     mechanism. An in-flight foreign turn is then visible as an unclosed or
+     unattributed turn. Test it with a disposable tool, run inside an
+     ordinary original turn and inside a foreign root's first turn, that
+     reads the bound file and records whether its own turn's input and
+     tool-use records are already present. A lag measurement cannot replace
+     this ordering check.
+   - The same window exists for non-pane roots writing their own files in
+     this checkout under Q19. Item 2 makes open tool calls pending, but a
+     persisted input whose turn has made no tool call yet is not covered.
+     Apply item 4's closure condition to the last turn of every in-scope
+     transcript. This only adds pending outcomes, with no new source.
+
+5. A minimal falsification matrix, running each attach case while the
+   original root runs and after it exits, and recording persistence order
+   relative to the attach's first failing record:
+
+   - Controls that attribution must accept: a no-tool turn; sequential and
+     parallel tool calls; a background start with a notification-started
+     turn; a slash command and queued input; interruption and API retry;
+     compaction; a subagent sidechain; a Stop-hook error or timeout; and file
+     checkpointing disabled. Record rewind or message edit as an expected
+     pending branch.
+   - Attach paths that attribution must reject: plain `--resume` and
+     `--continue` with checkpointing on and off; launcher-settings
+     `--resume` and `--continue`, including a SessionStart hook failure or
+     timeout; in-process `/resume` from another root; nested
+     `claude -p --resume` and `-p --continue` from the pane's own tool,
+     recording markings, snapshots, closure records and chain position;
+     explicit settings carrying only a Stop handler, TUIOS and other;
+     launcher retry; a background session and reattach; an idle foreign root
+     with no input, recording whether it appends anything; and
+     `--fork-session`, confirming that nothing enters the bound file.
+   - Ordering: the in-turn file check above, for an original turn and for
+     each foreign root's first turn.
+
+6. Cross-document drift. Validation case 6 still says "An attach without the
+   launcher settings is untested", contradicting the new source-facts row
+   and the companion. Item 1 still frames the proof as foreign roots leaving
+   "another validated attach signature", and it still asks whether nested
+   sessions can be told apart by their own markings. Both plans' attach
+   clauses say "record each attach signature". The source-facts row lists
+   the three checks as candidates in their negative form. All of these need
+   the positive attribution wording.
+
+7. The restatement stays within Q18=A (existing launcher settings, no new
+   hook), Q19=A, Q20=A, Q22=A and Q23=A. It adds no source, limit or human
+   question, and Q22/Q23 inherit it through "item 1's generation-scoped
+   exclusivity". Step 1 stays incomplete and both hosts unsupported.
+
+Disposition: changes requested. Item 1's proof obligation changes, the
+validation section gains cases, and three documents carry stale wording.
+
+### Question verdicts for design-specification resume-paused (plain attach feasibility 2026-11-13) round 1
+
+The design has no open question, and no question is missing now. Q01-Q23 are
+explicit user decisions. I agree with each one, and this round changes none of
+them.
+
+The restated attribution rule fits the existing decisions. Its Stop handler
+check uses only the existing explicit launcher settings (Q18=A) and installs
+no hook. It reads only the bound file and the Q19=A history set. It keeps Q20=A's
+three disclosed limits and Q21=A's clock scope unchanged. Q22=A and Q23=A
+reference "item 1's generation-scoped exclusivity" and inherit the restated
+proof without new wording.
+
+A human question becomes necessary only if the falsification matrix finds an
+attach path that passes the restated attribution, for example Stop-only
+settings whose recorded handler command cannot be told apart from the pane's
+own, or if the persistence-before-effect ordering fails. Generation-scoped
+exclusivity would then be unprovable through approved sources. The writer
+should return that concrete case to design review first. Only there would a
+question weigh the alternatives: a further disclosed limit, an additional
+approved source, or Claude reviewer activation always reported pending.
+None of these is selected or proposed as decided here.
+
+### Requested changes for design-specification resume-paused (plain attach feasibility 2026-11-13) round 1
+
+Requested changes:
+
+1. Design item 1. Replace the text from "The marker rule carries this proof:"
+   through "returns to design review with a concrete proposal." with:
+
+   ```text
+   Prove it by positive attribution, not by a list of foreign signatures.
+   Any later SessionStart record other than `compact`, whatever its hook
+   outcome, means pending. Every other record from the marker through the
+   end of the read must be attributed to the current root by validated
+   rules: one parent chain from the marker, except validated fan-out shapes
+   such as tool-call fan-out, subagent sidechains and compaction boundaries;
+   every model turn, whatever starts it, closed by a `stop_hook_summary`
+   linked into that turn whose recorded handlers equal the validated
+   launcher Stop handler set, then the validated final record; every
+   `file-history-snapshot` linked to an input record in the chain or
+   matching a validated original-process form; and classified local-command
+   and metadata records. An unattributed record, a second input-bearing
+   child, an unclosed or differently closed turn, or an unlinked snapshot
+   means pending. Validate for each pinned version that every root able to
+   append to an existing session file fails this attribution: launch-time
+   `--resume` or `--continue`, in-process `/resume`, launcher retry,
+   backgrounded or reattached sessions, and roots started without the
+   launcher settings, including nested print-mode and roots whose own
+   explicit settings carry a Stop handler. Also validate persistence before
+   effect: a turn's input record is persisted before that turn runs any tool
+   or starts any waiting mechanism. An append path that passes attribution,
+   or a failed ordering property, keeps the profile unsupported and returns
+   to design review with a concrete proposal.
+   ```
+
+   In the same item, replace "Require validated root-interactive record
+   markings; test whether nested sessions can be distinguished by their own
+   markings rather than assuming hook-file continuity." with:
+
+   ```text
+   Require validated root-interactive record markings to classify records.
+   Markings do not attribute a record to a root: the 2026-11-13 plain resume
+   carried the original's markings. Nested-session records must fail the
+   attribution above.
+   ```
+
+2. Design item 4. After "and the turn's validated final record is present.",
+   add:
+
+   ```text
+   Apply this closure condition to the last turn of every in-scope
+   transcript under item 5; an unclosed turn in any of them means pending.
+   ```
+
+3. Validation case 6. Replace it with:
+
+   ```text
+   6. Every root attaching to the same session id, concurrently or later,
+      with and without the launcher settings, including nested print-mode
+      resume and explicit settings carrying only a Stop handler, fails item
+      1's positive attribution, and its turn input persists before that
+      turn's first tool runs. On 2026-11-13 the launcher-settings `--resume`
+      wrote `SessionStart:resume`. The plain `--resume` wrote no
+      SessionStart, and its turns closed without the launcher Stop handler
+      summary.
+   ```
+
+   Replace the sentences from "Reproduce every attach path" through "its
+   persistence order." with:
+
+   ```text
+   Reproduce every attach path while the original root runs and after it
+   exits, with and without the launcher settings, and record where each
+   attach first fails attribution and its persistence order. Run ordinary
+   original-process controls that attribution must accept: no-tool turns,
+   sequential and parallel tool calls, background starts with
+   notification-started turns, slash commands and queued input, interruption
+   and API retry, compaction, subagent sidechains, Stop-hook error or
+   timeout, and file checkpointing disabled. Record rewind or message edit
+   as expected pending branches. In an original turn and in each foreign
+   root's first turn, a disposable tool reads the bound file and records
+   whether its own turn's input and tool-use records are already persisted.
+   ```
+
+4. Design source facts. In the "Writer-owned disposable Claude probes on
+   2026-11-13" row, replace "Missing stop summaries, unlinked snapshots and
+   later branching are candidate rejection checks, not validated universal
+   attach signatures." with:
+
+   ```text
+   Its turns closed without the launcher Stop handler summary, and the
+   original's next input shared the foreign input's parent. Item 1 states
+   positive attribution rules for these observations; they remain
+   unvalidated.
+   ```
+
+   Add this row after it:
+
+   ```text
+   | Independent reviewer observation on 2026-11-13, Claude 2.1.323, the reviewer's own `tuitp`-launched pane | A complete read found 777 records and 2949158 bytes with a final newline. Fifteen parents had two children; each was an assistant record carrying a `tool_use` block, with the tool-result user record and the next assistant record as children. Each of the three closed turns, two started by task notifications, ended with a `stop_hook_summary` whose child was `turn_duration`; each summary had `hookCount` 1 and `hookInfos` entries with `command` and `durationMs`, the command naming TUIOS. The one snapshot linked to its input. The slash-command input carried `origin.kind` `human` without `promptSource`. These are reviewer observations, not writer validation. |
+   ```
+
+5. Evidence companion. Restate the "Proposed structural rejection checks"
+   paragraph in the positive form of change 1, keeping it unvalidated. Add
+   the reviewer observation from change 4 under its own dated heading.
+
+6. Both plans. In the implementation plan's Step 1 "Exercise clear ..."
+   bullet and the validation plan's Claude marker-coverage bullet, replace
+   "record each attach signature and whether any of that root's records
+   persist before it (design item 1, case 6)" with:
+
+   ```text
+   record where each attach first fails design item 1's positive
+   attribution, and whether its turn input persists before that turn's
+   first tool runs, against the original-process controls (design item 1,
+   case 6)
+   ```
+
+   In each plan's "Validate turn closure ..." bullet, add:
+
+   ```text
+   Apply the closure condition to the last turn of every in-scope transcript.
+   ```
+
+### Writer instructions for design-specification resume-paused (plain attach feasibility 2026-11-13) round 1
+
+1. In design item 1, replace the signature-based proof with the positive
+   attribution paragraph from the requested changes. Replace the sentence on
+   nested-session markings with the requested classification sentence.
+2. In design item 4, add the sentence applying the closure condition to the
+   last turn of every in-scope transcript.
+3. Replace validation case 6 and the attach-path validation sentence after
+   the case list with the requested wording, including the original-process
+   controls and the in-turn ordering check.
+4. Update the 2026-11-13 source-facts row as requested, and add the dated
+   independent reviewer observation row after it. Mirror the reviewer
+   observation in the evidence companion, labeled as reviewer evidence.
+5. In the evidence companion's proposed-checks section, restate the three
+   checks in their positive form. Keep the statement that they are
+   unvalidated.
+6. In both plans, replace the "record each attach signature ..." clause.
+   Add the closure sentence to each plan's turn-closure bullet.
+7. Keep Q01-Q23, Step 1 status and both hosts unsupported unchanged. Then run
+   the falsification matrix in disposable sessions only. If an attach path
+   passes attribution, or the ordering property fails, return that case to
+   design review with a concrete proposal before any human question.
+
+### Final reviewer decision for design-specification resume-paused (plain attach feasibility 2026-11-13) round 1
+
+Decision: changes-requested. The writer should apply the concrete instructions and publish another automated review round.
+
+<!-- review-entry-id: answer-round-1-exchange-5 -->
+
+## Round 2 by requestor (exchange 5)
+
+- Recorded: 2026-11-13T21:24:51+01:00
+- Exchange: specification/design-specification/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/design.v0.14.0.resume-paused.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Outcome: request
+
+### Review identity for design-specification resume-paused (plain attach feasibility 2026-11-13) (round 2)
+
+Umbrella draft: none
+Reviewed specification: docs/v0.14.0/design.v0.14.0.resume-paused.md
+Review round: 2
+
+### Requestor assessment for design-specification resume-paused (plain attach feasibility 2026-11-13) (round 2)
+
+Applied all six requested changes from round 1. Item 1 now requires positive
+closed-world attribution of every record, validated fan-out, closure of every
+model turn through the exact launcher Stop handler set and final record,
+snapshot linkage, and classified local-command/metadata forms. Markings only
+classify records. Every append path must fail attribution, including roots
+with their own Stop-only settings. Persistence before effect must be validated.
+Item 4 applies last-turn closure to every in-scope transcript.
+
+Updated validation case 6, the original-process control matrix and the in-turn
+file check. Source facts and companion distinguish writer experiments from
+reviewer observations. Both plans carry the attribution/ordering and history
+closure obligations; validation status is unchanged. Covered wording in the
+acceptance example and nested-record validation now uses the same contract.
+
+No open question is missing. Q01-Q23 remain unchanged and sufficient to run
+the falsification matrix. No additional limit, source, hook installation or
+one-host delivery is proposed. The candidate remains unvalidated and both
+profiles unsupported. Please verify alignment and the next experiment: test
+Stop-only settings and persistence before effect in owned diagnostics, returning
+any counterexample to design review before a new human question.
+
+Writer notes (read-only):
+
+- `.reviews/a.resume-paused.step1.journal.md`
+- `.reviews/a.resume-paused.step1.handoff.md`
+
+The unrelated spelling choice for the identifier in the companion remains
+pending; it changes neither proof nor user decisions. No commit gate is ready.
+
+### Change summary for design-specification resume-paused (plain attach feasibility 2026-11-13) (round 2)
+
+Replaced negative attach-signature checks with positive attribution in design
+item 1, nested-record classification and the acceptance example. Extended
+item 4 closure to every in-scope transcript. Replaced validation case 6 and
+added controls plus persistence-before-effect checks. Updated dated source
+facts and added the reviewer's separately labeled branching/closure evidence.
+Aligned both plans' expectations and the companion without changing status.
+No production adapter, test, support claim or decision row changed.
+
+### Writer response for design-specification resume-paused (plain attach feasibility 2026-11-13) (round 2)
+
+Writer response:
+
+Accepted the full requested restatement without disagreement. Ordinary
+tool-call fan-out must be classified; arbitrary branch rejection was too broad.
+Root markings and a generic Stop summary cannot alone attribute a record.
+Stop-only settings and persistence before effect are explicit unresolved
+falsification cases. Closure of all history files now prevents an input-only
+in-flight foreign turn from being mistaken for positive absence. The changes
+define proof obligations; they establish no host support.
+
+### Reviewer focus for design-specification resume-paused (plain attach feasibility 2026-11-13) (round 2)
+
+Check for missing questions, assess the existing options and answers, and suggest any clearer wording.
+
+<!-- review-entry-id: request-round-2-exchange-5 -->
+
+## Round 2 by reviewer (exchange 5)
+
+- Recorded: 2026-11-13T21:28:57+01:00
+- Exchange: specification/design-specification/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/design.v0.14.0.resume-paused.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Outcome: answer
+
+### Reviewer assessment for design-specification resume-paused (plain attach feasibility 2026-11-13) round 2
+
+Reviewed the current design (SHA-256
+`7b79f65a008fe8ff013f4de48632350d701b3b5b47d2c063e5b3c6bddb909f1b`) against
+the round 1 requested changes, together with both plans and the evidence
+companion.
+
+1. Every requested change is applied with the requested wording. Item 1
+   states positive closed-world attribution: SessionStart rejection whatever
+   the hook outcome, one parent chain with validated fan-out, handler-set
+   closure of every model turn, snapshot linkage, and classified
+   local-command and metadata records. Every append path must fail it,
+   including roots whose own settings carry a Stop handler, and persistence
+   before effect is a validation obligation. The marking sentence now limits
+   markings to classification. Item 4 applies closure to the last turn of
+   every in-scope transcript. Validation case 3, case 6, the control matrix,
+   the in-turn file check, the acceptance row and the nested-marking sentence
+   use the same contract. Both plans carry the attribution, ordering and
+   history-closure obligations.
+
+2. The new reviewer row and the companion's reviewer section match this
+   reviewer's observation exactly and are labeled as reviewer evidence. The
+   companion's "Positive attribution candidate" section restates the rule
+   faithfully, keeps it unvalidated and names the two open falsification
+   cases.
+
+3. The restated rule is consistent with the rest of the design. Q23's
+   requestor binding starts from its `startup` or `clear` marker and
+   inherits the rule through "item 1's generation-scoped exclusivity".
+   Compaction stays allowed both as a SessionStart outcome and as a chain
+   exception. Item 3 already makes any Stop handler beyond the validated
+   TUIOS set pending, so the handler-set closure adds no source. One
+   interaction is correct as written but worth a sentence. The proved
+   requestor's transcript is in the Q19 set, and Q22=A excludes only
+   validated post-marker starts. An open requestor turn therefore keeps the
+   reviewer pending until that turn closes. This is safe, because an
+   in-flight turn may hold an unpersisted watcher start that Q22=A keeps in
+   scope. It can push activation to a later invocation when the requestor's
+   turn outlasts the 120-second bound. Stating it would stop an implementer
+   from widening the exception.
+
+4. Only wording-level points remain:
+
+   - The companion's concurrent-resume section still says "The design and
+     both plans now require a validated attach signature" and "another
+     validated attach signature mean pending". That described the previous
+     contract; it should read as history and point to the positive
+     attribution section.
+   - The 2026-11-13 source-facts row ends "pending independent review of
+     those checks". That review has happened; it should say pending
+     validation of item 1's attribution rules.
+   - Both plans still say "root/nested discrimination" and "root/nested record
+     discrimination", and the design's `tuitp` compatibility section says
+     "launcher-only root/nested discrimination". "Attribution" would match
+     design item 1.
+   - Optionally, add the Q22=A interaction sentence from point 3.
+
+5. The next experiment is the right one. The Stop-only settings case and
+   persistence before effect are the two cases that can falsify the
+   candidate outright, so running them first is the cheapest order. For
+   Stop-only settings, use both an exact copy of the launcher's recorded Stop
+   command and a different command. Record whether the recorded `command`
+   carries anything instance-specific, such as the launcher-owned settings
+   path or the pane. If an exact copy is indistinguishable, that is the
+   counterexample for design review. For persistence before effect, run the
+   in-turn check on the fastest available first tool and on a background
+   start, repeated, and record the sample count and conditions. Samples can
+   falsify the ordering. They cannot show that an asynchronous writer always
+   flushes first, so a passing result is pinned-version validation evidence
+   under the design's existing standard, the same as timestamp semantics.
+
+6. No question is missing, and Q01-Q23 are unchanged. No human decision is
+   outstanding. The writer's identifier spelling choice in the companion is
+   outside this review. Step 1 stays incomplete and both hosts unsupported.
+
+Disposition: convergence recommended for the reviewed formulation, with the
+wording points above.
+
+### Question verdicts for design-specification resume-paused (plain attach feasibility 2026-11-13) round 2
+
+The design has no open question, and none is missing. Q01-Q23 are explicit
+user decisions. I agree with each one, and this round changes none of them.
+
+The positive attribution rule uses only the existing launcher settings
+(Q18=A), the Q19=A read set and Q20=A's three disclosed limits with Q21=A's
+clock scope. Q22=A and Q23=A inherit it by reference. Q22=A's exception
+removes only validated post-marker starts. It does not exempt an open
+requestor turn from item 4's closure condition, which the literal text
+already says.
+
+The only conditional choice is unchanged. If the Stop-only settings case is
+indistinguishable, or persistence before effect fails, the writer returns that
+case to design review before any human question. No limit, source or
+one-host delivery is selected or proposed as decided. There is no outstanding
+human decision in the reviewed formulation.
+
+### Convergence evidence for design-specification resume-paused (plain attach feasibility 2026-11-13) round 2
+
+Covered wording:
+
+Companion paragraph replacing "The first independent review requested ...
+still outstanding.":
+
+```text
+The first independent review requested generation-scoped exclusivity in
+design item 1: every record from the accepted first timestamped marker
+through the complete read must come from the pane's current direct child.
+That contract first relied on a validated attach signature for every
+append-capable root. The plain-resume experiment below found an append path
+without one, and the later review replaced the signature list with positive
+attribution, described in the positive attribution section. No replacement
+evidence source, weaker absence rule or new human question has been
+selected. Validation status remains unchanged. Both hosts remain
+unsupported; the remaining feasibility matrix, adapters, tests and
+implementation gates are still outstanding.
+```
+
+Optional Q22=A interaction sentence:
+
+```text
+This includes the proved requestor's transcript: Q22=A excludes validated
+post-marker starts, not an unclosed requestor turn.
+```
+
+The reviewed item 1 attribution rule, the item 4 closure extension,
+validation cases 3 and 6, the control matrix, the acceptance row and both
+plans' obligations stand as written.
+
+Convergence rationale:
+
+Every round 1 requested change is applied with the requested wording. Item 1
+now proves generation-scoped exclusivity by positive attribution instead of
+foreign signatures, and item 4 closes the in-flight window for every in-scope
+transcript. The validation section, acceptance row, both plans and the
+companion carry the same contract, and the reviewer evidence is recorded
+accurately and labeled as such.
+
+The remaining points are wording: two stale companion and source-facts
+phrases, a term in both plans, and an optional clarifying sentence on Q22=A.
+None changes a contract, gate or decision. No question is missing, Q01-Q23
+are preserved, and no human decision is outstanding. The only conditional
+choice depends on the Stop-only settings and persistence-before-effect
+results and is routed back to design review first.
+
+This recommendation covers the reviewed feasibility contract only. It does
+not authorize consolidation, which stays a separate human choice. It does not
+declare either host supported or Step 1 complete.
+
+### Writer instructions for design-specification resume-paused (plain attach feasibility 2026-11-13) round 2
+
+1. Wording only. In the companion's concurrent-resume section, replace the
+   paragraph beginning "The first independent review requested" with the
+   covered wording, so it reads as history of the earlier contract.
+2. Wording only. In the 2026-11-13 source-facts row, replace "pending
+   independent review of those checks and the remaining append-path matrix"
+   with "pending validation of item 1's attribution rules and the remaining
+   append-path matrix".
+3. Wording only. In both plans, replace "root/nested discrimination" and
+   "root/nested record discrimination" with "root/nested attribution" and
+   "root/nested record attribution". Make the same edit to "launcher-only
+   root/nested discrimination" in the design's `tuitp` compatibility
+   section.
+4. Optional. Add the Q22=A interaction sentence from the covered wording at
+   the end of item 4's new closure sentence, and in each plan's turn-closure
+   bullet.
+5. Then run the Stop-only settings case and the persistence-before-effect
+   check first, in disposable sessions, as described in the assessment. If
+   either falsifies the candidate, return that case to design review with a
+   concrete proposal before any human question. Otherwise continue with the
+   rest of the matrix. Keep Step 1 incomplete and both hosts unsupported.
+
+### Final reviewer decision for design-specification resume-paused (plain attach feasibility 2026-11-13) round 2
+
+Decision: convergence-recommended. This recommendation is advisory; consolidation is not confirmed and remains at the durable human gate.
+
+<!-- review-entry-id: answer-round-2-exchange-5 -->
+
+## Round 2 by human - human-confirmation
+
+- Recorded: 2026-11-13T22:35:47+01:00
+- Exchange: specification/design-specification/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/design.v0.14.0.resume-paused.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Outcome: human-confirmation
+
+Human choice: Consolidate
+Outcome: continue-owning-workflow
+
+<!-- review-entry-id: human-confirmation-round-2 -->
