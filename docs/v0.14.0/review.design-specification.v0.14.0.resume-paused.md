@@ -9658,3 +9658,2192 @@ Human choice: Consolidate
 Outcome: continue-owning-workflow
 
 <!-- review-entry-id: human-confirmation-round-2 -->
+
+## Round 1 by requestor (exchange 6)
+
+- Recorded: 2026-11-13T23:42:55+01:00
+- Exchange: specification/design-specification/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/design.v0.14.0.resume-paused.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: unrecorded
+- Outcome: request
+
+### Review identity for design-specification resume-paused (round 1)
+
+Umbrella draft: none
+Reviewed specification: docs/v0.14.0/design.v0.14.0.resume-paused.md
+Review round: 1
+
+### Requestor assessment for design-specification resume-paused (round 1)
+
+Step 1 is continuation after the completed prior consolidation, not a replay of it. The reviewed design remains consolidated Q01-Q23, with no open-ended questions or pending human decision. A new disposable Claude 2.1.325 counterexample requires the design item 1 return already specified by that design and the plan. Both host profiles remain unsupported; no production adapter, test, implementation-check, delivery or bulk CLI was run.
+
+Read the new companion sections "Stop-only resume controls for Claude 2.1.325" and "Proposed checkpoint coverage correction for independent review" in docs/v0.14.0/resume-paused.profile-evidence.md. The original and two foreign roots were independently verified live. The same-Stop-command resume had no new SessionStart, no snapshot, no human-input branch, a matching Stop summary and final turn_duration at the complete 94-record/502250-byte read. Its input attached to the original's tail. The different-handler control mismatched as expected. Only a later original input revealed a branch. These facts defeat handler equality as writer identity and make the current conditional snapshot check empty; they do not claim a full profile accepted or every metadata shape was classified.
+
+Input-before-effect was sampled using each process's own diagnostic tool, reading native transcript content only in memory. Original corrected probe: input/call both present, 67 records/453628 bytes. Foreign first tools: own input present, own call absent, respectively 78/472869 and 99/509366. Later reads contained both calls. Thus call persistence cannot be assumed, but the observed samples do not violate the design's input-before-effect condition or prove a universal guarantee. All disposable processes exited and their session was removed; cleanup absence verified. No hook installation, background task, schedule or new evidence channel was used.
+
+Concrete proposal for review: strengthen item 1 to require an input-linked file-history-snapshot for every externally supplied input within the accepted generation, while retaining the rejection of unlinked snapshots and all existing closure/chain/complete-generation conditions. Snapshot-disabled originals and resumes would both remain pending. Notifications/local commands require validated separate classification that cannot hide an external input or unresolved task start. Snapshot timing before effect also requires proof. Every E1-E3 append path must fail, with checkpointing both enabled and disabled. In particular, a foreign root able to emit the required linked snapshot without an unlinked prefix defeats this proposal. This is a candidate correction for validation, not an adopted sufficient proof or a supported profile.
+
+Please assess whether this is a technically sufficient bounded correction within the confirmed sources, or provide a concrete counterproposal. Do not treat another negative-signature heuristic as positive attribution. If no source-preserving correction is provable, say so explicitly and identify the exact missing contract before proposing any new human decision. No new open question has been invented; confirm whether a question is actually needed. Existing answers and prior review wording are preserved. No outstanding earlier wording edit was replayed.
+
+Writer notes: .reviews/a.resume-paused.step1.journal.md and .reviews/a.resume-paused.step1.handoff.md. Structural evidence: .reviews/a.resume-paused.step1.tmp.stop-summary.json and .reviews/a.resume-paused.step1.tmp.stop-persist-SAME.json, -SAME-during.json, -DIFFERENT.json, -DIFFERENT-during.json, -ORIGINAL_RETRY-during.json, -CONTROL.json and -FINAL.json (each uses the same stop-persist prefix). These files contain allowlisted facts only. Do not read the accumulated versioned review transcript as working context.
+
+### Change summary for design-specification resume-paused (round 1)
+
+Added the new Claude 2.1.325 Stop-only same/different-handler experiment, first-tool persistence samples, later original branch, native OS build/update revision, complete read counts, cleanup and limits to docs/v0.14.0/resume-paused.profile-evidence.md. Added a clearly unadopted mandatory checkpoint-coverage proposal for independent review. The reviewed design's confirmed decisions, requirement, implementation plan and validation plan are unchanged. Prior consolidation, commits and pushes remain complete.
+
+### Writer response for design-specification resume-paused (round 1)
+
+Writer response:
+
+This new exchange returns the exact Step 1 attribution gap to review as the settled design requires. The proposal deliberately narrows eligibility and retains fail-closed behavior; no extra source, hook, residual limit or weaker absence rule is selected. Please evaluate the proposed invariant against the counterexample before asking the human to decide anything. Remaining feasibility work is retained, including other append paths, complete wait/schedule/boot contracts and Codex image/input/race checks. Both hosts are required. No unsupported host is being enabled and Step 1 is not being marked complete.
+
+### Reviewer focus for design-specification resume-paused (round 1)
+
+Check for missing questions, assess the existing options and answers, and suggest any clearer wording.
+
+<!-- review-entry-id: request-round-1-exchange-6 -->
+
+### LLM nature completion for reviewer (exchange 6)
+
+Recorded nature: `claude`
+
+Completed artifacts:
+
+- `C:/Users/[redacted]/git/llm-shared_resume-paused/.reviews/a.review-active.specification.design-specification.v0.14.0.resume-paused.md`
+- `C:/Users/[redacted]/git/llm-shared_resume-paused/.reviews/a.review-requested.design-specification.v0.14.0.resume-paused.md`
+
+<!-- review-entry-id: llm-nature-completion-reviewer-exchange-6 -->
+
+## Round 1 by reviewer (exchange 6)
+
+- Recorded: 2026-11-13T23:59:37+01:00
+- Exchange: specification/design-specification/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/design.v0.14.0.resume-paused.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Outcome: answer
+
+### Reviewer assessment for design-specification resume-paused (Stop-only attribution 2026-11-13) round 1
+
+Reviewed the current design (SHA-256
+`f090b38164b89c14f9af3343f00d7e787c37878bfcfc7380c470b8511fde5f96`), the
+companion's two new sections, both plans and the writer's allowlisted
+structural files for the Stop-only run.
+
+1. The evidence is accurate, and the counterexample is real. The structural
+   files match the companion. There is one `SessionStart:startup`. The
+   same-handler input (record 74) is the only child of the original's
+   `turn_duration` record 72, and its Stop summary matches the launcher
+   handler. The read has no snapshots and is complete at 94 records and
+   502250 bytes. That read passes every rule in item 1 as written; the
+   snapshot rule is vacuous there. Two further facts strengthen the
+   companion's conclusion:
+
+   - The foreign input carried `turnPosition` 4/4, continuing the original's
+     numbering. The original's later control input carried the same 4/4
+     under the same parent, so turn position is inherited from the
+     conversation, like the markings.
+   - The different-handler turn wrote a `hook_success` attachment for `Stop`
+     before its summary, which the TUIOS handler's turns did not. That shape
+     depends on configuration; it does not identify a writer.
+
+   Keeping both hosts unsupported is correct.
+
+2. The checkpoint-coverage proposal is not a sufficient correction, and it
+   is not positive attribution:
+
+   - A linked snapshot shows that the root writing an input has
+     checkpointing enabled, not which root it is. Any checkpoint-enabled root
+     writes the snapshot for its own input and links it itself.
+   - Against a checkpoint-enabled foreign root, the only rejecting element is
+     the unlinked snapshot that the 2.1.323 plain resume wrote before its
+     first input. That is a resume-time foreign signature of unknown cause,
+     the form exchange 5 replaced. The proposal's own caveat names this
+     dependency.
+   - Against a checkpoint-disabled foreign root, it works only by requiring a
+     setting the pane cannot verify for another root. It also makes every
+     checkpoint-disabled original pending, which costs availability without
+     adding proof.
+   - Which inputs receive a snapshot is itself unvalidated. This reviewer's
+     earlier session had one snapshot across three turns, two of them
+     notification-started; slash and local commands differ again.
+
+   Do not adopt it. Keep the existing unlinked-snapshot rule only as a
+   conservative pending trigger.
+
+3. No source-preserving positive writer attribution is provable. Every field
+   the approved transcript channel carries is one of these:
+
+   - per session: session id, version, `cwd`, and the account and
+     organization in `session-owner`;
+   - per configuration: hook commands, snapshots and Stop `hook_success`
+     attachments;
+   - inherited from the conversation: markings and turn position.
+
+   The design excludes command-line inspection because it reads process
+   memory, and it approves no handle or environment channel. The TUIOS
+   activity log does attribute hook events to a pane, but it keeps 256
+   entries in daemon memory, and eviction never counts as positive proof.
+   It cannot cover a complete generation.
+
+   The exact missing contract is a writer identity bound to the pane's
+   current direct Claude child. That identity is its process id and creation
+   time, or a per-launch value only that child carries. It must be recorded
+   with every record, or at least every turn, in a source complete for the
+   whole generation. No approved source supplies it. The closest candidate,
+   an instance-unique launcher hook command, is a launcher change outside
+   Q18=A. It still cannot distinguish an exact copy of the launcher
+   settings.
+
+4. Counterproposal: require writer attribution only where the proof needs
+   it. Exchange 4 identified three uses of generation-scoped exclusivity, and
+   two can be met without knowing the writer:
+
+   - Another writer's in-flight work, which the pane's idle screen does not
+     cover. Suppose every root able to append to an in-scope transcript
+     persists a turn's input before that turn runs any tool or starts any
+     waiting mechanism. Then every effect of every writer follows a persisted
+     input. Closing every turn, rather than only the last turn of each file,
+     covers another writer's in-flight turn through the file instead of the
+     screen. A foreign root that is idle with all its turns closed is then
+     like any other idle process in the checkout: what it does after the
+     decision is a later event, as for other panes. The writer's three
+     samples support this ordering for interactive roots. The lagging
+     tool-call record makes one existing obligation load-bearing: a turn
+     counts as closed only if its closing records persist after every other
+     record of that turn. A chain without dangling parents covers the
+     ancestors of the closing records, not a fan-out leaf.
+   - Marked-input proof and Q16 are bound by content. The marker carries the
+     pane UUID; a later foreign input changes the latest typed input and
+     stops the receiver. The Claude proved-wait branch is already
+     unavailable. No change is needed.
+   - The Q22/Q23 exception does need attribution; see point 5.
+
+   The resulting item 1 keeps every existing pending trigger as a
+   conservative shape condition:
+
+   - a later noncompact SessionStart;
+   - an unvalidated branch or a second input-bearing child;
+   - a dangling or unclassified parent;
+   - an unlinked snapshot;
+   - a closure other than the validated launcher Stop summary followed by the
+     final record.
+
+   It stops claiming that these triggers identify the writer. "Every append
+   path fails attribution" becomes "every append path is classified, closes
+   visibly and persists its turn input before effect". Item 4 applies closure
+   to every input-bearing record and chain tip of every in-scope transcript.
+
+   For the reviewer's own absence proof, this adds no source, limit or human
+   decision. Exclusivity entered through review, and none of Q17-Q21 names
+   it. The only acceptance it changes: the observed same-handler root, once
+   all its turns are closed, stops being a defect. That is safe for the
+   reasons above.
+
+5. Q22=A and Q23=A cannot be satisfied as written, and one human decision is
+   needed. Q22=A excludes "proved requestor current-generation starts".
+   Without writer identity, a foreign root's post-marker start in the
+   requestor's file cannot be told apart from the requestor's own, so Q22=A's
+   own rule keeps it pending ("uncertain attribution stays pending"). A
+   foreign writer can never be ruled out, so the exception never applies.
+   The requestor's answer wait then blocks activation, which is the outcome
+   of the rejected option B. Excluding such starts anyway would exclude
+   another root's work, the risk the human rejected under option C.
+
+   The source-preserving correction bases the exception on content instead
+   of writer. It excludes only post-marker starts that parse as validated
+   requestor review-exchange operations, with their lifecycle records,
+   whatever root wrote them:
+
+   - A validated requestor operation cannot be a reviewer watcher, whoever
+     runs it.
+   - The exception stays inside the circular wait, the boundary Q22 used to
+     reject option C.
+   - It is narrower than Q22=A for the requestor's own other background work,
+     which stays pending until it ends.
+
+   Q23=A's clause "item 1's generation-scoped exclusivity" then becomes item
+   1's completeness and closure. This changes confirmed rows, so it is a
+   human choice; the question wording is in the requested changes.
+
+6. Validation consequences:
+
+   - For every append path, with checkpointing on and off, while the original
+     runs and after it exits, record three things: its shapes for
+     classification; whether its turns close under the validated closing
+     sequence, or which conservative trigger holds it pending; and its
+     input-before-effect order.
+   - Extend the in-turn file check to print-mode resume, `--continue`,
+     in-process `/resume`, and a first tool that starts background work.
+   - Add a turn-end check that closing records persist after every other
+     record of the turn, including parallel calls.
+   - If the pinned version can run a root without session persistence, that
+     root writes no transcript and is outside the ledger. Record whether such
+     a mode exists, and return it to review if it does.
+
+7. Cross-document drift once the change is adopted:
+
+   - Design item 1: the exclusivity and "positive attribution" sentences, the
+     nested-record sentence and the markings sentence.
+   - Item 4's last-turn wording and item 5's Q23 paragraph.
+   - Validation cases 3 and 6, the "first fails attribution" sentence and the
+     acceptance row for another root attaching to the session.
+   - Plan lines 185, 196, 204 and 205, and validation-plan lines 34 and 44.
+   - The companion's positive-attribution section becomes history, and its
+     proposal section records that review did not adopt it.
+   - The design's source facts have no row yet for the 2.1.325 Stop-only run.
+   - "No further design question remains" must change while the new question
+     is open.
+
+Disposition: changes requested. Item 1's proof obligation changes, a new
+human question is needed for Q22 and Q23, and both plans and the companion
+carry the affected wording. Step 1 stays incomplete and both hosts remain
+unsupported.
+
+### Question verdicts for design-specification resume-paused (Stop-only attribution 2026-11-13) round 1
+
+The design has no open question, and one is missing. Q01-Q21 are unchanged,
+and I agree with each.
+
+Q22=A and Q23=A cannot be satisfied as written. Their requestor exception
+rests on writer attribution that no approved source proves (assessment
+points 3 and 5), so under Q22=A's own uncertainty rule the exception never
+applies. That reproduces the outcome of the rejected option B. This is a
+conflict in confirmed decisions, so it needs a human choice. I would choose
+A for the missing Q24: a content-based exception for validated requestor
+review-exchange operations. It keeps Q22's purpose and its option C
+boundary, and it adds no source. That is the reviewer's recommendation; the
+human has not decided it.
+
+The reviewer-side item 1 change needs no human decision, because no
+confirmed row names exclusivity for the reviewer's own absence proof. The
+checkpoint-coverage proposal raises no question and should not be adopted.
+No limit, source or one-host delivery is proposed.
+
+### Requested changes for design-specification resume-paused (Stop-only attribution 2026-11-13) round 1
+
+Requested changes:
+
+1. Design item 1. Replace the text from "The host does not keep a transcript
+   exclusive to one root:" through "returns to design review with a concrete
+   proposal." with:
+
+   ```text
+   The host does not keep a transcript exclusive to one root: a second root
+   can resume the same session id while the first runs or after it exits. No
+   approved source identifies which root wrote a record. The recorded Stop
+   command, snapshots, `session-owner` metadata, markings and turn positions
+   are shared by any root that resumes the session (2026-11-13 Stop-only
+   run). Item 1 therefore claims no writer attribution. It requires
+   generation-scoped completeness and closure for every writer. Any later
+   SessionStart record other than `compact`, whatever its hook outcome, means
+   pending. From the marker through the end of the read, records form one
+   parent chain, except validated fan-out shapes such as tool-call fan-out,
+   subagent sidechains and compaction boundaries. Every
+   `file-history-snapshot` links to an input record in the chain or matches a
+   validated original-process form, and local-command and metadata records
+   are classified. Every model turn, whatever starts it and whichever root
+   wrote it, closes with a `stop_hook_summary` linked into that turn whose
+   recorded handlers equal the validated launcher Stop handler set, then the
+   validated final record. A dangling or unclassified parent, a second
+   input-bearing child, an unlinked snapshot, an unclassified record, or an
+   unclosed or differently closed turn means pending. These are conservative
+   shape conditions, not writer identity. Validate for each pinned version
+   that every root able to append to an in-scope transcript persists a
+   turn's input record before that turn runs any tool or starts any waiting
+   mechanism, and persists a turn's closing records after every other record
+   of that turn. Cover launch-time `--resume` or `--continue`, in-process
+   `/resume`, launcher retry, backgrounded or reattached sessions, and roots
+   started without the launcher settings, including nested print-mode and
+   roots whose own explicit settings carry a Stop handler. This ordering,
+   not the pane's idle screen, covers another writer's in-flight turn. A
+   failed ordering property keeps the profile unsupported and returns to
+   design review with a concrete proposal.
+   ```
+
+2. Design item 1. Replace "Require validated root-interactive record
+   markings to classify records. Markings do not attribute a record to a
+   root: the 2026-11-13 plain resume carried the original's markings.
+   Nested-session records must fail the attribution above." with:
+
+   ```text
+   Require validated root-interactive record markings to classify records.
+   Markings and turn positions do not identify a writer: the 2026-11-13
+   resumed roots carried the original's markings and continued its turn
+   numbering. Nested-session records in the bound file are classified and
+   closure-checked like any other writer's.
+   ```
+
+3. Design item 4 and implementation plan line 204. Replace "the last turn of
+   every in-scope transcript" with "every input-bearing record and every
+   chain tip of every in-scope transcript". In plan line 204, also replace
+   "generation binding or generation-scoped exclusivity checks" with
+   "generation binding, completeness or closure checks".
+
+4. Validation case 3. Replace "record the nested session's marking for
+   classification and prove that its records fail item 1's positive
+   attribution." with "record the nested session's markings for
+   classification; if it appends to the bound file, its records are
+   classified and closure-checked under item 1."
+
+5. Validation case 6. Replace its first sentence with:
+
+   ```text
+   Every root attaching to the same session id, concurrently or later, with
+   and without the launcher settings, including nested print-mode resume and
+   explicit settings carrying only a Stop handler, is classified and either
+   closes every turn under the validated closing sequence or stays pending
+   under a conservative trigger. Its turn input persists before that turn's
+   first tool runs, and its closing records persist after every other record
+   of the turn.
+   ```
+
+   After the existing 2026-11-13 sentences, add: "On 2.1.325, a root whose
+   settings held only the exact launcher Stop command passed every shape
+   condition, so no shape identifies the writer."
+
+6. In the attach sentence after the case list, replace "record where each
+   attach first fails attribution and its persistence order" with "record
+   its shapes, closure and persistence order, with checkpointing enabled and
+   disabled". Extend the in-turn file check to print-mode resume,
+   `--continue`, in-process `/resume` and a first tool that starts background
+   work. Add a turn-end check that closing records persist after every other
+   record of the turn, including parallel calls. Record whether the pinned
+   version can run a root without session persistence. If it can, return that
+   root to review, because it writes no transcript.
+
+7. Acceptance row for another root attaching to the bound session id. Replace
+   its outcome with: "Pending while a later noncompact SessionStart, another
+   conservative shape trigger or an unclosed turn holds. Closed, classified
+   turns are covered like any other writer's. Failed input-before-effect or
+   closing-record ordering keeps the profile unsupported and returns to
+   design review."
+
+8. Implementation plan line 185 and validation-plan line 34:
+
+   - Replace "root/nested record attribution" or "root/nested attribution"
+     with "root/nested record classification".
+   - Replace "design item 1's generation-scoped exclusivity" with "design
+     item 1's generation completeness and closure for every writer".
+   - In plan line 205 and validation-plan line 34, replace "record where each
+     attach first fails design item 1's positive attribution, and whether its
+     turn input persists before that turn's first tool runs" with "record its
+     shapes, whether its turns close under design item 1 or which
+     conservative trigger holds them pending, whether its turn input persists
+     before that turn's first tool runs, and whether its closing records
+     persist last".
+
+9. Add an open-ended questions section with this question. Mark the Q22 and
+   Q23 rows, item 5's Q23 paragraph, plan line 196 and validation-plan line
+   44 as pending it, without rewriting them:
+
+   ```text
+   Q24. No approved source identifies which root wrote a transcript record,
+   so Q22=A's "proved requestor current-generation starts" cannot be proved
+   and the exception never applies. What should the requestor exception
+   exclude?
+
+   A (recommended): Exclude only post-marker starts in the Q23-bound
+   requestor file that parse as validated requestor review-exchange
+   operations, with their own lifecycle records, whichever root wrote them.
+   Every other post-marker start stays in scope. Q23 replaces "item 1's
+   generation-scoped exclusivity" with item 1's completeness and closure.
+   Pros: the requestor's answer wait no longer blocks activation, no source
+   is added, and the exception stays inside the circular wait, the boundary
+   used to reject Q22 option C. A validated requestor operation cannot be a
+   reviewer watcher, whoever runs it. Cons: the requestor's own other
+   post-marker background work blocks activation until it ends; later
+   continuation handles it.
+
+   B: Keep Q22=A's writer condition. Pros: no rule change. Cons: the
+   exception never applies, so a Claude requestor's answer wait keeps its
+   Claude reviewer pending, the outcome rejected as Q22 option B.
+
+   C: Approve a named writer-identity source, validated before the exception
+   relies on it. Pros: keeps Q22=A's scope. Cons: it needs a new source or a
+   launcher change outside Q18=A, with its own proposal. The closest
+   candidate, an instance-unique launcher hook command, still cannot
+   distinguish an exact copy of the launcher settings, so a disclosed limit
+   would remain.
+
+   Recommended answer: A. It is the only option that keeps Q22's purpose
+   without a new source or an unprovable condition.
+   ```
+
+10. Source facts and companion. Add the dated 2.1.325 Stop-only row. Change
+    "No further design question remains" while Q24 is open. Record in the
+    companion that review did not adopt the checkpoint-coverage proposal, and
+    mark the positive-attribution section as superseded history.
+
+### Writer instructions for design-specification resume-paused (Stop-only attribution 2026-11-13) round 1
+
+1. In the companion's "Proposed checkpoint coverage correction" section,
+   record that independent review did not adopt the proposal, with the
+   reasons in assessment point 2. Mark the "Positive attribution candidate"
+   section as history superseded after the Stop-only run.
+2. Replace item 1's exclusivity text and its markings sentences with the
+   requested wording, and apply the item 4 change. Keep every existing
+   pending trigger.
+3. Add a dated source-facts row for the Claude 2.1.325 Stop-only run,
+   including the inherited turn position and the configuration-dependent
+   Stop `hook_success` attachment.
+4. Add an open-ended questions section with Q24 as written, and change "No
+   further design question remains" accordingly. Do not rewrite the Q22 or
+   Q23 rows or item 5's Q23 paragraph. Mark them as pending Q24.
+5. Align validation cases 3 and 6, the attach sentence after the case list,
+   the acceptance row, plan lines 185, 204 and 205, and validation-plan line
+   34 with the completeness, closure and ordering contract. Leave plan line
+   196 and validation-plan line 44 pending Q24.
+6. Do not ask the human yet. Return the revised design for another review
+   round; Q24 goes to the human only after review converges. Keep Step 1
+   incomplete and both hosts unsupported.
+
+### Final reviewer decision for design-specification resume-paused (Stop-only attribution 2026-11-13) round 1
+
+Decision: changes-requested. The writer should apply the concrete instructions and publish another automated review round.
+
+<!-- review-entry-id: answer-round-1-exchange-6 -->
+
+## Round 2 by requestor (exchange 6)
+
+- Recorded: 2026-11-14T00:09:49+01:00
+- Exchange: specification/design-specification/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/design.v0.14.0.resume-paused.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Outcome: request
+
+### Review identity for design-specification resume-paused (Stop-only attribution 2026-11-13, round 2)
+
+Umbrella draft: none
+Reviewed specification: docs/v0.14.0/design.v0.14.0.resume-paused.md
+Review round: 2
+
+### Requestor assessment for design-specification resume-paused (Stop-only attribution 2026-11-13, round 2)
+
+The Stop-only counterexample defeats positive writer attribution through every approved source. I accept the reviewer's findings and the source-preserving completeness and closure counterproposal. The revised design claims no writer identity. It retains every conservative pending trigger, classifies all append paths, requires every turn input before any tool or waiting effect, and requires closing records after every other record of that turn, including fan-out leaves. Closure now covers every input-bearing record and every chain tip of every in-scope transcript. These remain validation obligations, not established host guarantees.
+
+One missing human question is now explicit: design Q24. Its A recommendation excludes only post-marker starts in the Q23-bound file that parse as validated requestor review-exchange operations, with their lifecycle records, whoever wrote them. Every other start stays in scope. Its B and C alternatives preserve the writer condition or require a separately proposed identity source. The options, pros, cons and proposed answer are sufficient for review. The user has not chosen. Confirmed Q22/Q23 rows and their operative requestor wording remain recorded and are annotated pending Q24. No further question is identified; no source, limit or one-host delivery is proposed.
+
+Please review the design, both plans and companion together, especially whether the completeness/ordering obligations cover concurrent foreign turns and delayed parallel leaves, and whether Q24 preserves the circular-wait boundary without pretending to identify a writer. All requested wording was applied or expanded into the required question template. Validation-plan edits align expectations only; every implementation status and placeholder is preserved. Step 1 remains incomplete and both profiles unsupported. No production adapter, test or implementation gate has run.
+
+Writer notes: .reviews/a.resume-paused.step1.journal.md and .reviews/a.resume-paused.step1.handoff.md. Structural evidence remains in .reviews/a.resume-paused.step1.tmp.stop-summary.json and the stop-persist structural files named in round 1. Native conversation and tool payloads were parsed in memory only. No diagnostic process remains; no new experiment has been launched. Do not read the accumulated versioned review transcript as working context.
+
+### Change summary for design-specification resume-paused (Stop-only attribution 2026-11-13, round 2)
+
+Replaced design item 1's impossible writer-attribution claim with generation completeness, classification and closure for every writer, retaining all pending triggers. Applied closure to every input-bearing record and every chain tip. Updated nested and same-session attach cases, acceptance outcomes and append-path validation, including checkpointing on/off, print-mode resume, --continue, in-process /resume, background-starting first tools, parallel leaves and closing-record persistence last. Added the obligation to return any root without session persistence to review.
+
+Added the dated Claude 2.1.325 source fact and evidence details for inherited turn positions and configuration-dependent Stop attachments. Marked the earlier positive-attribution proposal as superseded history and the checkpoint-coverage proposal as not adopted, with reasons. Added pending design Q24 in the canonical question template through oqm; preserved Q22/Q23 confirmed wording with pending annotations. Aligned both plans without changing implementation statuses. No implementation or support claim was added.
+
+### Writer response for design-specification resume-paused (Stop-only attribution 2026-11-13, round 2)
+
+Writer response:
+
+Accepted all round 1 findings and requested revisions; no disagreement. Linked snapshots cannot establish a writer, and rejecting disabled checkpointing does not supply identity. The revised ledger contract replaces that proposal and keeps unlinked snapshots only as conservative pending triggers. Input-before-effect samples are reported as samples; closing-record ordering and the complete host matrix remain to validate.
+
+Design Q24 carries the requested A/B/C choices, pros, cons and recommendation without recording a human answer. Q22/Q23 and the confirmed requestor contract are preserved pending that choice. The proposed answer cannot enable an exception before the human decides. Please assess formulation convergence first; I will not ask the human during this intermediate round. No new source, hook installation, residual limit or one-host delivery is authorized. Step 1 stays incomplete and both host profiles remain unsupported.
+
+### Reviewer focus for design-specification resume-paused (Stop-only attribution 2026-11-13, round 2)
+
+Check for missing questions, assess the existing options and answers, and suggest any clearer wording.
+
+<!-- review-entry-id: request-round-2-exchange-6 -->
+
+## Round 2 by reviewer (exchange 6)
+
+- Recorded: 2026-11-14T00:15:19+01:00
+- Exchange: specification/design-specification/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/design.v0.14.0.resume-paused.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Outcome: answer
+
+### Reviewer assessment for design-specification resume-paused (Stop-only attribution 2026-11-13) round 2
+
+Reviewed the current design (SHA-256
+`b6859ff5fef9a188246402f7936077badc229084e9e745f281a771a099c734cb`), both
+plans and the evidence companion against the round 1 requested changes.
+
+1. Every requested change is applied with the requested wording:
+
+   - Item 1 claims no writer attribution, and it keeps every pending trigger
+     as a conservative shape condition. Per-root input-before-effect and
+     closing-record-last orderings are validation obligations.
+   - Item 4 and its acceptance row close every input-bearing record and
+     chain tip.
+   - Validation cases 3 and 6, the attach sentence, the extended in-turn
+     check, the session-persistence check and both plans carry the same
+     contract.
+   - The 2.1.325 source-facts row matches the structural evidence.
+   - The companion marks the positive-attribution candidate as history. It
+     records the checkpoint proposal as not adopted, with the review's
+     reasons.
+
+2. Concurrent foreign turns are covered:
+
+   - A foreign turn whose input has persisted stays open until its closing
+     records persist. It holds activation pending as an unclosed
+     input-bearing record or chain tip.
+   - A foreign input attached inside another writer's turn is an unvalidated
+     branch, and one sharing a parent with a later original input is a second
+     input-bearing child. Both mean pending.
+   - The remaining window is a foreign input that has not yet persisted.
+     Under the ordering obligation it has caused no effect yet, so it is a
+     later event, as it would be in another pane.
+
+   That argument rests entirely on the per-root ordering, which is why the
+   matrix rightly includes print-mode, `--continue` and in-process `/resume`.
+
+3. Delayed parallel leaves are covered by the closing-record-last
+   obligation. That is the right property, because chain linkage covers only
+   the ancestors of the closing records. When validating it, make the slowest
+   parallel call finish last, since that is where a leaf result can persist
+   late. The 2.1.325 tool-call lag was observed while the tool ran, not after
+   closure. Samples can falsify the property but not prove it. A pass is
+   pinned-version validation evidence under the design's existing standard,
+   as for input-before-effect and timestamp semantics.
+
+4. One input kind needs naming. The ordering obligation is stated per turn:
+   "before that turn runs any tool". Item 1 classifies a local command that
+   executes work without a model turn, such as bash-mode input, but the
+   ordering does not cover it. In a foreign root, no screen evidence covers a
+   running one. Extend the obligation to each input record, including such a
+   local command, and give that command its validated completion record as
+   closure. This only names a case that item 1's closed-world principle
+   already implies, so I treat it as wording.
+
+5. Q24 keeps the circular-wait boundary and does not pretend to identify a
+   writer:
+
+   - Option A says "whichever root wrote them" and keys the exclusion on
+     validated operation content. A validated requestor operation cannot be
+     a reviewer watcher, so excluding one written by another root removes no
+     reviewer work. Every other start stays in scope.
+   - The question, options, pros, cons and recommendation are complete. The
+     proposed answer is marked as awaiting a user decision.
+   - The Q22 and Q23 rows, item 5's annotation, the validation contract and
+     both plans state that the exception does not apply while Q24 is
+     pending.
+
+   One clarification would make Q24 self-contained. In option A,
+   "post-marker" should read "ordered after the marked resume input by
+   validated creation ordering", as Q22's text does, so that no implementer
+   reads it as file position.
+
+6. Remaining wording points:
+
+   - item 1's ordering sentence, and the in-turn check in the design and both
+     plans (point 4);
+   - Q24 option A's ordering phrase (point 5);
+   - item 3 still says "record-level discrimination of nested sessions",
+     where the rest of the design now says classification;
+   - the companion's concurrent-resume history paragraph still ends "No
+     replacement evidence source, weaker absence rule or new human question
+     has been selected", which Q24 overtakes.
+
+7. Q24 is the outstanding human decision, and I agree with option A. Q01-Q23
+   are unchanged; Q22 and Q23 remain confirmed and pending Q24. No source,
+   limit or one-host delivery is proposed. Step 1 stays incomplete and both
+   hosts unsupported.
+
+Disposition: convergence recommended for the reviewed formulation, with the
+wording points above. The human gate now includes the Q24 decision.
+
+### Question verdicts for design-specification resume-paused (Stop-only attribution 2026-11-13) round 2
+
+One question is open: Q24. It is the question round 1 found missing, and no
+other question is missing.
+
+Q24 is well-formed. Its options are materially distinct and state their
+consequences, and option A follows from the evidence: no approved source
+identifies a writer, while validated operation content does identify a
+requestor operation. I would choose A, for the reason the design gives. It
+keeps Q22's purpose and the option C boundary without a new source or an
+unprovable condition. Suggested clarification: in option A, read "starts
+ordered after the marked resume input by validated creation ordering" in
+place of "post-marker starts".
+
+The design records Q24 as awaiting a user decision. The proposed answer and
+this agreement are not a decision, and the human still has to choose.
+
+Q01-Q23 are unchanged, and I agree with each. Q22 and Q23 remain the
+confirmed choices, annotated as not applying while Q24 is pending; nothing
+rewrites them. No limit, source or one-host delivery is proposed.
+
+### Convergence evidence for design-specification resume-paused (Stop-only attribution 2026-11-13) round 2
+
+Covered wording:
+
+Design item 1, replacing "Validate for each pinned version that every root
+able to append to an in-scope transcript persists a turn's input record
+before that turn runs any tool or starts any waiting mechanism, and persists
+a turn's closing records after every other record of that turn.":
+
+```text
+Validate for each pinned version that every root able to append to an
+in-scope transcript persists each input record, including a local command
+that executes work such as bash-mode input, before that input runs any tool
+or command or starts any waiting mechanism, and persists a turn's closing
+records after every other record of that turn.
+```
+
+Design item 4, after "and the turn's validated final record is present.":
+
+```text
+An executing local command needs its own validated completion record.
+```
+
+Design in-turn check, replacing "Extend this check to print-mode resume,
+`--continue`, in-process `/resume` and a first tool that starts background
+work.":
+
+```text
+Extend this check to print-mode resume, `--continue`, in-process `/resume`,
+a first tool that starts background work and a local command that executes
+work, such as bash-mode input.
+```
+
+In plan line 207 and validation-plan line 34, after "a first tool that
+starts background work", insert ", a local command that executes work, such
+as bash-mode input".
+
+Q24 option A, replacing "Exclude only post-marker starts in the Q23-bound
+requestor file":
+
+```text
+Exclude only starts in the Q23-bound requestor file ordered after the marked
+resume input by validated creation ordering
+```
+
+Design item 3, replacing "record-level discrimination of nested sessions":
+
+```text
+record-level classification of nested sessions
+```
+
+Companion concurrent-resume history paragraph, replacing "No replacement
+evidence source, weaker absence rule or new human question has been
+selected.":
+
+```text
+The Stop-only run then showed that no approved source identifies the writer;
+the not-adopted checkpoint section records the replacement completeness and
+closure contract and design Q24. No replacement evidence source or weaker
+absence rule has been selected.
+```
+
+Everything else in the revised item 1, item 4, the validation cases, the
+acceptance rows, Q24 and both plans stands as written.
+
+Convergence rationale:
+
+Every round 1 requested change is applied with the requested wording. Item 1
+no longer claims a writer identity that no approved source supplies. It
+proves completeness and closure for every writer, with per-root ordering as
+validation obligations, and it keeps every conservative pending trigger.
+Concurrent foreign turns and delayed parallel leaves are covered, subject to
+that validation. The design, both plans and the companion carry one
+contract, and the new evidence is recorded accurately.
+
+The remaining points are wording:
+
+- naming executing local commands in the existing ordering and closure
+  obligations;
+- one ordering phrase in Q24 option A;
+- one term in item 3;
+- one stale companion sentence.
+
+None changes a gate, a source or a confirmed decision.
+
+Q24 is complete and well-formed, and its recommendation follows from the
+evidence. It is an outstanding human decision. The proposed answer and this
+review's agreement do not confirm it, and Q22 and Q23 stay confirmed and
+pending it. This recommendation covers the reviewed formulation only. It
+does not authorize consolidation, which stays a separate human choice, and
+it does not declare either host supported or Step 1 complete.
+
+### Writer instructions for design-specification resume-paused (Stop-only attribution 2026-11-13) round 2
+
+1. Wording only. Apply the covered item 1 ordering sentence and item 4
+   closure clause. Add the executing local command to the design's in-turn
+   check and to the matching coverage lists in plan line 207 and
+   validation-plan line 34.
+2. Wording only. Apply the covered Q24 option A phrase, so "post-marker"
+   names validated creation ordering. Leave the user decision pending.
+3. Wording only. In item 3, replace "record-level discrimination of nested
+   sessions" with "record-level classification of nested sessions".
+4. Wording only. Replace the last sentence of the companion's
+   concurrent-resume history paragraph with the covered wording.
+5. Keep Q22 and Q23 unchanged and pending Q24. Keep Step 1 incomplete and
+   both hosts unsupported. The convergence choice and the Q24 answer belong
+   to the human.
+
+### Final reviewer decision for design-specification resume-paused (Stop-only attribution 2026-11-13) round 2
+
+Decision: convergence-recommended. This recommendation is advisory; consolidation is not confirmed and remains at the durable human gate.
+
+<!-- review-entry-id: answer-round-2-exchange-6 -->
+
+## Round 2 by human - human-confirmation
+
+- Recorded: 2026-11-14T16:21:24+01:00
+- Exchange: specification/design-specification/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/design.v0.14.0.resume-paused.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Outcome: human-confirmation
+
+Human choice: Revise and review again
+Outcome: another-round
+Guidance: A
+
+<!-- review-entry-id: human-confirmation-round-2 -->
+
+## Round 3 by requestor (exchange 4)
+
+- Recorded: 2026-11-14T16:21:35+01:00
+- Exchange: specification/design-specification/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/design.v0.14.0.resume-paused.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Outcome: request
+
+### Review identity for design-specification resume-paused exchange 6 (round 3)
+
+Umbrella draft: none
+Reviewed specification: docs/v0.14.0/design.v0.14.0.resume-paused.md
+Review round: 3
+
+### Requestor assessment for design-specification resume-paused exchange 6 (round 3)
+
+The user explicitly answered Q24 with "A" on 2026-11-14 after the full
+explanation. The design records that decision and retains the complete question,
+options, recommendation and historical proposed answer. The full question scan
+reports one question, zero undecided and no diagnostics. Existing options and
+the explicit answer are sufficient in the writer's assessment; no additional
+question is currently identified. Please assess this independently across the
+full specification, including effects on earlier decisions and related documents.
+
+Q24=A narrows the exception to validated requestor review-exchange starts in
+the Q23-bound marked-input transcript, ordered after marked resume input by
+validated creation ordering, and their own lifecycle records, regardless of
+writer. Every other start remains in scope, including the requestor's other
+post-marker work. Completeness and closure for every writer replace Q23's
+writer exclusivity. Unclosed turns still block. Q19 history and durable
+schedules, Q21 clock limits, byte accounting, binding, watcher classification
+and remaining gates are preserved. Earlier round 2 covered wording was already
+applied and remains present. Both profiles remain unsupported; Step 1 is
+incomplete, with 0/8 verified steps. This decision establishes no feasibility.
+
+Review the design and the related implementation plan, validation plan and
+profile-evidence companion for consistency and missing or new questions.
+Preserve the human choice; report any conflicting requirement or unresolved
+consequence. No consolidation is authorized.
+
+### Change summary for design-specification resume-paused exchange 6 (round 3)
+
+Changes since occurrence 6 round 2 convergence:
+
+- Recorded the explicit Q24=A human decision, date and exact reply "A" in
+  docs/v0.14.0/design.v0.14.0.resume-paused.md, preserving the question block.
+- Aligned the design's operational exception, acceptance examples and Q22/Q23
+  historical qualifications with the content-based exception and completeness
+  and closure for every writer.
+- Aligned Step 1 and Step 7 in docs/v0.14.0/plan.v0.14.0.resume-paused.md.
+- Aligned corresponding requirements in
+  docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md and evidence/status wording
+  in docs/v0.14.0/resume-paused.profile-evidence.md.
+- Preserved all other gates and unsupported-profile status. No production code,
+  tests, additional evidence sources or notion-specific introductions were added.
+
+All four edited documents pass Markdown lint and spelling; the CRLF-aware diff
+check passes. The protected transcript retains its existing 31 MD024/MD032
+findings; its historical protocol text was not edited.
+
+### Human guidance and writer response for design-specification resume-paused exchange 6 (round 3)
+
+Human guidance:
+
+A
+
+Writer response:
+
+The human guidance "A" selects Q24 option A. This is the required fresh review
+following the authorized Q24 explanation, not authorization to consolidate.
+The writer accepts round 2's recommendation and already applied its covered
+wording; there is no disagreement. The decision now explicitly qualifies the
+older Q22/Q23 writer-attribution condition while preserving their remaining
+binding, ordering and lifecycle constraints.
+
+Please examine full-specification consistency, consequences for earlier
+decisions and the three related documents, and any missing or newly necessary
+questions. The retained round 2 answer predates the human decision and is not
+being reused as review of this changed document. No choice proves a supported
+host or completes an implementation step.
+
+Private writer notes: .reviews/a.resume-paused.step1.journal.md and
+.reviews/a.resume-paused.step1.handoff.md. The discussion continuation is
+.reviews/a.question-explanation.design.v0.14.0.resume-paused.local.md, batch
+Q24, I=1, Total=1, phase follow-up-review-required before this replacement round.
+
+### Reviewer focus for design-specification resume-paused exchange 6 (round 3)
+
+Check for missing questions, assess the existing options and answers, and suggest any clearer wording.
+
+<!-- review-entry-id: request-round-3-exchange-4 -->
+
+## Round 3 by reviewer (exchange 4)
+
+- Recorded: 2026-11-14T16:33:41+01:00
+- Exchange: specification/design-specification/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/design.v0.14.0.resume-paused.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Outcome: answer
+
+### Reviewer assessment for design-specification resume-paused (Q24 decision review) round 3
+
+Independent assessment of the current design at SHA-256
+`dc17344d544495e7ebfae98a5bddab120434f428db80ea4b642bf5173df4cd24`, read in
+full, with plan Step 1 and Step 7, validation plan Step 1 and Step 7, and the
+evidence companion. The versioned transcript was not used as context.
+
+**Q24=A applied in the design body.** The confirmed decision is applied
+consistently in item 1 (no writer attribution; completeness and closure for
+every writer), item 4 (closure of every input-bearing record and chain tip,
+including the requestor's transcript), item 5 (operation-based exception,
+creation ordering, in-scope watchers, Q23 binding), the acceptance examples,
+the file-based IO section, the requirement coverage paragraph and the decisions
+summary. The Q22 and Q23 rows keep their historical choices with an explicit
+Q24=A qualification, and the Q24 block keeps its options, recommendation,
+historical proposed answer and the dated human reply. I agree with option A
+and preserve the human choice. Both profiles remain unsupported and Step 1
+remains incomplete; nothing in this round claims feasibility.
+
+**Finding 1, new decision: the Claude requestor's answer-wait transport.**
+Q24's stated benefit is that the requestor's answer wait no longer blocks
+reviewer activation. That holds only when the wait is a host background start
+whose turn then closes. Item 4 correctly keeps an unclosed requestor turn
+blocking. The requestor instructions (`instructions/spec-review-requestor.md`
+step 5, `instructions/code-review-requestor.md` step 5 and
+`instructions/review-requestor.md` step 4) run `wait-answer` with the complete
+`a.review-mode` timeout, whose default is 10800 seconds
+(`_FALLBACK_WAIT_SECONDS` in `tools/review_exchange_models.py`), and name no
+Claude transport. Claude's foreground tool call is capped at 600 seconds. A
+Claude requestor's wait therefore takes one of three shapes:
+
+1. An explicit background start: the shape Q24=A targets; its turn closes.
+2. A foreground call: an open tool call and an unclosed turn, pending until
+   the wait returns. The reviewer cannot answer before activation, so the wait
+   ends only by timeout and the circular wait that Q22 and Q24 address returns.
+3. A foreground call moved to the background by the tool timeout or `Ctrl+B`:
+   moved work, pending until its shape is validated, and not named among the
+   recognized requestor invocation forms.
+
+The design requires reviewer watchers to start through host background
+mechanisms, but states no matching rule for the requestor's answer wait. Only
+a Claude requestor paired with a Claude reviewer is affected: a Codex
+requestor's work is outside Claude transcripts, and a Codex reviewer is
+activated from idle capture. Whether Q24=A achieves its purpose depends on this
+choice, and option A below changes shared requestor instructions, so it needs
+a human decision. I propose it as Q25 in the question verdicts.
+
+**Finding 2, exception precision: one complete invocation form.** "Parse as
+validated requestor review-exchange operations" and "unless its operation
+parses as a validated requestor operation" do not say that the complete
+recorded command must be exactly one recognized form. A chained command such
+as a requestor operation followed by `wait-any-request`, a pipeline, or a
+wrapper script contains a requestor operation and a watcher. The singular
+"its operation" leaves multi-operation commands open to a permissive reading.
+State that a start qualifies only when its complete recorded command matches
+exactly one recognized requestor invocation form for the pinned version, with
+a requestor-only operation. Chained, piped, wrapped or multi-operation
+commands, and operations either role may run (`status`, `claim`,
+`resume-inspect`, `reclaim`, `migration-check`), stay in scope under normal
+start/end matching. This tightens Q24=A without changing its choice.
+
+**Finding 3, parse allowlist.** Classifying a requestor operation requires
+reading the tool-call command in memory. The file-based IO paragraph already
+says the ledger reads that evidence, but both parse allowlists (item 5's ledger
+paragraph and the closing paragraph of the file-based IO section) list only
+"typed reviewer-entry and watcher-start matches". Add requestor review-exchange
+operation matches to both lists so the in-memory boundary names every parsed
+payload field.
+
+**Finding 4, stale cross-document wording.** The change summary says the
+related documents were aligned, but these passages still carry the
+pre-Q24 contract:
+
+- Validation plan, Step 7 improvement expectations: "Validate Q22=A on initial
+  activation and continuation, including retained
+  earlier/other-pane/reviewer-watcher blockers and pending on ambiguous
+  generation/order." Plan Step 7 was updated; the validation expectation was
+  not.
+- Validation plan, Step 1 bullet on recorded `cwd`: "Q22=A narrow
+  requestor-work handling".
+- Plan, Step 1 "Claude generation and absence contract" paragraph: "Q22=A's
+  narrow proved-requestor-work exception".
+- Plan, Step 7 analysis framing: "design Q04, Q12–Q17", although Step 7 now
+  implements Q22-Q24 behavior.
+- Evidence companion, paragraph after the 2026-11-12 reviewer table: "item 1's
+  generation-scoped exclusivity still need validation".
+- Evidence companion, end of the single-writer counterexample section: "No
+  replacement evidence source or weaker absence rule has been selected" predates
+  the confirmed Q24=A rule change and should name it.
+
+**Finding 5, wording polish.** In the decisions summary, "all seventeen
+original table rows remain unchanged" reads as all rows; "the Q01-Q17 rows
+remain unchanged" states the intent.
+
+**Disposition.** Findings 2-5 are wording and alignment work, but Finding 1
+adds a question that needs a human decision and affects the plans and shared
+requestor instructions. This round therefore requests changes and another
+automated review round. No consolidation is recommended or authorized.
+
+### Question verdicts for design-specification resume-paused (Q24 decision review) round 3
+
+**Q24, requestor exception without writer attribution: agree with the
+confirmed option A.** The question is in scope, not redundant, and correctly
+framed: no approved source identifies the writer, so Q22's writer condition
+could never hold. The three options are materially distinct and state their
+consequences. Option A follows from the 2026-11-13 Stop-only evidence and
+keeps every non-requestor start in scope; B leaves the circular wait in place;
+C needs a new source outside Q18=A. I would choose A for the recommendation's
+reason. The user's explicit reply "A" on 2026-11-14 is the human decision;
+review agreement adds nothing to it and does not authorize consolidation.
+
+Keep the confirmed Q24 block unchanged. Apply two qualifications in the
+design body instead of editing its option text:
+
+- Finding 2's single-invocation-form clause, wherever the "Inside the excluded
+  range" paragraph appears.
+- A note under item 5's Q24=A paragraph that the exception relieves the
+  answer-wait circularity only when the requestor's turn closes after the
+  wait starts, with a reference to Q25.
+
+**Q25, new question: missing from the current design.** Add it after Q24 with
+this proposed wording, leaving its answer unconfirmed until the user decides:
+
+```markdown
+### Q25: Claude requestor answer-wait transport after marked resume
+
+Question description: Q24=A excludes validated requestor review-exchange
+starts, but item 4 still keeps any unclosed turn pending, including the
+requestor's. The requestor instructions run `wait-answer` with the complete
+`a.review-mode` timeout, 10800 seconds by default, and name no Claude
+transport. A foreground call keeps the requestor's turn open until the wait
+returns; the reviewer cannot answer before activation, so the wait ends only
+by timeout and the circular wait returns. A foreground call that Claude moves
+to the background on its 600-second tool timeout or `Ctrl+B` is moved work,
+pending until its shape is validated. Only a Claude requestor paired with a
+Claude reviewer is affected. How must a Claude requestor run its answer wait
+after a marked resume?
+
+#### BBQ for Q25
+
+The order-desk exemption helps only when the order cook starts the order timer,
+logs it and steps away from the counter. A cook who stands at the counter
+holding the slip leaves an open log entry, so the closing check keeps waiting.
+The slip is released only when the order arrives, and that needs the other
+cook, who is waiting on the closing check.
+
+In this picture: the cooks are the Claude requestor and reviewer, the open log
+entry is an unclosed turn, and the order timer is a background `wait-answer`
+start.
+
+#### Options for Q25
+
+- Option A (recommended): After a marked resume, a Claude requestor starts
+  every `wait-answer` through a host background mechanism as one recognized
+  invocation form, ends its turn and resumes from the completion notification,
+  mirroring the reviewer-watcher rule. A foreground or moved wait stays in
+  scope and leaves the reviewer pending with that reason.
+  - Pro: Q24=A then removes the circular wait with a closed turn and one start
+    shape to validate. It reuses the background-completion transport already
+    required for Claude reviewer watchers.
+  - Con: Changes shared requestor instructions for Claude on the marked route.
+    Step 1 must validate the requestor's background start, its terminal record
+    and resumption from the notification.
+- Option B: Leave the transport unspecified; an unclosed requestor turn stays
+  pending and later continuation activates the reviewer only after the wait
+  ends.
+  - Pro: No instruction change.
+  - Con: Without reviewer activation the wait ends only by timeout, three hours
+    by default, so a Claude pair stays blocked. A timed-out exchange can also
+    lose the current claim that later continuation requires.
+- Option C: Recognize a foreground requestor `wait-answer`, or its moved form,
+  as excluded, and exempt an open turn whose only open call is that wait.
+  - Pro: No transport change for requestors.
+  - Con: Weakens item 4's closure rule: an open turn can hide late records from
+    any writer. It needs moved-work and open-turn shapes validated, contrary to
+    "Q24=A excludes only starts, not an unclosed requestor turn".
+
+#### Recommended option for Q25 (with arguments for this choice)
+
+Option A: It is the only option that lets Q24=A achieve its stated purpose
+without weakening item 4's closure rule or adding a source. It applies the
+same transport discipline already required of reviewer watchers.
+
+#### Answer to Q25: option A (with reason why it must be accepted as the answer)
+
+Proposed answer, awaiting independent review and an explicit human choice:
+option A, because it keeps every closure and completeness gate intact while
+removing the remaining cause of the Claude-pair circular wait. Neither a
+recommendation nor review agreement confirms this answer.
+```
+
+**Outstanding human decision.** Q25 needs an explicit user choice. Q24 is
+already decided and stays decided.
+
+### Requested changes for design-specification resume-paused (Q24 decision review) round 3
+
+Requested changes:
+
+- Add new question Q25 on the Claude requestor's answer-wait transport after
+  marked resume, with options A, B and C and recommended option A; its answer
+  remains unconfirmed until the user decides.
+- Qualify item 5's Q24=A paragraph: the exception relieves the answer-wait
+  circularity only when the requestor's turn closes after the wait starts.
+- Require a qualifying start's complete recorded command to match exactly one
+  recognized requestor invocation form with a requestor-only operation;
+  chained, piped, wrapped, multi-operation and role-shared operations stay in
+  scope. Apply this in all five repeated paragraphs across the four documents.
+- Add requestor review-exchange operation matches to both design parse
+  allowlists.
+- Add the foreground or moved requestor answer-wait acceptance example.
+- Align validation plan Step 7 and Step 1, plan Step 1 and the Step 7
+  framing, and the two stale evidence-companion passages with Q24=A.
+- Polish "all seventeen original table rows" to "the Q01-Q17 rows".
+
+### Human guidance response for design-specification resume-paused (Q24 decision review) round 3
+
+Human guidance:
+
+A
+
+Guidance response:
+
+The human guidance "A" selects Q24 option A. The reviewer treats it as the
+user's explicit decision, agrees with it independently, and does not reopen or
+reword the confirmed question block. The new Q25 follows from that decision's
+stated benefit: the requestor's answer wait stops blocking activation only
+when the requestor's turn closes, which depends on a transport choice the
+current documents leave open. Q25 is a separate question for the user, not a
+correction of Q24. No consolidation is recommended.
+
+### Writer instructions for design-specification resume-paused (Q24 decision review) round 3
+
+Apply these edits, then publish a replacement request for another automated
+round. Preserve the confirmed Q24 block and the user's reply exactly; do not
+record a Q25 decision, and do not consolidate.
+
+1. Design, open questions: add Q25 after Q24 using the proposed wording in the
+   question verdicts. Its answer stays a proposal pending the user's choice.
+2. Design, item 5: under the Q24=A paragraph, add one sentence stating that the
+   exception relieves the answer-wait circularity only when the requestor's
+   turn closes after the wait starts, and that a foreground or moved
+   `wait-answer` stays pending until Q25 is decided and validated.
+3. Single invocation form (Finding 2): after "Inside the excluded range, a
+   start that invokes the review-exchange launcher counts as a reviewer watcher
+   unless its operation parses as a validated requestor operation", add:
+   "A start qualifies only when its complete recorded command matches exactly
+   one recognized requestor invocation form with a requestor-only operation.
+   Chained, piped, wrapped or multi-operation commands, and operations either
+   role may run, stay in scope." Apply the same sentence wherever that
+   paragraph is repeated: design item 5, design validation boundaries, plan
+   Step 1, validation plan Step 1 and the evidence companion's Q22/Q24
+   paragraphs.
+4. Parse allowlist (Finding 3): in design item 5's ledger paragraph and in the
+   file-based IO section's closing ledger paragraph, change "typed
+   reviewer-entry and watcher-start matches" to "typed reviewer-entry,
+   watcher-start and requestor review-exchange operation matches".
+5. Acceptance examples: add a row "A Claude requestor runs its answer wait in
+   the foreground, or Claude moves it to the background" with "Unclosed turn
+   or unvalidated moved shape; pending without input. Q25 decides the required
+   transport."
+6. Stale cross-document wording (Finding 4):
+   - Validation plan Step 7 improvement expectations: replace "Validate Q22=A
+     on initial activation and continuation, including retained
+     earlier/other-pane/reviewer-watcher blockers and pending on ambiguous
+     generation/order" with the Q24=A wording used in plan Step 7: validated
+     requestor review-exchange operations in the Q23-bound file regardless of
+     writer, validated creation ordering after marked input, retained
+     other-work blockers, and pending on ambiguous file binding,
+     classification or ordering.
+   - Validation plan Step 1 `cwd` bullet: "Q22=A narrow requestor-work
+     handling" becomes "Q22=A requestor-operation handling as qualified by
+     Q24=A".
+   - Plan Step 1 contract paragraph: "Q22=A's narrow proved-requestor-work
+     exception" becomes "Q22=A's requestor-operation exception as qualified by
+     Q24=A".
+   - Plan Step 7 framing: "design Q04, Q12–Q17" becomes "design Q04,
+     Q12–Q17 and Q22–Q24", adding Q25 once it is decided.
+   - Evidence companion, paragraph after the 2026-11-12 reviewer table: "item
+     1's generation-scoped exclusivity" becomes "item 1's generation
+     completeness and closure for every writer".
+   - Evidence companion, end of the single-writer counterexample section:
+     replace "No replacement evidence source or weaker absence rule has been
+     selected" with a sentence saying confirmed Q24=A replaced the writer
+     condition with validated operation content and closure, and that no
+     evidence source was added.
+7. Design decisions summary: change "all seventeen original table rows remain
+   unchanged" to "the Q01-Q17 rows remain unchanged".
+8. Plans: if the user selects Q25 option A, Step 4 must list the requestor
+   instruction files it changes (`instructions/review-requestor.md`,
+   `instructions/spec-review-requestor.md`,
+   `instructions/code-review-requestor.md`, and `rules/run_commands.md` if the
+   transport rule lives there), and Step 1 must validate the requestor's
+   background start, terminal record and notification resumption. Until the
+   user decides, record this only as a pending dependency.
+9. Re-run Markdown lint, spelling and the CRLF-aware diff check on every edited
+   document, and report the new design SHA-256 in the replacement request.
+
+### Final reviewer decision for design-specification resume-paused (Q24 decision review) round 3
+
+Decision: changes-requested. The writer should apply the concrete instructions and publish another automated review round.
+
+<!-- review-entry-id: answer-round-3-exchange-4 -->
+
+## Round 4 by requestor (exchange 4)
+
+- Recorded: 2026-11-14T16:38:43+01:00
+- Exchange: specification/design-specification/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/design.v0.14.0.resume-paused.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Outcome: request
+
+### Review identity for design-specification resume-paused exchange 4 (round 4)
+
+Umbrella draft: none
+Reviewed specification: docs/v0.14.0/design.v0.14.0.resume-paused.md
+Review round: 4
+
+### Requestor assessment for design-specification resume-paused exchange 4 (round 4)
+
+Round 3's five findings are accepted with no disagreement. Q24=A remains the
+explicit human decision and its entire question block is unchanged. New Q25
+records the missing Claude requestor answer-wait transport choice, with the
+reviewer's proposed options and recommendation. Its answer is unconfirmed.
+The full scanner reports two questions, one undecided, next and last Q25, with
+no diagnostics. The writer considers the existing options sufficient and
+identifies no further missing question; please assess that independently.
+
+Current design SHA-256:
+`5dd7a9544e8aa223f8c56bc033ea760b1b9e18e1389bf89bd5f79731ebb47b93`.
+
+All requested precision and alignment changes are applied across the design,
+implementation plan, validation plan and profile-evidence companion. The
+exception now requires one complete recognized requestor-only invocation;
+chained, piped, wrapped, multi-operation and role-shared commands stay in
+scope. Both parse allowlists name requestor-operation matches. The body and
+acceptance example state the remaining open-turn or moved-wait limitation.
+No Q25 option is selected or implemented. Both profiles remain unsupported,
+Step 1 incomplete and 0/8 verified. No consolidation is authorized.
+
+### Change summary for design-specification resume-paused exchange 4 (round 4)
+
+Changes since round 3:
+
+- Added Q25 after Q24 using the reviewer's proposal, preserving the confirmed
+  Q24 question and exact reply unchanged.
+- Qualified the Q24 body paragraph with requestor turn closure and Q25's
+  unresolved transport; added the foreground or moved-wait acceptance row.
+- Added the complete single-invocation requirement at all five repeated
+  exception paragraphs across the four documents.
+- Added requestor-operation matches to both design parse allowlists.
+- Aligned validation Step 7 and its recorded-checkout bullet, plan Step 1 and
+  Step 7 framing, and both stale evidence-companion paragraphs.
+- Replaced the ambiguous seventeen-row wording with Q01-Q17.
+- Recorded Q25 as a pending Step 1 and Step 4 dependency in both plans,
+  including conditional instruction targets and required transport evidence.
+
+All four edited documents pass Markdown lint, spelling and the CRLF-aware diff
+check. The protected protocol transcript has 32 MD024/MD032 findings, including
+one new core-generated confirmation heading; its content was not hand-edited.
+No production code, tests or supported-profile claim was added.
+
+### Writer response for design-specification resume-paused exchange 4 (round 4)
+
+Writer response:
+
+Accepted all round 3 findings and applied all immediately actionable writer
+instructions. Q25 captures a separate decision about Claude transport; it does
+not reopen Q24. Any Step 4 shared-instruction change and Step 1 transport
+validation are explicitly conditional on a future Q25 decision.
+
+Please check the full specification and related plans/evidence for consistency,
+the sufficiency of Q25's choices and explanation, and missing/new questions.
+Confirm that the complete-command rule, parse allowlists, closed-turn condition
+and pending dependencies fully address the returned findings.
+
+The earlier human guidance "A" belongs solely to Q24. No human has answered
+Q25 or authorized consolidation. Existing Q24 follow-up authority covers this
+intermediate review continuation.
+
+Private writer notes: .reviews/a.resume-paused.step1.journal.md,
+.reviews/a.resume-paused.step1.handoff.md and
+.reviews/a.question-explanation.design.v0.14.0.resume-paused.local.md.
+The Q24 discussion batch retains I=1 and Total=1 while its follow-up review is
+in progress; Q25 is a newly identified question outside that answered batch.
+Canonical publication reported occurrence 4; earlier private notes and round 3
+authored headings had used 6. The exact document and round remain unchanged.
+
+### Reviewer focus for design-specification resume-paused exchange 4 (round 4)
+
+Check for missing questions, assess the existing options and answers, and suggest any clearer wording.
+
+<!-- review-entry-id: request-round-4-exchange-4 -->
+
+## Round 4 by reviewer (exchange 4)
+
+- Recorded: 2026-11-14T16:46:02+01:00
+- Exchange: specification/design-specification/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/design.v0.14.0.resume-paused.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Outcome: answer
+
+### Reviewer assessment for design-specification resume-paused (Q24 decision review) round 4
+
+Independent assessment of the current design at SHA-256
+`5dd7a9544e8aa223f8c56bc033ea760b1b9e18e1389bf89bd5f79731ebb47b93`, with the
+changed regions of the plan, validation plan and evidence companion. The
+versioned transcript was not used as context.
+
+**Round 3 findings are resolved.** Each of the five returned findings is
+applied as requested:
+
+- Q25 is added after Q24, and the confirmed Q24 block and the user's reply
+  are unchanged.
+- Item 5's Q24=A paragraph states the closed-turn condition and the Q25
+  dependency, and the acceptance example covers a foreground or moved wait.
+- The single-invocation clause follows all five repeated "Inside the excluded
+  range" paragraphs (design twice, plan Step 1, validation plan Step 1,
+  evidence companion).
+- Both design parse allowlists name requestor review-exchange operation
+  matches.
+- Validation plan Step 7 and its `cwd` bullet, plan Step 1 and the Step 7
+  framing, and both evidence-companion passages now carry the Q24=A contract,
+  and the summary reads "the Q01-Q17 rows". Both plans record Q25 as a
+  pending Step 1 and Step 4 dependency without selecting an option.
+
+Q24=A remains the user's decision and I still agree with it. No host profile
+is claimed and Step 1 remains incomplete.
+
+**Finding 1, Q25 option B states the wrong consequence.** Option B's con says
+"A timed-out exchange can also lose the current claim that later continuation
+requires." The timeout path does more than that: `wait_for_exact` in
+`tools/review_exchange_wait.py` calls `escalate` with "wait timed out while
+answer was absent" when the deadline passes. An escalated exchange stops
+automation until a human runs `resolve` or `archive`, and takeover proof
+rejects damaged or conflicting protocol state, so later reviewer continuation
+cannot proceed. The question description should say the same: the wait ends
+only at its timeout, which escalates the exchange. The person deciding Q25
+should see this stronger consequence.
+
+**Finding 2, the description misstates the current transport rule.** Q25 says
+the requestor instructions "name no Claude transport". That is true of the
+three requestor instructions, but `rules/run_commands.md` (the paragraph on
+bounded `wait-request` and `wait-answer` operations) already says to "respect
+the host-specific attached or background transport above". For Claude that is
+the background-completion transport, stated as permitted ("Claude may run the
+watcher"), not required. The question is therefore whether to turn an
+existing permission into a requirement for Claude's `wait-answer`, and that
+rule file is the natural place for the change.
+
+**Finding 3, Q25 needs a route-scope choice.** Option A limits the requirement
+to waits "after a marked resume". That makes the requestor depend on still
+knowing how its session started. A requestor that loses this context, for
+example after compaction, can run a foreground or moved wait and leave the
+reviewer pending. The design otherwise avoids relying on model memory and
+uses durable evidence. A rule for every Claude requestor `wait-answer` works
+without that knowledge. It changes little in practice: the default 10800-second
+wait cannot complete within Claude's 600-second foreground limit on any route,
+and the shared rule already points to background completion. Marked-route-only
+remains a defensible narrower choice, so the person should see both scopes as
+separate options. I recommend the every-route option. Exact replacement text
+is in the question verdicts.
+
+**Finding 4, decisions summary.** The summary says Q24's question and answer
+remain below for review, but does not say that Q25, raised by that review,
+remains open for an explicit user choice. Add one sentence.
+
+**Finding 5, plan dependency targets.** Both plans name the three requestor
+instructions and `rules/run_commands.md` "if the transport rule lives there".
+The rule does live there. Once Q25 has scope options, name the target for each:
+for the every-route option, `rules/run_commands.md`, with the requestor
+instructions pointing to it; for the marked-route option, the marked-route
+requestor text in `instructions/review-resume.md` and the requestor
+instructions. Step 1's validation dependency applies to either option.
+
+**Disposition.** Findings 1, 2 and 4 are wording. Finding 3 changes Q25's
+option set before the person chooses, and Finding 5 follows from it. That is
+more than polish, so I request one more automated round. Exact Q25 text is
+supplied so the next round can converge. No consolidation is recommended or
+authorized.
+
+### Question verdicts for design-specification resume-paused (Q24 decision review) round 4
+
+**Q24: agree with the confirmed option A; no change.** The block, options,
+historical proposal and the user's dated reply "A" are intact and consistent
+with the design body, both plans and the evidence companion.
+
+**Q25: in scope, necessary, and not redundant; revise its option set before
+the user decides.** The problem statement is right: the Q24=A exception only
+helps when the requestor's turn closes. Three corrections are needed: the
+current rule already permits Claude's background transport; a timeout
+escalates the exchange; and route scope is a real choice. I would choose the
+every-route background requirement. Replace the whole Q25 block with:
+
+```markdown
+### Q25: Claude requestor answer-wait transport
+
+Question description: Q24=A excludes validated requestor review-exchange
+starts, but item 4 still keeps any unclosed turn pending, including the
+requestor's. The requestor instructions run `wait-answer` with the complete
+`a.review-mode` timeout, 10800 seconds by default. `rules/run_commands.md`
+sends bounded waits to the host-specific transport, but there Claude's
+background completion is permitted, not required. A foreground call keeps the
+requestor's turn open until the wait returns. The reviewer cannot answer
+before activation, so the wait ends only at its timeout, which escalates the
+exchange. A foreground call that Claude moves to the background on its
+600-second tool timeout or `Ctrl+B` is moved work, pending until its shape is
+validated. Only a Claude requestor paired with a Claude reviewer is affected.
+Should a Claude requestor be required to run its answer wait in the
+background, and on which routes?
+
+#### BBQ for Q25
+
+The order-desk exemption helps only when the order cook starts the order timer,
+logs it and steps away from the counter. A cook who stands at the counter
+holding the slip leaves an open log entry, so the closing check keeps waiting.
+The slip is released only when the order arrives, and that needs the other
+cook, who is waiting on the closing check.
+
+In this picture: the cooks are the Claude requestor and reviewer, the open log
+entry is an unclosed turn, and the order timer is a background `wait-answer`
+start.
+
+#### Options for Q25
+
+- Option A (recommended): Every Claude requestor starts each `wait-answer`
+  through a host background mechanism as one recognized invocation form, ends
+  its turn and resumes from the completion notification, on every route. The
+  shared transport rule changes from permitted to required for Claude
+  `wait-answer`, and the requestor instructions refer to it. A foreground or
+  moved wait stays in scope and leaves the reviewer pending with that reason.
+  - Pro: Q24=A then removes the circular wait with a closed turn and one start
+    shape to validate. The rule holds without the requestor remembering how
+    its session started, including after compaction. The default three-hour
+    wait already exceeds Claude's 600-second foreground limit, so manual routes
+    lose no working behavior.
+  - Con: Changes the shared transport rule for every Claude requestor, not
+    only on the marked route. Step 1 must validate the background start, its
+    terminal record and resumption from the notification.
+- Option B: Require the background transport only after a marked resume.
+  - Pro: Limits the instruction change to the new route.
+  - Con: The requestor must keep knowing that its session started from a
+    marked resume. A session that loses that context, for example after
+    compaction, may run a foreground or moved wait and leave the reviewer
+    pending. Two transport rules then apply to the same Claude operation.
+- Option C: Keep the transport permitted but not required; an unclosed
+  requestor turn stays pending, and later continuation activates the reviewer
+  only after the wait ends.
+  - Pro: No rule change.
+  - Con: Without reviewer activation a foreground wait ends only at its
+    timeout, three hours by default, and the timeout escalates the exchange.
+    Escalation stops automation for human recovery and blocks later reviewer
+    continuation.
+- Option D: Recognize a foreground requestor `wait-answer`, or its moved form,
+  as excluded, and exempt an open turn whose only open call is that wait.
+  - Pro: No transport change for requestors.
+  - Con: Weakens item 4's closure rule: an open turn can hide late records from
+    any writer. It needs moved-work and open-turn shapes validated, contrary to
+    "Q24=A excludes only starts, not an unclosed requestor turn".
+
+#### Recommended option for Q25 (with arguments for this choice)
+
+Option A: It lets Q24=A achieve its stated purpose without weakening item 4's
+closure rule, adding a source or relying on the requestor's memory of its
+route. It turns an existing permitted Claude transport into a requirement,
+the same discipline already expected of reviewer watchers.
+
+#### Answer to Q25: option A (with reason why it must be accepted as the answer)
+
+Proposed answer, awaiting independent review and an explicit human choice:
+option A, because it keeps every closure and completeness gate intact and
+removes the remaining cause of the Claude-pair circular wait on every route.
+Neither a recommendation nor review agreement confirms this answer.
+```
+
+**Outstanding human decision.** Q25 still needs an explicit user choice after
+this revision. Q24 stays decided.
+
+### Requested changes for design-specification resume-paused (Q24 decision review) round 4
+
+Requested changes:
+
+- Replace the Q25 block with the supplied text. It corrects the description
+  of the current transport rule, states that a timeout escalates the
+  exchange, and separates every-route (A) from marked-route-only (B) scope.
+  Recommended option A is unchanged in substance but widened in scope.
+- Add one decisions-summary sentence saying Q25 remains open for an explicit
+  user choice.
+- Name the Step 4 instruction targets per Q25 option in both plans, and make
+  the Step 1 validation dependency apply to options A and B.
+
+### Writer instructions for design-specification resume-paused (Q24 decision review) round 4
+
+Apply these edits, then publish a replacement request. Keep the confirmed Q24
+block exactly as it is, record no Q25 decision, and do not consolidate.
+
+1. Design, open questions: replace the whole Q25 block with the text in the
+   question verdicts. It keeps the BBQ section and adds the route-scope
+   option, so the former options A, B and C become A, B (new), C and D.
+2. Design, item 5 Q24=A paragraph and the foreground-or-moved acceptance row:
+   keep the current sentences. They do not depend on the option letters.
+3. Design decisions summary: after "Its complete question and answer remain
+   below for a fresh independent review; no consolidation is authorized.",
+   add "Q25, raised by that review, remains open for an explicit user
+   choice."
+4. Plan Step 4 "Pending Q25 dependency" and validation plan Step 4
+   expectations: name the target per option. Option A changes the Claude
+   bounded-wait rule in `rules/run_commands.md` from permitted to required for
+   `wait-answer`, with `instructions/review-requestor.md`,
+   `instructions/spec-review-requestor.md` and
+   `instructions/code-review-requestor.md` referring to it. Option B adds the
+   marked-route requirement to `instructions/review-resume.md` and the three
+   requestor instructions. Options C and D change no instruction; D also
+   changes the design's closure rule and would return to review.
+5. Plan and validation plan Step 1 "Pending design Q25" bullets: change "If A
+   is selected" to "If A or B is selected"; the background-start, terminal
+   record and notification-resumption validation applies to both.
+6. Re-run Markdown lint, spelling and the CRLF-aware diff check on the edited
+   documents and report the new design SHA-256 in the replacement request.
+
+### Final reviewer decision for design-specification resume-paused (Q24 decision review) round 4
+
+Decision: changes-requested. The writer should apply the concrete instructions and publish another automated review round.
+
+<!-- review-entry-id: answer-round-4-exchange-4 -->
+
+## Round 5 by requestor (exchange 4)
+
+- Recorded: 2026-11-14T16:48:55+01:00
+- Exchange: specification/design-specification/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/design.v0.14.0.resume-paused.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Outcome: request
+
+### Review identity for design-specification resume-paused exchange 4 (round 5)
+
+Umbrella draft: none
+Reviewed specification: docs/v0.14.0/design.v0.14.0.resume-paused.md
+Review round: 5
+
+### Requestor assessment for design-specification resume-paused exchange 4 (round 5)
+
+Accepted all round 4 findings with no disagreement. The Q24 block and explicit
+human answer remain unchanged. Q25 now distinguishes requiring background
+waiting on every Claude requestor route (A), only after marked resume (B),
+retaining permission without a requirement (C), and weakening closure (D).
+Its description correctly identifies the existing permitted Claude transport
+and timeout escalation. The writer recommends A; no user choice is recorded.
+
+The full scanner reports two questions, one undecided, next and last Q25,
+and no diagnostics. The options and explanation now appear sufficient; no
+additional missing question is identified by the writer. Please independently
+check that assessment and full-specification consistency.
+
+Current design SHA-256:
+`ed8e6b21aea7f1d1fca9482ca2d129d6323322d1a08ce391ee58f1b673486c63`.
+
+Both host profiles remain unsupported, Step 1 incomplete and 0/8 verified.
+All earlier Q24 precision, parsing and alignment corrections remain in place.
+No production code, tests, instruction changes or consolidation occurred.
+
+### Change summary for design-specification resume-paused exchange 4 (round 5)
+
+Changes since round 4:
+
+- Replaced only the unconfirmed Q25 block with the supplied revised proposal,
+  retaining Q24 exactly. Q25 now has A-D options and explains timeout
+  escalation, the existing transport permission and route scope.
+- Added the decisions-summary sentence that Q25 remains open for a human choice.
+- Both plans name Step 4 targets for each transport scope: A changes
+  `rules/run_commands.md` with references from the three requestor
+  instructions; B changes `instructions/review-resume.md` and the three
+  requestor instructions. C/D require no instruction change; D changes
+  closure and returns to review.
+- Both plans make Step 1 transport validation conditional on A or B.
+
+The design and both plans pass lint, spelling and whitespace checks. Profile
+evidence was unchanged this round and remains validated by the prior checks.
+The protected review transcript retains 32 MD024/MD032 findings from historical
+or generated protocol content; its text was not manually edited.
+
+### Writer response for design-specification resume-paused exchange 4 (round 5)
+
+Writer response:
+
+All round 4 findings are applied. Q25 remains a proposal for independent review
+before the user chooses. Its expanded options do not reinterpret the user's
+earlier "A", which applies exclusively to Q24.
+
+Please verify the revised options, their consequences, the current-rule
+description and the conditional targets in both plans. Check for any remaining
+inconsistency or missing question across the specification and related evidence.
+No Q25 choice, profile support or consolidation authority is inferred.
+
+Private continuation: .reviews/a.question-explanation.design.v0.14.0.resume-paused.local.md.
+Writer journal and handoff: .reviews/a.resume-paused.step1.journal.md and
+.reviews/a.resume-paused.step1.handoff.md. The fixed Q24 discussion batch remains
+I=1, Total=1, with follow-up review in progress; Q25 is newly raised outside it.
+
+### Reviewer focus for design-specification resume-paused exchange 4 (round 5)
+
+Check for missing questions, assess the existing options and answers, and suggest any clearer wording.
+
+<!-- review-entry-id: request-round-5-exchange-4 -->
+
+## Round 5 by reviewer (exchange 4)
+
+- Recorded: 2026-11-14T16:53:20+01:00
+- Exchange: specification/design-specification/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/design.v0.14.0.resume-paused.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Outcome: answer
+
+### Reviewer assessment for design-specification resume-paused (Q24 decision review) round 5
+
+Independent assessment of the current design at SHA-256
+`ed8e6b21aea7f1d1fca9482ca2d129d6323322d1a08ce391ee58f1b673486c63`, with the
+changed Step 1 and Step 4 passages of both plans. The versioned transcript was
+not used as context.
+
+**Round 4 findings are resolved.**
+
+- The Q25 block now matches the replacement text supplied in round 4 exactly:
+  a byte comparison of the block against that text shows no difference. It
+  states the existing permitted Claude transport in `rules/run_commands.md`,
+  timeout escalation, and the every-route versus marked-route scope as
+  options A and B, with the former options now C and D.
+- The decisions summary says Q25 remains open for an explicit user choice.
+- Plan Step 4 and validation plan Step 4 name the instruction targets per
+  option, and both Step 1 dependency bullets apply to option A or B.
+- No reference to the old single-option lettering remains in the design,
+  plans or evidence companion.
+
+**Consistency across the documents.** Q24=A remains the user's decision, its
+block is unchanged, and its operation-based exception, single-invocation
+clause, parse allowlists, closure rule and acceptance rows are consistent
+across the design, both plans and the evidence companion. Q25 is consistent
+with item 4's closure rule, item 5's Q24=A note and the foreground-or-moved
+acceptance row. Its options are materially distinct and their consequences are
+stated accurately. I found no further missing question: a Codex requestor's
+work is outside Claude transcripts and a Codex reviewer is activated from idle
+capture, so only the Claude pair needs this choice. Both profiles remain
+unsupported and Step 1 remains incomplete; no document claims otherwise.
+
+**Remaining polish.** Item 5's sentence "A foreground or moved `wait-answer`
+stays pending until its transport is decided in Q25 and validated" implies the
+pending state ends once Q25 is decided. Under options A and B a foreground
+wait stays pending afterwards too, as a non-compliant start; under D it would
+be exempt. Covered wording below states it for every option.
+
+**Disposition.** Only that one-sentence wording edit remains, so I recommend
+convergence of the reviewed formulation. Q25 still needs the user's explicit
+choice; review agreement does not decide it.
+
+### Question verdicts for design-specification resume-paused (Q24 decision review) round 5
+
+**Q24: agree with the confirmed option A.** The user's dated reply "A" is the
+decision; the question block is unchanged and the design body, plans and
+evidence companion apply it consistently. Nothing further is needed.
+
+**Q25: agree with the question and its four options; I would choose option
+A.** The question is necessary because Q24=A only relieves the circular wait
+when the requestor's turn closes. The description is accurate, and the options
+differ materially: A requires background `wait-answer` on every Claude route,
+B only after a marked resume, C keeps today's permission, and D weakens the
+closure rule. I choose A because it holds without the requestor remembering how
+its session started and keeps item 4's closure rule intact. It also makes no
+working manual flow worse, since the default three-hour wait cannot complete
+in Claude's 600-second foreground limit. The current text needs no rewording.
+Its answer is a proposal: the user has not chosen, and the earlier "A" applies
+only to Q24.
+
+**Missing questions.** None found.
+
+### Convergence evidence for design-specification resume-paused (Q24 decision review) round 5
+
+Covered wording:
+
+Design, item 5, the Q24=A paragraph. Replace:
+
+> A foreground or moved `wait-answer` stays pending until its transport is
+> decided in Q25 and validated.
+
+with:
+
+> A foreground or moved `wait-answer` keeps the reviewer pending; Q25 decides
+> whether a background transport is required and how it is validated.
+
+No other wording change is recommended.
+
+Convergence rationale:
+
+The in-scope questions, options and proposed answers are complete and
+consistent across the design, implementation plan, validation plan and
+evidence companion. Q24 is an explicit user decision, applied consistently.
+Q25 is a proposal with four distinct options and accurate consequences, and
+its dependencies are recorded in both plans without selecting an option. Only
+the one-sentence item 5 wording above remains.
+
+Outstanding human decision: Q25 needs the user's explicit choice. Convergence
+is advisory; it neither decides Q25 nor authorizes consolidation, which
+remains a separate human choice. Neither host profile is supported, and Step 1
+remains incomplete.
+
+### Writer instructions for design-specification resume-paused (Q24 decision review) round 5
+
+1. Apply the covered item 5 wording in the design. Change nothing else.
+2. Keep the Q24 block and the user's reply unchanged, and record no Q25
+   answer.
+3. Present the convergence gate to the user with Q25 named as the outstanding
+   decision. If the user wants Q25 explained first, use the question
+   explanation phase. Do not infer a Q25 choice from the earlier Q24 reply.
+4. Do not consolidate unless the user explicitly selects Consolidate.
+
+### Final reviewer decision for design-specification resume-paused (Q24 decision review) round 5
+
+Decision: convergence-recommended. This recommendation is advisory; consolidation is not confirmed and remains at the durable human gate.
+
+<!-- review-entry-id: answer-round-5-exchange-4 -->
+
+## Round 5 by human - human-confirmation
+
+- Recorded: 2026-11-14T17:15:41+01:00
+- Exchange: specification/design-specification/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/design.v0.14.0.resume-paused.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Outcome: human-confirmation
+
+Human choice: Revise and review again
+Outcome: another-round
+Guidance: The user selected Explain undecided questions after round 5 convergence by
+replying "1". After the full Q25 explanation, the user's exact choice was:
+
+> A: Every route (Recommended)
+
+This is Q25 option A. Explanation selection authorizes recording the decision
+and a fresh independent review; consolidation is not authorized.
+
+<!-- review-entry-id: human-confirmation-round-5 -->
+
+## Round 6 by requestor (exchange 3)
+
+- Recorded: 2026-11-14T17:15:59+01:00
+- Exchange: specification/design-specification/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/design.v0.14.0.resume-paused.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Outcome: request
+
+### Review identity for design-specification resume-paused (exchange 4) (round 6)
+
+Umbrella draft: none
+Reviewed specification: docs/v0.14.0/design.v0.14.0.resume-paused.md
+Review round: 6
+
+### Requestor assessment for design-specification resume-paused (exchange 4) (round 6)
+
+Q25=A is an explicit human decision on 2026-11-14, following the explanation
+of all four options. Every Claude requestor must start each wait-answer through
+a host background mechanism as one recognized invocation form, close its turn
+and resume from the completion notification, on every route. The design records
+the exact user selection and preserves the question, all options, recommendation
+and historical proposal. Q24=A remains unchanged.
+
+The full decision scan reports two questions, both confirmed, zero undecided
+and no diagnostics. The writer finds no missing question or conflict with earlier
+decisions. The retained alternatives and answers appear sufficient; please
+independently assess that conclusion and identify any missing/new question.
+
+Current design SHA-256:
+`5256842f64376b3e419f5f30cad935893098bb85042593f1917578f81f1bba88`.
+
+The design body and acceptance example now apply Q25=A. Both plans record
+Step 1 validation and Step 4 instruction targets. Codex keeps attached waiting.
+Both host profiles remain unsupported, Step 1 incomplete and 0/8 verified.
+This is specification work; no instruction implementation or host proof is claimed.
+
+### Change summary for design-specification resume-paused (exchange 4) (round 6)
+
+Since round 5 convergence:
+
+- Applied the reviewer's covered item 5 wording before the human gate.
+- Explained Q25 and recorded the human's option A with date and exact selection.
+- Updated design item 5, the foreground/moved-wait acceptance row and the
+  decisions introduction. Preserved both full question blocks and Q24's decision.
+- Aligned implementation and validation plans at Steps 1 and 4: require host
+  background starts, turn closure, terminal records and notification resumption;
+  require the shared wait rule and references from all three requestor instructions.
+- Preserved Codex attached waits, all earlier evidence gates and host-support
+  limitations. The profile-evidence companion remains unchanged and establishes
+  no transport validation. No runtime instruction, production code or tests changed.
+
+No new notion explanation was requested. No consolidation or commit occurred.
+
+### Human guidance and writer response for design-specification resume-paused (exchange 4) (round 6)
+
+Human guidance:
+
+The user selected Explain undecided questions after round 5 convergence by
+replying "1". After the full Q25 explanation, the user's exact choice was:
+
+> A: Every route (Recommended)
+
+This is Q25 option A. Explanation selection authorizes recording the decision
+and a fresh independent review; consolidation is not authorized.
+
+Writer response:
+
+Accepted the sole round 5 covered wording correction. No disagreement.
+The user then selected explanation and explicitly chose Q25=A. This authorized
+fresh review examines the new decision; round 5 convergence did not review it.
+
+Please check the entire specification for consistency, the effects on earlier
+decisions (especially Q24's narrow operation exception and turn closure), and
+alignment with both plans and existing evidence limitations. Confirm the selected
+all-route Claude transport, unchanged Codex behavior and specific Step 4 targets.
+Identify any missing/new questions or insufficient options. Do not infer support
+from a decision or overwrite a confirmed user choice with a recommendation.
+
+The canonical exchange occurrence is 4, with this replacement at round 6.
+The reviewed document is the design, umbrella none. Consolidation is not authorized.
+
+### Reviewer focus for design-specification resume-paused (exchange 4) (round 6)
+
+Check for missing questions, assess the existing options and answers, and suggest any clearer wording.
+
+<!-- review-entry-id: request-round-6-exchange-3 -->
+
+## Round 6 by reviewer (exchange 3)
+
+- Recorded: 2026-11-14T17:20:07+01:00
+- Exchange: specification/design-specification/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/design.v0.14.0.resume-paused.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Outcome: answer
+
+### Reviewer assessment for design-specification resume-paused (Q24 decision review) round 6
+
+Independent assessment of the current design at SHA-256
+`5256842f64376b3e419f5f30cad935893098bb85042593f1917578f81f1bba88`, with the
+changed Step 1 and Step 4 passages of both plans and the plans' Step 4 file
+lists. The versioned transcript was not used as context.
+
+**Q25=A is recorded and applied correctly.** Compared with the round 5 text,
+the Q25 block changes only in its answer section: the user's decision, the
+date, the exact selection "A: Every route (Recommended)", the applied rule and
+the preserved historical proposal. The question description, BBQ section,
+four options and recommendation are unchanged. Item 5's Q24=A paragraph, the
+foreground-or-moved acceptance row and the decisions introduction state the
+every-route background requirement, closed turns, notification resumption and
+unchanged Codex attached waiting. Both plans' Step 1 bullets require
+validation of the background start, terminal record and notification
+resumption, and Step 4's dependency names `rules/run_commands.md` as the rule
+changed from permitted to required, with references from the three requestor
+instructions.
+
+**Effects on earlier decisions.** Q25=A is consistent with Q24=A: the
+exception still removes only validated requestor review-exchange starts, and
+item 4's closure rule still applies to every turn, including the requestor's.
+The background start becomes the one recognized invocation form that both
+the single-invocation clause and Step 1 validate. A Claude host that cannot
+run that transport leaves a foreground or moved wait in scope, and the
+reviewer stays pending, as the design already states. Codex requestors and
+Codex reviewers are unaffected. Q18-Q23, the disclosed limits and the
+unsupported status of both profiles are unchanged. I found no new question.
+
+**Finding 1, design scope omits the new shared-rule change.** "Scope and
+deferred integration" lists what the delivery includes: the command and
+launcher, pause routing, target-bound consent, clearing, duplicate protection
+and paired outcomes. Q25=A adds a change outside the bulk route: every Claude
+requestor, on every route, must run `wait-answer` in the background. The
+scope paragraph should name it so the delivery boundary matches the decision.
+
+**Finding 2, plan Step 4 does not list its new mutation targets.** With Q25=A
+confirmed, `rules/run_commands.md` (226 lines),
+`instructions/review-requestor.md` (367), `instructions/spec-review-requestor.md`
+(238) and `instructions/code-review-requestor.md` (320) are definite Step 4
+edits. They are absent from Step 4's "Files involved" list, the existing-file
+baseline table and the Step 4 line-budget checkpoint. The plan says "All
+non-Python file baselines are recorded above", which is no longer true. An
+implementation check driven by the file list would miss these edits.
+
+**Finding 3, no test pins the required rule.** No test in `tests/` currently
+asserts the Claude transport text in `rules/run_commands.md`, and Step 4 lists
+no instruction-contract test for the new requirement. Instruction-structure
+tests already exist under `tests/unit/tools/test_instruction_structure/`. Step
+4 should add one asserting that the shared rule requires Claude background
+`wait-answer` on every route, keeps Codex attached waiting, and is referenced
+by the three requestor instructions. The validation plan's Step 4 expectation
+should name it.
+
+**Optional polish.** The Q25 decision line reads "User decision: confirmed:
+option A, on 2026-11-14." while Q24's reads "User decision: confirmed — Option
+A." Matching formats would help readers; the question scanner already reports
+both as confirmed. The evidence companion could add one sentence that Q25=A
+adds a Step 1 transport-validation obligation with no evidence collected yet.
+
+**Disposition.** Q24 and Q25 are settled user decisions and I agree with both.
+Findings 2 and 3 add plan file entries, baselines and a test, which is more
+than wording, so I request one more automated round. The exact additions are
+in the writer instructions. No consolidation is recommended or authorized.
+
+### Question verdicts for design-specification resume-paused (Q24 decision review) round 6
+
+**Q24: agree with the confirmed option A.** The block and the user's reply are
+unchanged, and Q25=A does not alter the operation-based exception or the
+closure rule.
+
+**Q25: agree with the confirmed option A.** The user chose "A: Every route
+(Recommended)" after the explanation. It is also the answer I would choose: it
+lets Q24=A remove the Claude-pair circular wait without weakening closure,
+adding a source or relying on the requestor remembering its entry route. The
+question, options, recommendation and historical proposal are preserved. No
+rewording is needed beyond the optional decision-line format noted in the
+assessment.
+
+**Missing questions.** None found. Both questions are confirmed user decisions;
+no human decision is outstanding in the specification.
+
+### Requested changes for design-specification resume-paused (Q24 decision review) round 6
+
+Requested changes:
+
+- Name the Q25=A shared Claude transport change in the design's scope
+  paragraph.
+- Add `rules/run_commands.md` and the three requestor instructions to the
+  plan's baseline table, Step 4 file list and line-budget checkpoint.
+- Add a Step 4 instruction-contract test for the required rule and its
+  references, and expect it in validation plan Step 4.
+
+### Human guidance response for design-specification resume-paused (Q24 decision review) round 6
+
+Human guidance:
+
+The user selected Explain undecided questions after round 5 convergence by
+replying "1". After the full Q25 explanation, the user's exact choice was:
+
+> A: Every route (Recommended)
+
+Guidance response:
+
+The reviewer treats "A: Every route (Recommended)" as the user's explicit Q25
+decision and does not reopen it. It matches the reviewer's own choice. The
+requested changes only make the plans and the design's scope paragraph carry
+out that decision; they neither alter it nor authorize consolidation.
+
+### Writer instructions for design-specification resume-paused (Q24 decision review) round 6
+
+Apply these edits, then publish a replacement request. Keep both confirmed
+question blocks and the users' replies unchanged, and do not consolidate.
+
+1. Design, "Scope and deferred integration", first paragraph: after "and
+   separate paired outcomes", add a sentence: "Under Q25=A it also makes the
+   shared Claude bounded-wait rule require a host background `wait-answer`
+   start on every requestor route, with references from the three requestor
+   instructions; Codex keeps attached waiting."
+2. Plan, existing-file baseline table: add rows for
+   `rules/run_commands.md` (226 lines), `instructions/review-requestor.md`
+   (367), `instructions/spec-review-requestor.md` (238) and
+   `instructions/code-review-requestor.md` (320), each "(existing, to be
+   updated)" with "Non-Python; no Python size band". Recount at execution
+   time as the plan already requires.
+3. Plan Step 4 "Files involved": add the same four files as "(existing, to be
+   updated)", plus one new instruction-contract test, for example
+   `tests/unit/tools/test_instruction_structure/test_requestor_answer_wait_transport_tdd.py`
+   "(new, to be created)". Add the test to Step 4's line-budget checkpoint
+   with the standard new-file bands.
+4. Plan Step 4 tests: state that the new test asserts that
+   `rules/run_commands.md` requires Claude background `wait-answer` on every
+   route, keeps Codex attached waiting, and is referenced by the three
+   requestor instructions, and that existing instruction-structure tests still
+   pass.
+5. Validation plan Step 4 expectations: add that the new instruction-contract
+   test exists and passes with those assertions.
+6. Optional: match the Q25 decision line to Q24's format, and add one
+   evidence-companion sentence that Q25=A adds a Step 1 transport-validation
+   obligation with no evidence collected yet.
+7. Re-run Markdown lint, spelling and the CRLF-aware diff check on the edited
+   documents and report the new design SHA-256.
+
+### Final reviewer decision for design-specification resume-paused (Q24 decision review) round 6
+
+Decision: changes-requested. The writer should apply the concrete instructions and publish another automated review round.
+
+<!-- review-entry-id: answer-round-6-exchange-3 -->
+
+## Round 7 by requestor (exchange 3)
+
+- Recorded: 2026-11-14T17:24:01+01:00
+- Exchange: specification/design-specification/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/design.v0.14.0.resume-paused.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Outcome: request
+
+### Review identity for design-specification resume-paused (exchange 3) (round 7)
+
+Umbrella draft: none
+Reviewed specification: docs/v0.14.0/design.v0.14.0.resume-paused.md
+Review round: 7
+
+### Requestor assessment for design-specification resume-paused (exchange 3) (round 7)
+
+Accepted the three round 6 findings. Q24=A and Q25=A remain confirmed and
+their full question blocks and answers are unchanged. The full scan finds two
+questions, zero undecided and no diagnostics. No further missing question or
+conflict is identified by the writer; independently reassess the whole design,
+earlier decisions and related plan/evidence consistency.
+
+The delivery scope now names the shared all-route Claude background wait rule.
+The implementation plan lists its four actual instruction targets with measured
+baselines and Step 4 line checkpoints, plus the new instruction-contract test.
+The validation plan expects that test and its assertions. The evidence companion
+states that the complete transport contract remains unvalidated.
+
+Current design SHA-256:
+`18fad36f72da7bdfa9ea79d7ae9fc40f2528fa43d8a03b09683626eaf0666868`.
+
+Both host profiles remain unsupported, Step 1 incomplete and 0/8 verified.
+No runtime instructions, production code or tests were implemented.
+
+### Change summary for design-specification resume-paused (exchange 3) (round 7)
+
+Since round 6:
+
+- Added the Q25=A shared transport rule to the design delivery scope.
+- Added four existing Step 4 targets: rules/run_commands.md and the shared,
+  specification and code requestor instructions. Recounted their physical lines
+  as 226, 367, 238 and 320 at HEAD 06e0bba1 and recorded their non-Python bands.
+- Added the proposed test_requestor_answer_wait_transport_tdd.py under the
+  existing instruction-structure package to the Step 4 file list and size
+  checkpoint (baseline 0, below 550, ceiling 650). Specified its assertions:
+  every-route Claude background wait requirement, Codex attached waits and
+  references from all three requestor instructions, with existing tests retained.
+- Added matching Step 4 validation expectations and one evidence-companion
+  paragraph stating the Step 1 transport obligation has no complete evidence yet.
+
+Both question blocks, decisions, options and historical proposals are unchanged.
+No consolidation, instruction implementation, production code or test creation.
+
+### Human guidance and writer response for design-specification resume-paused (exchange 3) (round 7)
+
+Human guidance:
+
+The user selected Explain undecided questions after round 5 convergence by
+replying "1". After the full Q25 explanation, the user's exact choice was:
+
+> A: Every route (Recommended)
+
+This is Q25 option A. Explanation selection authorizes recording the decision
+and a fresh independent review; consolidation is not authorized.
+
+Writer response:
+
+All mandatory round 6 findings are accepted and applied, with no disagreement.
+The optional evidence-companion clarification is also applied. The optional
+decision-line formatting change was left out: the scanner recognizes the
+confirmed answer and rules/markdown.md prohibits adding an em dash in prose.
+The human decision is preserved verbatim.
+
+Please verify full specification and plan consistency, complete Step 4 mutation
+targets and test obligations, preserved earlier decisions and evidence limits,
+and whether any additional question is necessary. This remains the authorized
+fresh review of Q25=A; no human decision is outstanding and no consolidation
+is authorized.
+
+Publication of round 6 returned exchange_occurrence 3, differing from the prior
+round 5 retained value 4 used in that request's prose/headings. This request uses
+the last returned occurrence 3 for heading qualification. Exact document, roles
+and round are unchanged; no protocol history has been hand-edited.
+
+### Reviewer focus for design-specification resume-paused (exchange 3) (round 7)
+
+Check for missing questions, assess the existing options and answers, and suggest any clearer wording.
+
+<!-- review-entry-id: request-round-7-exchange-3 -->
+
+## Round 7 by reviewer (exchange 3)
+
+- Recorded: 2026-11-14T17:27:27+01:00
+- Exchange: specification/design-specification/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/design.v0.14.0.resume-paused.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Outcome: answer
+
+### Reviewer assessment for design-specification resume-paused (Q24 decision review) round 7
+
+Independent assessment of the current design at SHA-256
+`18fad36f72da7bdfa9ea79d7ae9fc40f2528fa43d8a03b09683626eaf0666868`, with the
+changed passages of both plans and the evidence companion. The versioned
+transcript was not used as context.
+
+**Round 6 findings are resolved.**
+
+- The design's scope paragraph now names the Q25=A shared Claude bounded-wait
+  rule, the references from the three requestor instructions and unchanged
+  Codex attached waiting.
+- The plan's existing-file baseline table lists `rules/run_commands.md` (226),
+  `instructions/review-requestor.md` (367),
+  `instructions/spec-review-requestor.md` (238) and
+  `instructions/code-review-requestor.md` (320). These match the current line
+  counts in this checkout.
+- Step 4's file list adds the same four files and
+  `tests/unit/tools/test_instruction_structure/test_requestor_answer_wait_transport_tdd.py`,
+  and Step 4's line-budget checkpoint covers all five.
+- Step 4 states the test's assertions: the shared rule requires Claude
+  background `wait-answer` on every requestor route, keeps Codex attached
+  waiting, and is referenced by all three requestor instructions. Existing
+  instruction-structure tests must still pass.
+- Validation plan Step 4 requires that test with the same assertions.
+- The evidence companion's opening section records the Step 1 transport
+  obligation with no evidence collected yet.
+
+The writer left out my optional decision-line format change for a stated
+reason; it was optional, and the scanner reads both decisions as confirmed.
+
+**Whole-specification consistency.** Q24=A and Q25=A are confirmed user
+decisions with unchanged blocks and replies. Their effects agree across the
+design's scope, item 4 closure, item 5 exception and transport paragraph,
+acceptance rows, decisions introduction, both plans' Step 1, Step 4 and Step 7
+passages, and the evidence companion. Earlier decisions Q18-Q23, the disclosed
+limits and the evidence gates are preserved. Both profiles remain unsupported
+and Step 1 remains incomplete. I found no missing question.
+
+**Remaining polish.** The plan's test-layout paragraph says "Every new unit
+test follows `tests/unit/tools/test_resume_paused_<area>/test_resume_paused_<area>_tdd.py`",
+but the new instruction-contract test correctly joins the existing
+instruction-structure package. Covered wording below records that exception.
+
+**Disposition.** Only that one-sentence wording edit remains, so I recommend
+convergence of the reviewed formulation. No human decision is outstanding in
+the specification. Consolidation remains a separate human choice.
+
+### Question verdicts for design-specification resume-paused (Q24 decision review) round 7
+
+**Q24: agree with the confirmed option A.** Unchanged and consistently
+applied.
+
+**Q25: agree with the confirmed option A.** The user chose "A: Every route
+(Recommended)"; it is also the answer I would choose. The block, options,
+recommendation and historical proposal are preserved, and the design and both
+plans now carry the decision through to concrete Step 1 and Step 4 work.
+
+**Missing questions.** None found. No human decision is outstanding in the
+specification.
+
+### Convergence evidence for design-specification resume-paused (Q24 decision review) round 7
+
+Covered wording:
+
+Plan, "Existing tests to preserve and new test layout", second paragraph.
+Replace:
+
+> Every new unit test follows
+> `tests/unit/tools/test_resume_paused_<area>/test_resume_paused_<area>_tdd.py`;
+> create its listed `__init__.py`.
+
+with:
+
+> Every new unit test follows
+> `tests/unit/tools/test_resume_paused_<area>/test_resume_paused_<area>_tdd.py`;
+> create its listed `__init__.py`. The one exception is Step 4's
+> instruction-contract test, which joins the existing
+> `tests/unit/tools/test_instruction_structure/` package.
+
+No other wording change is recommended.
+
+Convergence rationale:
+
+The in-scope questions, options and answers are complete and consistent across
+the design, implementation plan, validation plan and evidence companion. Q24
+and Q25 are explicit user decisions, applied consistently, with their concrete
+work recorded in Step 1, Step 4 and Step 7 of both plans. Only the one-sentence
+test-layout wording above remains.
+
+No human decision is outstanding in the specification. Convergence is
+advisory and does not authorize consolidation, which remains a separate human
+choice. Neither host profile is supported, and Step 1 remains incomplete.
+
+### Human guidance response for design-specification resume-paused (Q24 decision review) round 7
+
+Human guidance:
+
+The user selected Explain undecided questions after round 5 convergence by
+replying "1". After the full Q25 explanation, the user's exact choice was:
+
+> A: Every route (Recommended)
+
+Guidance response:
+
+The reviewer keeps "A: Every route (Recommended)" as the user's explicit Q25
+decision. The current documents carry it out fully; this convergence
+recommendation neither alters that decision nor authorizes consolidation.
+
+### Writer instructions for design-specification resume-paused (Q24 decision review) round 7
+
+1. Apply the covered test-layout wording in the implementation plan. Change
+   nothing else.
+2. Keep both confirmed question blocks and the users' replies unchanged.
+3. Present the convergence gate to the user. No specification question is
+   undecided.
+4. Do not consolidate unless the user explicitly selects Consolidate.
+
+### Final reviewer decision for design-specification resume-paused (Q24 decision review) round 7
+
+Decision: convergence-recommended. This recommendation is advisory; consolidation is not confirmed and remains at the durable human gate.
+
+<!-- review-entry-id: answer-round-7-exchange-3 -->
+
+## Round 7 by human - human-confirmation
+
+- Recorded: 2026-11-14T17:37:02+01:00
+- Exchange: specification/design-specification/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/design.v0.14.0.resume-paused.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Outcome: human-confirmation
+
+Human choice: Consolidate
+Outcome: continue-owning-workflow
+
+<!-- review-entry-id: human-confirmation-round-7 -->
