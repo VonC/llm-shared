@@ -22,6 +22,9 @@ The delivery includes a Python 3.12 compatible command and launcher for
 existing Claude and Codex panes, automatic pause routing capture and
 consumption, target-bound launch consent in both receiving resume workflows,
 optional clearing, duplicate protection, and separate paired outcomes.
+Under Q25=A it also makes the shared Claude bounded-wait rule require a host
+background `wait-answer` start on every requestor route, with references from
+the three requestor instructions; Codex keeps attached waiting.
 
 Agents never launch `resume_paused`, including previews and human-requested
 shell escapes. Tests use an injected fake TUIOS runner. The command creates
@@ -67,8 +70,9 @@ individual primitives, without establishing supported profiles.
 | Writer-owned disposable Windows/Codex probes on 2026-11-12 | On build 26200, revision 9711, query-only image walks, same-handle hashes and class-44 identity succeeded for Codex 0.167.2. A renamed copied executable retained identity and a recreated identical file was rejected; full image-name corroboration failed after rename. One diagnostic input matched a unique complete session file and version. Updater, races, timestamp bounds and clear-result signatures remain unvalidated. See the [evidence companion](resume-paused.profile-evidence.md). |
 | Writer-owned disposable Claude probes on 2026-11-12 | Claude 2.1.322 recorded launcher-settings startup, typed input, PowerShell and Monitor start/completion, and CronCreate/CronDelete. Monitor starts use `toolUseResult.taskId`, unlike PowerShell's `backgroundTaskId`. Forced host exit left owned commands alive immediately afterward. Startup and session-owner shapes supplied no explicit process-creation identity; complete-generation binding and all-mechanism coverage remain unvalidated. These observations neither prove invisible lifecycle transitions nor invalidate ordinary same-generation activation by themselves. |
 | Independent reviewer observation on 2026-11-12, Claude 2.1.322, the reviewer's own `tuitp`-launched pane | The first timestamped record was the TUIOS startup `hook_success`, 41 seconds after process creation and after five untimestamped metadata records. A complete read found 17 record types, 20 attachment types and a `task_status` snapshot immediately after compaction. The pane record had no process field; its activity log had evicted its earliest entries. No user, project or local settings file held a TUIOS hook. Reviewer source analysis found temporary `CLAUDE_CONFIG_DIR` hook generation, root-only explicit settings, launch-time `--resume` and retries in the same pane shell. These are reviewer observations, not writer validation of generation binding or ledger completeness. |
-| Writer-owned disposable Claude probes on 2026-11-13 | Claude 2.1.323 persisted a startup marker after direct-child creation. Clear kept that child and began a new file with `SessionStart:clear`; file order differed from event creation order, and a pre-clear background task's terminal enqueue arrived in the new file. A second root using the launcher settings concurrently resumed the same session, wrote `SessionStart:resume`, and continued writing after the original root exited. This disproves unconditional single-writer ownership; the later noncompact marker rejects the observed case. Plain `--resume` without launcher settings also appended to a fresh marked file while the original child lived and after it exited, without a new SessionStart. Its turns closed without the launcher Stop handler summary, and the original's next input shared the foreign input's parent. Item 1 states positive attribution rules for these observations; they remain unvalidated. The profile remains unsupported pending validation of item 1's attribution rules and the remaining append-path matrix. See the [evidence companion](resume-paused.profile-evidence.md). |
+| Writer-owned disposable Claude probes on 2026-11-13 | Claude 2.1.323 persisted a startup marker after direct-child creation. Clear kept that child and began a new file with `SessionStart:clear`; file order differed from event creation order, and a pre-clear background task's terminal enqueue arrived in the new file. A second root using the launcher settings concurrently resumed the same session, wrote `SessionStart:resume`, and continued writing after the original root exited. This disproves unconditional single-writer ownership; the later noncompact marker rejects the observed case. Plain `--resume` without launcher settings also appended to a fresh marked file while the original child lived and after it exited, without a new SessionStart. Its turns closed without the launcher Stop handler summary, and the original's next input shared the foreign input's parent. The positive-attribution candidate based on these shapes was superseded after the 2.1.325 Stop-only run. The profile remains unsupported pending validation of completeness, closure, ordering and the remaining append-path matrix. See the [evidence companion](resume-paused.profile-evidence.md). |
 | Independent reviewer observation on 2026-11-13, Claude 2.1.323, the reviewer's own `tuitp`-launched pane | A complete read found 777 records and 2949158 bytes with a final newline. Fifteen parents had two children; each was an assistant record carrying a `tool_use` block, with the tool-result user record and the next assistant record as children. Each of the three closed turns, two started by task notifications, ended with a `stop_hook_summary` whose child was `turn_duration`; each summary had `hookCount` 1 and `hookInfos` entries with `command` and `durationMs`, the command naming TUIOS. The one snapshot linked to its input. The slash-command input carried `origin.kind` `human` without `promptSource`. These are reviewer observations, not writer validation. |
+| Writer-owned Stop-only resume controls on 2026-11-13, Claude 2.1.325, Windows build 26200 update revision 9711 | With checkpointing disabled, a concurrent root carrying only the exact launcher Stop command appended without SessionStart, snapshots or an input branch and closed with the matching Stop summary and final record (94 records, 502250 bytes). Both foreign and later original inputs inherited turn position 4/4 and parent record 72. The different-command root emitted a Stop `hook_success` absent from TUIOS Stop turns: configuration shape, not writer identity. All three successful first-tool diagnostics found their input persisted; both foreign tool-call records lagged. These samples do not prove universal input-before-effect or closing-record ordering. No approved source identifies the writer; neither host is supported. |
 | [Program status](../../tools/program_status.py) | OSC 7501 reports provide app state. They are supplementary evidence, not proof that an input was accepted. |
 
 The [draft](draft.v0.14.0.resume-paused.md) supplies observed TUIOS delivery
@@ -271,7 +275,7 @@ only (Q18=A). The deferred senv effort must preserve those settings or affected
 Claude panes remain pending. The shared command installs nothing and operates
 independently of the launcher. An installed TUIOS integration, alone or combined
 with launcher settings, and missing or uncertain provenance remains pending.
-Validate launcher-only root/nested attribution,
+Validate launcher-only root/nested record classification,
 source exclusion, ordering and complete persistence before accepting a profile.
 No senv code change is included in this design discussion.
 
@@ -762,43 +766,49 @@ all of the following:
    that an earlier root's recorded marker cannot fall after the next root's
    creation. The candidate assumes timestamps mark event creation and may
    be persisted late, making them earlier than their write; an exited root
-   writes nothing itself. The host does not keep a transcript exclusive to
-   one root: a second root can resume the same session id while the first runs
-   or after it exits. Require generation-scoped exclusivity instead: from the
-   accepted first timestamped marker through the end of the complete read,
-   every record in the file comes from the pane's current direct Claude child.
-   Prove it by positive attribution, not by a list of foreign signatures.
-   Any later SessionStart record other than `compact`, whatever its hook
-   outcome, means pending. Every other record from the marker through the
-   end of the read must be attributed to the current root by validated
-   rules: one parent chain from the marker, except validated fan-out shapes
-   such as tool-call fan-out, subagent sidechains and compaction boundaries;
-   every model turn, whatever starts it, closed by a `stop_hook_summary`
-   linked into that turn whose recorded handlers equal the validated
-   launcher Stop handler set, then the validated final record; every
-   `file-history-snapshot` linked to an input record in the chain or
-   matching a validated original-process form; and classified local-command
-   and metadata records. An unattributed record, a second input-bearing
-   child, an unclosed or differently closed turn, or an unlinked snapshot
-   means pending. Validate for each pinned version that every root able to
-   append to an existing session file fails this attribution: launch-time
-   `--resume` or `--continue`, in-process `/resume`, launcher retry,
-   backgrounded or reattached sessions, and roots started without the
-   launcher settings, including nested print-mode and roots whose own
-   explicit settings carry a Stop handler. Also validate persistence before
-   effect: a turn's input record is persisted before that turn runs any tool
-   or starts any waiting mechanism. An append path that passes attribution,
-   or a failed ordering property, keeps the profile unsupported and returns
-   to design review with a concrete proposal. A backward step between the earlier
+   writes nothing itself. The host does not keep a transcript exclusive to one
+   root: a second root
+   can resume the same session id while the first runs or after it exits. No
+   approved source identifies which root wrote a record. The recorded Stop
+   command, snapshots, `session-owner` metadata, markings and turn positions
+   are shared by any root that resumes the session (2026-11-13 Stop-only
+   run). Item 1 therefore claims no writer attribution. It requires
+   generation-scoped completeness and closure for every writer. Any later
+   SessionStart record other than `compact`, whatever its hook outcome, means
+   pending. From the marker through the end of the read, records form one
+   parent chain, except validated fan-out shapes such as tool-call fan-out,
+   subagent sidechains and compaction boundaries. Every
+   `file-history-snapshot` links to an input record in the chain or matches a
+   validated original-process form, and local-command and metadata records
+   are classified. Every model turn, whatever starts it and whichever root
+   wrote it, closes with a `stop_hook_summary` linked into that turn whose
+   recorded handlers equal the validated launcher Stop handler set, then the
+   validated final record. A dangling or unclassified parent, a second
+   input-bearing child, an unlinked snapshot, an unclassified record, or an
+   unclosed or differently closed turn means pending. These are conservative
+   shape conditions, not writer identity. Validate for each pinned version
+   that every root able to append to an in-scope transcript persists each
+   input record, including a local command that executes work such as
+   bash-mode input, before that input runs any tool or command or starts any
+   waiting mechanism, and persists a turn's closing records after every other
+   record of that turn. Cover launch-time `--resume` or `--continue`, in-process
+   `/resume`, launcher retry, backgrounded or reattached sessions, and roots
+   started without the launcher settings, including nested print-mode and
+   roots whose own explicit settings carry a Stop handler. This ordering,
+   not the pane's idle screen, covers another writer's in-flight turn. A
+   failed ordering property keeps the profile unsupported and returns to
+   design review with a concrete proposal. A backward step between the earlier
    root's last write and the new root's creation is undetectable through
    approved sources and is an explicitly reported residual limit (Q20=A).
    Preserve ordering and timestamp-semantics validation within that limit.
    Do not require timestamps
    to increase in file order: healthy observed files persist them out of order.
    Require validated root-interactive record markings to classify records.
-   Markings do not attribute a record to a root: the 2026-11-13 plain resume
-   carried the original's markings. Nested-session records must fail the
-   attribution above. Timestamp semantics and markings remain to validate.
+   Markings and turn positions do not identify a writer: the 2026-11-13
+   resumed roots carried the original's markings and continued its turn
+   numbering. Nested-session records in the bound file are classified and
+   closure-checked like any other writer's. Timestamp semantics and markings
+   remain to validate.
 2. Classify the complete ledger under a version-pinned closed-world profile:
    every top-level record, attachment, tool name, call and result shape must
    be classified. Unknown records, tools or shapes and open tool calls mean
@@ -831,7 +841,7 @@ all of the following:
    old times, and skill/subagent hooks can appear mid-session. No approved
    source records handler configuration history. This unavailable history and
    detached hook work are reported residual limits under Q20=A. Binding still
-   needs validated record-level discrimination of nested sessions. Unknown
+   needs validated record-level classification of nested sessions. Unknown
    scheduling or incomplete evidence for in-scope task state remains pending.
 4. The file is read completely, without missing bytes or a truncated last
    record. Fresh idle/empty-input evidence and stable session/process binding
@@ -839,10 +849,12 @@ all of the following:
    so an idle screen does not prove the last turn is on disk. Require a
    validated turn-closure condition: every tool call has its result, every
    result has its call, and the turn's validated final record is present.
-   Apply this closure condition to the last turn of every in-scope
-   transcript under item 5; an unclosed turn in any of them means pending.
-   This includes the proved requestor's transcript: Q22=A excludes validated
-   post-marker starts, not an unclosed requestor turn.
+   An executing local command needs its own validated completion record.
+   Apply this closure condition to every input-bearing record and every chain
+   tip of every in-scope transcript under item 5; an unclosed turn in any of
+   them means pending.
+   This includes the proved requestor's transcript: Q24=A excludes only validated
+   requestor review-exchange starts, not an unclosed requestor turn.
    Refresh all required state under the execution
    guard immediately before delivery; it is never cached authorization.
 5. Read every transcript in this checkout's Claude project directory with
@@ -865,12 +877,27 @@ all of the following:
    and test suspension between boot and the decision. An uptime that excludes
    suspended time would hide a backward change of up to the suspended duration.
 
-   Under Q22=A, exclude from the absence check only validated new work of the
-   proved requestor pane's current process generation. Earlier starts, every
-   other transcript and recognized reviewer watcher starts remain in scope.
+   **Q24=A, confirmed on 2026-11-14:** Apply the Q22/Q23 exception by validated
+   operation content, without claiming writer identity. The full question and
+   historical choices remain below for follow-up independent review.
+   The exception relieves answer-wait circularity only when the requestor's
+   turn closes after the wait starts. Under Q25=A, confirmed on 2026-11-14,
+   every Claude requestor starts each `wait-answer` through a host background
+   mechanism as one recognized invocation form, ends its turn and resumes from
+   the completion notification, on every route. A foreground or moved wait
+   stays in scope and keeps the reviewer pending with that reason. Step 1 must
+   validate the background start, terminal record and notification resumption.
+   Step 4 makes this transport mandatory in the shared rule and refers to it
+   from the requestor instructions. Codex retains attached waiting.
+
+   Under Q22=A as qualified by Q24=A, exclude only starts in the Q23-bound
+   requestor file that parse as validated requestor review-exchange operations,
+   ordered after the marked resume input by validated creation ordering, with
+   their own lifecycle records, whichever root wrote them. Every other start,
+   including the requestor's other post-marker work, remains in scope.
    Read and classify the records needed to prove the exception; do not skip
    enumeration, byte accounting or watcher recognition. Uncertain requestor
-   generation or ordering means pending. Refresh the exact takeover evidence
+   file binding, operation classification or ordering means pending. Refresh the exact takeover evidence
    and both panes' required process/session bindings before activation, on
    initial activation and later continuation. This exception does not discard
    earlier watchers, including a former reviewer's after `--switch-roles`.
@@ -884,7 +911,8 @@ all of the following:
 
    Inside the excluded range, a start that invokes the review-exchange launcher
    counts as a reviewer watcher unless its operation parses as a validated
-   requestor operation. Validate the recognized invocation forms for each pinned
+   requestor operation. A start qualifies only when its complete recorded command matches exactly one recognized requestor invocation form with a requestor-only operation. Chained, piped, wrapped or multi-operation commands, and operations either role may run, stay in scope under normal start/end matching.
+   Validate the recognized invocation forms for each pinned
    version. A recognized watcher stays in scope under normal start/end matching
    and blocks until its validated terminal record.
 
@@ -895,7 +923,7 @@ all of the following:
    or `clear`, at or after creation of the requestor shell's single direct Claude
    child; no later SessionStart other than `compact`; the proved marked input in
    that file; unchanged process identity across the read; and validated ordering
-   and item 1's generation-scoped exclusivity. Missing or uncertain evidence
+   and item 1's completeness and closure for every writer (Q24=A). Missing or uncertain evidence
    remains pending.
    This covers the command's `--clear` and a manual clear before the run. Q19=A
    retains pre-clear transcripts and Q22=A retains earlier starts and matches
@@ -928,8 +956,8 @@ all of the following:
 
    The ledger parses only classified structural fields it needs in memory:
    record and attachment types, tool names, call/result linkage, task ids and
-   statuses, origin kinds, timestamps, recorded `cwd`, and typed reviewer-entry
-   and watcher-start matches. It never prints or retains conversation content
+   statuses, origin kinds, timestamps, recorded `cwd`, and typed reviewer-entry,
+   watcher-start and requestor review-exchange operation matches. It never prints or retains conversation content
    or tool payloads, and reports only counts and classified reasons.
 
 These are proof obligations for the candidate ledger. A cleared, forked or
@@ -1026,19 +1054,21 @@ Dry runs apply the same classification and name-validation failures.
 | An ordinary start predates a validated true boot | Discharged only under validated Q21=A fixed-boundary semantics; durable/restorable schedules remain in the read set (Q19=A). |
 | The wall clock moves forward after boot | The validated recorded boot instant stays fixed; current time minus uptime never replaces the selection boundary (Q21=A). |
 | Comparison detects net backward clock movement beyond the validated tolerance, or boot metadata is uncertain | Pending without input (Q21=A); disclose the residual undetectable-backward-change limit since boot. |
-| The proved Claude requestor starts an answer wait after its marked resume | Q22=A excludes only starts proved created after the marker and their own lifecycle records; all remaining gates still apply. |
+| A validated requestor review-exchange start follows marked resume in the Q23-bound file | Q24=A excludes that start and its own lifecycle records regardless of writer, only with validated creation ordering and operation classification; all remaining gates still apply. |
 | A Claude requestor resumed with `--clear`, or after a manual clear, proves takeover and starts its answer wait | Q23=A permits Q22=A only after the marked-input file passes the validated startup-or-clear requestor binding; uncertainty means pending. Pre-clear history and all other gates remain in scope. |
 | A requestor start from before its marked resume ends after it | The terminal record still matches the earlier start, including across a clear; only starts proved created after the marker are excluded (Q22=A). |
 | A reviewer watcher start occurs in the proposed requestor exclusion, or an earlier watcher survives a role switch | Stays in scope under normal start/end matching and blocks until its validated terminal record; ambiguous review-exchange operations stay in scope (Q22=A). |
-| Requestor generation binding or record order cannot be validated | Pending without input; do not apply the Q22=A exception. |
-| Another root attaches to the bound session id, with or without the launcher settings | Pending when a later noncompact SessionStart appears or item 1's positive attribution fails. An append path that passes attribution, or failed persistence-before-effect ordering, keeps the profile unsupported and returns to design review. |
+| Requestor file binding, operation classification or creation order cannot be validated | Pending without input; do not apply the Q24=A exception. |
+| A Claude requestor runs its answer wait in the foreground, or Claude moves it to the background | Stays in scope and leaves the reviewer pending with that reason. Q25=A requires a host background start, turn closure and notification resumption on every Claude requestor route. |
+| Other post-marker work occurs in the Q23-bound file, including the requestor's own work | Stays in scope until validated completion; Q24=A excludes only validated requestor review-exchange operations. |
+| Another root attaches to the bound session id, with or without the launcher settings | Pending while a later noncompact SessionStart, another conservative shape trigger or an unclosed turn holds. Closed, classified turns are covered like any other writer's. Failed input-before-effect or closing-record ordering keeps the profile unsupported and returns to design review. |
 | A Claude reviewer is activated, or preview shows conditional activation | The result includes `limits=claude-wait-scope`, defined in help/reference as the three Q20=A limits, with Q21=A's since-boot clock scope. |
 | A background subagent has no validated completion record | Pending without input. |
 | A recurring/durable schedule or unresolved wakeup remains | Pending without input. |
 | A record, attachment, tool or result shape is unclassified | Pending without input. |
 | A moved foreground command has an unvalidated result shape | Pending without input. |
 | A tool call has no matching complete result | Pending without input. |
-| A tool result lacks its call, or the last turn lacks its validated closing record | Pending without input. |
+| A tool result lacks its call, or any input-bearing record or chain tip lacks its validated closure | Pending without input. |
 | Codex mapped image is outside the pinned release layout, or its manifest/digest disagrees | Unsupported profile evidence; no input. |
 | A different file, including a byte-identical copy or another pinned release, occupies the kernel image name after a rename | Identity query fails; unsupported evidence, no input. |
 | The identity query is unavailable or denied on the Windows build | Unsupported evidence; no input. |
@@ -1107,27 +1137,31 @@ starts. Validate each of these generation-binding cases:
    pane leaves the old reported session stale and rejected.
 3. A nested print-mode Claude launched through the disposable session's tool
    cannot change the pane's reported session under launcher settings alone;
-   record the nested session's marking for classification and prove that
-   its records fail item 1's positive attribution. The reviewer observed `entrypoint: cli` on
+   record the nested session's markings for classification; if it appends to
+   the bound file, its records are classified and closure-checked under item 1. The reviewer observed `entrypoint: cli` on
    every record carrying that field in its own interactive session only.
 4. Launcher `--resume` and early-failure retry paths record their markers and
    whether the session id changes. Restored panes remain pending until a
    separate launch-time resume rule validates.
 5. `/clear` and `--fork-session` remain pending.
-6. Every root attaching to the same session id, concurrently or later,
-   with and without the launcher settings, including nested print-mode
-   resume and explicit settings carrying only a Stop handler, fails item
-   1's positive attribution, and its turn input persists before that
-   turn's first tool runs. On 2026-11-13 the launcher-settings `--resume`
+6. Every root attaching to the same session id, concurrently or later, with
+   and without the launcher settings, including nested print-mode resume and
+   explicit settings carrying only a Stop handler, is classified and either
+   closes every turn under the validated closing sequence or stays pending
+   under a conservative trigger. Its turn input persists before that turn's
+   first tool runs, and its closing records persist after every other record
+   of the turn. On 2026-11-13 the launcher-settings `--resume`
    wrote `SessionStart:resume`. The plain `--resume` wrote no
    SessionStart, and its turns closed without the launcher Stop handler
-   summary.
+   summary. On 2.1.325, a root whose settings held only the exact launcher Stop
+   command passed every shape condition, so no shape identifies the writer.
 
-Validate timestamp semantics and item 1's generation-scoped exclusivity.
+Validate timestamp semantics and item 1's generation completeness and closure
+for every writer.
 Reproduce every attach path while the original root runs and after it
-exits, with and without the launcher settings, and record where each
-attach first fails attribution and its persistence order. Run ordinary
-original-process controls that attribution must accept: no-tool turns,
+exits, with and without the launcher settings, and record its shapes, closure
+and persistence order, with checkpointing enabled and disabled. Run ordinary
+original-process controls for classification and closure: no-tool turns,
 sequential and parallel tool calls, background starts with
 notification-started turns, slash commands and queued input, interruption
 and API retry, compaction, subagent sidechains, Stop-hook error or
@@ -1135,19 +1169,26 @@ timeout, and file checkpointing disabled. Record rewind or message edit
 as expected pending branches. In an original turn and in each foreign
 root's first turn, a disposable tool reads the bound file and records
 whether its own turn's input and tool-use records are already persisted.
+Extend this check to print-mode resume, `--continue`, in-process `/resume`,
+a first tool that starts background work and a local command that executes
+work, such as bash-mode input. Record whether the pinned version can
+run a root without session persistence. If it can, return that root to review,
+because it writes no transcript and is outside the ledger.
 The reviewer observed 43 of 703
 timestamped records persisted after a later-stamped record, by up to 42.4
 seconds; this proves disorder and lag, not a complete source contract. A clock
 step between generations is unobservable through approved sources and must be
 reported as a residual limit (Q20=A). Add turn-end experiments with and without a background start: record
 persistence order, identify the final closing record, and validate both call
-and result completeness before treating a turn as closed.
+and result completeness before treating a turn as closed. Validate that the
+closing records persist after every other record of the turn, including
+parallel calls and fan-out leaves.
 Inspect documented current hook sources; unavailable earlier configuration
 history is a reported Q20=A limit. Current contents and
 modification times alone are insufficient because copies/renames can preserve
 old times and skill/subagent hooks appear mid-session. The reviewer observed
 PreToolUse/PostToolUse execution without transcript records. Test root versus
-nested record markings for classification and validate positive attribution;
+nested record markings for classification and validate completeness and closure;
 detached hook work is a reported limit.
 Validate existing explicit launcher settings only (Q18=A). An installed TUIOS
 integration, alone or combined with launcher settings, and missing or uncertain
@@ -1167,8 +1208,11 @@ The uptime value must count time spent in sleep and hibernation. Validate this,
 and test suspension between boot and the decision. An uptime that excludes
 suspended time would hide a backward change of up to the suspended duration.
 
-Validate Q22=A's narrow proved-requestor current-generation exception on initial
-activation and later continuation. Cover earlier starts, other transcripts,
+Validate Q22=A as qualified by confirmed Q24=A on initial activation and later
+continuation: only validated requestor review-exchange starts in the Q23-bound
+file, ordered after the marked resume input by validated creation ordering,
+with their own lifecycle records, are excluded, whichever root wrote them.
+Every other start remains in scope. Cover earlier starts, other transcripts,
 reviewer watcher starts inside the proposed exception, role switches and
 ambiguous binding/order. Preserve complete reads and byte accounting.
 The exception removes only starts that validated creation ordering places after
@@ -1180,7 +1224,8 @@ clear. A start whose order relative to the marker is uncertain stays in scope.
 
 Inside the excluded range, a start that invokes the review-exchange launcher
 counts as a reviewer watcher unless its operation parses as a validated
-requestor operation. Validate the recognized invocation forms for each pinned
+requestor operation. A start qualifies only when its complete recorded command matches exactly one recognized requestor invocation form with a requestor-only operation. Chained, piped, wrapped or multi-operation commands, and operations either role may run, stay in scope under normal start/end matching.
+Validate the recognized invocation forms for each pinned
 version. A recognized watcher stays in scope under normal start/end matching
 and blocks until its validated terminal record.
 
@@ -1191,7 +1236,7 @@ timestamped record that is the validated TUIOS SessionStart marker for `startup`
 or `clear`, at or after creation of the requestor shell's single direct Claude
 child; no later SessionStart other than `compact`; the proved marked input in
 that file; unchanged process identity across the read; and validated ordering
-and item 1's generation-scoped exclusivity. Missing or uncertain evidence
+and item 1's completeness and closure for every writer (Q24=A). Missing or uncertain evidence
 remains pending.
 This covers the command's `--clear` and a manual clear before the run. Q19=A
 retains pre-clear transcripts and Q22=A retains earlier starts and matches
@@ -1257,11 +1302,11 @@ an implementation or test pass.
 | Q24, Q28, Q29 | Scoped marked consent, independent receiver proof and pause-time replacement guard. |
 | Q05 | Preserved deferred senv checklist and later-document handoff obligation. |
 
-Requirement Q22=A's reviewer-after-takeover path uses design Q22=A's narrow
-exception for validated current-generation requestor starts proved created
-after marked resume, with their own lifecycle records. Earlier starts, other
-transcripts and recognized reviewer watcher
-starts remain in scope; uncertain attribution or ordering stays pending.
+Requirement Q22=A's reviewer-after-takeover path uses design Q22=A as qualified
+by Q24=A: only validated requestor review-exchange starts ordered after marked
+resume in the Q23-bound file and their own lifecycle records are excluded,
+whichever root wrote them. Every other start remains in scope; uncertain file
+binding, classification or ordering stays pending.
 Design Q23=A supplies the cleared-requestor path through validated binding of
 the marked-input file to the current requestor process, accepting its first
 timestamped startup or clear marker under the full item 5 contract. The
@@ -1278,7 +1323,7 @@ excludes their ability to hold a watcher for this checkout. Lossy project names
 alone never establish checkout identity. Read and account for Q21=A's boot
 process creation metadata, fixed timestamp and uptime comparison. Apply
 Q22=A's exception only after reading and classifying the evidence needed for
-current-generation ordering and reviewer-watcher recognition; excluded records
+post-marker creation ordering and requestor-operation classification; excluded records
 still count toward bytes read. Q23=A additionally reads and accounts for the
 requestor's current reported session identity, marked-input file and process
 creation/stability evidence on initial activation and later continuation.
@@ -1294,8 +1339,8 @@ clear. A start whose order relative to the marker is uncertain stays in scope.
 
 The ledger parses only classified structural fields in memory: record and
 attachment types, tool names, call/result linkage, task ids/statuses, origin
-kinds, timestamps, recorded `cwd`, and typed reviewer-entry/watcher-start
-matches. It never prints or retains conversation content or tool payloads;
+kinds, timestamps, recorded `cwd`, and typed reviewer-entry, watcher-start
+and requestor review-exchange operation matches. It never prints or retains conversation content or tool payloads;
 report only counts and classified reasons, including all enumeration/read bytes.
 
 ## Design decisions for resume-paused
@@ -1306,7 +1351,11 @@ the user confirmed A for each on 2026-11-12. Exchange 2 round 8 independently
 reviewed these choices and the aligned design, implementation plan, validation
 plan and profile-evidence document. The human then selected Consolidate.
 The answered questions, options and discussion are preserved in the
-pre-consolidation Git snapshot. No further design question remains.
+pre-consolidation Git snapshot. After the Stop-only run, the user confirmed
+Q24=A on 2026-11-14. Its complete question and answer remain below for a fresh
+independent review; no consolidation is authorized.
+Q25, raised by that review, was confirmed as A on 2026-11-14. Its full question,
+options and decision remain below for fresh independent review.
 Question IDs in this table refer to this design; the coverage table above
 refers to the requirement.
 
@@ -1318,8 +1367,10 @@ changes since boot. Q22 excludes only the proved requestor's validated new
 starts after marked resume and their lifecycle records, retaining earlier
 starts and reviewer watchers. Q23 permits a validated startup or clear marker
 for that narrower requestor binding; the reviewer's complete-generation rule
-remains. These explicit qualifications apply to earlier decisions; all
-seventeen original table rows remain unchanged.
+remains. Q24=A now qualifies Q22/Q23: only validated requestor review-exchange
+operations qualify, regardless of writer, and completeness and closure replace
+writer exclusivity. The Q22/Q23 rows preserve their historical choices with
+this qualification; the Q01-Q17 rows remain unchanged.
 
 Both Codex and Claude remain required. Neither profile is supported yet,
 and Step 1 remains incomplete. Both plans now carry the reviewed contracts;
@@ -1359,5 +1410,179 @@ and this conditional review does not permit shipping only one supported host.
 | Q19 | A: Read all transcripts in this checkout's Claude project directory with activity since the last true OS boot, plus complete relevant durable schedule definitions regardless of boot. Include complete reads and byte accounting; missing history, uncertain activity or restoration remains pending. | [Claude history scope](#takeover-observation-and-later-reviewer-continuation), [file-based IO](#file-based-io-cost-clarification-for-resume-paused). | B: Pane-shell creation cannot exclude surviving earlier commands. C: Current-session-only reads miss orphaned and other-pane watchers. Validate boot semantics and treat fast startup conservatively; Q21 fixes the boot boundary. |
 | Q20 | A: Positive absence covers Claude-managed tasks, Monitor, subagents and commands, schedules/wakeups and work moved into background, each with validated complete start/end persistence. Reviewer watchers must use host background mechanisms. Unknown or incomplete in-scope evidence stays pending. Disclose detached work from completed commands/hooks, unavailable handler-configuration history and the clock limit qualified by Q21. | [Claude absence proof](#takeover-observation-and-later-reviewer-continuation), [validation boundaries](#acceptance-examples-and-validation-boundaries-for-resume-paused). | B: Unobservable obligations make required Claude activation unreachable. C: Extra channels require named proposals and human decisions. Ownership fencing and lease expiry do not prove absence; optional validated detaching-launcher rejection is defense in depth. No extra channel is approved. |
 | Q21 | A: Pin the boot instant to creation metadata of a validated boot process; never select history with current time minus uptime. Validate timestamp stability, uptime including sleep/hibernation, tolerance and fast startup. Compare against current time minus uptime; detected net backward movement beyond tolerance or uncertain evidence keeps activation pending. Disclose undetectable backward changes since boot, including offsetting changes. | [Boot boundary](#takeover-observation-and-later-reviewer-continuation), [validation boundaries](#acceptance-examples-and-validation-boundaries-for-resume-paused), [file-based IO](#file-based-io-cost-clarification-for-resume-paused). | B: Treating every possible clock change as blocking makes activation unreachable. C: Time-change event logs need separate approval and validation. Only the named boot-instant process metadata is selected; no event-log or general new channel is approved. |
-| Q22 | A: Exclude only proved requestor current-generation starts proved created after marked resume and their own lifecycle records. File position alone is insufficient; later ends still match earlier starts across clear/new files. Earlier work, other transcripts and reviewer watchers remain in scope. Treat review-exchange invocations as watchers unless proved validated requestor operations. Uncertain attribution/order stays pending. | [Requestor exception](#takeover-observation-and-later-reviewer-continuation), [acceptance examples](#acceptance-examples-and-validation-boundaries-for-resume-paused), [file-based IO](#file-based-io-cost-clarification-for-resume-paused). | B: Including the requestor's new answer wait prevents its Claude reviewer from activating. C: Excluding other live panes expands attribution risk beyond this circular wait. Preserve classifications, IO accounting, takeover gates and fresh bindings on initial activation and continuation. |
-| Q23 | A: Bind the requestor's post-marker range through the file proving marked-input acceptance. Initially and on continuation require current session identity source `report`, first timestamped validated TUIOS SessionStart `startup` or `clear` at/after creation of the shell's single direct Claude child, no later SessionStart except `compact`, proved marked input, stable process identity, and validated ordering and item 1's generation-scoped exclusivity. Uncertainty stays pending. | [Requestor generation binding](#takeover-observation-and-later-reviewer-continuation), [validation boundaries](#acceptance-examples-and-validation-boundaries-for-resume-paused). | B: Startup-only requestor binding blocks activation after clear. C: Skipping clear overrides the user's option and does not resolve prior manual clears. Retain reviewer complete-generation proof, Q19 history, Q22 lifecycle matching and Q21 clock limits. Step 1 must validate clear markers, process precedence and lifecycle matching; no hook, new channel or supported profile is approved. |
+| Q22 | A: Exclude only proved requestor current-generation starts proved created after marked resume and their own lifecycle records. File position alone is insufficient; later ends still match earlier starts across clear/new files. Earlier work, other transcripts and reviewer watchers remain in scope. Treat review-exchange invocations as watchers unless proved validated requestor operations. Uncertain attribution/order stays pending. | [Requestor exception](#takeover-observation-and-later-reviewer-continuation), [acceptance examples](#acceptance-examples-and-validation-boundaries-for-resume-paused), [file-based IO](#file-based-io-cost-clarification-for-resume-paused). | B: Including the requestor's new answer wait prevents its Claude reviewer from activating. C: Excluding other live panes expands attribution risk beyond this circular wait. Preserve classifications, IO accounting, takeover gates and fresh bindings on initial activation and continuation. Historical choice, qualified by confirmed Q24=A below: writer attribution is replaced by validated requestor-operation content and completeness/closure; all other starts remain in scope. |
+| Q23 | A: Bind the requestor's post-marker range through the file proving marked-input acceptance. Initially and on continuation require current session identity source `report`, first timestamped validated TUIOS SessionStart `startup` or `clear` at/after creation of the shell's single direct Claude child, no later SessionStart except `compact`, proved marked input, stable process identity, and validated ordering and item 1's generation-scoped exclusivity. Uncertainty stays pending. | [Requestor generation binding](#takeover-observation-and-later-reviewer-continuation), [validation boundaries](#acceptance-examples-and-validation-boundaries-for-resume-paused). | B: Startup-only requestor binding blocks activation after clear. C: Skipping clear overrides the user's option and does not resolve prior manual clears. Retain reviewer complete-generation proof, Q19 history, Q22 lifecycle matching and Q21 clock limits. Step 1 must validate clear markers, process precedence and lifecycle matching; no hook, new channel or supported profile is approved. Historical choice, qualified by confirmed Q24=A below: writer attribution is replaced by validated requestor-operation content and completeness/closure; all other starts remain in scope. |
+
+## Open questions for the v0.14.0 resume-paused design
+
+### Q24: Requestor exception without writer attribution
+
+Question description: No approved source identifies which root wrote a
+transcript record, so Q22=A's "proved requestor current-generation starts"
+cannot be proved and the exception never applies. What should the requestor
+exception exclude? Q22 and Q23 remain confirmed historical choices pending
+this explicit decision. Historical question framing is retained; the confirmed
+Q24=A answer below now qualifies their writer-attribution condition.
+
+#### BBQ for Q24
+
+The barbecue log records each job and its completion, but two cooks can write
+the same entries. Exempting "jobs written by this cook" cannot work without
+identifying the cook. Exempting only the recognized order-desk coordination
+jobs keeps cooking jobs subject to completion checks whoever wrote them.
+In this picture: cooks are Claude roots, the log is the transcript, cooking
+jobs are host-managed work, and order-desk coordination jobs are validated
+requestor review-exchange operations.
+
+#### Options for Q24
+
+- Option A (recommended): Exclude only starts in the Q23-bound requestor file
+  ordered after the marked resume input by validated creation ordering that
+  parse as validated requestor review-exchange
+  operations, with their own lifecycle records, whichever root wrote them.
+  Every other post-marker start stays in scope. Q23 replaces "item 1's
+  generation-scoped exclusivity" with item 1's completeness and closure.
+  - Pro: The requestor's answer wait no longer blocks activation, no source
+    is added, and the exception stays inside the circular wait, the boundary
+    used to reject Q22 option C. A validated requestor operation cannot be a
+    reviewer watcher, whoever runs it.
+  - Con: The requestor's own other post-marker background work blocks
+    activation until it ends; later continuation handles it.
+- Option B: Keep Q22=A's writer condition.
+  - Pro: No rule change.
+  - Con: The exception never applies, so a Claude requestor's answer wait
+    keeps its Claude reviewer pending, the outcome rejected as Q22 option B.
+- Option C: Approve a named writer-identity source, validated before the
+  exception relies on it.
+  - Pro: Keeps Q22=A's scope.
+  - Con: It needs a new source or a launcher change outside Q18=A, with its
+    own proposal. The closest candidate, an instance-unique launcher hook
+    command, still cannot distinguish an exact copy of the launcher settings,
+    so a disclosed limit would remain.
+
+#### Recommended option for Q24 (with arguments for this choice)
+
+Option A: It is the only option that keeps Q22's purpose without a new source
+or an unprovable condition. Validated requestor-operation content supplies the
+boundary while every other start remains subject to the complete ledger.
+
+#### Answer to Q24: option A (with reason why it must be accepted as the answer)
+
+Historical proposed answer before the user's decision:
+
+> Option A is proposed because it resolves the circular wait using the approved
+> transcript channel and keeps reviewer watchers and all other background work
+> in scope. It replaces Q23's exclusivity condition with completeness and closure
+> without claiming writer identity. Independent review and an explicit human
+> choice are still required; neither a recommendation nor review agreement
+> confirms this answer.
+
+User decision: confirmed — Option A.
+
+Confirmed on 2026-11-14. The user replied "A" to the explicit Q24 choice.
+Exclude only starts in the Q23-bound requestor file ordered after the marked
+resume input by validated creation ordering that parse as validated requestor
+review-exchange operations, with their own lifecycle records, whichever root
+wrote them. Every other start stays in scope. Replace Q23's generation-scoped
+exclusivity condition with item 1's completeness and closure for every writer.
+This resolves the review-answer circular wait using approved evidence while
+retaining all other gates. Neither host support nor consolidation is established.
+The original recommendation above is historical; a fresh independent review
+must assess this decision and the aligned design, plans and evidence companion.
+
+### Q25: Claude requestor answer-wait transport
+
+Question description: Q24=A excludes validated requestor review-exchange
+starts, but item 4 still keeps any unclosed turn pending, including the
+requestor's. The requestor instructions run `wait-answer` with the complete
+`a.review-mode` timeout, 10800 seconds by default. `rules/run_commands.md`
+sends bounded waits to the host-specific transport, but there Claude's
+background completion is permitted, not required. A foreground call keeps the
+requestor's turn open until the wait returns. The reviewer cannot answer
+before activation, so the wait ends only at its timeout, which escalates the
+exchange. A foreground call that Claude moves to the background on its
+600-second tool timeout or `Ctrl+B` is moved work, pending until its shape is
+validated. Only a Claude requestor paired with a Claude reviewer is affected.
+Should a Claude requestor be required to run its answer wait in the
+background, and on which routes?
+
+#### BBQ for Q25
+
+The order-desk exemption helps only when the order cook starts the order timer,
+logs it and steps away from the counter. A cook who stands at the counter
+holding the slip leaves an open log entry, so the closing check keeps waiting.
+The slip is released only when the order arrives, and that needs the other
+cook, who is waiting on the closing check.
+
+In this picture: the cooks are the Claude requestor and reviewer, the open log
+entry is an unclosed turn, and the order timer is a background `wait-answer`
+start.
+
+#### Options for Q25
+
+- Option A (recommended): Every Claude requestor starts each `wait-answer`
+  through a host background mechanism as one recognized invocation form, ends
+  its turn and resumes from the completion notification, on every route. The
+  shared transport rule changes from permitted to required for Claude
+  `wait-answer`, and the requestor instructions refer to it. A foreground or
+  moved wait stays in scope and leaves the reviewer pending with that reason.
+  - Pro: Q24=A then removes the circular wait with a closed turn and one start
+    shape to validate. The rule holds without the requestor remembering how
+    its session started, including after compaction. The default three-hour
+    wait already exceeds Claude's 600-second foreground limit, so manual routes
+    lose no working behavior.
+  - Con: Changes the shared transport rule for every Claude requestor, not
+    only on the marked route. Step 1 must validate the background start, its
+    terminal record and resumption from the notification.
+- Option B: Require the background transport only after a marked resume.
+  - Pro: Limits the instruction change to the new route.
+  - Con: The requestor must keep knowing that its session started from a
+    marked resume. A session that loses that context, for example after
+    compaction, may run a foreground or moved wait and leave the reviewer
+    pending. Two transport rules then apply to the same Claude operation.
+- Option C: Keep the transport permitted but not required; an unclosed
+  requestor turn stays pending, and later continuation activates the reviewer
+  only after the wait ends.
+  - Pro: No rule change.
+  - Con: Without reviewer activation a foreground wait ends only at its
+    timeout, three hours by default, and the timeout escalates the exchange.
+    Escalation stops automation for human recovery and blocks later reviewer
+    continuation.
+- Option D: Recognize a foreground requestor `wait-answer`, or its moved form,
+  as excluded, and exempt an open turn whose only open call is that wait.
+  - Pro: No transport change for requestors.
+  - Con: Weakens item 4's closure rule: an open turn can hide late records from
+    any writer. It needs moved-work and open-turn shapes validated, contrary to
+    "Q24=A excludes only starts, not an unclosed requestor turn".
+
+#### Recommended option for Q25 (with arguments for this choice)
+
+Option A: It lets Q24=A achieve its stated purpose without weakening item 4's
+closure rule, adding a source or relying on the requestor's memory of its
+route. It turns an existing permitted Claude transport into a requirement,
+the same discipline already expected of reviewer watchers.
+
+#### Answer to Q25: option A (with reason why it must be accepted as the answer)
+
+User decision: confirmed: option A, on 2026-11-14.
+The user's exact selection was "A: Every route (Recommended)".
+
+Every Claude requestor starts each `wait-answer` through a host background
+mechanism as one recognized invocation form, ends its turn and resumes from
+the completion notification, on every route. The shared rule changes from
+permitted to required for Claude `wait-answer`; requestor instructions refer
+to it. Foreground or moved waits stay in scope and leave the reviewer pending
+with that reason. Step 1 must validate background start, terminal record and
+notification resumption. Codex retains attached waiting.
+
+This keeps closure and completeness checks intact and avoids depending on
+remembered entry-route context. It adds no evidence source, establishes no
+supported host profile and grants no consolidation authority. Fresh independent
+review must assess the decision and related document changes.
+
+Historical proposal before the human decision:
+
+> Proposed answer, awaiting independent review and an explicit human choice:
+> option A, because it keeps every closure and completeness gate intact and
+> removes the remaining cause of the Claude-pair circular wait on every route.
+> Neither a recommendation nor review agreement confirms this answer.
