@@ -878,8 +878,8 @@ all of the following:
    suspended time would hide a backward change of up to the suspended duration.
 
    **Q24=A, confirmed on 2026-11-14:** Apply the Q22/Q23 exception by validated
-   operation content, without claiming writer identity. The full question and
-   historical choices remain below for follow-up independent review.
+   operation content, without claiming writer identity. The settled decision
+   and rejected alternatives are recorded in the design decisions below.
    The exception relieves answer-wait circularity only when the requestor's
    turn closes after the wait starts. Under Q25=A, confirmed on 2026-11-14,
    every Claude requestor starts each `wait-answer` through a host background
@@ -1352,10 +1352,10 @@ reviewed these choices and the aligned design, implementation plan, validation
 plan and profile-evidence document. The human then selected Consolidate.
 The answered questions, options and discussion are preserved in the
 pre-consolidation Git snapshot. After the Stop-only run, the user confirmed
-Q24=A on 2026-11-14. Its complete question and answer remain below for a fresh
-independent review; no consolidation is authorized.
-Q25, raised by that review, was confirmed as A on 2026-11-14. Its full question,
-options and decision remain below for fresh independent review.
+Q24=A on 2026-11-14. Q25, raised by that review, was confirmed as A on the
+same date. Round 7 independently reviewed both decisions and the aligned
+documents, and the human selected Consolidate. Their complete question blocks,
+options and recorded answers are preserved in snapshot commit `9e7d3d62`.
 Question IDs in this table refer to this design; the coverage table above
 refers to the requirement.
 
@@ -1370,7 +1370,11 @@ for that narrower requestor binding; the reviewer's complete-generation rule
 remains. Q24=A now qualifies Q22/Q23: only validated requestor review-exchange
 operations qualify, regardless of writer, and completeness and closure replace
 writer exclusivity. The Q22/Q23 rows preserve their historical choices with
-this qualification; the Q01-Q17 rows remain unchanged.
+this qualification; the Q01-Q17 rows remain unchanged. Q25 requires every
+Claude requestor to start answer waits through a host background mechanism,
+close its turn and resume from the completion notification on every route.
+Codex retains attached waiting; foreground or moved Claude waits remain in
+scope and keep the reviewer pending.
 
 Both Codex and Claude remain required. Neither profile is supported yet,
 and Step 1 remains incomplete. Both plans now carry the reviewed contracts;
@@ -1412,177 +1416,5 @@ and this conditional review does not permit shipping only one supported host.
 | Q21 | A: Pin the boot instant to creation metadata of a validated boot process; never select history with current time minus uptime. Validate timestamp stability, uptime including sleep/hibernation, tolerance and fast startup. Compare against current time minus uptime; detected net backward movement beyond tolerance or uncertain evidence keeps activation pending. Disclose undetectable backward changes since boot, including offsetting changes. | [Boot boundary](#takeover-observation-and-later-reviewer-continuation), [validation boundaries](#acceptance-examples-and-validation-boundaries-for-resume-paused), [file-based IO](#file-based-io-cost-clarification-for-resume-paused). | B: Treating every possible clock change as blocking makes activation unreachable. C: Time-change event logs need separate approval and validation. Only the named boot-instant process metadata is selected; no event-log or general new channel is approved. |
 | Q22 | A: Exclude only proved requestor current-generation starts proved created after marked resume and their own lifecycle records. File position alone is insufficient; later ends still match earlier starts across clear/new files. Earlier work, other transcripts and reviewer watchers remain in scope. Treat review-exchange invocations as watchers unless proved validated requestor operations. Uncertain attribution/order stays pending. | [Requestor exception](#takeover-observation-and-later-reviewer-continuation), [acceptance examples](#acceptance-examples-and-validation-boundaries-for-resume-paused), [file-based IO](#file-based-io-cost-clarification-for-resume-paused). | B: Including the requestor's new answer wait prevents its Claude reviewer from activating. C: Excluding other live panes expands attribution risk beyond this circular wait. Preserve classifications, IO accounting, takeover gates and fresh bindings on initial activation and continuation. Historical choice, qualified by confirmed Q24=A below: writer attribution is replaced by validated requestor-operation content and completeness/closure; all other starts remain in scope. |
 | Q23 | A: Bind the requestor's post-marker range through the file proving marked-input acceptance. Initially and on continuation require current session identity source `report`, first timestamped validated TUIOS SessionStart `startup` or `clear` at/after creation of the shell's single direct Claude child, no later SessionStart except `compact`, proved marked input, stable process identity, and validated ordering and item 1's generation-scoped exclusivity. Uncertainty stays pending. | [Requestor generation binding](#takeover-observation-and-later-reviewer-continuation), [validation boundaries](#acceptance-examples-and-validation-boundaries-for-resume-paused). | B: Startup-only requestor binding blocks activation after clear. C: Skipping clear overrides the user's option and does not resolve prior manual clears. Retain reviewer complete-generation proof, Q19 history, Q22 lifecycle matching and Q21 clock limits. Step 1 must validate clear markers, process precedence and lifecycle matching; no hook, new channel or supported profile is approved. Historical choice, qualified by confirmed Q24=A below: writer attribution is replaced by validated requestor-operation content and completeness/closure; all other starts remain in scope. |
-
-## Open questions for the v0.14.0 resume-paused design
-
-### Q24: Requestor exception without writer attribution
-
-Question description: No approved source identifies which root wrote a
-transcript record, so Q22=A's "proved requestor current-generation starts"
-cannot be proved and the exception never applies. What should the requestor
-exception exclude? Q22 and Q23 remain confirmed historical choices pending
-this explicit decision. Historical question framing is retained; the confirmed
-Q24=A answer below now qualifies their writer-attribution condition.
-
-#### BBQ for Q24
-
-The barbecue log records each job and its completion, but two cooks can write
-the same entries. Exempting "jobs written by this cook" cannot work without
-identifying the cook. Exempting only the recognized order-desk coordination
-jobs keeps cooking jobs subject to completion checks whoever wrote them.
-In this picture: cooks are Claude roots, the log is the transcript, cooking
-jobs are host-managed work, and order-desk coordination jobs are validated
-requestor review-exchange operations.
-
-#### Options for Q24
-
-- Option A (recommended): Exclude only starts in the Q23-bound requestor file
-  ordered after the marked resume input by validated creation ordering that
-  parse as validated requestor review-exchange
-  operations, with their own lifecycle records, whichever root wrote them.
-  Every other post-marker start stays in scope. Q23 replaces "item 1's
-  generation-scoped exclusivity" with item 1's completeness and closure.
-  - Pro: The requestor's answer wait no longer blocks activation, no source
-    is added, and the exception stays inside the circular wait, the boundary
-    used to reject Q22 option C. A validated requestor operation cannot be a
-    reviewer watcher, whoever runs it.
-  - Con: The requestor's own other post-marker background work blocks
-    activation until it ends; later continuation handles it.
-- Option B: Keep Q22=A's writer condition.
-  - Pro: No rule change.
-  - Con: The exception never applies, so a Claude requestor's answer wait
-    keeps its Claude reviewer pending, the outcome rejected as Q22 option B.
-- Option C: Approve a named writer-identity source, validated before the
-  exception relies on it.
-  - Pro: Keeps Q22=A's scope.
-  - Con: It needs a new source or a launcher change outside Q18=A, with its
-    own proposal. The closest candidate, an instance-unique launcher hook
-    command, still cannot distinguish an exact copy of the launcher settings,
-    so a disclosed limit would remain.
-
-#### Recommended option for Q24 (with arguments for this choice)
-
-Option A: It is the only option that keeps Q22's purpose without a new source
-or an unprovable condition. Validated requestor-operation content supplies the
-boundary while every other start remains subject to the complete ledger.
-
-#### Answer to Q24: option A (with reason why it must be accepted as the answer)
-
-Historical proposed answer before the user's decision:
-
-> Option A is proposed because it resolves the circular wait using the approved
-> transcript channel and keeps reviewer watchers and all other background work
-> in scope. It replaces Q23's exclusivity condition with completeness and closure
-> without claiming writer identity. Independent review and an explicit human
-> choice are still required; neither a recommendation nor review agreement
-> confirms this answer.
-
-User decision: confirmed — Option A.
-
-Confirmed on 2026-11-14. The user replied "A" to the explicit Q24 choice.
-Exclude only starts in the Q23-bound requestor file ordered after the marked
-resume input by validated creation ordering that parse as validated requestor
-review-exchange operations, with their own lifecycle records, whichever root
-wrote them. Every other start stays in scope. Replace Q23's generation-scoped
-exclusivity condition with item 1's completeness and closure for every writer.
-This resolves the review-answer circular wait using approved evidence while
-retaining all other gates. Neither host support nor consolidation is established.
-The original recommendation above is historical; a fresh independent review
-must assess this decision and the aligned design, plans and evidence companion.
-
-### Q25: Claude requestor answer-wait transport
-
-Question description: Q24=A excludes validated requestor review-exchange
-starts, but item 4 still keeps any unclosed turn pending, including the
-requestor's. The requestor instructions run `wait-answer` with the complete
-`a.review-mode` timeout, 10800 seconds by default. `rules/run_commands.md`
-sends bounded waits to the host-specific transport, but there Claude's
-background completion is permitted, not required. A foreground call keeps the
-requestor's turn open until the wait returns. The reviewer cannot answer
-before activation, so the wait ends only at its timeout, which escalates the
-exchange. A foreground call that Claude moves to the background on its
-600-second tool timeout or `Ctrl+B` is moved work, pending until its shape is
-validated. Only a Claude requestor paired with a Claude reviewer is affected.
-Should a Claude requestor be required to run its answer wait in the
-background, and on which routes?
-
-#### BBQ for Q25
-
-The order-desk exemption helps only when the order cook starts the order timer,
-logs it and steps away from the counter. A cook who stands at the counter
-holding the slip leaves an open log entry, so the closing check keeps waiting.
-The slip is released only when the order arrives, and that needs the other
-cook, who is waiting on the closing check.
-
-In this picture: the cooks are the Claude requestor and reviewer, the open log
-entry is an unclosed turn, and the order timer is a background `wait-answer`
-start.
-
-#### Options for Q25
-
-- Option A (recommended): Every Claude requestor starts each `wait-answer`
-  through a host background mechanism as one recognized invocation form, ends
-  its turn and resumes from the completion notification, on every route. The
-  shared transport rule changes from permitted to required for Claude
-  `wait-answer`, and the requestor instructions refer to it. A foreground or
-  moved wait stays in scope and leaves the reviewer pending with that reason.
-  - Pro: Q24=A then removes the circular wait with a closed turn and one start
-    shape to validate. The rule holds without the requestor remembering how
-    its session started, including after compaction. The default three-hour
-    wait already exceeds Claude's 600-second foreground limit, so manual routes
-    lose no working behavior.
-  - Con: Changes the shared transport rule for every Claude requestor, not
-    only on the marked route. Step 1 must validate the background start, its
-    terminal record and resumption from the notification.
-- Option B: Require the background transport only after a marked resume.
-  - Pro: Limits the instruction change to the new route.
-  - Con: The requestor must keep knowing that its session started from a
-    marked resume. A session that loses that context, for example after
-    compaction, may run a foreground or moved wait and leave the reviewer
-    pending. Two transport rules then apply to the same Claude operation.
-- Option C: Keep the transport permitted but not required; an unclosed
-  requestor turn stays pending, and later continuation activates the reviewer
-  only after the wait ends.
-  - Pro: No rule change.
-  - Con: Without reviewer activation a foreground wait ends only at its
-    timeout, three hours by default, and the timeout escalates the exchange.
-    Escalation stops automation for human recovery and blocks later reviewer
-    continuation.
-- Option D: Recognize a foreground requestor `wait-answer`, or its moved form,
-  as excluded, and exempt an open turn whose only open call is that wait.
-  - Pro: No transport change for requestors.
-  - Con: Weakens item 4's closure rule: an open turn can hide late records from
-    any writer. It needs moved-work and open-turn shapes validated, contrary to
-    "Q24=A excludes only starts, not an unclosed requestor turn".
-
-#### Recommended option for Q25 (with arguments for this choice)
-
-Option A: It lets Q24=A achieve its stated purpose without weakening item 4's
-closure rule, adding a source or relying on the requestor's memory of its
-route. It turns an existing permitted Claude transport into a requirement,
-the same discipline already expected of reviewer watchers.
-
-#### Answer to Q25: option A (with reason why it must be accepted as the answer)
-
-User decision: confirmed: option A, on 2026-11-14.
-The user's exact selection was "A: Every route (Recommended)".
-
-Every Claude requestor starts each `wait-answer` through a host background
-mechanism as one recognized invocation form, ends its turn and resumes from
-the completion notification, on every route. The shared rule changes from
-permitted to required for Claude `wait-answer`; requestor instructions refer
-to it. Foreground or moved waits stay in scope and leave the reviewer pending
-with that reason. Step 1 must validate background start, terminal record and
-notification resumption. Codex retains attached waiting.
-
-This keeps closure and completeness checks intact and avoids depending on
-remembered entry-route context. It adds no evidence source, establishes no
-supported host profile and grants no consolidation authority. Fresh independent
-review must assess the decision and related document changes.
-
-Historical proposal before the human decision:
-
-> Proposed answer, awaiting independent review and an explicit human choice:
-> option A, because it keeps every closure and completeness gate intact and
-> removes the remaining cause of the Claude-pair circular wait on every route.
-> Neither a recommendation nor review agreement confirms this answer.
+| Q24 | A: Exclude only validated requestor review-exchange starts and their own lifecycle records in the Q23-bound marked-input file, ordered after marked resume by validated creation ordering, regardless of writer. Exactly one recognized requestor-only invocation is required; other starts remain in scope. Replace writer exclusivity with completeness and closure for every writer, including the requestor. This resolves answer-wait circularity using approved evidence without a new source. | [Requestor operation exception](#takeover-observation-and-later-reviewer-continuation), [acceptance examples](#acceptance-examples-and-validation-boundaries-for-resume-paused), [file-based IO](#file-based-io-cost-clarification-for-resume-paused). | B: The unprovable writer condition leaves the answer wait blocking its reviewer. C: A new writer-identity source needs separate approval and validation and still has attribution limits. Chained, piped, wrapped, multi-operation and shared-role commands remain in scope; unclosed turns still block. |
+| Q25 | A: Every Claude requestor starts each `wait-answer` through a host background mechanism as one recognized invocation form, ends its turn and resumes from the completion notification, on every route. Make the shared rule required and reference it from all three requestor instructions; Codex retains attached waiting. Step 1 validates background start, turn closure, terminal record and notification resumption. This preserves closure checks without relying on remembered entry-route context. | [Shared scope](#scope-and-deferred-integration-for-resume-paused), [answer-wait transport](#takeover-observation-and-later-reviewer-continuation), [acceptance and validation](#acceptance-examples-and-validation-boundaries-for-resume-paused). | B: Marked-route-only transport depends on remembered context and leaves two rules for one operation. C: A foreground wait times out and escalates before reviewer activation. D: Exempting an open turn weakens completeness and closure. Foreground or moved waits remain in scope and leave the reviewer pending. No new evidence channel or supported profile is established. |
