@@ -9,6 +9,10 @@ feasibility stop required by
 [Step 1 of the implementation plan](plan.v0.14.0.resume-paused.md#step-1-validate-pane-tied-host-profiles-before-input).
 It does not authorize delivery or change a confirmed design decision.
 
+Q25=A adds a Step 1 obligation to validate the Claude requestor background
+`wait-answer` start, turn closure, terminal record and notification resumption;
+no evidence for that complete transport contract has been collected yet.
+
 The observed environment used TUIOS 0.12.1 with its pure-Go backend. Claude
 transcripts reported version 2.1.321. Follow-up kernel-image queries returned
 pane-linked release paths naming Codex 0.167.0 in five processes. The reviewer's
@@ -238,9 +242,12 @@ through the complete read must come from the pane's current direct child.
 That contract first relied on a validated attach signature for every
 append-capable root. The plain-resume experiment below found an append path
 without one, and the later review replaced the signature list with positive
-attribution, described in the positive attribution section. No replacement
-evidence source, weaker absence rule or new human question has been
-selected. Validation status remains unchanged. Both hosts remain
+attribution, described in the positive attribution section. The Stop-only run
+then showed that no approved source identifies the writer; the not-adopted
+checkpoint section records the replacement completeness and closure contract
+and design Q24. Confirmed Q24=A replaced the writer condition with validated
+operation content and closure; no evidence source was added. Validation status
+remains unchanged. Both hosts remain
 unsupported; the remaining feasibility matrix, adapters, tests and
 implementation gates are still outstanding.
 
@@ -285,7 +292,12 @@ seven minutes, including startup, controls and cleanup. No task, schedule,
 new hook or additional evidence source was used. Only allowlisted structural
 facts were retained; conversation and tool payloads remained in memory.
 
-### Positive attribution candidate after plain-resume review
+### Historical positive attribution candidate after plain-resume review
+
+The following candidate is superseded history after the Stop-only run and
+its independent review. No approved source proves positive writer attribution;
+the current design instead requires complete coverage and closure for every
+writer. The earlier proposal is preserved here to explain the experiment.
 
 Independent review replaced the initial list of negative rejection checks
 with positive closed-world attribution of every record from the accepted
@@ -336,6 +348,105 @@ Each summary had `hookCount` 1 and `hookInfos` entries containing `command`
 and `durationMs`; the command named TUIOS. The one snapshot linked to its
 input. A slash-command input carried `origin.kind` `human` without
 `promptSource`. These are reviewer observations, not writer validation.
+
+### Stop-only resume controls for Claude 2.1.325
+
+A further owned disposable run used Claude 2.1.325 on native Windows build
+26200, update revision 9711. The original process used the existing explicit
+launcher settings. Two separate roots resumed its session while it remained
+alive: one used only the exact launcher Stop command, the other used only a
+different successful Stop command. File checkpointing was explicitly disabled
+for all three processes. These were launch-local settings; no installed hook
+or additional evidence channel was changed. Existing working and review panes
+received no input.
+
+The original ready turn had one `SessionStart:startup`, a matching
+`stop_hook_summary` and its `turn_duration` child. The complete read contained
+44 records and 413749 bytes with a final newline. The same-handler resume
+subsequently produced an input linked to the original's latest turn-duration
+record, tool call and result, reply, matching Stop summary and final
+`turn_duration`. At that complete read there was still exactly one SessionStart,
+no snapshots and no second human-input child. All 94 records and 502250 bytes
+were parsed, with a final newline. The Stop summary records the command,
+not an identity unique to the original launcher instance.
+
+The different-handler control also appended without SessionStart. Its summary
+failed the launcher-handler comparison, as expected; the complete read contained
+107 records and 528039 bytes. A later no-tool input in the original process
+created a second human-input child of its earlier tail. That read contained
+112 records and 533369 bytes. Both reads had final newlines. The later branch
+does not detect the same-handler writer at the earlier 94-record read.
+
+Both the foreign input and the original's later control inherited turn position
+4/4 and parent record 72. The different-handler turn emitted a Stop
+`hook_success` attachment absent from the TUIOS Stop turns. Turn numbering
+follows the conversation; the attachment reflects configuration. Neither
+identifies the writer.
+
+The metadata record named `session-owner` contains account and organization
+identifiers, rather than a process-generation identifier; those values and
+the recorded modes agreed across these roots. Repeated metadata also appeared
+during original-process turns. These observations do not classify every
+metadata shape or establish a complete supported profile. They defeat using
+handler equality as writer identity, and leave the existing snapshot condition
+empty when checkpointing is disabled.
+
+Each process's diagnostic tool inspected the native file during its own
+execution, retaining only structural facts:
+
+| Diagnostic sample | Records | Bytes | Own input present | Own tool call present |
+| --- | --- | --- | --- | --- |
+| Original-process corrected probe | 67 | 453628 | Yes | Yes |
+| Same-handler resume, first tool | 78 | 472869 | Yes | No |
+| Different-handler resume, first tool | 99 | 509366 | Yes | No |
+
+The original's first attempt failed because the diagnostic command included
+sentence punctuation; only its corrected retry supplies a successful
+original-process sample. Both resumed processes succeeded on their first tool.
+Their tool-call records appeared in subsequent complete reads. The samples
+support input-before-tool ordering in these executions, but do not prove the
+universal persistence-before-effect contract. Tool-call persistence lag alone
+does not violate the design's input-before-effect condition.
+
+All owned Claude processes exited, their shell processes were removed with
+the disposable session, and process absence was verified. The final complete
+read contained 126 records and 538912 bytes with a final newline. The run took
+approximately ten minutes including controls, inspection and cleanup. No
+background work or schedule was started. Conversation and tool payloads were
+parsed only in memory; saved artifacts contain allowlisted facts and counts.
+
+### Checkpoint coverage proposal not adopted after independent review
+
+The writer proposed requiring an input-linked `file-history-snapshot` for
+every externally supplied input, in addition to rejecting unlinked snapshots
+and requiring matched turn closure. Independent review did not adopt it.
+A checkpoint-enabled foreign root can link its own input snapshot. Rejecting
+it depends on an unlinked resume-time snapshot of unknown cause, another
+foreign-signature heuristic. Requiring checkpointing rejects disabled
+originals without proving which root wrote a record; snapshot coverage for
+notification, slash and local-command inputs is itself unvalidated.
+
+Keep an unlinked snapshot only as a conservative pending trigger. The design
+now requires complete ledger coverage and closure for every writer: persist
+every turn input before any tool or waiting effect, and persist closing records
+after every other record of that turn, including fan-out leaves. Every
+input-bearing record and every chain tip of every in-scope transcript needs
+closure. Classify all append paths, with checkpointing enabled and disabled,
+concurrently and after the original exits. The first-tool samples support the
+input ordering in those runs only; the universal properties remain unproved.
+Any root able to run without session persistence is outside the ledger and
+must return to review.
+
+The user confirmed design Q24=A on 2026-11-14: only validated requestor
+review-exchange starts in the Q23-bound file ordered after the marked resume
+input by validated creation ordering, with their own lifecycle records, are
+excluded, whichever root wrote them. Every other start stays in scope.
+Completeness and closure replace Q23's writer-exclusivity condition. The choice
+qualifies Q22/Q23 and requires fresh independent review; it is not validation.
+No source, hook installation, disclosed limit or one-host delivery is approved.
+Both host profiles remain unsupported. The remaining feasibility matrix,
+production adapters, tests and implementation gates are still outstanding.
+Validation-plan wording is aligned; implementation statuses are unchanged.
 
 ## Codex independent version findings
 
@@ -584,8 +695,8 @@ observations, not reproduced writer validation or supported-profile evidence.
 
 The resulting candidate binds the direct child's creation time to the first
 timestamped startup marker and rejects later noncompact SessionStart records.
-Launch-time resume, timestamp semantics and item 1's generation-scoped
-exclusivity still need validation. A backward clock step between generations is
+Launch-time resume, timestamp semantics and item 1's generation
+completeness and closure for every writer still need validation. A backward clock step between generations is
 unobservable through approved sources and is a reported Q20=A limit. Late
 records also require a turn-closure experiment: every call and result must
 match, and the validated final turn record must be present. An idle screen
@@ -650,12 +761,14 @@ The uptime value must count time spent in sleep and hibernation. Validate this,
 and test suspension between boot and the decision. An uptime that excludes
 suspended time would hide a backward change of up to the suspended duration.
 
-Q22=A excludes from the absence check only validated new work of the proved
-requestor pane's current process generation. Earlier starts, every other
-transcript and recognized reviewer `wait-any-request` starts remain in scope,
+Q22=A, as qualified by Q24=A, excludes only validated requestor review-exchange
+starts in the Q23-bound file ordered after marked input by validated creation
+ordering, with their own lifecycle records, whichever root wrote them. All
+other work, including the requestor's own other post-marker work, stays in scope.
+Earlier starts, every other transcript and reviewer `wait-any-request` remain in scope,
 including starts inside the proposed exception and former-reviewer starts
 after role switching, under normal start/end matching.
-Uncertain generation or ordering stays pending. Read and classify the evidence
+Uncertain file binding, operation classification or ordering stays pending. Read and classify the evidence
 needed to establish the exception, account for every byte and refresh exact
 takeover proof and both panes' required bindings before activation. Validate
 initial activation and later continuation; no general live-pane exclusion is
@@ -670,7 +783,7 @@ clear. A start whose order relative to the marker is uncertain stays in scope.
 
 Inside the excluded range, a start that invokes the review-exchange launcher
 counts as a reviewer watcher unless its operation parses as a validated
-requestor operation. Validate the recognized invocation forms for each pinned
+requestor operation. A start qualifies only when its complete recorded command matches exactly one recognized requestor invocation form with a requestor-only operation. Chained, piped, wrapped or multi-operation commands, and operations either role may run, stay in scope under normal start/end matching. Validate the recognized invocation forms for each pinned
 version. A recognized watcher stays in scope under normal start/end matching
 and blocks until its validated terminal record.
 
@@ -681,7 +794,7 @@ timestamped record that is the validated TUIOS SessionStart marker for `startup`
 or `clear`, at or after creation of the requestor shell's single direct Claude
 child; no later SessionStart other than `compact`; the proved marked input in
 that file; unchanged process identity across the read; and validated ordering
-and item 1's generation-scoped exclusivity. Missing or uncertain evidence remains pending.
+and item 1's completeness and closure for every writer (Q24=A). Missing or uncertain evidence remains pending.
 This covers the command's `--clear` and a manual clear before the run. Q19=A
 retains pre-clear transcripts and Q22=A retains earlier starts and matches
 their lifecycle records across files. Item 1's complete-generation rule still

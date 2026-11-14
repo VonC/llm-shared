@@ -37,6 +37,9 @@ The current tree contains root `tools`, Windows launchers under `bin`, canonical
 
 Counts were taken at HEAD `f182d418` before plan edits, including blank lines, by iterating physical text lines, matching `bin/check_big_files.bat`. That launcher's configurable default is 700; this plan applies the write-plans policy ceiling of **650**. Only Python files use the size bands. Every new file listed in a step has baseline 0 (absent).
 
+The four Q25=A shared-rule and requestor-instruction baselines were added and
+recounted on 2026-11-14 at HEAD `06e0bba1`.
+
 | Existing file | Lines | Policy and change |
 | --- | --- | --- |
 | `tools/review_exchange_models_coordination.py` (existing, to be updated) | 311 | Below 550; safe to extend, ceiling 650 |
@@ -55,6 +58,10 @@ Counts were taken at HEAD `f182d418` before plan edits, including blank lines, b
 | `templates/resume-session.template.md` (existing, to be updated) | 20 | Non-Python; no Python size band |
 | `instructions/resume-session.md` (existing, to be updated) | 232 | Non-Python; no Python size band |
 | `instructions/review-resume.md` (existing, to be updated) | 146 | Non-Python; no Python size band |
+| `rules/run_commands.md` (existing, to be updated) | 226 | Non-Python; no Python size band |
+| `instructions/review-requestor.md` (existing, to be updated) | 367 | Non-Python; no Python size band |
+| `instructions/spec-review-requestor.md` (existing, to be updated) | 238 | Non-Python; no Python size band |
+| `instructions/code-review-requestor.md` (existing, to be updated) | 320 | Non-Python; no Python size band |
 | `README.md` (existing, to be updated) | 110 | Non-Python; no Python size band |
 | `wiki/how-to/pause-and-resume-a-session.md` (existing, to be updated) | 231 | Non-Python; no Python size band |
 | `docs/v0.14.0/feature-request.v0.14.0.resume-paused.md` (plan-writing edit already applied) | 597 | Non-Python; IO clarification takes it to 601; no implementation edit planned |
@@ -68,7 +75,7 @@ Read-only dependencies inspected include artifact configuration (197 lines), obs
 
 Relevant regression packages include artifact-home/configuration, review-resume/identity/instruction/wait, coordination models, ownership/store, lifecycle and instruction structure. Representative existing files have 261 lines (artifact configuration), 184 (selected claims), 405 (ownership), 487 (coordination models), 107 (resume instruction), 341 (resume CLI) and 113 (ownership store). Keep new cases in the step-specific leaves below to avoid growing shared regression files unnecessarily. Run the relevant existing package alongside each new leaf through groundhog.
 
-Every new unit test follows `tests/unit/tools/test_resume_paused_<area>/test_resume_paused_<area>_tdd.py`; create its listed `__init__.py`. Parsing/path/routing properties also use explicit `_pbt.py` files. Property-based testing is useful for malformed/duplicate JSON, canonicalization round trips and pane-order invariance; temporal transport/claim scenarios use deterministic state transitions rather than random sleeps. Step 8 adds larger process-boundary acceptance tests in the existing `tests/acceptance` tree convention.
+Every new unit test follows `tests/unit/tools/test_resume_paused_<area>/test_resume_paused_<area>_tdd.py`; create its listed `__init__.py`. The one exception is Step 4's instruction-contract test, which joins the existing `tests/unit/tools/test_instruction_structure/` package. Parsing/path/routing properties also use explicit `_pbt.py` files. Property-based testing is useful for malformed/duplicate JSON, canonicalization round trips and pane-order invariance; temporal transport/claim scenarios use deterministic state transitions rather than random sleeps. Step 8 adds larger process-boundary acceptance tests in the existing `tests/acceptance` tree convention.
 
 ## Shared execution command checklist
 
@@ -174,7 +181,7 @@ only on validated `cwd` evidence; otherwise retain it. Include project
 directories for checkout-subdirectory sessions unless validation proves they
 cannot hold a reviewer watcher for this checkout. Account for complete
 enumeration and read bytes. Apply confirmed Q21=A boot-boundary protection
-and Q22=A's narrow proved-requestor-work exception only after their contracts
+and Q22=A's requestor-operation exception as qualified by Q24=A only after their contracts
 pass disposable validation; missing or uncertain evidence remains pending.
 Parse only classified structural fields in memory, never print or retain
 conversation content or tool payloads, and report counts and classified reasons.
@@ -182,10 +189,16 @@ For each pinned version validate schedule survival at exit and restoration via
 launch-time/in-process resume; a validated none makes the regardless-of-boot
 schedule set empty by contract rather than assumption.
 
-- Validate existing explicit `tuitp` TUIOS launcher settings only (Q18=A), including root/nested record attribution and documented current-source exclusion. An installed TUIOS integration, alone or combined with launcher settings, and missing or uncertain provenance stays pending. A recorded `hook_success` for `SessionStart:startup` must establish the first relevant record and complete process-generation/session coverage for the reviewer's absence proof; the requestor's post-marker binding follows Q23=A; timestamp proximity alone is insufficient. Validate timestamp semantics, ordering and design item 1's generation-scoped exclusivity. Command-line inspection and hook installation are excluded.
+- Validate existing explicit `tuitp` TUIOS launcher settings only (Q18=A), including root/nested record classification and documented current-source exclusion. An installed TUIOS integration, alone or combined with launcher settings, and missing or uncertain provenance stays pending. A recorded `hook_success` for `SessionStart:startup` must establish the first relevant record and complete process-generation/session coverage for the reviewer's absence proof; the requestor's post-marker binding follows Q23=A; timestamp proximity alone is insufficient. Validate timestamp semantics, ordering and design item 1's generation completeness and closure for every writer. Command-line inspection and hook installation are excluded.
 - Read every transcript in this checkout's Claude project directory active since the last OS boot and all relevant durable schedule definitions regardless of boot (Q19=A), including complete generation ranges, enumeration and record byte accounting. Validate activity selection and true-boot semantics; Windows fast startup, missing history, uncertain activity or schedule restoration stays pending until resolved. Validate exact starts, terminal statuses/order/duplicates, typed/slash input and notifications for PowerShell, Bash, moved foreground work (`Ctrl+B` and timeout), `Monitor`, background subagents and their commands, compaction, `CronCreate` and scheduled wakeups. Individual task-status snapshots are not a complete inventory.
 - Validate Q21=A's boot instant recorded once at boot from a validated boot process's creation time. Never select history using current time minus uptime. Validate the concrete process, fixed timestamp under clock changes, uptime semantics, comparison tolerance and Windows fast startup. Compare fixed and computed instants; detected net backward movement beyond the validated tolerance stays pending. Disclose undetectable backward changes since boot, including offsetting changes. No event-log or general extra channel is approved. The uptime value must count time spent in sleep and hibernation. Validate this, and test suspension between boot and the decision. An uptime that excludes suspended time would hide a backward change of up to the suspended duration.
-- Validate Q22=A on initial activation and later continuation: exclude only the proved requestor pane's validated current-generation starts proved created after its marked resume input, with their own lifecycle records. Earlier starts, every other transcript and recognized reviewer `wait-any-request` starts remain in scope, including reviewer starts inside the proposed exception and former-reviewer starts after role switching. Unknown generation or ordering stays pending. Read/classify the evidence needed to prove the exception and retain full byte accounting; refresh exact takeover and both panes' required bindings before activation. The exception removes only starts that validated creation ordering places after the marked resume input, with those starts' own lifecycle records. File position alone never places a record after the marker. Terminal, stop and completion records after the marker still match in-scope starts ordered before it. This includes any such record the host writes into a later session file after a clear. A start whose order relative to the marker is uncertain stays in scope. Inside the excluded range, a start that invokes the review-exchange launcher counts as a reviewer watcher unless its operation parses as a validated requestor operation. Validate the recognized invocation forms for each pinned version. A recognized watcher stays in scope under normal start/end matching and blocks until its validated terminal record.
+- **Confirmed design Q25=A:** Validate the host background `wait-answer` start
+  as one recognized invocation form, turn closure, terminal record and
+  notification resumption before relying on the exception. The required
+  transport covers every Claude requestor route; Codex retains attached waiting.
+- **Confirmed design Q24=A:** Validate the operation-based exception below without
+  claiming writer identity; the decision itself establishes no supported profile.
+- Validate Q22=A as qualified by Q24=A on initial activation and later continuation: exclude only starts in the Q23-bound requestor file ordered after the marked resume input by validated creation ordering that parse as validated requestor review-exchange operations, with their own lifecycle records, whichever root wrote them. Every other start, including the requestor's other post-marker work, stays in scope. Earlier starts, every other transcript and recognized reviewer `wait-any-request` starts remain in scope, including reviewer starts inside the proposed exception and former-reviewer starts after role switching. Unknown file binding, operation classification or ordering stays pending. Read/classify the evidence needed to prove the exception and retain full byte accounting; refresh exact takeover and both panes' required bindings before activation. The exception removes only starts that validated creation ordering places after the marked resume input, with those starts' own lifecycle records. File position alone never places a record after the marker. Terminal, stop and completion records after the marker still match in-scope starts ordered before it. This includes any such record the host writes into a later session file after a clear. A start whose order relative to the marker is uncertain stays in scope. Inside the excluded range, a start that invokes the review-exchange launcher counts as a reviewer watcher unless its operation parses as a validated requestor operation. A start qualifies only when its complete recorded command matches exactly one recognized requestor invocation form with a requestor-only operation. Chained, piped, wrapped or multi-operation commands, and operations either role may run, stay in scope under normal start/end matching. Validate the recognized invocation forms for each pinned version. A recognized watcher stays in scope under normal start/end matching and blocks until its validated terminal record.
 - Validate Q23=A: bind the proved requestor's post-marker range through the session
   file in which acceptance proved its marked resume. On initial activation and
   later continuation, require current session identity source `report`; a first
@@ -193,7 +206,7 @@ schedule set empty by contract rather than assumption.
   or `clear`, at or after creation of the requestor shell's single direct Claude
   child; no later SessionStart other than `compact`; the proved marked input in
   that file; unchanged process identity across the read; and validated ordering
-  and design item 1's generation-scoped exclusivity. Missing or uncertain evidence remains pending.
+  and design item 1's completeness and closure for every writer (Q24=A). Missing or uncertain evidence remains pending.
   This covers the command's `--clear` and a manual clear before the run. Q19=A
   retains pre-clear transcripts and Q22=A retains earlier starts and matches
   their lifecycle records across files. Design item 1's complete-generation rule still
@@ -201,8 +214,8 @@ schedule set empty by contract rather than assumption.
   precedence and cross-file lifecycle matching in disposable sessions; timestamp
   comparison retains Q21=A's disclosed clock limitation. No new channel is added,
   and the human choice itself establishes no supported profile.
-- Validate turn closure with and without a background start: record persistence order and identify the last closing record. An idle screen alone is insufficient; require every tool call's result, every result's call and the validated final record. Apply the closure condition to the last turn of every in-scope transcript. This includes the proved requestor's transcript: Q22=A excludes validated post-marker starts, not an unclosed requestor turn. Apply confirmed Q18-Q20 scopes without weakening persistence, generation binding or generation-scoped exclusivity checks.
-- Exercise clear with running work, fork, launch-time/in-process resume, orderly exit, interruption, window close, forced termination, background sessions and reattach to establish record shapes. Include every attach path to an existing session id, with and without the launcher settings and including nested print-mode resume, while the original root runs and after it exits; record where each attach first fails design item 1's positive attribution, and whether its turn input persists before that turn's first tool runs, against the original-process controls (design item 1, case 6). Unmatched starts stay pending across host-process generation changes: forced termination left background commands running on 2026-11-12, and no recorded cleanup proof has been observed. A validated true OS boot bounds ordinary surviving processes but never discards durable schedules. Never assume a new host process ended earlier tasks.
+- Validate turn closure with and without a background start: record persistence order and identify the last closing record. An idle screen alone is insufficient; require every tool call's result, every result's call and the validated final record. Apply the closure condition to every input-bearing record and every chain tip of every in-scope transcript. This includes the proved requestor's transcript: Q24=A excludes only validated requestor review-exchange starts, not an unclosed requestor turn. Apply confirmed Q18-Q20 scopes without weakening persistence, generation binding, completeness or closure checks.
+- Exercise clear with running work, fork, launch-time/in-process resume, orderly exit, interruption, window close, forced termination, background sessions and reattach to establish record shapes. Include every attach path to an existing session id, with and without the launcher settings and including nested print-mode resume, while the original root runs and after it exits; record its shapes, whether its turns close under design item 1 or which conservative trigger holds them pending, whether its turn input persists before that turn's first tool runs, and whether its closing records persist last, against the original-process controls (design item 1, case 6). Cover checkpointing enabled and disabled, print-mode resume, `--continue`, in-process `/resume`, a first tool that starts background work, a local command that executes work, such as bash-mode input, and closing-record ordering after parallel calls and fan-out leaves. Determine whether roots can run without session persistence; return any such root to design review because it is outside the ledger. Unmatched starts stay pending across host-process generation changes: forced termination left background commands running on 2026-11-12, and no recorded cleanup proof has been observed. A validated true OS boot bounds ordinary surviving processes but never discards durable schedules. Never assume a new host process ended earlier tasks.
 - No permitted affirmative current-watcher-liveness source exists in this delivery. Every potential wait remains pending with no input; an unmatched start and notification-delay measurement do not prove current liveness. Activation requires complete positive absence plus fresh idle/empty-input and stable process/session bindings.
 - Positive absence covers host-managed waiting mechanisms (Q20=A): background tasks, Monitor, subagents/commands, schedules/wakeups and foreground work moved into background. Claude reviewer watchers must start through host background mechanisms. A record gap for an in-scope start/end invalidates affirmative absence; keep pending and return the gap to design review with a specifically named proposed source before seeking approval. Each activation report must disclose detached foreground/hook processes, unavailable earlier hook configuration history and undetectable backward clock changes since boot, including offsetting changes (Q21=A). Ownership fencing and lease expiry do not prove absence. Optional validated detaching-launcher rejection is defense in depth only. Only Q21's named boot-instant process metadata is additionally approved; no event-log, general extra channel or one-host delivery is authorized. All other gates still apply.
 
@@ -349,6 +362,17 @@ All non-Python file baselines are recorded above; new non-Python files start at 
 
 #### Step 4 implementation
 
+**Confirmed Q25=A dependency:** Change the Claude bounded-wait rule in
+`rules/run_commands.md` from permitted to required for each `wait-answer` on
+every requestor route. Require a host background start as one recognized
+invocation form, turn closure and resumption from the completion notification.
+Make `instructions/review-requestor.md`, `instructions/spec-review-requestor.md`
+and `instructions/code-review-requestor.md` refer to that shared rule. Foreground
+or moved waits stay in scope and leave the reviewer pending with that reason.
+Step 1 must validate the background start, terminal record and notification
+resumption. Preserve Codex attached waiting. This records the selected work;
+the instruction changes and host validation remain to implement.
+
 **Read dependencies**: `tests/unit/tools/resume_paused_test_support.py` from Step 1 supplies shared synthetic evidence builders; it is not a mutation target of this step.
 
 **Files involved**:
@@ -367,6 +391,11 @@ All non-Python file baselines are recorded above; new non-Python files start at 
 - `tools/review_exchange_cli_parser.py` (existing, to be updated).
 - `instructions/resume-session.md` (existing, to be updated).
 - `instructions/review-resume.md` (existing, to be updated).
+- `rules/run_commands.md` (existing, to be updated).
+- `instructions/review-requestor.md` (existing, to be updated).
+- `instructions/spec-review-requestor.md` (existing, to be updated).
+- `instructions/code-review-requestor.md` (existing, to be updated).
+- `tests/unit/tools/test_instruction_structure/test_requestor_answer_wait_transport_tdd.py` (new, to be created).
 - `tests/unit/tools/test_resume_paused_validation/__init__.py` (new, to be created).
 - `tests/unit/tools/test_resume_paused_validation/test_resume_paused_validation_tdd.py` (new, to be created).
 - `tests/unit/tools/test_resume_paused_validation/test_resume_paused_validate_launcher_smoke_tdd.py` (new, to be created).
@@ -382,6 +411,12 @@ in `review-resume.md`, `spec-reviewer.md` and `code-reviewer.md`: Claude reviewe
 waits use host background tasks and completion notifications, never a detaching
 launcher; Codex waits remain attached. This checks conformance and introduces
 no new wait mechanism.
+
+Add `test_requestor_answer_wait_transport_tdd.py` in the existing
+`tests/unit/tools/test_instruction_structure/` package. Assert that the shared
+rule in `rules/run_commands.md` requires Claude background `wait-answer` on
+every requestor route, retains Codex attached waiting and is referenced by all
+three requestor instructions. Run the existing instruction-structure tests too.
 
 **Types and behavior**: Encode compact markers with random launch id first, full pane UUID, role and assignment digest. Return typed nonsecret validation JSON and a nonsecret initial matched-session identity for subsequent fresh checks. Revalidate immediately before receipt replacement, journal writes, backfill and ownership claim; do not cache authorization. Persist schema-3 nonsecret receipt bindings only in the receiver. `resume-session` reads schema 1, 2 and 3 receipts for reuse detection and writes the schema-3 variant only on a marked resume. Extend CoordinationRecord with marked launch/pane/host/assignment/round/occurrence/issued-generation evidence. Thread the raw marker and carried Codex session identity/launch id through parser, CLI, `claim_selected`, store and `OwnershipService`; retain locked round/occurrence rechecks and stale-record comparison. Keep ownership capabilities in session memory and existing digest storage only; no claim history or authorization file.
 
@@ -409,6 +444,11 @@ Under the transition lock, parse the raw marker and recompute its assignment dig
 - `tests/unit/tools/test_resume_paused_validation/test_resume_paused_validate_launcher_smoke_tdd.py`: before 0; below 550, safe to extend; ceiling 650. Advisory initial size 0–400.
 - `tests/unit/tools/test_resume_paused_claims/__init__.py`: before 0; below 550, safe to extend; ceiling 650. Advisory initial size 0–400.
 - `tests/unit/tools/test_resume_paused_claims/test_resume_paused_claims_tdd.py`: before 0; below 550, safe to extend; ceiling 650. Advisory initial size 0–400.
+- `tests/unit/tools/test_instruction_structure/test_requestor_answer_wait_transport_tdd.py`: before 0; below 550, safe to extend; ceiling 650. Advisory initial size 0–400.
+- `rules/run_commands.md`: before 226; non-Python, no Python size band.
+- `instructions/review-requestor.md`: before 367; non-Python, no Python size band.
+- `instructions/spec-review-requestor.md`: before 238; non-Python, no Python size band.
+- `instructions/code-review-requestor.md`: before 320; non-Python, no Python size band.
 
 All non-Python file baselines are recorded above; new non-Python files start at 0. Recount all files at execution time.
 
@@ -521,7 +561,7 @@ All non-Python file baselines are recorded above; new non-Python files start at 
 - **Issues**: Receipt alone cannot prove requestor ownership; waiter state and prior uncertain reviewer delivery cannot be guessed.
 - **Fix intent**: Observe exact schema-3 receipt/current marked claim and host result evidence under a separate fixed deadline for every receiver.
 - **Expected outcome**: Only proven requestor takeover and positive no-wait evidence permit a missing counterpart action.
-- **Framing**: [Design](design.v0.14.0.resume-paused.md), Takeover observation and later reviewer continuation; design Q04, Q12–Q17. Apply the shared execution command checklist and ready-to-run commands above.
+- **Framing**: [Design](design.v0.14.0.resume-paused.md), Takeover observation and later reviewer continuation; design Q04, Q12–Q17 and Q22–Q24. Apply the shared execution command checklist and ready-to-run commands above.
 - **Complexity impact**: Keep responsibilities bounded; account for exact-path reads and fresh evidence as described in the shared complexity section.
 - **Feature preservation**: Preserve legacy manual consent/readability, review-role isolation and existing ownership fencing while adding only the behavior assigned here.
 
@@ -546,9 +586,10 @@ activation outcome and preview showing conditional activation. This supplements
 the compact checkout report; the receiver's separate 100-character result
 grammar is unchanged. Help/reference define the three Q20=A limits with Q21=A's
 clock qualification since boot. Fake-clock and injected-ledger tests cover
-Q22=A's narrow current-generation post-marker exception on initial activation
-and later continuation, retained earlier/other-pane/reviewer-watcher blockers,
-and pending on ambiguous generation/order. No general live-pane exclusion applies.
+Q24=A's narrow validated-requestor-operation exception in the Q23-bound file
+on initial activation and later continuation, regardless of writer. Cover
+validated creation ordering after marked input, retained other-work blockers
+and pending on ambiguous file binding, classification or ordering. No general live-pane exclusion applies.
 Use Step 1's validated Q23=A startup-or-clear binding for the requestor's
 marked-input file, including command-driven and prior manual clear. On initial
 activation and later continuation, refresh every Q23 binding condition; reject
