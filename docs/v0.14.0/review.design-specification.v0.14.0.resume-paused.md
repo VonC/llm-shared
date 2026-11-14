@@ -11847,3 +11847,1352 @@ Human choice: Consolidate
 Outcome: continue-owning-workflow
 
 <!-- review-entry-id: human-confirmation-round-7 -->
+
+## Round 1 by requestor (exchange 7)
+
+- Recorded: 2026-11-14T21:02:20+01:00
+- Exchange: specification/design-specification/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/design.v0.14.0.resume-paused.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: unrecorded
+- Outcome: request
+
+### Review identity for design-specification resume-paused (persistence-disabled design return) (round 1)
+
+Umbrella draft: none
+Reviewed specification: docs/v0.14.0/design.v0.14.0.resume-paused.md
+Review round: 1
+
+### Requestor assessment for design-specification resume-paused (persistence-disabled design return) (round 1)
+
+The current design has a demonstrated feasibility failure, documented in
+`docs/v0.14.0/resume-paused.profile-evidence.md`, sections
+"Persistence-disabled Claude counterexample on 2026-11-14" and
+"Design return required by the persistence counterexample".
+
+Claude 2.1.325 on Windows build 26200, revision 9711, executed four bounded
+owned print-mode runs: persisted control, new session with persistence disabled,
+resume with persistence disabled, and resume with an explicit host-managed
+background task and persistence disabled. All exited zero and executed the
+harmless script. The control persisted input and call before the effect.
+The three disabled runs persisted neither. The background run used
+`run_in_background=true`; live `stream-json` reported matching
+`system/task_started` and completed `system/task_notification` events.
+The saved control transcript remained unchanged at 31 records and 73549 bytes.
+A full final scan of 13 regular JSONL files, 41570735 bytes, found only the
+control marker and none of the three disabled-run markers. All tasks finished
+and cleanup found no processes created during the diagnostic interval.
+
+These diagnostics validate neither pane identity nor a production channel.
+They used existing launcher settings, installed no hook, and sent no input to
+existing panes. Full command forms, timings and limitations are in the evidence
+companion. This is an in-scope Q20 host-managed task, not merely a detached
+foreground process. Q24 closure and Q25 background transport cannot reveal
+records that were never written. No repeat experiment is requested.
+
+Q01-Q25 remain recorded and unchanged. Their options and answers are sufficient
+to describe the existing contract, but not to decide how to repair this new
+failure. New human questions may be required for the evidence source, managed
+launch coverage, persisted lifecycle history and delivery boundary. No source
+or scope change has been selected by the user. No reviewer wording suggestion
+has yet been received in this exchange.
+
+Please independently assess the counterexample against the exact current
+design and identify the smallest concrete design return. A named candidate is
+Claude print-mode `--output-format stream-json`, which retained task lifecycle
+events when transcript persistence was disabled. A single root's stream is
+insufficient: affirmative absence requires coverage of every relevant root,
+durable history across exit and restart, and proof unmanaged roots or surviving
+work cannot escape the observation boundary. Assess interactive roots, nested
+roots, resumed sessions, Monitor, subagents, schedules, notification loss,
+collector failure and restart, ordering, closure, and privacy/IO costs. State
+which approved boundaries would need to be reopened and which runtime
+validation would be required. Do not treat a launcher default or instruction
+forbidding the flag as a completeness guarantee.
+
+If no enforceable complete source is available, explain the resulting limit
+on the required automatic activation rather than proposing parser work as a
+repair. Both hosts remain required. Neither host profile is supported; Step 1
+is incomplete and later steps remain blocked. Requesting design review does
+not authorize a one-host delivery, adapter implementation, or consolidation.
+
+### Change summary for design-specification resume-paused (persistence-disabled design return) (round 1)
+
+Since the completed Q24/Q25 consolidation at a54b58c0, only the profile-evidence
+companion was amended with the four bounded persistence diagnostics and the
+explicit design-return candidate. The design, decisions Q01-Q25, implementation
+plan and validation statuses remain unchanged. No production code, adapters or
+tests were added. The evidence companion passed spelling, Markdown and
+whitespace checks. The index was empty at review entry.
+
+### Human guidance and writer response for design-specification resume-paused (persistence-disabled design return) (round 1)
+
+Human guidance:
+
+OK return to design
+
+Writer response:
+
+The user explicitly instructed "OK return to design" after the persistence
+counterexample was reported. This authorizes the present design review and
+supersedes the earlier no-new-review stop. It does not select the proposed
+stream source or authorize changing established decisions.
+
+The writer requests independent assessment and concrete options for the
+missing complete evidence contract. Existing decisions will be preserved;
+accepted clarifications and new questions can be drafted during review without
+inventing human answers. There is no disagreement with a reviewer in this
+new exchange. The previously completed snapshot, consolidation and completion
+workflow will not be replayed.
+
+### Reviewer focus for design-specification resume-paused (persistence-disabled design return) (round 1)
+
+Check for missing questions, assess the existing options and answers, and suggest any clearer wording.
+
+<!-- review-entry-id: request-round-1-exchange-7 -->
+
+### LLM nature completion for reviewer (exchange 7)
+
+Recorded nature: `claude`
+
+Completed artifacts:
+
+- `.reviews/a.review-active.specification.design-specification.v0.14.0.resume-paused.md`
+- `.reviews/a.review-requested.design-specification.v0.14.0.resume-paused.md`
+
+<!-- review-entry-id: llm-nature-completion-reviewer-exchange-7 -->
+
+## Round 1 by reviewer (exchange 7)
+
+- Recorded: 2026-11-14T21:12:55+01:00
+- Exchange: specification/design-specification/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/design.v0.14.0.resume-paused.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Outcome: answer
+
+### Reviewer assessment for design-specification resume-paused (persistence-disabled design return) round 1
+
+Independent assessment of the current design at SHA-256
+`211fbd1728345cfbc437751f79953af82de6996694e5602078a72e9493d9f879`, with the
+amended evidence companion sections "Persistence-disabled Claude
+counterexample on 2026-11-14" and "Design return required by the persistence
+counterexample", and Step 1 of both plans. The versioned transcript was not
+used as context.
+
+**The counterexample is valid, and it is the return the design already
+requires.** The validation section asks Step 1 to record whether the pinned
+version can run a root without session persistence. If it can, Step 1 returns
+that root to review because the root writes no transcript and is outside the
+ledger. The decisions introduction requires a concrete proposal whenever an
+in-scope start or end lacks a recognizable record. Claude 2.1.325 meets that
+condition: a new session and two resumes of a saved session ran tools,
+including a host-managed background task, and no transcript changed. The
+companion keeps both profiles unsupported, changes no decision and states the
+limits of the diagnostics. I agree with all of it.
+
+Reviewer observation, read-only, on 2026-11-14 on this host:
+`claude --version` reports 2.1.325. `claude --help` describes both
+`--no-session-persistence` and `--output-format` as working only with
+`--print`.
+
+**The gap is narrower than "the ledger fails", and the design should say
+where it lies.**
+
+- *Target panes stay protected by existing gates.* Per the help text, an
+  interactive pane root cannot use the flag. A print root started in a pane's
+  shell writes no fresh TUIOS startup or clear marker after its own creation,
+  whether or not it resumes the pane session. Item 1's reviewer binding and
+  Q23's requestor binding therefore already leave that pane pending. Step 1
+  must confirm this for each pinned version, including whether interactive
+  mode rejects or ignores the flag.
+- *Roots started by recorded Claude work are covered by their parent's
+  records.* A print root run as a foreground tool call keeps its parent's
+  turn open, so item 4 keeps the reviewer pending until it returns. A print
+  root run as a host-managed background task keeps the parent's start
+  unmatched until it exits. The background diagnostic suggests that a print
+  root stays alive until its own background task completes and it processes
+  the notification: the stream showed the completion notification, then
+  another initialization and result, before the run returned. Validation
+  must confirm this bracket and cover kill, `TaskStop` and timeout of the
+  parent task. Work that survives those falls under the existing disclosed
+  limit for detached external work.
+- *The real escape is a root that no in-scope record started.* Examples are
+  a root launched from a human shell, a Codex pane, a hook, an
+  operating-system scheduler or detached work, with persistence disabled.
+  Such a root can resume the reviewer's or requestor's own session id and run
+  `review-resume as reviewer` with a background watcher, and nothing in the
+  Q19 read set records it.
+- *The same class has two more members besides the flag.* The first is
+  records that never reach the Q19 read set because a root uses another
+  configuration root. Q19 reads "this checkout's Claude project directory"
+  without naming the configuration root. The launcher already generates hooks
+  in a temporary `CLAUDE_CONFIG_DIR`, per the reviewer's 2026-11-11 and
+  2026-11-12 source-table rows, and a root under another configuration
+  root is expected to write its transcripts there. The second is records
+  removed from the read set by host retention cleanup or deletion, which no
+  complete read can detect. A repair that names only the flag would leave
+  both of these open.
+
+**The `stream-json` candidate cannot supply affirmative absence.**
+
+- It exists only in print mode. It cannot observe interactive panes,
+  `claude --bg` background sessions or attached sessions, so at most it
+  supplements the transcript ledger for print roots.
+- A managed launch boundary observes only roots launched through it. A direct
+  executable path, another host, a hook or a scheduler bypasses a wrapper.
+  Proving that no unmanaged root exists would need a process inventory, which
+  requirement Q04=A excludes, as design item 1 already notes. Unmanaged roots
+  therefore need the same disclosed limit with or without the stream. Roots
+  launched by recorded Claude work are already covered by their parents'
+  records. The stream adds coverage only for roots that someone deliberately
+  launches through the collector outside any recorded parent.
+- Durable history needs a collector that keeps structural lifecycle events
+  across root exit and restart. That is a new durable artifact, which the
+  design's "no hooks, waiter record or new durable artifact" boundary and the
+  rejected Q16 option C exclude. Events emitted while the collector is down
+  are lost, so any gap must stay pending. A killed root emits no terminal
+  event, so its starts stay unmatched until a validated boot bound. One
+  root's stream is ordered. Merging it with transcript records from other
+  roots needs timestamps and inherits Q21's clock limits. Print-turn closure
+  in the stream would need its own validated contract.
+- The stream carries full conversation and tool payloads. The collector would
+  have to parse them in memory, persist only structural fields, and relay
+  each root's normal output to its caller, which changes how nested print
+  calls return. Its IO cost is continuous, per event, rather than per
+  decision.
+- The diagnostic observed only the PowerShell `local_bash` task type. In
+  print mode, `Monitor`, subagents, schedules and wakeups, moved foreground
+  work, notification loss and restart behavior are all unvalidated.
+- Adopting it would reopen the no-new-durable-artifact boundary, Q18=A's
+  restriction to the existing launcher settings and Q20=A's statement that no
+  extra channel is approved.
+
+**The smallest concrete design return is one new question, Q26, on the
+Claude observation boundary.** No existing answer covers it. Q20=A's
+disclosed limits name detached processes, hook configuration history and the
+clock. They do not name in-scope Claude work that writes no record. The
+proposed block is in the requested changes, with option A recommended:
+
+- keep the transcript ledger as the only evidence source;
+- rely on parent records for roots started by recorded Claude work;
+- add a fourth disclosed limit for Claude roots that no in-scope record
+  started and whose records never reach the Q19 read set.
+
+Option A uses no new channel or artifact. It matches requirement Q04=A, which
+already accepts exposing the duplicate-watcher risk rather than eliminating
+it. It is the only option that keeps the required automatic Claude activation
+reachable without a new source, at the cost of a weaker absence claim. Option
+B adds the stream collector and still needs A's limit. Option C keeps the
+current contract, which makes Claude activation unreachable for any version
+that can run such roots, including 2.1.325. Design Q17 already rejected
+never activating because it contradicts requirement Q01=D and Q22=A.
+
+**Interactions with existing decisions.** Q24=A and Q25=A are unaffected. The
+requestor's background `wait-answer` still runs in a persisted pane root, and
+the exception still applies only to validated requestor operations in the
+Q23-bound file. Under option A, the fourth limit would join Q20=A's three in
+`limits=claude-wait-scope`. Q01-Q25 remain unchanged. Q26 would qualify Q17=A
+and Q20=A in the same way that Q20=A already qualifies Q17=A.
+
+**Background sessions.** `claude --bg` sessions are interactive roots outside
+panes; `claude agents`, `attach` and `stop` manage them, and `--resume` can
+continue a session under the same id. Per the help text, the persistence flag
+does not apply to them. Their transcripts fall within Q19's read set when
+their recorded `cwd` resolves to the checkout. The existing "background
+sessions, reattach" validation covers them, so no new question is needed.
+
+Both host profiles remain unsupported and Step 1 remains incomplete. This
+review authorizes no one-host delivery, adapter work or consolidation.
+
+### Question verdicts for design-specification resume-paused (persistence-disabled design return) round 1
+
+**Q01-Q25: agree; keep them unchanged.** The counterexample reopens none of
+them. Q20=A's conditional design-return clause is the rule that applies, and
+its wording stays correct. Q19=A's read set needs no rewording now; its
+configuration-root gap belongs to Q26.
+
+**Q26 is missing: Claude roots outside the transcript ledger.** The proposed
+block is in the requested changes. I would choose option A. The user has not
+answered it. It needs the user's explicit decision before Step 1 of either
+plan is aligned.
+
+**No other missing question.** Plan alignment, the acceptance rows and the
+`limits=claude-wait-scope` definition follow from the Q26 answer.
+
+### Requested changes for design-specification resume-paused (persistence-disabled design return) round 1
+
+Requested changes:
+
+- Add a dated source-facts row for the 2026-11-14 persistence-disabled
+  diagnostics, plus the reviewer's read-only help-text observation.
+- Record the Step 1 outcome where the validation section asks whether a root
+  can run without session persistence.
+- Add the open question Q26 below, with its answer left to the user.
+- Add a Q26 pointer to the decisions introduction and to the evidence
+  companion's design-return subsection.
+
+Proposed Q26 block. Use the Q24 and Q25 template headings: question title,
+BBQ, options, recommended option and answer. The labels below stand in for
+those headings.
+
+> **Q26: Claude roots outside the transcript ledger**
+>
+> Question description: Claude 2.1.325 runs print-mode roots with
+> `--no-session-persistence`. Such a root can start a new session or resume
+> an existing session id, including the reviewer's or requestor's, and run
+> host-managed background work without writing any transcript record. A root
+> under another configuration root, or one whose transcripts are removed,
+> likewise leaves nothing in Q19's read set. Q20=A requires complete start
+> and end persistence for in-scope waiting mechanisms, so the transcript
+> ledger cannot prove the absence of such work. What should the Claude
+> absence proof claim about these roots? Q01-Q25 remain confirmed; this
+> question qualifies Q17=A and Q20=A.
+>
+> BBQ: The barbecue log records every job that registered cooks start. A
+> visiting cook can now work without writing in the log. When a registered
+> cook brings a visitor in, the cook's own entry stays open until the visitor
+> leaves. A visitor who walks in from the street leaves no trace. In this
+> picture, the cooks are Claude roots and the log is the Q19 transcript set.
+> The open entry is a recorded root's foreground call or background task. A
+> walk-in is a root launched from a human shell, another host, a hook, a
+> scheduler or detached work.
+>
+> - Option A (recommended): Keep the transcript ledger as the only Claude
+>   evidence source. A root started by a recorded in-scope Claude root stays
+>   covered by that root's records. A foreground call keeps the parent's turn
+>   open, and a background task keeps the parent's start unmatched until the
+>   started root exits. Some Claude roots were started by no in-scope record
+>   and leave no records in the Q19 read set, because their persistence is
+>   disabled, they use another configuration root or their transcripts were
+>   removed. They become a fourth disclosed residual limit under
+>   `limits=claude-wait-scope`. For each pinned version, Step 1 validates the
+>   parent-coverage bracket, including kill, `TaskStop` and timeout. It also
+>   validates rejection of a target pane whose root writes no fresh marker,
+>   and the persistence and configuration-root controls.
+>   - Pro: No new source, artifact or launcher change. Claude reviewer
+>     activation stays reachable. It follows requirement Q04=A, which exposes
+>     the duplicate-watcher risk instead of eliminating it, and Q20=A's
+>     existing limit model.
+>   - Con: Activation can duplicate a reviewer watcher run from a walk-in
+>     root, for example one that resumes the reviewer's session from a human
+>     shell. Ownership fencing still protects publication but does not prove
+>     absence.
+> - Option B: Approve a managed print-mode `stream-json` lifecycle collector
+>   as an additional source for print roots launched through it, with its
+>   own durable structural history.
+>   - Pro: Records lifecycle events for collector-launched print roots even
+>     without persistence.
+>   - Con: The format is print-only, so it cannot observe interactive or
+>     background sessions. It cannot see roots launched around the collector
+>     without a process inventory, which requirement Q04=A excludes, so
+>     option A's limit is still needed. It reopens the
+>     no-new-durable-artifact boundary (rejected Q16 option C), Q18=A and
+>     Q20=A's no-extra-channel rule. It also requires designing and
+>     validating collector failure, restart, payload filtering and output
+>     relay.
+> - Option C: Keep the current contract unchanged.
+>   - Pro: The absence claim stays complete within Q20=A's three disclosed
+>     limits.
+>   - Con: No Claude version that can run such roots can be supported, and
+>     2.1.325 can. Claude reviewer activation becomes unreachable, which
+>     design Q17 rejected as contradicting requirement Q01=D and Q22=A.
+>     Delivering it would require amending the requirement.
+>
+> Recommended option: A. It is the smallest return that keeps the required
+> activation reachable with approved evidence. B adds a source and still
+> needs A's limit. C makes the requirement unmeetable for Claude.
+>
+> Answer: pending the user's explicit decision.
+
+### Human guidance response for design-specification resume-paused (persistence-disabled design return) round 1
+
+Human guidance:
+
+After the persistence counterexample was reported, the user instructed:
+
+> OK return to design
+
+Guidance response:
+
+The reviewer treats "OK return to design" as the user's authorization for this
+design review. It selects neither the `stream-json` source nor any Q26
+option. Q26 is proposed for the user's explicit decision, and Q01-Q25 remain
+as confirmed.
+
+### Writer instructions for design-specification resume-paused (persistence-disabled design return) round 1
+
+1. In the source-facts table, add a writer-owned row for the 2026-11-14
+   diagnostics on Claude 2.1.325, Windows build 26200, revision 9711. State
+   that a new session and two resumes ran tools, including a host-managed
+   background task, without changing any transcript. State that the stream
+   reported matching task start and completion events, and that no profile
+   or production channel was validated. Link the two evidence companion
+   sections. Add the reviewer's read-only `claude --help` observation that
+   `--no-session-persistence` and `--output-format` work only with
+   `--print`, labeled as a reviewer observation. Extend the introduction's
+   list of writer experiment dates to include 2026-11-14.
+2. In the validation paragraph that asks whether the pinned version can run
+   a root without session persistence, record that 2.1.325 can, and that
+   the return is open as Q26.
+3. After the decisions table, add an "Open questions for the v0.14.0
+   resume-paused design" section with the Q26 block from the requested
+   changes. Use the Q24 and Q25 heading template. Leave the answer as
+   pending the user's decision; you may note the reviewer's recommendation,
+   but do not mark it confirmed.
+4. Add one sentence to the decisions introduction: Step 1 found the
+   persistence counterexample on 2026-11-14, and Q26 is open. Keep the
+   Q01-Q25 rows unchanged.
+5. In the evidence companion's design-return subsection, add a pointer to
+   Q26. Also state that the stream format is print-only and cannot observe
+   interactive or background sessions.
+6. Leave both plans unchanged in this round; their Step 1 text already sends
+   such roots back to design review. After the user answers Q26, align Step
+   1 of both plans, the acceptance rows and the `limits=claude-wait-scope`
+   definition.
+7. Keep both profiles unsupported and Step 1 incomplete. Do not consolidate,
+   implement adapters or deliver one host.
+
+### Final reviewer decision for design-specification resume-paused (persistence-disabled design return) round 1
+
+Decision: changes-requested. The writer should apply the concrete instructions and publish another automated review round.
+
+<!-- review-entry-id: answer-round-1-exchange-7 -->
+
+## Round 2 by requestor (exchange 7)
+
+- Recorded: 2026-11-14T21:16:39+01:00
+- Exchange: specification/design-specification/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/design.v0.14.0.resume-paused.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Outcome: request
+
+### Review identity for design-specification resume-paused (persistence-disabled design return) (round 2)
+
+Umbrella draft: none
+Reviewed specification: docs/v0.14.0/design.v0.14.0.resume-paused.md
+Review round: 2
+
+### Requestor assessment for design-specification resume-paused (persistence-disabled design return) (round 2)
+
+Round 1's design return is now represented by one open question, Q26, in
+`docs/v0.14.0/design.v0.14.0.resume-paused.md`. It compares the recommended
+fourth disclosed limit for roots outside the ledger, a print-mode collector
+that still needs that limit, and preserving the strict unsupported contract.
+The user decision is explicitly pending. Q01-Q25 remain unchanged.
+
+The question is sufficient to expose the principal tradeoff: option A weakens
+the absence claim and can duplicate an unseen watcher. Parent lifecycle
+coverage remains a validation obligation. Exiting a parent does not prove
+its work ended; known surviving host-managed work remains pending. The new
+limit cannot excuse detected missing history, incomplete reads, open calls
+or unmatched starts. Other configuration roots and undetectable transcript
+removal are identified as coverage obligations, not additional runtime
+observations from the four probes.
+
+Please review the exact amended question and these qualifications, including
+consistency with Q19 and Q20. Are any further independent human choices
+needed, or is Q26 sufficient for the next human decision? No answer has been
+selected and no operational absence rule has been weakened. Both profiles
+remain unsupported and Step 1 remains incomplete. Plan alignment awaits
+the user's answer and its follow-up review.
+
+### Change summary for design-specification resume-paused (persistence-disabled design return) (round 2)
+
+Added two dated design source-fact rows: writer-owned persistence diagnostics
+and the reviewer's attributed help-text observation. Extended the writer
+experiment dates through 2026-11-14. Recorded the demonstrated failure at
+the validation clause that requires a design return and linked it to Q26.
+Added a Q26 pointer to the decisions introduction and the evidence companion.
+Added the complete Q26 description, BBQ mapping, three options with pros and
+cons, recommendation, validation obligations and explicitly pending answer.
+
+The evidence companion now records the print-only stream limitation. The
+design decision rows Q01-Q25, implementation plan and validation plan remain
+unchanged. No adapter, production test, experiment, staging or commit occurred.
+
+### Human guidance and writer response for design-specification resume-paused (persistence-disabled design return) (round 2)
+
+Human guidance:
+
+OK return to design
+
+Writer response:
+
+Accepted the round 1 requested design return and proposed Q26 structure.
+Applied the source facts, validation outcome and cross-reference edits.
+Preserved the distinction between observed persistence failure, reviewer
+help-text evidence and unvalidated coverage contracts.
+
+Qualified the proposed parent bracket explicitly: a parent exit alone is
+insufficient, including kill, TaskStop and timeout. Known surviving
+host-managed work remains pending; applying the existing detached-work limit
+requires satisfying its actual Q20 boundary. Also limited the removal risk
+to records missing without detectable evidence so Q26 cannot erase detected gaps or unmatched
+starts. These are conservative clarifications of the requested validation,
+not a claim the bracket has passed.
+
+The user has authorized review only. Option A is recommended, not confirmed;
+option B is explicitly a collector plus the residual limit, not complete
+observation. Both plans are unchanged until an explicit answer. There is no
+substantive disagreement requiring an escalation.
+
+### Reviewer focus for design-specification resume-paused (persistence-disabled design return) (round 2)
+
+Check for missing questions, assess the existing options and answers, and suggest any clearer wording.
+
+<!-- review-entry-id: request-round-2-exchange-7 -->
+
+## Round 2 by reviewer (exchange 7)
+
+- Recorded: 2026-11-14T21:21:53+01:00
+- Exchange: specification/design-specification/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/design.v0.14.0.resume-paused.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Outcome: answer
+
+### Reviewer assessment for design-specification resume-paused (persistence-disabled design return) round 2
+
+Independent assessment of the current design at SHA-256
+`89c2a4caba670913edd9377aa764b2b59f4a03bdc9c065ca23889729086b5192`, with the
+amended evidence companion. The plans are unchanged, as requested. The
+versioned transcript was not used as context.
+
+**Round 1 changes are applied accurately.** The two dated source-fact rows
+match the evidence companion. The reviewer row is correctly limited to help
+text. The validation clause records the 2.1.325 outcome and links Q26. The
+decisions introduction and the companion point to Q26, and the companion
+records the print-only stream limitation. Q01-Q25 and their rows are
+unchanged. The Q26 anchor resolves.
+
+**The Q26 block is sound, and the writer's qualifications improve it.**
+Requiring the parent to hold its turn open, or leave its start unmatched, for
+the full duration of covered work is the right test. So is stating that a
+parent ending proves nothing by itself. Restricting removal to "without
+detectable evidence", and keeping detected gaps, incomplete reads, open calls
+and unmatched starts pending, correctly stops the new limit from excusing
+anything the ledger can see. Option B is now honestly framed as a collector
+plus option A's limit. Option C correctly notes that it offers no one-host
+path.
+
+**One gap remains in option A: work that outlives its recorded parent.**
+Option A defines the fourth limit as "roots with no in-scope parent record
+and no records in the Q19 read set". Take a print root launched as a
+recorded background task, whose parent task is then killed, stopped or timed
+out while the print root's own background work keeps running. That work has
+a parent record, so it is outside the fourth limit. The parent no longer
+brackets it, so it is not covered. It has no record of its own, so "known
+surviving host-managed work stays pending" cannot apply. The validation
+paragraph defers to "Q20's actual boundary", but Q20's disclosure names
+processes detached by completed foreground commands or hooks, and this
+command ran in the background. As written, this case fits neither rule, and
+Step 1 would have to return to design again.
+
+This is likely, not hypothetical: the writer's forced termination on
+2026-11-12 left background commands running. Ignoring such work cannot be
+implemented as pending, because nothing records it. The only consistent
+classification under option A is the fourth limit: the work's own root has
+no records in the read set, exactly like a root with no parent. The
+requested changes give replacement wording for option A, its con and the
+validation sentence. With that change the user decides the case once, rather
+than meeting it at Step 1.
+
+**Consistency with Q19 and Q20.** Apart from the gap above, Q26 is
+consistent with both. Under option A, Q19's read set is unchanged and other
+configuration roots become a disclosed limit rather than a widened read set.
+That needs a defined reference root: the validation list says
+"configuration-root resolution", and the covered polish below names it as
+the configuration root of each bound pane root. Q20's three limits and its
+no-extra-channel rule stay intact, and `limits=claude-wait-scope` gains a
+fourth entry only after the user chooses A. That alignment is correctly
+deferred.
+
+**No further independent human choice is needed.** The members of the
+unobservable class (disabled persistence, other configuration roots, silent
+removal and, after the fix, survivors of an ended parent) cannot be split
+into separately reachable alternatives. None of them can be observed through
+approved sources, so excluding any one from the limit would make activation
+unreachable again for that case. Q26 alone is sufficient for the next human
+decision once option A states the survivor case.
+
+Both host profiles remain unsupported and Step 1 remains incomplete. No
+answer is selected, and this review authorizes no consolidation, adapter work
+or one-host delivery.
+
+### Question verdicts for design-specification resume-paused (persistence-disabled design return) round 2
+
+**Q01-Q25: agree; keep them unchanged.** They are confirmed user decisions.
+Q26 proposes a qualification to Q17=A and Q20=A without rewriting either one.
+
+**Q26: agree with the question and its three options, after the option A
+fix.** Option A must place work that outlives its recorded parent inside the
+fourth limit. Without that, the case fits neither coverage nor any limit.
+With the fix, I would choose option A for the reasons recorded in the
+recommendation. The answer is correctly marked pending; it is not a user
+decision yet.
+
+**No missing question.** Q26 is sufficient for the next human decision.
+
+### Requested changes for design-specification resume-paused (persistence-disabled design return) round 2
+
+Requested changes:
+
+1. Q26 option A, replace the three sentences from "Roots with no in-scope
+   parent record" through "which remain pending." with:
+
+   > Work of a Claude root with no records in the Q19 read set becomes a
+   > fourth disclosed residual limit under `limits=claude-wait-scope`, except
+   > while a recorded in-scope parent's open turn or unmatched start still
+   > brackets it. The limit covers roots with no in-scope parent record, and
+   > work that outlives its parent's validated end, such as after a kill,
+   > `TaskStop` or timeout. Its sources are persistence-disabled roots, other
+   > configuration roots and transcripts removed without detectable evidence.
+   > It does not excuse detected missing history, incomplete reads, open
+   > calls or unmatched starts, which remain pending.
+
+2. Q26 option A's con, replace its first sentence with:
+
+   > Activation may duplicate a reviewer watcher in an unrecorded root,
+   > including a root resuming the reviewer's session from a human shell, or
+   > work left running after its recorded parent was stopped or killed.
+
+3. In the validation paragraph after the options, replace "Known surviving
+   host-managed work stays pending; any classification as the existing
+   detached-work limit must satisfy Q20's actual boundary." with:
+
+   > Recorded starts without a validated terminal record stay pending. Under
+   > option A, unrecorded work that outlives its parent's validated end is
+   > part of the fourth limit; Step 1 records which end paths leave such
+   > work, so the reported limit can name them.
+
+4. Polish, optional: in the same paragraph, replace "configuration-root
+   resolution" with "resolution of the configuration root that each bound
+   pane root uses, which defines the Q19 read set".
+
+### Human guidance response for design-specification resume-paused (persistence-disabled design return) round 2
+
+Human guidance:
+
+After the persistence counterexample was reported, the user instructed:
+
+> OK return to design
+
+Guidance response:
+
+The guidance still authorizes design review only. This round refines one
+option of Q26 so the user's choice settles the survivor case. It selects no
+option, and Q01-Q25 remain as confirmed.
+
+### Writer instructions for design-specification resume-paused (persistence-disabled design return) round 2
+
+1. Apply requested changes 1-3 to the Q26 block. Apply change 4 if you agree.
+2. Optionally, add one sentence to the BBQ: a visitor who stays after the
+   cook is sent home is not in the log either.
+3. Change nothing else. Keep Q01-Q25, both plans, the acceptance rows and
+   the `limits=claude-wait-scope` definition unchanged until the user
+   answers Q26.
+4. Keep the Q26 answer pending and both profiles unsupported. Do not
+   consolidate.
+
+### Final reviewer decision for design-specification resume-paused (persistence-disabled design return) round 2
+
+Decision: changes-requested. The writer should apply the concrete instructions and publish another automated review round.
+
+<!-- review-entry-id: answer-round-2-exchange-7 -->
+
+## Round 3 by requestor (exchange 5)
+
+- Recorded: 2026-11-14T21:23:56+01:00
+- Exchange: specification/design-specification/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/design.v0.14.0.resume-paused.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Outcome: request
+
+### Review identity for design-specification resume-paused (persistence-disabled design return) (round 3)
+
+Umbrella draft: none
+Reviewed specification: docs/v0.14.0/design.v0.14.0.resume-paused.md
+Review round: 3
+
+### Requestor assessment for design-specification resume-paused (persistence-disabled design return) (round 3)
+
+Q26 now explicitly includes unrecorded work surviving a recorded parent's
+validated end in the proposed fourth limit. Open parent turns and unmatched
+starts still block; detected gaps, incomplete reads and recorded starts
+without validated terminal records still remain pending. This is a proposed
+weaker absence guarantee, not a validation result or an accepted decision.
+
+The single question remains sufficient to expose the proposed tradeoff.
+The answer is pending, Q01-Q25 are unchanged, neither host is supported, and
+Step 1 remains incomplete. Approval of this option alone would not establish
+the remaining lifecycle, persistence, pane-binding or Codex profile contracts.
+Please assess convergence of the question for a human decision, not readiness
+to implement or consolidate an unselected answer.
+
+### Change summary for design-specification resume-paused (persistence-disabled design return) (round 3)
+
+Applied round 2 requested changes 1-3: option A covers unrecorded survivors
+after a parent's validated end; its con names duplicate watchers from killed
+or stopped parents; validation records which end paths leave such work.
+Applied the optional configuration-root clarification and added a mapped BBQ
+sentence about a visitor staying after the registered cook is sent home.
+No other tracked document changed since round 2. No decision, plan or
+operational limit definition changed, and no implementation occurred.
+
+### Human guidance and writer response for design-specification resume-paused (persistence-disabled design return) (round 3)
+
+Human guidance:
+
+OK return to design
+
+Writer response:
+
+Accepted all round 2 requested changes, including the optional clarification.
+The previous wording left an unobservable survivor case outside both coverage
+and the proposed limit. Q26 now exposes that additional risk for the user's
+explicit choice. No pending record is dismissed as a survivor merely because
+its parent ended; a validated terminal record is still required for a known
+start. The new exception applies to unrecorded work as stated in option A.
+
+The user's latest question was: "Do you really think we finally get past step
+1 implementation with this?" The writer answered that Q26 could remove this
+blocker but could not promise Step 1 completion: it accepts a weaker guarantee,
+and other profile validations remain outstanding. This question is not an
+option selection. No disagreement remains with the reviewer, and no human
+decision is inferred from this continuation.
+
+### Reviewer focus for design-specification resume-paused (persistence-disabled design return) (round 3)
+
+Check for missing questions, assess the existing options and answers, and suggest any clearer wording.
+
+<!-- review-entry-id: request-round-3-exchange-5 -->
+
+## Round 3 by reviewer (exchange 5)
+
+- Recorded: 2026-11-14T21:26:56+01:00
+- Exchange: specification/design-specification/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/design.v0.14.0.resume-paused.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Outcome: answer
+
+### Reviewer assessment for design-specification resume-paused (persistence-disabled design return) round 3
+
+Independent assessment of the current design at SHA-256
+`cdb0630c833746be4cf85ea219bb123bf65b4d3cabf56b5015b377c51be468a8`. The
+versioned transcript was not used as context.
+
+**Round 2 changes are applied exactly.** Option A's limit now covers work of
+a root with no records in the Q19 read set, except while a recorded parent's
+open turn or unmatched start brackets it. It names both roots with no parent
+record and work that outlives its parent's validated end. The con names
+duplicate watchers left by stopped or killed parents. The validation
+paragraph keeps recorded starts without a validated terminal record pending
+and has Step 1 record which end paths leave unrecorded work. The optional
+configuration-root clarification is in. The added BBQ sentence maps the
+survivor case correctly.
+
+**The survivor case now has exactly one rule.** Recorded work stays under the
+ledger's normal start and end matching. Unrecorded work is either bracketed
+by a recorded parent or inside the fourth limit. Nothing the ledger can see
+is excused: detected gaps, incomplete reads, open calls and unmatched starts
+remain pending. Q19's read set is unchanged and now has a defined reference
+root. Q20's three limits and its no-extra-channel rule are untouched until
+the user answers.
+
+**Q26 is ready for the human decision.** It has a complete description, a
+mapped BBQ, three materially distinct options with consequences, a
+conditional recommendation and an explicitly pending answer. The remaining
+edits are cosmetic: one over-long source line in the validation paragraph.
+No other question is missing.
+
+**What the choice between A and C really depends on.** The user asked whether
+this gets Step 1 past implementation. Q26=A removes this one blocker. It does
+not make the rest of Step 1 pass, and the value of A over C depends on that
+rest. The outstanding Claude obligations are the same kind of
+every-root, every-version properties that have already produced
+counterexamples in this investigation:
+
+- input persisted before effect, and closing records persisted last, on
+  every attach path;
+- closed-world classification of every record, tool and result shape;
+- terminal shapes for `Monitor`, subagents and schedules;
+- timestamp semantics and Q21's boot instant;
+- hook-source provenance.
+
+Each pinned version also needs its own validation. During this investigation
+the observed host moved through 2.1.321, 2.1.322, 2.1.323 and 2.1.325 in four
+days, and an unpinned version is unsupported under Q06=A. The Codex profile
+also has open obligations, including updater behavior, races and
+clear-result signatures. Choosing A is worthwhile only if the user expects
+those obligations to be reachable at an acceptable cost. If not, option C,
+with its requirement amendment, is the honest alternative. This is context
+for the user's choice, not a requested change.
+
+### Question verdicts for design-specification resume-paused (persistence-disabled design return) round 3
+
+**Q01-Q25: agree; keep them unchanged.** They are confirmed user decisions.
+
+**Q26: agree with the question, its three options and the recommendation.**
+I would choose option A, provided the user judges the remaining Step 1
+obligations reachable. Otherwise option C is the consistent choice. The
+answer is correctly pending. It is an outstanding human decision, not a
+confirmed one.
+
+**No missing question.** Q26 is the only outstanding human decision in the
+specification.
+
+### Convergence evidence for design-specification resume-paused (persistence-disabled design return) round 3
+
+Covered wording:
+
+No wording change is required. Optional: in the validation paragraph after the
+Q26 options, rewrap the source line that ends "and retention/deletion
+behavior. Include interactive background" to the surrounding line width.
+
+Convergence rationale:
+
+Q26 is complete and consistent with Q17, Q19 and Q20. Every unrecorded case
+is either bracketed by a recorded parent or inside the proposed fourth limit,
+and every recorded or detected gap stays pending. The options are materially
+distinct and their consequences are stated. Only an optional line rewrap
+remains.
+
+One human decision is outstanding: Q26. Convergence is advisory. It selects
+no option and does not authorize consolidation, plan alignment, adapter work
+or a one-host delivery. Neither host profile is supported, and Step 1 remains
+incomplete.
+
+### Human guidance response for design-specification resume-paused (persistence-disabled design return) round 3
+
+Human guidance:
+
+After the persistence counterexample was reported, the user instructed:
+
+> OK return to design
+
+The writer also relayed the user's later question: "Do you really think we
+finally get past step 1 implementation with this?"
+
+Guidance response:
+
+The guidance authorized design review, and this round completes it for Q26
+without selecting an option.
+
+On the relayed question, the reviewer agrees with the writer's answer: not by
+this alone. Q26=A removes the persistence blocker. Several remaining Claude
+obligations are every-root, every-version properties of the same kind that
+have already failed during this investigation. Pinned profiles must also keep
+pace with frequent host releases. Before more Step 1 experiments, a short
+triage would help the user decide between A and C: list each remaining Claude
+and Codex obligation, and whether it could plausibly yield another
+counterexample.
+
+### Writer instructions for design-specification resume-paused (persistence-disabled design return) round 3
+
+1. Optionally apply the line rewrap. Change nothing else.
+2. Present the convergence gate to the user, with Q26 as the one outstanding
+   human decision. Relay the assessment's note on what the choice between A
+   and C depends on.
+3. Do not answer Q26 for the user, align the plans or consolidate unless the
+   user explicitly chooses to.
+
+### Final reviewer decision for design-specification resume-paused (persistence-disabled design return) round 3
+
+Decision: convergence-recommended. This recommendation is advisory; consolidation is not confirmed and remains at the durable human gate.
+
+<!-- review-entry-id: answer-round-3-exchange-5 -->
+
+## Round 3 by human - human-confirmation
+
+- Recorded: 2026-11-14T21:59:17+01:00
+- Exchange: specification/design-specification/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/design.v0.14.0.resume-paused.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Outcome: human-confirmation
+
+Human choice: Revise and review again
+Outcome: another-round
+Guidance: OK explain Q26
+
+A: Accept limit (Recommended)
+
+<!-- review-entry-id: human-confirmation-round-3 -->
+
+## Round 4 by requestor (exchange 5)
+
+- Recorded: 2026-11-14T21:59:31+01:00
+- Exchange: specification/design-specification/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/design.v0.14.0.resume-paused.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Outcome: request
+
+### Review identity for design-specification resume-paused (persistence-disabled design return) (round 4)
+
+Umbrella draft: none
+Reviewed specification: docs/v0.14.0/design.v0.14.0.resume-paused.md
+Review round: 4
+
+### Requestor assessment for design-specification resume-paused (persistence-disabled design return) (round 4)
+
+Q26 now has an explicit human decision: A, accepting the fourth disclosed
+limit and possible duplicate watchers from work with no records in Q19's read
+set. The question and all options remain. No further question is currently
+identified by the writer; the independent review must test this assessment.
+
+The design and both plans retain all recorded-work blockers, parent-lifecycle
+validation and the unsupported profile state. The answer qualifies historical
+Q17/A and Q20/A without silently rewriting their decision-table history.
+All other confirmed decisions remain unchanged. Step 1 remains incomplete;
+0/8 means implementation steps verified, not eight obligations inside Step 1.
+
+Assess full-specification consistency, including the requirement's two-host
+delivery and approved-source boundaries, the distinction between invisible
+roots and partial recorded work, Step 1 input-before-effect/closing-record
+ordering, parent survivors, reporting, initial activation and continuation.
+Identify any additional question required by the selected limit. Do not treat
+the decision as runtime evidence or a supported host profile.
+
+### Change summary for design-specification resume-paused (persistence-disabled design return) (round 4)
+
+Since round 3 convergence, recorded the human's Q26=A selection and preserved
+the complete question, options, analogy and historical recommendation.
+Clarified the design's absence scope, record-ordering gate, four reported
+limits and acceptance examples. Historical Q17/Q20 rows are explicitly
+qualified by the retained answer pending consolidation.
+
+Aligned docs/v0.14.0/plan.v0.14.0.resume-paused.md and
+docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md: replace automatic design
+return for a wholly invisible root with the accepted limit; retain checks for
+partial records and detected loss; validate ordinary exit, kill, TaskStop,
+timeout and survivors; cover missing marker rejection, configuration roots,
+retention/deletion and interactive handling. Steps 7/8 cover the four-limit
+report and retained blockers on initial and later activation.
+
+No production code, host experiment, hook, collector, source, commit or
+consolidation. Existing persistence evidence remains unchanged this round.
+
+### Human guidance and writer response for design-specification resume-paused (persistence-disabled design return) (round 4)
+
+Human guidance:
+
+OK explain Q26
+
+A: Accept limit (Recommended)
+
+Writer response:
+
+The human asked for a Q26 explanation and then selected A explicitly through
+the blocking choice. The explanation stated the duplicate-watcher risk and
+that this cannot promise Step 1 completion. The resulting answer and related
+plan changes require fresh review; round 3 convergence covered the proposal.
+
+The writer accepts round 3's scope and recommendation and reports no
+disagreement. Please review the selected answer and all related changes for
+consistency and missing questions. Earlier Q01-Q25 records remain intact,
+with Q17/Q20 explicitly qualified by Q26. Preserve the human decision if
+raising a conflict; reviewer recommendations cannot replace it.
+
+### Reviewer focus for design-specification resume-paused (persistence-disabled design return) (round 4)
+
+Check for missing questions, assess the existing options and answers, and suggest any clearer wording.
+
+<!-- review-entry-id: request-round-4-exchange-5 -->
+
+## Round 4 by reviewer (exchange 5)
+
+- Recorded: 2026-11-14T22:04:09+01:00
+- Exchange: specification/design-specification/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/design.v0.14.0.resume-paused.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Outcome: answer
+
+### Reviewer assessment for design-specification resume-paused (persistence-disabled design return) round 4
+
+Independent assessment of the current design at SHA-256
+`301a4452c224897acc897713a9232e2364d3ff5c9c57864c44fbc8830d1c876c`, with the
+aligned implementation plan, validation plan and evidence companion. The
+versioned transcript was not used as context.
+
+**The Q26=A record is correct.** The answer section records the user's exact
+selection, "A: Accept limit (Recommended)", with its date, the accepted
+duplicate-watcher risk and the blockers that remain. The question, options,
+analogy and earlier recommendation are preserved. It is also the answer I
+would choose.
+
+**Most of the alignment is consistent.**
+
+- Item 0 now discloses four limits and keeps detected gaps pending.
+- Item 1 limits the ordering obligation to roots that contribute records and
+  places a root with no records, including one resuming a session id, under
+  the fourth limit, without excusing partially recorded work.
+- The reporting section and the four new or amended acceptance rows define
+  the four-limit `limits=claude-wait-scope`. Survivors of a parent's
+  validated end are disclosed, and history loss, partial reads, open calls
+  and unmatched starts stay pending.
+- The decisions introduction states that Q26=A qualifies Q17=A and Q20=A.
+- Both plans replace the automatic design return for invisible roots with
+  the accepted limit. They keep the recorded-work checks, add parent-end
+  validation for ordinary exit, kill, `TaskStop` and timeout, and add
+  marker rejection, configuration roots, retention and deletion, and
+  interactive flag handling. Steps 7 and 8 test the four-limit report on
+  initial activation and continuation, and "do not infer completion of a
+  recorded start from its parent's termination" is the right guard.
+
+**Three design clauses still state the pre-Q26 rule without qualification.**
+Read literally, each one sends a 2.1.325 profile back to design review or
+leaves it unsupported, which contradicts the confirmed answer.
+
+1. In the validation section: "Record whether the pinned version can run a
+   root without session persistence. If it can, return that root to review,
+   because it writes no transcript and is outside the ledger." The sentences
+   added after it report the user's choice but leave this instruction
+   standing.
+2. In the validation section's closing paragraph: "A host-managed waiting
+   mechanism that can start or end without a recognizable persisted record
+   invalidates affirmative absence for that profile. Keep it pending and
+   return the concrete in-scope gap to design review." A persistence-disabled
+   root's background task is exactly such a mechanism. The next sentence
+   also still lists only three disclosed limits.
+3. In the decisions introduction: "If validation finds a background mechanism
+   whose start or end lacks a recognizable record among the mechanisms Q20
+   places in scope, Claude reviewer activation remains pending."
+
+All three remain correct for roots that do contribute records, which is the
+case the plans already state as "recorded host-managed waiting mechanisms".
+The requested changes scope each clause to those roots and point to the
+fourth limit for the rest.
+
+**The evidence companion is stale.** Its last design-return paragraph still
+says Q26 is undecided and that neither plan has changed. The preceding
+sentence, "this tested Claude version cannot meet the current
+automatic-activation contract", is now qualified by the decision. The change
+summary says the companion was left unchanged this round, so it was missed
+rather than deliberately kept.
+
+**Consistency with the requirement and earlier decisions.**
+
+- The requirement already names the duplicate-watcher risk in its context,
+  and its Q04=A exposes that risk rather than eliminating it. Q26=A adds no
+  source, collector or launcher change, and both hosts remain required.
+- The fourth limit is a qualification in the same model as Q20=A's limits.
+- Q24=A and Q25=A are unaffected.
+- Initial activation and later continuation apply the same limit and the
+  same blockers.
+- Q17 and Q20 rows keep their historical wording, with the qualification
+  stated in the introduction. For parity with how Q24 qualified the Q22 and
+  Q23 rows, the writer may optionally append the same "historical choice,
+  qualified by confirmed Q26=A" sentence to those two rows.
+
+**No additional question is needed.** The selected limit leaves no open
+choice: its sources, its exclusions and the validation of end paths are all
+stated. Using approved TUIOS discovery to flag live unmarked Claude panes in
+the checkout would be optional defense in depth, not a decision the limit
+requires.
+
+Both host profiles remain unsupported and Step 1 remains incomplete. This
+review authorizes no consolidation, adapter work or one-host delivery.
+
+### Question verdicts for design-specification resume-paused (persistence-disabled design return) round 4
+
+**Q26: agree with the confirmed option A.** The user selected "A: Accept
+limit (Recommended)" after the explanation. The record, the preserved
+question and the qualification of Q17=A and Q20=A are correct, and A is the
+answer I would choose. Three design clauses and one companion paragraph
+still need aligning with it; see the requested changes.
+
+**Q01-Q25: agree; keep them unchanged.** Only Q17=A and Q20=A are qualified,
+and only for the absence scope.
+
+**No missing question.** No human decision is outstanding in the
+specification.
+
+### Requested changes for design-specification resume-paused (persistence-disabled design return) round 4
+
+Requested changes:
+
+1. Design validation section. Replace "If it can, return that root to review,
+   because it writes no transcript and is outside the ledger." with:
+
+   > Such a root writes no transcript; under Q26=A its work is part of the
+   > fourth disclosed limit rather than a design return.
+
+2. Design validation section, closing paragraph. Replace "A host-managed
+   waiting mechanism that can start or end without a recognizable persisted
+   record invalidates affirmative absence for that profile." with:
+
+   > In a root that contributes records to the Q19 read set, a host-managed
+   > waiting mechanism that can start or end without a recognizable persisted
+   > record invalidates affirmative absence for that profile.
+
+   Then replace "Disclose this limit, unavailable hook configuration history
+   and undetectable backward clock changes since boot at activation (Q20=A as
+   qualified by Q21=A)." with:
+
+   > Disclose this limit, unavailable hook configuration history,
+   > undetectable backward clock changes since boot, and Q26=A's limit for
+   > work of roots with no records, at activation (Q20=A as qualified by
+   > Q21=A and Q26=A).
+
+3. Design decisions introduction. Replace "If validation finds a background
+   mechanism whose start or end lacks a recognizable record" with:
+
+   > If validation finds, in a root that contributes records to the Q19 read
+   > set, a background mechanism whose start or end lacks a recognizable
+   > record
+
+   At the end of that paragraph, add:
+
+   > Work of roots with no records in that read set is Q26=A's fourth
+   > limit, not a design return.
+
+4. Evidence companion, design-return subsection. Replace its last paragraph,
+   from "The design return is now recorded as undecided" through "neither
+   plan has been changed for this question.", with:
+
+   > The user selected
+   > [Q26=A](design.v0.14.0.resume-paused.md#q26-claude-roots-outside-the-transcript-ledger)
+   > on 2026-11-14. Work of roots with no records in Q19's read set becomes
+   > a fourth disclosed limit, which qualifies the statement above that this
+   > tested version cannot meet the automatic-activation contract. Both
+   > plans now carry the limit and its validation obligations. The reviewer
+   > reports that Claude 2.1.325 help describes the stream format as
+   > print-only, so it cannot observe interactive or background sessions. No
+   > collector was selected, and the decision establishes no supported
+   > profile.
+
+5. Optional: append to the Q17 and Q20 decision rows "Historical choice,
+   qualified by confirmed Q26=A: work of roots with no records in Q19's read
+   set is a fourth disclosed limit; recorded work keeps every gate."
+
+### Human guidance response for design-specification resume-paused (persistence-disabled design return) round 4
+
+Human guidance:
+
+The user asked for an explanation of Q26, then selected:
+
+> OK explain Q26
+>
+> A: Accept limit (Recommended)
+
+Guidance response:
+
+The reviewer keeps "A: Accept limit (Recommended)" as the user's explicit Q26
+decision. The requested changes only align the remaining clauses with that
+decision; they neither alter it nor authorize consolidation.
+
+### Writer instructions for design-specification resume-paused (persistence-disabled design return) round 4
+
+1. Apply requested changes 1-4. Apply change 5 if you prefer parity with the
+   Q22 and Q23 rows.
+2. Keep the Q26 answer, the user's exact selection and both plans
+   unchanged; they are already aligned.
+3. Keep both profiles unsupported and Step 1 incomplete. Do not consolidate.
+
+### Final reviewer decision for design-specification resume-paused (persistence-disabled design return) round 4
+
+Decision: changes-requested. The writer should apply the concrete instructions and publish another automated review round.
+
+<!-- review-entry-id: answer-round-4-exchange-5 -->
+
+## Round 5 by requestor (exchange 5)
+
+- Recorded: 2026-11-14T22:06:39+01:00
+- Exchange: specification/design-specification/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/design.v0.14.0.resume-paused.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Outcome: request
+
+### Review identity for design-specification resume-paused (persistence-disabled design return) (round 5)
+
+Umbrella draft: none
+Reviewed specification: docs/v0.14.0/design.v0.14.0.resume-paused.md
+Review round: 5
+
+### Requestor assessment for design-specification resume-paused (persistence-disabled design return) (round 5)
+
+Q26=A remains the explicit human decision. No additional question is currently
+identified. Round 4 confirmed that choice and requested four consistency
+corrections; all four are applied. Both profiles remain unsupported and
+Step 1 incomplete. Recheck the full specification and related documents for
+consistency and missing questions without replacing the user's choice.
+
+### Change summary for design-specification resume-paused (persistence-disabled design return) (round 5)
+
+Scoped the three remaining strict design clauses to roots contributing
+records to Q19's read set. Wholly unrecorded roots now consistently fall under
+Q26=A's fourth disclosed limit. Updated the validation disclosure to four
+limits. Updated the evidence companion to record Q26=A and both aligned plans,
+retaining attribution of the reviewer's print-only format observation and
+the unsupported profile status.
+
+Q26 answer/options and both plans are unchanged from round 4. No implementation,
+consolidation or commit. Spelling choices remain separate from this semantic
+review: undetectably in three authored locations and the protected historical
+reviewer word unmeetable are retained pending resolution before a commit gate.
+
+### Writer response for design-specification resume-paused (persistence-disabled design return) (round 5)
+
+Writer response:
+
+Accepted round 4 requested changes 1-4 exactly. The optional decision-row
+annotation is omitted: the decisions introduction and retained Q26 answer
+already qualify Q17/Q20 explicitly, while preserving all 25 historical rows.
+No disagreement. Please review the repaired clauses and evidence note and
+confirm whether any human design question remains.
+
+### Reviewer focus for design-specification resume-paused (persistence-disabled design return) (round 5)
+
+Check for missing questions, assess the existing options and answers, and suggest any clearer wording.
+
+<!-- review-entry-id: request-round-5-exchange-5 -->
+
+## Round 5 by reviewer (exchange 5)
+
+- Recorded: 2026-11-14T22:09:19+01:00
+- Exchange: specification/design-specification/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/design.v0.14.0.resume-paused.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Outcome: answer
+
+### Reviewer assessment for design-specification resume-paused (persistence-disabled design return) round 5
+
+Independent assessment of the current design at SHA-256
+`40fa4bec0c17eff8925257f9ff81b25f7e71711168553418c093ba586e963902`, with both
+plans and the evidence companion. The versioned transcript was not used as
+context.
+
+**Round 4 changes 1-4 are applied exactly.** In the validation section, a
+root without session persistence is now part of the fourth limit rather than
+a design return. The closing validation paragraph and the decisions
+introduction now scope the strict record-gap rule to roots that contribute
+records to the Q19 read set, and both send roots with no records to Q26=A's
+fourth limit. The activation disclosure lists four limits, qualified by
+Q21=A and Q26=A. The companion's design-return paragraph records Q26=A, the
+aligned plans and the print-only observation with its attribution.
+Omitting the optional row annotation is acceptable, because the decisions
+introduction and the retained answer state the qualification.
+
+**The specification is consistent with the decision.** A search of the
+design and both plans finds no remaining unqualified design return for
+invisible roots and no three-limit definition without the fourth. Recorded
+work keeps every gate. Detected loss, partial records, open calls and
+unmatched starts still block. Initial activation and continuation report the
+same four limits. Both hosts remain required, and no source or collector is
+added.
+
+**Two older companion passages still state the pre-Q26 rule.** They are
+wording-only, and covered replacements follow.
+
+- The "Checkpoint coverage proposal not adopted after independent review"
+  section ends: "Any root able to run without session persistence is outside
+  the ledger and must return to review." That is phrased as a current rule.
+- The 2026-11-12 decision paragraph in "Independent reviewer observations on
+  2026-11-12" says "Report three residual limits at activation". That is
+  accurate for its date, but it needs a pointer to the fourth limit.
+
+**Spelling, for the commit gate rather than this review.** The writer's
+"undetectably" appears in three places: the design's reporting section,
+plan Step 7 and validation-plan Step 7. A covered rewording removes it.
+"Unmeetable" is in published reviewer text in the transcript, which is not
+edited by hand; add it to the project spelling words.
+
+No human decision is outstanding in the specification. Both host profiles
+remain unsupported, Step 1 remains incomplete, and this recommendation does
+not authorize consolidation.
+
+### Question verdicts for design-specification resume-paused (persistence-disabled design return) round 5
+
+**Q26: agree with the confirmed option A.** The user's selection "A: Accept
+limit (Recommended)" is recorded unchanged and now applied consistently
+across the design and both plans.
+
+**Q01-Q25: agree; keep them unchanged.** Q17=A and Q20=A are qualified by
+Q26=A for the absence scope only.
+
+**No missing question.** No human decision is outstanding in the
+specification.
+
+### Convergence evidence for design-specification resume-paused (persistence-disabled design return) round 5
+
+Covered wording:
+
+1. Evidence companion, "Checkpoint coverage proposal not adopted after
+   independent review". After "Any root able to run without session
+   persistence is outside the ledger and must return to review.", add:
+
+   > Under Q26=A, confirmed on 2026-11-14, the work of such a root is the
+   > fourth disclosed limit instead.
+
+2. Evidence companion, the 2026-11-12 decision paragraph in "Independent
+   reviewer observations on 2026-11-12". After the sentence that lists the
+   three residual limits, add:
+
+   > Q26=A, confirmed on 2026-11-14, adds a fourth limit for work of roots
+   > with no records in Q19's read set.
+
+3. Design reporting section, plan Step 7 and validation-plan Step 7. Replace
+   "undetectably removed transcripts" with "transcripts removed without
+   detectable evidence".
+
+4. Add "unmeetable" to the project spelling words, because it appears in
+   published reviewer text in the transcript.
+
+Convergence rationale:
+
+Q26=A is the user's explicit decision. It is recorded unchanged and applied
+consistently across the design, both plans and the evidence companion's
+design-return section. Only two dated companion passages need a one-sentence
+pointer, plus a spelling rewording.
+
+No human decision is outstanding in the specification. Convergence is
+advisory and does not authorize consolidation, which remains a separate human
+choice. Neither host profile is supported, and Step 1 remains incomplete.
+
+### Writer instructions for design-specification resume-paused (persistence-disabled design return) round 5
+
+1. Apply covered wording items 1-4. Change nothing else.
+2. Keep the Q26 answer and the user's exact selection unchanged.
+3. Present the convergence gate to the user. No specification question is
+   undecided.
+4. Do not consolidate unless the user explicitly selects Consolidate.
+
+### Final reviewer decision for design-specification resume-paused (persistence-disabled design return) round 5
+
+Decision: convergence-recommended. This recommendation is advisory; consolidation is not confirmed and remains at the durable human gate.
+
+<!-- review-entry-id: answer-round-5-exchange-5 -->
+
+## Round 5 by human - human-confirmation
+
+- Recorded: 2026-11-14T22:31:36+01:00
+- Exchange: specification/design-specification/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/design.v0.14.0.resume-paused.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Outcome: human-confirmation
+
+Human choice: Consolidate
+Outcome: continue-owning-workflow
+
+<!-- review-entry-id: human-confirmation-round-5 -->
