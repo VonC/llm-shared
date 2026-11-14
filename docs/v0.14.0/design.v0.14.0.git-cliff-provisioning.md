@@ -22,7 +22,8 @@ evidence-only exception. This design chooses what the requirement leaves to
 design: the digest source, the cache layout below the fixed path, the local
 integrity record, the lock mechanism and its recovery test, the download
 client, the extraction method, the time budgets, the message formats and the
-exit-status numbers.
+exit-status numbers. The design decisions table at the end records its
+eighteen choices.
 
 ## Scope and ownership of the v0.14.0 git-cliff provisioning design
 
@@ -31,9 +32,10 @@ The v0.14.0 outcomes of item 3 are:
 1. A tested-pin manifest in llm-shared names every admitted git-cliff version
    with the published identity of its Windows x64 asset, and a `[git-cliff]`
    domain of the common reader admits only those versions.
-2. One provisioning service returns a verified absolute `git-cliff.exe` path
-   for a pin, reusing a valid cache entry offline or downloading, verifying,
-   extracting and publishing a new one under a bounded lock.
+2. One provisioning service returns an invocation object for a verified
+   absolute `git-cliff.exe` of a pin, reusing a valid cache entry offline or
+   downloading, verifying, extracting and publishing a new one under a bounded
+   lock.
 3. A `gcliff` launcher runs the provisioned git-cliff for the current
    worktree's pin and passes arguments, output and status through.
 4. A compatibility evidence harness compares raw git-cliff output of 2.7.0 and
@@ -49,14 +51,16 @@ Everything else is supporting design context for those outcomes or deferred.
   single-member extraction, the version probe, non-replacing publication and
   the use guard that protects an entry from validation until git-cliff exits.
 - The provisioning lock with bounded waiting and dead-owner recovery.
-- Stage time budgets, standard-error messages, statuses and diagnostics.
-- The provisioning entry point that items 4 and 5 call.
+- Stage time budgets with the one download budget override, standard-error
+  messages, statuses and diagnostics.
+- The provisioning entry point and its invocation object, which items 4 and 5
+  call.
 - `bin/gcliff.bat`, its entry kind and the `gcliff` macro line, without an
   edit of the shared `senv.doskey`.
 - The root `.gitignore` entry for the cache.
-- The evidence harness, the candidate lifecycle with the immutable 2.7.0
-  trust record, the exit-status audit and the committed evidence bundle that
-  admits 2.14.2.
+- The evidence harness as an internal comparison module with a developer entry
+  point, the candidate lifecycle with the immutable 2.7.0 trust record, the
+  exit-status audit and the committed evidence bundle that admits 2.14.2.
 
 ### Left to later items or later versions
 
@@ -107,6 +111,8 @@ topic.
 ```txt
 caller (item 4 renderer, item 5 pre, gcliff launcher)
   -> common reader: [git-cliff] version admitted by the manifest, or default
+  -> budget policy: download budget D and own wait W = D + 60 s, read and
+     validated once from the override variable (300/360 s when unset)
   -> resolve: <tooling_root>/.tools/git-cliff/<pin>/<triple>/git-cliff.exe
   -> open the use guard on git-cliff.exe (read; deny write and delete)
   -> reuse check through that handle, no lock, no write:
@@ -128,8 +134,9 @@ caller (item 4 renderer, item 5 pre, gcliff launcher)
           fails while any use guard is open, then move the directory aside
        -> publish staging by directory rename, release the lock
        -> open the use guard on the new entry, announce "ready" on stderr
-  -> the caller starts git-cliff as a contained child that inherits the
-     guard, so the guard lasts as long as the child, even if the caller dies
+  -> the returned invocation object starts git-cliff as a contained child
+     that inherits the guard, under the engine or passthrough environment
+     policy, so the guard lasts as long as the child, even if the caller dies
   -> any failure: diagnostic with pin, path and stage; no project mutation
 ```
 
@@ -320,10 +327,11 @@ so traversal entries cannot write outside staging.
 
 ### Version probe
 
-The probe runs `git-cliff.exe --version` with standard input closed, output
-captured, the entry or staging directory as working directory and an
-environment from which every `GIT_CLIFF_*` variable is removed, so ambient
-git-cliff settings cannot affect the check. The first output line must be
+The probe runs `git-cliff.exe --version` through the invocation object's
+engine policy: standard input closed, output captured, the entry or staging
+directory as working directory and an environment from which every
+`GIT_CLIFF_*` variable is removed, so ambient git-cliff settings cannot affect
+the check. The first output line must be
 `git-cliff <pin>`. The probe has its own time budget; on expiry the process is
 terminated and the probe fails. The same probe serves the reuse check and the
 staging check, in two roles of the child lifecycle: the reuse probe is
@@ -465,21 +473,51 @@ staging directory that the next provisioning of that version cleans (Q14).
 | Stage | Budget | Retries |
 | --- | --- | --- |
 | Socket connect or inactivity, per network operation | 30 s | Counted in the download budget |
-| Archive download, both attempts together | 300 s | One retry after 5 s for a connection error, a reset, or HTTP 429 or 5xx; none for another HTTP 4xx, a size overflow or a digest mismatch |
+| Archive download D, both attempts together | 300 s, or the override value from 300 through 3600 s | One retry after 5 s for a connection error, a reset, or HTTP 429 or 5xx; none for another HTTP 4xx, a size overflow or a digest mismatch |
 | Version probe | 15 s | None |
 | Candidate metadata lookup, harness only, both attempts together | 60 s | One retry after 5 s under the same rules as the download, inside this budget |
-| Waiting for another holder's lock | 360 s | Not applicable |
+| Waiting for another holder's lock, W | D + 60 s: 360 s by default, 3660 s at most | Not applicable |
 
-The 360 s wait is a finite contention policy. It covers a holder's download
-budget, two probe budgets and about 30 s for extraction, hashing, cleanup and
-publication, so a healthy holder normally finishes first; a waiter still fails
-when the holder takes longer, and succeeds only when the holder completes
-within that budget (Q15). An expired budget reports the stage, deletes the
+The wait W is a finite contention policy for the caller's own D. It covers
+that download budget, two probe budgets and about 30 s for extraction,
+hashing, cleanup and publication, so a healthy holder with the same D normally
+finishes first; a waiter still fails when the holder takes longer, including a
+holder whose D is larger, and succeeds only when the holder completes within
+the waiter's W (Q06, Q15). An expired budget reports the stage, deletes the
 attempt's staging directory and releases the lock; the project is unchanged.
-The budgets are constants of the engine, not configuration; requirement Q07
-excludes a mirror setting, not a budget override, and Q05 and Q18 decide the
-one override. The rendering by git-cliff itself has no budget here;
-item 4 owns it.
+Every budget is an engine constant except the download budget, which one
+documented environment variable can raise together with the caller's wait;
+requirement Q07 excludes a mirror setting, not this override. The rendering
+by git-cliff itself has no budget here; item 4 owns it.
+
+### The download budget override
+
+`LLM_SHARED_GIT_CLIFF_DOWNLOAD_TIMEOUT_SECONDS` sets D. It lies outside the
+upstream `GIT_CLIFF_*` namespace, which the engine environment policy removes.
+
+- Unset, D is 300 s. A set value is an ASCII decimal integer of seconds from
+  300 through 3600 inclusive. An empty string, a sign, a fraction, a unit,
+  whitespace or an out-of-range value is refused: it is never clamped and
+  never replaced by the default. The 3600 s ceiling is an operational policy,
+  not a bound the requirement derives.
+- The caller's wait is W = D + 60 s: 300 and 360 s by default, 900 and 960 s
+  for a 900 s value, 3600 and 3660 s at the ceiling.
+- D and W apply to production provisioning and to evidence-candidate archive
+  downloads and waits. The socket limit stays 30 s, every version probe 15 s
+  and the harness metadata lookup 60 s.
+- The value is read and validated once, when a caller enters provisioning or
+  the evidence harness starts, before any reuse probe, child creation, network
+  access or cache change; the resolved policy is passed to workers instead of
+  being read again. An invalid value is a setup failure, status 2 for engine
+  operations and 69 for `gcliff`, even when a valid cached entry exists.
+  Operations that do not need git-cliff never read the variable.
+- Every caller owns its finite W. A default 360 s waiter may time out behind a
+  holder using D = 1800 s: its deadline is never reset or enlarged by a holder
+  change, W = D + 60 s applies to the caller's own policy and not to the
+  holder's environment, and a timeout never authorizes recovering a live or
+  `UNKNOWN` owner.
+- The retry count, its 5 s delay and the shared deadline stay inside D, and a
+  `Retry-After` header extends nothing.
 
 ### Deadline enforcement
 
@@ -487,8 +525,9 @@ A `urllib` timeout bounds each blocking socket operation, not a whole
 transfer, and does not cover name resolution, so a clock check between calls
 cannot stop a call that never returns. Each download attempt therefore runs in
 a worker process of the same runtime, started under the child lifecycle with
-the URL, the attempt's staging file, the expected size and the remaining stage
-budget. The parent waits for the worker until the stage deadline; on expiry it
+the URL, the attempt's staging file, the expected size and the remaining part
+of the resolved budget D. The parent waits for the worker until the stage
+deadline; on expiry it
 terminates the worker and waits for its exit before it deletes staging or
 releases the lock, so no orphaned actor can still write into a removed
 directory. If the parent itself dies, the kill-on-close job ends the worker,
@@ -518,8 +557,10 @@ suspended.
 | Waiting for a holder | `git-cliff 2.14.2: waiting for provisioning by process 4812 since 14:02:31+01:00 (up to 360 s)` |
 | Valid entry reused | nothing |
 
-Provisioning never writes to standard output, so captured git-cliff output
-stays exactly git-cliff's (Q08).
+The waiting line shows the caller's effective wait W, and every expiry
+diagnostic shows the effective budget of its stage. Provisioning never writes
+to standard output, so captured git-cliff output stays exactly git-cliff's
+(Q08).
 
 ### Failure diagnostics
 
@@ -536,21 +577,24 @@ github.com and release-assets.githubusercontent.com through HTTPS_PROXY.
 | --- | --- |
 | Platform | Windows 10 or Windows Server 2016 and later, x64 only, in v0.14.0 |
 | Containment | Windows refused to create the child inside its job, for example under a host job that sets UI limits; run from a console outside such a job |
+| Budget setting | Set `LLM_SHARED_GIT_CLIFF_DOWNLOAD_TIMEOUT_SECONDS` to a whole number of seconds from 300 through 3600, or unset it |
 | Permission | Grant write access to the named directory of this llm-shared checkout |
-| Lock wait | Another process holds the named lock; retry when it ends |
-| Download | Check access to both hosts through the proxy variables |
+| Lock wait | Another process holds the named lock; retry when it ends, or wait longer by raising `LLM_SHARED_GIT_CLIFF_DOWNLOAD_TIMEOUT_SECONDS` (300 through 3600 s) |
+| Download | Check access to both hosts through the proxy variables; on a slow link, raise `LLM_SHARED_GIT_CLIFF_DOWNLOAD_TIMEOUT_SECONDS` (300 through 3600 s) |
 | Verification | The asset does not match llm-shared's recorded digest; retry, and report a persistent mismatch |
 | Extraction or probe | Delete the named staging or entry directory, then retry |
 | In use | Another release runs the binary being replaced; retry when it ends |
 
-No remedy asks the user to install git-cliff or change PATH.
+No remedy asks the user to install git-cliff or change PATH, and the probe and
+metadata remedies never suggest that the budget variable extends their
+budgets.
 
 ### Statuses
 
 | Path | Status on provisioning failure | Other statuses |
 | --- | --- | --- |
 | Engine operations | 2, the existing setup and configuration class | Unchanged |
-| `gcliff` | 69, reserved for any failure before git-cliff starts: readiness, platform, configuration, argument guard, provisioning or child containment | git-cliff's own status, unchanged |
+| `gcliff` | 69, reserved for any failure before git-cliff starts: readiness, platform, configuration, budget setting, argument guard, provisioning or child containment | git-cliff's own status, unchanged |
 
 69 is the conventional "service unavailable" value. It is a proposal that
 holds only with admission evidence (Q08). For each admitted version, the
@@ -564,21 +608,38 @@ back to the user rather than weakening the requirement.
 
 ## The provisioning entry point for items 4 and 5
 
-The service is one call that takes the tooling root, the resolved pin and the
-injectable seams, and returns the verified executable path, its version and
-the open use guard, or raises a provisioning error carrying the stage, the
-path and the diagnostic. The caller starts git-cliff under the child lifecycle
-with the guard in the child's inherited-handle list and closes its own copy
-only after the child has exited, or at once when the start fails, since no
-child then exists.
-Callers invoke it after configuration validation and before their first
-project write; the returned path is the launcher-local `GIT_CLIFF` value of
-umbrella decision 20, never exported to a parent process. The service creates
-no project file, takes no project lock and reads no project state beyond the
-pin it receives.
+The service is one call that takes the tooling root, the resolved pin, the
+resolved budget policy and the injectable seams. It returns an invocation
+object for the verified entry, or raises a provisioning error carrying the
+stage, the path and the diagnostic.
+
+The invocation object carries the verified executable path, its version and
+the open use guard, and it is the only way a caller starts git-cliff. Each
+start names one of two environment policies:
+
+| Policy | Used by | Environment and streams |
+| --- | --- | --- |
+| Engine | Item 4 rendering, item 5 `pre`, the version probes, the harness comparison | Every `GIT_CLIFF_*` variable removed, standard input closed, output handled as the caller directs |
+| Passthrough | `gcliff` | The user's environment, working directory and inherited standard streams |
+
+Under either policy the object creates git-cliff under the child lifecycle,
+inside the caller's kill-on-close job with the use guard in the child's
+inherited-handle list, waits for it and returns its status. It closes its own
+copy of the guard only after the child has exited, or at once when the
+creation fails, since no child then exists. No caller can therefore forget
+the environment rule, start an uncontained child or drop the guard. Item 4
+keeps its rendering arguments, postprocessing and render timeout; the object
+only owns how git-cliff is started.
+
+Callers invoke the service after configuration validation and before their
+first project write; the object's executable path is the launcher-local
+`GIT_CLIFF` value of umbrella decision 20, never exported to a parent process.
+The service creates no project file, takes no project lock and reads no
+project state beyond the pin it receives.
 
 Its seams are the download worker launcher, an executable probe, a clock with
-a sleep function, the process-state probe and the use-guard opener. Production
+a sleep function, the process-state probe, the use-guard opener and the
+environment the budget policy is read from. Production
 supplies the download worker, contained Windows child launcher, process-state
 probe and use-guard implementation; tests supply fakes.
 
@@ -594,10 +655,11 @@ returns 69 with the existing "run this checkout's setup" message.
 
 ### Running git-cliff
 
-After selecting the project and pin and provisioning the binary, the engine
-starts `git-cliff.exe` under the child lifecycle with the user's arguments,
-inherited standard input, output and error, the use guard, the user's working
-directory and the user's environment. While it waits, the launcher ignores the
+After selecting the project and pin and provisioning the binary, the launcher
+starts `git-cliff.exe` through the invocation object's passthrough policy,
+under the child lifecycle, with the user's arguments, inherited standard
+input, output and error, the use guard, the user's working directory and the
+user's environment. While it waits, the launcher ignores the
 console's Ctrl+C so that git-cliff, which receives the same event, decides how
 to stop, and the launcher then returns git-cliff's status. If the launcher
 itself dies, its kill-on-close job ends the git-cliff run.
@@ -622,11 +684,16 @@ does not edit the shared `senv.doskey`; item 8 copies the line there, and item
 
 ### The harness
 
-The harness is a developer-run command of the release engine, outside pytest,
-because it downloads and runs binaries and runs Git. It uses the same download
-worker, extraction, probe and use guard as provisioning, through candidate
-records instead of the manifest. Its result is a committed evidence bundle;
-unit tests and item 4 read the bundle without running git-cliff.
+The harness is an internal comparison module of the release engine with a
+developer entry point, run by hand outside pytest, because it downloads and
+runs binaries and runs Git. It defines no public engine command: item 6, which
+later proposes newer tested pins with their differences on a consumer's
+history, reuses the module and decides its public form. It uses the same
+download worker, extraction, probe, use guard and resolved budget policy as
+provisioning, through candidate records instead of the manifest, and starts
+both versions through the invocation object's engine policy. Its result is a
+committed evidence bundle; unit tests and item 4 read the bundle without
+running git-cliff.
 
 ### Candidate lifecycle and admission order
 
@@ -704,15 +771,25 @@ llm-shared's history lacks gets the same treatment.
 
 ### Outputs and classification
 
-For each range and candidate, the bundle stores the raw output and the exit
-status, then a difference listing and a classification table in which every
-difference is marked intentional, with its upstream release-note reason, or a
-defect. It also records the exit-path audit and the corroborating observed
-statuses described under the statuses section. Admission of 2.14.2 into the
-manifest requires a complete classification without an open defect and an
-audit that excludes 69. The bundle covers raw git-cliff output
-only; the postprocessing of `update-changelog.sh` is item 4's recheck and item
-8's parity.
+The bundle is compact. It stores:
+
+- the input manifest: every controlled input listed above, with its digest or
+  hash;
+- for each range and candidate, the SHA-256 digest and the exit status of the
+  raw output;
+- for each range whose outputs differ, the differing hunks with their context;
+- a classification table in which every difference is marked intentional,
+  with its upstream release-note reason, or a defect;
+- the exit-path audit and the corroborating observed statuses described under
+  the statuses section.
+
+Identical outputs are not stored. A rerun from the recorded inputs regenerates
+any output on demand, and its digest proves that the rerun reproduces the
+recorded output; a rerun whose digest differs fails. Admission of 2.14.2 into
+the manifest requires a complete classification without an open defect and an
+audit that excludes 69. The bundle covers raw git-cliff output only; the
+postprocessing of `update-changelog.sh` is item 4's recheck and item 8's
+parity.
 
 ## Testing approach under the process-free policy
 
@@ -737,12 +814,25 @@ only; the postprocessing of `update-changelog.sh` is item 4's recheck and item
 - Contention, dead-owner recovery and expiry are simulated with the fake clock
   and process states, not real waits, keeping each lifecycle under its CPU
   budget.
+- The download budget override is resolved from a fake environment and
+  checked with the fake clock: the default, an exact raised value, the
+  ceiling, every refused form (also with a valid cached entry), operations
+  that never read it, retry and `Retry-After` inside D, unchanged probe and
+  metadata budgets, candidate downloads using D, and a default waiter timing
+  out behind a raised holder without recovering it. No test waits in real
+  time.
+- The invocation object is checked with a fake child launcher: the engine
+  policy removes every `GIT_CLIFF_*` variable and closes standard input, the
+  passthrough policy keeps the user's environment and streams, and both pass
+  the use guard and the job to the creation call.
 - The network client is tested against a fake opener that returns canned
   bytes, redirects, stalls and HTTP errors.
 - The launcher's batch file is covered by the existing launcher acceptance
   style, which simulates the process boundary.
 - The evidence harness itself runs only by hand; tests check the committed
-  bundle's structure and that the manifest's admitted pins reference it.
+  bundle's structure (input manifest, output digests and statuses, hunks,
+  classification and audit) and that the manifest's admitted pins reference
+  it.
 - Developer-run acceptance checks, outside pytest, exercise what fakes cannot:
   real worker termination against a stalled local endpoint; a child created
   through the job list reporting membership with `IsProcessInJob` before it
@@ -779,12 +869,19 @@ only; the postprocessing of `update-changelog.sh` is item 4's recheck and item
 - The platform check requires Windows 10 or Windows Server 2016 and later, x64.
 - The engine gains a worker entry point that the bootstrap can start with the
   same runtime for a download attempt.
+- The provisioning entry point resolves the budget policy once from
+  `LLM_SHARED_GIT_CLIFF_DOWNLOAD_TIMEOUT_SECONDS` and passes it to workers and
+  to the lock wait; nothing else in the engine reads the variable.
+- The provisioning service returns the invocation object, which owns the
+  engine and passthrough environment policies, the contained creation and the
+  guard transfer; the evidence comparison is an internal module with a
+  developer entry point.
 
 ## Acceptance cases for the git-cliff provisioning design
 
 | Scenario | Expected outcome | Reason |
 | --- | --- | --- |
-| `.release.ini` without `[git-cliff]`, valid cached 2.14.2 | Path returned, nothing printed, no lock, no network | Default pin and lock-free reuse |
+| `.release.ini` without `[git-cliff]`, valid cached 2.14.2 | Invocation object returned, nothing printed, no lock, no network | Default pin and lock-free reuse |
 | `version = 2.15.0` | Configuration error listing `2.14.2`, before any other work | Only tested pins (Q01) |
 | `version = v2.14.2` or `latest` | Configuration error on the form | Notation and no floating pin |
 | Cached executable truncated | Entry invalid without running it; provisioned again online, or a diagnostic offline | Integrity before probe (Q03) |
@@ -796,7 +893,7 @@ only; the postprocessing of `update-changelog.sh` is item 4's recheck and item
 | Version probe never exits | Probe terminated at 15 s and reaped; probe stage reported | Probe budget (Q15) |
 | Transition mutex abandoned by a thread whose process is still `ALIVE` | Lock record kept; the waiter fails at its budget | Mutex ownership is per thread (Q06) |
 | Staging directory of an `ALIVE` or `UNKNOWN` owner | Preserved | Owner-aware cleanup (Q14) |
-| Parent dies during the creation of any child | Either no child exists, or the child is already a member of the job, which the parent's death closes and which ends it | No child ever exists outside its job (Q17) |
+| Parent dies during the creation of any child | Either no child exists, or the child is already a member of the job, which the parent's death closes and which ends it | No child ever exists outside its job (design Q17) |
 | Parent dies after creating a suspended worker, before recording it | The worker, a job member since creation, ends with the job without ever running; staging, with nothing written, is recoverable once the parent is `DEAD` | No unrecorded child ever runs |
 | Parent dies while its recorded worker writes | Kill-on-close ends the worker; staging kept while the worker reports `ALIVE`, removed once it is `DEAD` | Every writer `DEAD` before cleanup |
 | Parent dies during a staging probe | Same as a writing worker, with the probe's recorded identity | Probe children are recorded too |
@@ -824,1122 +921,45 @@ only; the postprocessing of `update-changelog.sh` is item 4's recheck and item
 | Cached 2.7.0 candidate whose archive differs from its trust record | Harness run fails; the trust record is unchanged | Immutable candidate record |
 | Fixture regeneration that does not reproduce the recorded hashes | Harness run fails | Deterministic fixture |
 | Comparison run of 2.7.0 and 2.14.2 | Same worktree, ranges, `cliff.toml` bytes, flags and environment for both | Controlled comparison inputs |
-
-## Open questions for the v0.14.0 git-cliff-provisioning design
-
-### Q01: Source of the expected digest during provisioning
-
-Question description: the design copies each admitted asset's published
-SHA-256 into the tested-pin manifest and verifies downloads against that copy,
-so a release never calls the GitHub API. The requirement asks to "verify its
-published integrity information" and lists the digest source as design work.
-Reading the digest live from the release metadata at each provisioning is the
-other natural source.
-
-#### BBQ for Q01
-
-The butcher's label says how much the brisket weighed when it left the shop.
-The cook can write that weight in the recipe book once, when the cut was first
-chosen, or phone the shop before every barbecue to ask again. Phoning needs the
-shop to answer, and the shop limits how many calls it takes from one street. In
-this picture: the label is GitHub's published asset digest, the recipe book is
-the tested-pin manifest, phoning the shop is a GitHub API call at provisioning
-time, and the call limit is the unauthenticated API quota of 60 requests per
-hour that a corporate proxy shares across its users.
-
-#### Options for Q01
-
-- Option A: the manifest records the published digest at admission; provisioning
-  compares the download with it and never calls the API.
-  - pro: provisioning needs only the two download hosts, with no API host and
-    no rate limit.
-  - pro: an asset replaced upstream after admission is caught as a mismatch.
-  - con: correcting a wrong recorded digest needs an llm-shared change.
-- Option B: provisioning reads the asset digest from the release metadata on
-  every download.
-  - pro: always the digest GitHub publishes now.
-  - con: adds `api.github.com`, its quota and a metadata stage to every first
-    use, and accepts a silently replaced asset.
-- Option C: the manifest digest is authoritative, and provisioning also checks
-  the live metadata when the API answers, warning on a difference.
-  - pro: detects upstream changes early.
-  - con: two sources and a warning path for a rare event, plus the API
-    dependency whenever it is reachable.
-
-#### Recommended option for Q01 (with arguments for this choice)
-
-Option A: only tested pins are admitted (requirement Q01), so the manifest
-already lists every version provisioning may download; recording the digest
-there costs nothing and removes a network dependency and a quota from every
-release. The order is candidate first: the harness reads the published digest
-independently, verifies the download against it and classifies the evidence,
-and only then does a reviewed manifest edit admit that same digest. Every
-download is still checked against the recorded digest.
-
-#### Answer to Q01: option A (with reason why it must be accepted as the answer)
-
-Option A: it verifies the published integrity information with the fewest
-moving parts at release time and turns an upstream asset replacement into a
-detected failure instead of a silent change.
-
-User decision: confirmed: option A, the manifest records the published digest
-at admission and provisioning never calls the GitHub API, selected by the user
-on 2026-11-14 without amendment. Releases need only the two download hosts,
-and an asset replaced upstream after admission fails as a digest mismatch.
-
-### Q02: Form of the tested-pin manifest
-
-Question description: the design describes the manifest as a shipped,
-read-only Python table in the release engine. Item 6 later proposes newer
-tested pins, and admitting a pin means adding an entry with its digest and
-evidence reference. The design does not compare that form with a data file.
-
-#### BBQ for Q02
-
-The list of approved charcoal brands can be printed inside the grill's manual,
-or kept on a card clipped to the grill. The manual is checked when it is
-printed; the card is easy to swap but needs its own check that it is still
-readable. In this picture: the manual is a Python table compiled with the
-engine, the card is a TOML or JSON data file, and checking the card is parsing
-and validating that file at run time.
-
-#### Options for Q02
-
-- Option A: a Python table of frozen records in the engine.
-  - pro: type-checked and linted with the code; no parsing step at run time.
-  - pro: matches the shipped schema and adapter registries of items 1 and 2.
-  - con: admitting a pin is a code change rather than a data change.
-- Option B: a TOML file read with `tomllib` and validated on load.
-  - pro: a pin admission reads as data, and item 6 tooling can rewrite it.
-  - con: a parsing and validation path, with its own failure diagnostics, on
-    every configuration read.
-- Option C: a JSON file generated from the evidence bundle.
-  - pro: the manifest cannot drift from the evidence.
-  - con: a generation step and a second artifact to keep in sync.
-
-#### Recommended option for Q02 (with arguments for this choice)
-
-Option A: pins change rarely, always with reviewed evidence, so a code change
-is the right weight; it keeps the configuration reader free of a new file
-format and follows the explicit shipped tables of items 1 and 2.
-
-#### Answer to Q02: option A (with reason why it must be accepted as the answer)
-
-Option A: it gives the smallest validated surface and keeps admission a
-reviewed code change, which is what a tested-pin rule wants.
-
-User decision: confirmed: option A, the manifest is a table of frozen Python
-records in the release engine, selected by the user on 2026-11-14 without
-amendment. Admitting a pin is a reviewed code change, and the configuration
-reader parses no new file format.
-
-### Q03: Lock mechanism for one version and platform
-
-Question description: the design mirrors the project operation lock: a lock
-record published without replacement, a short kernel transition mutex around
-record changes, polling every 250 ms, and recovery only when
-`process_state` reports the owner `DEAD`. The cache lock has no handoff between
-processes, unlike the operation lock. A kernel mutex held for the whole
-provisioning would let waiters block in the kernel instead of polling, but a
-mutex belongs to a thread: its abandonment proves that the owning thread
-ended, not that its process did. Whatever serializes the work, the requirement
-still demands a `DEAD` process identity before recovering a lock or removing
-a partial download. The supported topology is a cache on a local disk of one
-machine; neither a mutex nor the PID probe coordinates across machines.
-
-#### BBQ for Q03
-
-The shared grill can carry a paper sign with the user's name, checked by
-asking the neighbors whether that person has gone home, or a key that drops
-back on its hook when the hand holding it lets go. A dropped key says the hand
-let go, not that its owner went home: the owner may still be in the garden with
-a half-cooked steak on a side table. In this picture: the paper sign is the
-lock record, asking the neighbors is `process_state`, the key is a kernel mutex
-held for the whole provisioning, the hand is the thread that owns the mutex,
-the owner going home is the process ending, and the half-cooked steak is a
-staging directory a live process still owns.
-
-#### Options for Q03
-
-- Option A: lock record plus short transition mutex plus liveness probe, with
-  polling, as the design states.
-  - pro: the same mechanism and diagnostics as the operation lock; recovery
-    and cleanup rest on the `DEAD` process identity the requirement names.
-  - con: an owner reported `UNKNOWN`, such as another user's process, blocks
-    recovery until the wait expires; waiters poll every 250 ms.
-- Option B: a named kernel mutex held for the whole provisioning, waited on
-  with the wait budget, plus the same owner records and `DEAD`-only recovery
-  and cleanup.
-  - pro: waiters block in the kernel with a timeout and wake as soon as the
-    holder releases, with no polling.
-  - con: two mechanisms instead of one: acquiring the mutex, even an abandoned
-    one, still needs the record and probe before removing anything.
-  - con: the whole provisioning must run on the thread that owns the mutex.
-- Option C: a lock file opened with exclusive sharing for the whole
-  provisioning, closed by Windows when the holding process ends.
-  - pro: release on process end, and visible in the cache.
-  - con: an antivirus or indexing tool that opens the file can make the
-    exclusive open fail, which looks like real contention; cleanup of staging
-    still needs owner identities.
-
-#### Recommended option for Q03 (with arguments for this choice)
-
-Option A: every option needs the owner record and the `DEAD` check to satisfy
-the requirement, so option B adds a second primitive only to save polling, and
-a 250 ms poll is negligible next to a download. Option A reuses the operation
-lock's tested pattern. The record also lists every cache-writing child the
-holder started, its download workers and staging probes, and recovery
-requires the owner and each recorded child to be `DEAD` (Q17). A valid-entry
-reuse probe holds no lock and is recorded nowhere, so reuse stays lock-free
-and read-only.
-The design states the supported local-disk topology and makes no
-cross-machine claim.
-
-#### Answer to Q03: option A (with reason why it must be accepted as the answer)
-
-Option A: it meets the owner-death condition of the requirement with one
-mechanism the engine already uses, while the topology limit is stated rather
-than assumed away.
-
-User decision: confirmed: option A, a lock record with a short transition
-mutex and the liveness probe, waiters polling every 250 ms, selected by the
-user on 2026-11-14 without amendment. Recovery and cleanup require the owner
-and every recorded cache-writing child to be `DEAD`, on a local-disk cache.
-
-### Q04: Lock granularity
-
-Question description: the design takes one lock per version and platform, so
-provisioning 2.14.2 and an evidence candidate, or two pins of two projects, can
-proceed in parallel. One lock for the whole cache would be simpler but
-serializes unrelated downloads.
-
-#### BBQ for Q04
-
-A barbecue can have one tongs for every grill, or one tongs per grill. One
-tongs is easy to find, but the burger cook waits while the fish cook turns the
-salmon. In this picture: the tongs is the provisioning lock, each grill is one
-version and platform entry, and the waiting cook is a download of another pin
-blocked by an unrelated one.
-
-#### Options for Q04
-
-- Option A: one lock per version and platform.
-  - pro: independent pins never wait for each other.
-  - con: one lock name per entry to derive and test.
-- Option B: one lock for the whole cache.
-  - pro: one name; simplest reasoning.
-  - con: a slow download of one pin delays every other pin, including a fast
-    reuse that found its entry invalid.
-
-#### Recommended option for Q04 (with arguments for this choice)
-
-Option A: entries never share files, so nothing needs a cache-wide lock, and
-projects with different pins share one checkout by design. Evidence candidates
-use lock names of their own namespace, so a candidate and a production entry of
-the same version never share a lock.
-
-#### Answer to Q04: option A (with reason why it must be accepted as the answer)
-
-Option A: it serializes exactly the callers that would write the same entry
-and no others.
-
-User decision: confirmed: option A, one lock per version and platform, with
-evidence candidates in their own lock namespace, selected by the user on
-2026-11-14 without amendment. Independent pins and candidates never wait for
-each other.
-
-### Q05: Fixed or adjustable time budgets
-
-Question description: the design fixes the budgets as engine constants: 30 s
-per socket operation, 300 s for the download including its retry, 15 s for the
-version probe and 360 s for waiting on a holder. Requirement Q07 excludes a
-mirror setting; Q05 B permits one finite provisioning-budget override. A very
-slow link could need more than 300 s for a 7.4 MB
-archive (about 25 KB/s). This question concerns the values only; how a budget
-is enforced against a call that never returns is Q17.
-
-#### BBQ for Q05
-
-The recipe says to give up on the charcoal delivery after five minutes. That
-suits most streets, but a farm at the end of a dirt road needs longer. The
-recipe can keep five minutes, let the cook write another number, or scale the
-wait with the size of the order. In this picture: five minutes is the fixed
-download budget, the farm is a slow corporate link, writing another number is
-an environment override, and scaling with the order is a budget derived from
-the manifest's asset size.
-
-#### Options for Q05
-
-- Option A: fixed constants, reviewed when a pin is admitted.
-  - pro: no new setting to document or validate.
-  - con: a slower link fails until a code change raises the constant.
-- Option B: the constants plus one documented environment variable that
-  raises the download and wait budgets.
-  - pro: a slow site adapts without a code change.
-  - con: a new setting to document and validate; requirement Q07 excludes a
-    mirror setting, not this override.
-- Option C: budgets derived from the manifest size at a documented minimum
-  throughput, with a fixed floor.
-  - pro: a larger future asset gets a proportional budget automatically.
-  - con: one more rule to explain in diagnostics.
-
-#### Recommended option for Q05 (with arguments for this choice)
-
-Option A: the asset size is known per pin and changes only with an admission,
-which already reviews the numbers; a fixed, documented budget keeps
-diagnostics simple and adds no setting.
-
-#### Answer to Q05: option A (with reason why it must be accepted as the answer)
-
-Option A: it meets requirement Q15's finite budgets with the least surface, and
-the admission review is the natural place to revisit them.
-
-User decision: confirmed: option B, the fixed constants plus one documented
-environment variable that raises the download and wait budgets, selected by
-the user on 2026-11-14 instead of the recommended option A (first picked A,
-then corrected to B). Requirement Q07 excludes a mirror setting, not this
-budget override; requirement Q15 still requires every budget, raised or not,
-to stay documented and finite. Consolidation defines the variable's name, its
-form, its accepted range and the refusal of an invalid value, defines the
-caller's finite wait budget in Q18 (it need not outlast a differently
-configured holder), names the variable in the expiry remedy, and replaces the
-body's statement that the budgets are not configuration.
-
-### Q06: Retry policy for the download
-
-Question description: the design allows one retry after 5 s for a connection
-error or a reset, within the 300 s budget: HTTP 429 or 5xx is retryable; other
-HTTP 4xx, size overflow and digest mismatch are not.
-
-#### BBQ for Q06
-
-When the delivery van breaks down, the shop can send another van once, keep
-sending vans until the party ends, or not send another one. Sending vans
-forever means the guests wait without knowing why. In this picture: the van
-breaking down is a transient network failure, another van is a retry, and the
-party ending is the download budget.
-
-#### Options for Q06
-
-- Option A: one retry for transient failures, inside the budget.
-  - pro: absorbs a dropped connection, the most common proxy hiccup.
-  - con: a second attempt doubles the time before a real outage is reported.
-- Option B: no retry.
-  - pro: simplest; the failure is reported at once.
-  - con: a single reset fails a release that would have succeeded.
-- Option C: up to three retries with growing delays, inside the budget.
-  - pro: rides out a short outage.
-  - con: more states to test, and the budget, not the retry count, ends most
-    real outages anyway.
-
-#### Recommended option for Q06 (with arguments for this choice)
-
-Option A: one retry covers the usual transient reset without hiding a real
-outage, and the shared budget keeps the worst case bounded for waiters. The
-delay and the second attempt draw on the same deadline, a `Retry-After` header
-never extends it, and an integrity failure is never retried.
-
-#### Answer to Q06: option A (with reason why it must be accepted as the answer)
-
-Option A: it is the smallest policy that survives a transient failure while
-keeping the reported failure time predictable.
-
-User decision: confirmed: option A, one retry after 5 s for a transient
-failure inside the download budget (HTTP 429 or 5xx is retryable; other HTTP
-4xx, size overflow and digest mismatch are not), selected by the user on
-2026-11-14 without amendment. The
-retry draws on the same budget, raised or not (Q05 B), and a `Retry-After`
-header never extends it.
-
-### Q07: Replacing an entry found invalid
-
-Question description: when a published entry fails the reuse check, it must be
-replaced without ever replacing a binary that another caller is validating or
-running (requirement Q14). The first version of this design relied on Windows
-refusing to move a directory whose executable runs, which no documented
-guarantee supports, and left a window between a caller's validation and the
-start of its git-cliff process. The revised body uses a use guard: every
-caller holds a read handle on `git-cliff.exe` that denies write and delete
-sharing, from validation until its git-cliff process exits, and a replacement
-starts by renaming that executable, which needs delete access and fails while
-any guard is open. Windows documents that sharing rule for `CreateFileW`.
-
-#### BBQ for Q07
-
-A jar of spoiled sauce sits in the shared fridge. Each cook who takes sauce
-puts a clothes peg on the jar's lid while using it, and nobody may take a
-pegged jar off the shelf. The cook who spots the spoiled jar replaces it only
-when no peg is on it. The alternatives are refusing to cook until someone
-throws the jar away, or never moving any jar and putting each new jar on a new
-numbered shelf. In this picture: the spoiled jar is an invalid entry, the peg
-is the use guard held from validation until git-cliff exits, taking the jar off
-the shelf is renaming its executable, refusing to cook is a diagnostic asking
-the user to delete the entry, and numbered shelves are generation directories.
-
-#### Options for Q07
-
-- Option A: the use guard, plus a replacement that renames the executable
-  first, under the provisioning lock, and reports in-use when the rename is
-  refused. Every execution of the cached executable, the reuse probe as well
-  as the git-cliff run, inherits the guard through an explicit
-  inherited-handle list and belongs to the caller's kill-on-close job from its
-  creation, so the protection lasts for that child's actual lifetime even if
-  its caller dies, and no such child ever runs outside the job (Q17).
-  - pro: self-healing in the usual case, with no manual step.
-  - pro: rests on documented file-sharing semantics and closes the
-    validation-to-start window; a read handle keeps read-only reuse working.
-  - con: a Windows handle per use, opened through `CreateFileW` and passed to
-    each child that executes the entry, and developer-run acceptance checks
-    for the running, launcher-killed, probe-orphaned and validation-to-start
-    cases.
-- Option B: never replace automatically; report the invalid entry and ask the
-  user to delete it.
-  - pro: no automatic removal at all.
-  - con: a manual repair, which the requirement avoids, for a corrupted file.
-- Option C: immutable generation directories under each entry, selected by a
-  pointer file replaced atomically, with no automatic removal of an old
-  generation.
-  - pro: nothing in use is ever moved, so no guard is needed.
-  - con: a pointer to read on every reuse, and every corrupted generation stays
-    on disk until removed by hand.
-
-#### Recommended option for Q07 (with arguments for this choice)
-
-Option A: it keeps one directory per pin, repairs corruption automatically,
-and its protection follows from the documented rule that a file cannot be
-renamed while another handle denies delete sharing. Holding the guard from
-validation covers the race between validation and child start as well as the
-running child, and passing it to the reuse probe too keeps an orphaned probe
-from outliving the only guard. Its parent-death guarantee depends on the
-creation-time containment of Q17 option A.
-
-#### Answer to Q07: option A (with reason why it must be accepted as the answer)
-
-Option A: it repairs an invalid entry automatically and makes "never replace a
-binary in use" a property of an open handle instead of an undocumented
-assumption.
-
-User decision: confirmed: option A, the use guard held from validation until
-the git-cliff process exits and inherited by every child that executes the
-entry, with a rename-first replacement under the provisioning lock that
-reports in-use when refused, selected by the user on 2026-11-14 without
-amendment. Its parent-death guarantee relies on the creation-time containment
-of Q17 option A.
-
-### Q08: Proxy resolution
-
-Question description: the design resolves proxies with
-`urllib.request.getproxies()`, which reads `HTTPS_PROXY`, `HTTP_PROXY` and
-`NO_PROXY`, or the static Windows proxy setting. On this workstation the
-environment variables are set and the Windows setting uses a proxy
-auto-configuration script, which `urllib` does not evaluate. Windows' own HTTP
-stack (WinHTTP) can resolve such scripts and is reachable from Python through
-`ctypes`.
-
-#### BBQ for Q08
-
-The delivery driver can follow the street signs the town put up, or call the
-town hall's switchboard, which knows the route to every house but answers only
-on the town's own phone line. In this picture: the street signs are the proxy
-environment variables and the static Windows setting, the switchboard is the
-proxy auto-configuration script, and the town's phone line is WinHTTP called
-through `ctypes`.
-
-#### Options for Q08
-
-- Option A: `urllib.request.getproxies()` only; an auto-configuration script
-  without environment variables fails with the network diagnostic naming
-  `HTTPS_PROXY`.
-  - pro: standard library only, already verified on this workstation.
-  - con: a machine configured only by a script needs `HTTPS_PROXY` set.
-- Option B: ask WinHTTP for the proxy of each URL, including scripts and
-  automatic discovery, then download through it with `urllib`.
-  - pro: follows the Windows configuration exactly.
-  - con: Windows API code through `ctypes`, a new failure surface, and two
-    proxy sources to explain.
-- Option C: environment variables only, ignoring the Windows setting.
-  - pro: one documented source.
-  - con: a static Windows proxy without environment variables stops working.
-
-#### Recommended option for Q08 (with arguments for this choice)
-
-Option A: it is what requirement Q07 calls the documented standard proxy
-configuration, and its diagnostic tells a script-only machine exactly which
-variable to set. The workstation check supports it but does not prove every
-proxy works: machines configured only by an auto-configuration script, and
-proxies that require authentication, are outside v0.14.0 and are stated as
-such. Script support can be a later, separate decision.
-
-#### Answer to Q08: option A (with reason why it must be accepted as the answer)
-
-Option A: it delivers the selected network scope with the standard library and
-a precise remedy for the unsupported case.
-
-User decision: confirmed: option A, `urllib.request.getproxies()` only, the
-proxy environment variables or else the static Windows proxy setting, selected
-by the user on 2026-11-14 without amendment. A machine configured only by an
-auto-configuration script gets the network diagnostic naming `HTTPS_PROXY`;
-scripts and authenticated proxies stay outside v0.14.0.
-
-### Q09: What the provisioning entry point returns
-
-Question description: the design's entry point returns the verified path, and
-item 4 owns how git-cliff is invoked for rendering. git-cliff reads its
-`GIT_CLIFF_*` environment variables, including whole-configuration overrides,
-so a caller that forgets to remove them renders with ambient settings. The
-version probe already removes them.
-
-#### BBQ for Q09
-
-The shop can hand over the knife alone, or the knife in a sheath with a guard
-that every cook uses the same way. A cook who takes the bare knife may forget
-the guard. In this picture: the knife is the verified `git-cliff.exe` path, the
-sheath is an invocation object that runs git-cliff with a fixed environment
-policy, and forgetting the guard is a renderer that inherits `GIT_CLIFF_*`
-variables from the user's console.
-
-#### Options for Q09
-
-- Option A: return the path; items 4 and 5 and the launcher each build their
-  own invocation.
-  - pro: the smallest interface for item 3.
-  - con: the environment rule is repeated, and a caller can omit it.
-- Option B: return an invocation object that runs git-cliff with a caller
-  chosen policy: a scrubbed environment and closed input for the engine, or
-  full passthrough for `gcliff`.
-  - pro: one place knows git-cliff's environment surface, shared by the probe,
-    the engine and the launcher.
-  - con: item 3 defines an interface that item 4 must accept.
-- Option C: return the path and a ready-made scrubbed environment mapping.
-  - pro: shares the rule without owning process execution.
-  - con: callers can still pass the wrong mapping.
-
-#### Recommended option for Q09 (with arguments for this choice)
-
-Option B: the engine and the launcher must treat git-cliff's environment
-differently, and keeping both policies next to the probe that already applies
-one removes a class of rendering surprises without taking rendering decisions
-away from item 4. The scrubbed policy also serves the evidence comparison, and
-the object owns, in one place, the environment policy, the creation-time
-containment and the guard transfer of the child lifecycle (Q17): it starts
-git-cliff, and the reuse probe through the same path, inside the job and with
-the guard inherited, so the protection does not depend on the object or its
-process staying alive, and no caller can forget the guard or start an
-uncontained child. Item 4 keeps its rendering arguments, postprocessing and
-timeouts.
-
-#### Answer to Q09: option B (with reason why it must be accepted as the answer)
-
-Option B: it shares the one fragile rule, the `GIT_CLIFF_*` environment
-surface, across every caller while item 4 keeps its own arguments and
-timeouts.
-
-User decision: confirmed: option B, the entry point returns an invocation
-object with a caller-chosen policy, a scrubbed environment and closed input
-for the engine or full passthrough for `gcliff`, which starts git-cliff and the
-reuse probe inside the job with the guard inherited, selected by the user on
-2026-11-14 without amendment. Consolidation replaces the body's path-return
-formulation; item 4 keeps its rendering arguments, postprocessing and
-timeouts.
-
-### Q10: How gcliff starts git-cliff
-
-Question description: the design starts git-cliff as a child of the Python
-launcher process, with inherited standard streams, arguments rebuilt by the
-Windows command-line rules and the batch guard against `%`, `^`, `!` and `"`.
-The batch file could instead run the path Python resolves, passing its raw
-`%*`.
-
-#### BBQ for Q10
-
-The waiter can carry the guest's order to the kitchen in his own words, or
-hand the kitchen the guest's handwritten note. His words are reliable for
-ordinary orders; the note keeps every odd spelling but needs a second trip to
-report back whether the dish worked. In this picture: the waiter is the Python
-launcher, his own words are arguments rebuilt by the standard Windows rules,
-the handwritten note is the batch file's raw `%*`, and the second trip is
-passing the provisioning status back from Python to the batch file before it
-runs git-cliff.
-
-#### Options for Q10
-
-- Option A: Python runs git-cliff as a child with inherited streams and
-  returns its status; the batch guard stays.
-  - pro: one status path, no temporary file, Ctrl+C reaches both processes.
-  - con: one extra process stays alive during the run; quoted characters the
-    guard rejects need `cliff.toml`.
-- Option B: Python provisions and writes the path for the batch file, which
-  runs git-cliff with `%*`.
-  - pro: raw argument fidelity, including characters the guard rejects.
-  - con: a two-step protocol to carry both the path and the reserved status
-    from Python to the batch file.
-- Option C: Python replaces itself with git-cliff through `os.execv`.
-  - pro: no lingering parent in principle.
-  - con: on Windows it starts a new process and returns at once, losing the
-    status the caller waits for.
-
-#### Recommended option for Q10 (with arguments for this choice)
-
-Option A: git-cliff parses its command line with the same Windows rules Python
-uses to rebuild it, the guard already protects the batch entry kinds, and a
-single status path is what requirement Q08's passthrough needs. The child is
-created through the engine's Windows layer rather than `subprocess`,
-suspended, a member of a kill-on-close job from its creation and holding the
-inherited use guard (Q17); a containment failure stops before git-cliff
-starts, with status 69, instead of creating the child and assigning it later.
-The launcher ignores Ctrl+C while it waits, returns the child's status without
-the release launcher's normalization, and its own death ends the git-cliff
-run.
-
-#### Answer to Q10: option A (with reason why it must be accepted as the answer)
-
-Option A: it passes arguments, streams and status through with the fewest
-moving parts and reuses the existing batch-argument guard.
-
-User decision: confirmed: option A, the Python launcher starts git-cliff as a
-contained child with inherited streams and the use guard and returns its
-status unchanged, keeping the batch-argument guard, selected by the user on
-2026-11-14 without amendment. It uses the passthrough policy of the Q09
-invocation object.
-
-### Q11: The reserved gcliff failure status
-
-Question description: the design proposes 69 for any `gcliff` failure before
-git-cliff starts. 69 is the conventional "service unavailable" value. A few
-observed statuses cannot prove that an admitted version never returns it, so
-the proposal holds only with admission evidence: an audit of each version's
-exit paths at its source tag (error return, argument errors, propagated helper
-statuses, panics and abnormal termination), corroborated by observed success,
-usage-error, failing-render and reachable panic statuses. If a version can
-return 69, admission stops and the conflict returns to the user. This question
-chooses the number; the audit applies to whichever number is chosen.
-
-#### BBQ for Q11
-
-The kitchen uses bell signals: one ring for "order ready", two for "order
-problem". The grill master needs a signal for "no charcoal at all" that no cook
-already uses. In this picture: the bell signals are exit statuses, the cooks'
-signals are git-cliff's own statuses, and "no charcoal" is the reserved status
-for a provisioning failure.
-
-#### Options for Q11
-
-- Option A: 69.
-  - pro: a recognized meaning, "service unavailable", far from git-cliff's
-    small statuses.
-  - con: rarely seen on Windows, so it needs its documentation line.
-- Option B: 3, next to the release launcher's statuses.
-  - pro: familiar to readers of the release launcher.
-  - con: 3 already means incomplete restoration for release operations, a
-    different meaning.
-- Option C: 255.
-  - pro: clearly out of band.
-  - con: also what many tools return for a generic fatal error, so it says
-    less.
-
-#### Recommended option for Q11 (with arguments for this choice)
-
-Option A: it carries the intended meaning and does not overload a release
-status; the per-version exit-path audit, not the sampled statuses, is what
-shows that no admitted version returns it.
-
-#### Answer to Q11: option A (with reason why it must be accepted as the answer)
-
-Option A: it gives scripts a "tool unavailable" value with a recognized
-meaning, whose exclusion from git-cliff's own statuses is established version
-by version at admission.
-
-User decision: confirmed: option A, status 69 for any `gcliff` failure before
-git-cliff starts, selected by the user on 2026-11-14 without amendment. It
-holds only with each admitted version's exit-path audit; a version that can
-return 69 stops admission and returns the conflict to the user.
-
-### Q12: Where evidence candidates are extracted
-
-Question description: the design extracts evidence candidates, including the
-2.7.0 binary, under `.tools/git-cliff/evidence/<version>/<triple>/`, a subtree
-production resolution never reads and the same ignore rule covers. A separate
-tree or a temporary directory per run would keep them physically apart from
-production entries.
-
-#### BBQ for Q12
-
-The tasting samples can sit on a labeled shelf in the same pantry, in a
-separate cupboard with its own lock, or be bought fresh for every tasting and
-thrown away. The shared pantry is convenient; the cupboard needs its own key;
-buying fresh costs a trip each time. In this picture: the pantry is
-`.tools/git-cliff/`, the labeled shelf is its `evidence/` subtree, the separate
-cupboard is a `.tools/git-cliff-evidence/` tree with its own ignore entry, and
-buying fresh is a temporary directory downloaded again on every harness run.
-
-#### Options for Q12
-
-- Option A: the `evidence/` subtree of the cache.
-  - pro: one ignore rule; repeated runs reuse the recorded bytes offline.
-  - con: evidence binaries share a tree with production entries.
-- Option B: a sibling `.tools/git-cliff-evidence/` tree.
-  - pro: physical separation from production.
-  - con: a second ignore entry and a second location to explain.
-- Option C: a temporary directory per run.
-  - pro: nothing kept between runs.
-  - con: every repetition downloads again, and 2.7.0 relies on HTTPS each
-    time while the recorded digest still has to match.
-
-#### Recommended option for Q12 (with arguments for this choice)
-
-Option A: resolution reads only `<pin>/<triple>/` for a manifest pin and
-`evidence` is never a valid version, so sharing the tree cannot leak a
-candidate into production, while one ignore rule and offline repetition stay
-simple. The location alone does not make reuse safe: the candidate cache has
-its own locks, staging, atomic publication, entry record and use guard, and a
-cached candidate runs only after its entry matches the immutable candidate
-trust record and its executable matches the entry, in the production order.
-Its children follow the production lifecycle and classes (Q17): download
-workers and staging probes are cache-writing children recorded in the
-candidate attempt, while the metadata worker, reuse probes and comparison runs
-are record-free; every one of them is created inside its job.
-
-#### Answer to Q12: option A (with reason why it must be accepted as the answer)
-
-Option A: it keeps the evidence-only binary unreachable by production
-provisioning without a second location or a download per repetition.
-
-User decision: confirmed: option A, the `evidence/` subtree of the cache with
-its own namespace, selected by the user on 2026-11-14 without amendment. A
-cached candidate runs only after its entry matches the immutable trust record
-and its executable matches the entry, and production resolution never reads
-the subtree.
-
-### Q13: What the committed evidence bundle contains
-
-Question description: the design commits raw outputs per range and candidate,
-a difference listing and the classification table. llm-shared's changelog is
-about 89 KB, so raw outputs for the full history, 13 tag ranges and the
-unreleased range come to roughly 400 KB of text for two versions. Digests of
-the outputs with only the differing hunks would be much smaller but would need
-a rerun to show an identical output.
-
-#### BBQ for Q13
-
-After the taste test, the cook can keep a full plate of every dish from both
-brands in the freezer, keep a photo of each plate plus samples of the dishes
-that tasted different, or keep only the written verdict. In this picture: the
-full plates are the raw outputs, the photos are output digests, the samples
-are the differing hunks, and the written verdict is the classification table.
-
-#### Options for Q13
-
-- Option A: raw outputs, differences and classification.
-  - pro: complete and readable without rerunning anything.
-  - con: about 400 KB of generated text in the repository, growing with each
-    admitted pin.
-- Option B: input manifest, output digests, differing hunks with context, and
-  classification.
-  - pro: small, and still verifies that a rerun reproduces the same outputs.
-  - con: reading an unchanged output needs a rerun.
-- Option C: classification table only.
-  - pro: smallest.
-  - con: nothing to verify a classification against without rerunning both
-    versions.
-
-#### Recommended option for Q13 (with arguments for this choice)
-
-Option B: the classification needs the differing hunks, and reproducibility
-needs the digests; identical outputs carry no information worth 400 KB, and
-the harness can regenerate them when someone needs to read one. Regeneration
-relies on the controlled harness inputs: the committed `cliff.toml` bytes, the
-frozen commit, the fixed flags, working directory and environment, and the
-deterministic fixture.
-
-#### Answer to Q13: option B (with reason why it must be accepted as the answer)
-
-Option B: it keeps every classified difference reviewable and every output
-verifiable while keeping generated text out of the repository.
-
-User decision: confirmed: option B, the input manifest, output digests,
-differing hunks with context and the classification, selected by the user on
-2026-11-14 without amendment. Consolidation replaces the body's raw-output
-formulation; identical outputs are regenerated from the controlled inputs
-when needed.
-
-### Q14: Fixture history for snapshot-tag cases
-
-Question description: llm-shared has no snapshot tag, so the design has the
-harness build a small scripted repository with stable and `-SNAPSHOT` tags and
-record its script and resulting commit hashes. A committed `git bundle` of that
-repository would pin the exact objects instead of regenerating them.
-
-#### BBQ for Q14
-
-The test recipe can be written down so anyone can cook the same dish again, or
-the cooked dish can be vacuum-sealed and stored. The recipe is readable but only
-reproduces the dish if every step is exact; the sealed dish is exact but
-opaque. In this picture: the recipe is the committed fixture script with fixed
-author and dates, cooking it again is regenerating the repository, and the
-sealed dish is a committed `git bundle` file.
-
-#### Options for Q14
-
-- Option A: a committed script with fixed author, committer and dates; the
-  bundle records the resulting hashes.
-  - pro: readable and reviewable; the recorded hashes prove the regeneration.
-  - con: depends on Git producing the same objects from the same inputs.
-- Option B: a committed `git bundle` of the fixture repository.
-  - pro: exact objects, no regeneration.
-  - con: a binary file in the repository, unreadable in review.
-- Option C: no fixture; snapshot-tag cases wait for item 4.
-  - pro: less work in item 3.
-  - con: leaves part of the evidence matrix of requirement Q13 uncovered.
-
-#### Recommended option for Q14 (with arguments for this choice)
-
-Option A: Git objects are a pure function of their content, so a script that
-fixes every object-producing input regenerates the same hashes: each tree's
-file names and bytes, parent order, messages, author and committer names,
-emails and dates with time zones, annotated tag names, tagger identities,
-dates and messages, the SHA-1 object format, and command-line Git
-configuration with no global or system configuration, hooks, signing or
-line-ending conversion. The recorded hashes turn any drift into a failed run.
-
-#### Answer to Q14: option A (with reason why it must be accepted as the answer)
-
-Option A: it covers the snapshot-tag cases with a reviewable fixture whose
-exactness is checked rather than assumed.
-
-User decision: confirmed: option A, a committed script that fixes every
-object-producing input, with the resulting commit and tag hashes recorded in
-the bundle, selected by the user on 2026-11-14 without amendment, after a
-plain-language restatement of the question. A regeneration that does not
-reproduce the recorded hashes fails the harness run.
-
-### Q15: Surface of the evidence harness
-
-Question description: the design makes the harness a developer-run command,
-outside pytest. Item 6 later proposes newer tested pins "with its diff", which
-needs the same download, run and comparison logic for a consumer's history.
-The harness could stay a script, become a public engine command now, or be an
-internal comparison module with a developer entry point.
-
-#### BBQ for Q15
-
-The tasting setup can be a one-off folding table, a permanent counter in the
-shop window, or a sturdy table kept in the back room that the shop can roll out
-later. The window counter invites customers before the shop is ready to serve
-them. In this picture: the folding table is a throwaway script, the window
-counter is a public engine command, and the back-room table is an internal
-comparison module with a developer entry point that item 6 can reuse.
-
-#### Options for Q15
-
-- Option A: a developer-only script.
-  - pro: no public contract in item 3.
-  - con: item 6 must extract or rewrite the logic later.
-- Option B: a public engine command in item 3.
-  - pro: item 6 and consumers can call it at once.
-  - con: a public command, output and statuses designed before item 6
-    defines its needs.
-- Option C: an internal comparison module with a developer entry point; item 6
-  decides its public form.
-  - pro: reusable logic without committing to a public interface.
-  - con: an internal interface to keep stable for item 6.
-
-#### Recommended option for Q15 (with arguments for this choice)
-
-Option C: item 6's "newer tested pin with its diff" is the same comparison on
-another history, so the logic should be reusable, but its public form belongs
-to item 6's design.
-
-#### Answer to Q15: option C (with reason why it must be accepted as the answer)
-
-Option C: it serves item 3's evidence now and leaves item 6 a tested module
-instead of a script or a premature command.
-
-User decision: confirmed: option C, an internal comparison module with a
-developer entry point, item 6 deciding its public form, selected by the user
-on 2026-11-14 without amendment.
-
-### Q16: Where the gcliff alias definition lives
-
-Question description: the design ships the macro line
-`gcliff="%LLM_SHARED_DIR%\bin\gcliff.bat" $*` as a single-line alias fragment
-beside the launcher, which item 8 copies into the shared `senv.doskey`. The
-line could instead live only in documentation, or in a separate macro file that
-item 8 starts loading.
-
-#### BBQ for Q16
-
-The new grill comes with its handle in a separate bag. The bag can sit next to
-the grill until the installer fits it, the handle can be described in the
-manual for the installer to make, or the grill can get a second hook where the
-handle will hang once someone switches it on. In this picture: the handle is
-the `gcliff` macro line, the bag next to the grill is an alias fragment beside
-the launcher, the manual is documentation only, the second hook is a separate
-macro file loaded later, and the installer is item 8.
-
-#### Options for Q16
-
-- Option A: a tested single-line fragment beside the launcher; item 8 copies
-  it into `senv.doskey`.
-  - pro: the exact line is tested in item 3 and copied, not retyped.
-  - con: a fragment file whose only consumer is item 8.
-- Option B: the line in documentation only.
-  - pro: no extra file.
-  - con: untested until item 8, and easy to mistype.
-- Option C: a separate release macro file that item 8 makes `senv.bat` load.
-  - pro: item 8 changes one load line instead of copying macros.
-  - con: a second macro file for consumers to load, against the one shared
-    alias set of the umbrella.
-
-#### Recommended option for Q16 (with arguments for this choice)
-
-Option A: requirement Q12 has item 3 ship and test the definition without
-editing `senv.doskey`; a fragment loaded by the same macro parsing is the
-smallest way to test exactly what item 8 will add.
-
-#### Answer to Q16: option A (with reason why it must be accepted as the answer)
-
-Option A: it lets item 3 test the definition it ships while keeping the shared
-alias file untouched until the cutover.
-
-User decision: confirmed: option A, a tested single-line alias fragment beside
-the launcher that item 8 copies into `senv.doskey`, selected by the user on
-2026-11-14 without amendment.
-
-### Q17: How stage deadlines are enforced against a call that never returns
-
-Question description: requirement Q15 demands finite budgets for every network
-stage and version probe. Python documents the `urllib` timeout as applying to
-each blocking socket operation, not to a whole transfer, and name resolution
-is not covered; a slow trickle of bytes also restarts the inactivity timer.
-Checking a clock between calls cannot stop a call that never returns, so the
-body runs each network attempt in a worker process. A worker alone is not
-enough: Windows does not end a child when its parent dies, so a parent that
-crashes leaves its worker, probe or git-cliff run alive, still able to write
-staging or run an entry its dead parent no longer guards. The revised body
-answers both with one child lifecycle: every child is created suspended through
-the engine's Windows layer, with an explicit inherited-handle list and
-membership, from its creation, in a kill-on-close job that only the parent
-holds. Cache-writing children, download workers and staging probes, are
-recorded in their attempt's owner records before they resume; record-free
-children, reuse probes, the metadata worker and git-cliff runs, take no lock
-and write no record, and those that execute a cached entry inherit its use
-guard. Recovery needs every recorded process `DEAD`. Assigning a child to the
-job after creating it is not enough: a parent that dies between the two calls
-leaves a suspended child outside any job, holding its inherited handles for as
-long as it lives. This question is separate from Q05, which only sets the
-values.
-
-#### BBQ for Q17
-
-The cook sends helpers to fetch charcoal and wants them back within the hour.
-Checking a watch between shops does not help a helper stuck in a queue that
-never moves, and a helper keeps shopping even if the cook faints. The cook can
-hire every helper with a radio already clipped to the helper's belt, which
-sends them all home when the cook's own radio goes silent, and write on the
-kitchen board, before they leave, the names of those who will handle the
-stock; give each helper a personal alarm that sends the helper home at a set
-hour and have the helper sign the board; hire a courier firm that promises to
-cancel any trip at a given hour; or trust the watch. A radio handed over at
-the door, after hiring, does not help: a cook who faints in between leaves a
-helper with no radio at all. In this picture: the helpers are the download
-worker, the metadata worker, the probes and the git-cliff runs; the cook
-fainting is the parent process dying; the radio clipped at hiring is
-membership, from creation, in a kill-on-close job held only by the parent;
-the radio handed over at the door is a job assignment after creation; the
-board is the owner records that recovery checks for cache-writing children;
-the personal alarm is a worker's own watchdog deadline; the courier firm is a
-third-party transport with a cancellable deadline; and the watch is socket
-timeouts plus clock checks.
-
-#### Options for Q17
-
-- Option A: the contained child lifecycle. Create each child suspended with
-  an explicit inherited-handle list and creation-time membership in the
-  parent-only kill-on-close job (`PROC_THREAD_ATTRIBUTE_JOB_LIST`, Windows 10
-  or Windows Server 2016 and later). A creation or containment failure yields
-  no uncontained child. Publish cache-writing attempt identities before
-  resume; lock-free reuse probes publish no cache records and inherit their
-  executable's guard. Terminate and wait at the deadline; recover writable
-  attempts only after all recorded actors are `DEAD`.
-  - pro: stops any blocking call, and the job bounds every child from the
-    moment it exists, including a hung probe or a git-cliff run whose launcher
-    died, with no third-party code.
-  - pro: no child ever exists outside its job, and a cache-writing child that
-    was never recorded never ran, so a parent crash during or after creation
-    leaves no uncontained process and no unrecorded writer; reuse stays
-    lock-free and read-only.
-  - con: process creation moves from `subprocess` into the Windows layer
-    (`CreateProcessW`, attribute lists, job objects); the platform baseline
-    rises to Windows 10 or Windows Server 2016 with no fallback, and a host
-    job that refuses nesting, such as one with UI limits, makes the stage fail;
-    developer-run checks of real containment, kill-on-close and guard
-    inheritance run outside the process-free suite.
-- Option B: self-limiting workers started through `subprocess`: each worker
-  records its own identity in staging before writing anything and carries an
-  absolute deadline enforced by an internal watchdog thread that ends its
-  process; the parent still terminates it on expiry.
-  - pro: pure standard-library Python, no job objects.
-  - con: a git-cliff probe or run cannot carry a watchdog, so an orphaned hung
-    probe or a launcher-less run is unbounded; recovery may then wait forever.
-  - con: between start and self-recording a worker is unrecorded, so it must
-    write nothing before its record, and recovery must tolerate an attempt
-    whose worker never appears.
-- Option C: an in-process transport with a documented end-to-end cancellable
-  deadline.
-  - pro: no extra process for downloads.
-  - con: the standard library has none, the release dependency group is empty,
-    and probes and git-cliff runs still need a lifecycle of their own.
-- Option D: socket timeouts plus clock checks between blocking operations.
-  - pro: simplest, all in one process.
-  - con: name resolution and some handshakes are not covered, so a stage can
-    outlive its budget; this does not meet requirement Q15.
-
-#### Recommended option for Q17 (with arguments for this choice)
-
-Option A: it is the only option that bounds every child, workers, probes and
-git-cliff runs alike, from its creation and whatever happens to the parent,
-and it makes "every writer is `DEAD` before cleanup" checkable from the owner
-records while reuse writes nothing. Containment is part of the creation call
-rather than a later parent action, because no parent-only cleanup can reach a
-child that a crash left outside the job. The cost is one new Windows-layer
-creation path beside the engine's existing `ctypes` process primitives and a
-Windows 10 or Windows Server 2016 baseline, and a process start is negligible
-next to a first-use download.
-
-#### Answer to Q17: option A (with reason why it must be accepted as the answer)
-
-Option A: it turns the finite stage budgets of requirement Q15 and the
-owner-aware cleanup of requirement Q14 into enforced properties that survive a
-parent crash at any point, creation included, with unit seams for the
-process-free suite and real checks outside it.
-
-User decision: confirmed: option A, the contained child lifecycle with
-creation-time membership in a parent-only kill-on-close job, suspended
-creation, identity publication for cache-writing children before resume,
-record-free guarded reuse probes, termination at the deadline and recovery
-only after every recorded actor is `DEAD`, selected by the user on 2026-11-14
-without amendment. It accepts the Windows 10 or Windows Server 2016 baseline
-and the fail-closed stage failure under a host job that refuses nesting.
-
-### Q18: What contract does the Q05 budget override expose?
-
-Question description: Q05 B is confirmed: the budgets stay fixed constants,
-plus one documented environment variable that raises the download and wait
-budgets. That decision does not say which stages the variable affects beyond
-the download and the wait, what values it accepts, or how two callers with
-different values behave when one waits for the other's lock. Those choices
-change behavior: whether a hung probe or metadata lookup may run longer, how
-long a user may wait, and whether one caller can extend another's deadline.
-The requirement keeps every budget documented and finite (requirement Q15),
-and it lets a waiter fail when the holder does not finish within that
-waiter's own budget (requirement Q06). Q05 B names the download and wait
-budgets; Q18 defines their representation, bounds and caller semantics, and
-option C would additionally expand the affected stages. It does not reopen
-whether an override exists.
-
-#### BBQ for Q18
-
-The recipe now lets the cook wait longer for the charcoal van. The cook can
-write the exact number of minutes on the order slip, choose a multiple of the
-standard wait, or turn one dial that stretches every timer in the kitchen,
-including the one for checking the oven thermometer. Each cook waiting for the
-shared grill keeps a personal timer: a cook with the standard timer may give
-up while a neighbor's slow delivery is still on its way, but never throws the
-neighbor's half-unpacked order away. In this picture: the van wait is the
-archive download budget, the order slip is a value in seconds, the multiple is
-a multiplier, the dial for every timer is a multiplier applied to all stages,
-the oven thermometer is the version probe, the shared grill is the
-provisioning lock, and throwing the order away is recovering a live owner's
-lock.
-
-#### Options for Q18
-
-- Option A: an exact download budget in seconds, coupled to the wait.
-  - Name: `LLM_SHARED_GIT_CLIFF_DOWNLOAD_TIMEOUT_SECONDS`, outside the
-    upstream `GIT_CLIFF_*` namespace that the invocation object scrubs (Q09).
-  - Unset, it means the existing 300 s download budget. A set value is an
-    ASCII decimal integer of seconds from 300 through 3600 inclusive. An empty
-    string, a sign, a fraction, a unit, whitespace or an out-of-range value is
-    refused, never clamped and never replaced by the default. The 3600 s
-    limit is a proposed operational policy, not a bound the requirement
-    derives.
-  - With D the caller's validated download budget, its lock wait is
-    W = D + 60 s: 300 and 360 s by default, 900 and 960 s for a 900 s value,
-    3600 and 3660 s at the limit. The 60 s keep the two 15 s probe allowances
-    and the existing 30 s processing allowance; W is a contention policy, not
-    a promise that all filesystem work ends within 30 s.
-  - D and W apply to production provisioning and to evidence-candidate archive
-    downloads. Socket connect or inactivity stays 30 s, every version probe
-    15 s and the harness metadata lookup 60 s; rendering stays item 4's.
-  - The value is read and validated once, when a caller enters provisioning or
-    starts the evidence harness, before any reuse probe, child creation,
-    network access or cache change, and the resolved policy is passed to
-    workers instead of being read again. An invalid value is a setup failure,
-    status 2 for engine operations and 69 for `gcliff`, even when a valid
-    cached entry exists. Operations that do not need git-cliff never read it.
-  - Every caller owns its finite W. A default 360 s waiter may time out
-    behind a holder using D = 1800 s; its deadline is never reset or enlarged
-    by a holder change, and W = D + 60 s applies to the caller's own policy,
-    not to the holder's environment. A timeout never authorizes recovering a
-    live or `UNKNOWN` owner (Q03).
-  - Q06's retry count, 5 s delay and shared deadline stay unchanged inside D.
-    The waiting line and expiry diagnostics show the effective budgets;
-    download and wait remedies name the variable and its range, while probe
-    and metadata remedies never suggest that it extends their budgets.
-  - pro: an exact duration for the slow archive transfer, with the two
-    affected budgets coupled and bounded; one setting, a narrow scope, and a
-    hung local probe stays quick to diagnose.
-  - con: a slow metadata service or a socket inactivity timeout is not cured
-    by raising the archive budget, and differently configured callers can
-    still time out on contention.
-- Option B: an integer multiplier m from 1 through 12 for the download and
-  wait only: D = 300 s × m and W = D + 60 s, with the same fixed other stages,
-  single validation and per-caller behavior as option A.
-  - pro: a simple relative scale with unchanged defaults.
-  - con: coarse 300 s steps, and the effective duration moves if a base
-    constant later changes.
-- Option C: an integer multiplier m from 1 through 12 that scales the
-  download, socket, probe, metadata and wait budgets together.
-  - pro: one knob also helps slow probe and metadata environments, with a
-    finite upper bound.
-  - con: it widens the scope Q05 B chose (download and wait) and delays
-    unrelated failure detection: at 12, a version probe may take 180 s and the
-    metadata lookup 720 s.
-
-Acceptance examples for the chosen contract, checked with a fake clock and no
-real long wait (stated here for option A):
-
-| Scenario | Expected outcome |
-| --- | --- |
-| Variable unset | D = 300 s, W = 360 s |
-| Value `900` | D = 900 s, W = 960 s |
-| Value `3600` | D = 3600 s, W = 3660 s |
-| Value empty, `-1`, `300.5`, `600s`, `600` with a leading space, `299` or `3601` | Setup failure naming the variable and its range; status 2, or 69 for `gcliff`; nothing provisioned |
-| Invalid value with a valid cached entry | The same setup failure; the entry is not used |
-| `version` command or ordinary build with an invalid value | Unaffected; the variable is not read |
-| Value `900`, first attempt reset, `Retry-After: 2000` | The 5 s delay and the retry stay inside 900 s; the header extends nothing |
-| Value `3600`, a hung version probe or metadata lookup | Probe ends at 15 s, metadata at 60 s |
-| Evidence harness with value `900` | Candidate archive downloads use D = 900 s |
-| Default waiter behind a holder with D = 1800 s | The waiter fails at 360 s with the lock-wait diagnostic; the live holder's lock and staging are kept |
-
-#### Recommended option for Q18 (with arguments for this choice)
-
-Option A: it gives a user the exact duration a slow link needs, keeps the two
-budgets Q05 B named coupled and finite, and leaves the probe, socket and
-metadata budgets short enough to report a hang quickly. Reading the value once
-and keeping every waiter's own deadline turn mixed configurations into an
-ordinary, diagnosed lock-wait failure instead of an unbounded wait. Option C
-would need a new explicit choice, since it widens Q05 B's scope.
-
-#### Answer to Q18: option A (with reason why it must be accepted as the answer)
-
-Option A: it implements the confirmed Q05 B with one exact, bounded and
-validated value, without slowing the detection of any other hung stage.
-
-User decision: confirmed: option A, `LLM_SHARED_GIT_CLIFF_DOWNLOAD_TIMEOUT_SECONDS`
-as an exact download budget D from 300 through 3600 seconds with the caller's
-own wait W = D + 60 s, other stage budgets unchanged, the value validated once
-and refused when malformed or out of range, and each caller keeping its own
-finite wait, selected by the user on 2026-11-14 without amendment. The 3600 s
-ceiling is accepted as the operational limit, and a default waiter may expire
-behind a raised holder without ever recovering it.
+| Harness rerun whose output digest differs from the bundle | Harness run fails | Compact, verifiable bundle |
+| Engine start with `GIT_CLIFF_*` variables in the console | The engine policy removes them; `gcliff` passes them through | One place for the environment rule |
+| Budget variable unset | D = 300 s, W = 360 s | Default budgets |
+| Budget variable `900` | D = 900 s, W = 960 s | Exact raised budget |
+| Budget variable `3600` | D = 3600 s, W = 3660 s | Ceiling |
+| Budget variable empty, `-1`, `300.5`, `600s`, `600` with a leading space, `299` or `3601` | Setup failure naming the variable and its range; status 2, or 69 for `gcliff`; nothing provisioned | Refused, never clamped |
+| Invalid budget variable with a valid cached entry | The same setup failure; the entry is not used | Validated before reuse |
+| `version` command or ordinary build with an invalid budget variable | Unaffected; the variable is not read | Operations free of git-cliff |
+| Budget `900`, first attempt reset, `Retry-After: 2000` | The 5 s delay and the retry stay inside 900 s; the header extends nothing | Retry inside D |
+| Budget `3600`, a hung version probe or metadata lookup | Probe ends at 15 s, metadata at 60 s | Override limited to download and wait |
+| Evidence harness with budget `900` | Candidate archive downloads use D = 900 s | Same policy for candidates |
+| Default waiter behind a holder with D = 1800 s | The waiter fails at 360 s with the lock-wait diagnostic; the live holder's lock and staging are kept | Per-caller finite wait |
+
+## Design decisions for git-cliff provisioning
+
+The user decided each question after an explanation on 2026-11-14, and
+independent review rounds 5 to 7 checked the decisions for consistency. The
+question blocks, with their full options and arguments, are kept in the
+commit `docs(design): record pre-consolidation questions`. In this table,
+Qxx names a design question; elsewhere in this document, a bare Qxx in
+parentheses names a requirement clarification.
+
+| Question | Decision and reason | Integrated in | Rejected alternatives |
+| --- | --- | --- | --- |
+| Q01 | The manifest records each admitted asset's published SHA-256 at admission; provisioning compares downloads with it and never calls the GitHub API. Releases need only the two download hosts, and an asset replaced upstream fails as a mismatch | Manifest content and admission; Archive verification; Candidate lifecycle | Live digest from release metadata on every download (API host, quota, accepts a replaced asset); manifest plus live check with a warning (two sources, API dependency) |
+| Q02 | The manifest is a table of frozen Python records in the release engine; admitting a pin is a reviewed code change and the reader parses no new file format | Manifest content and admission; The git-cliff domain of the common reader | TOML file validated on every configuration read; JSON generated from the evidence bundle (generation step, second artifact) |
+| Q03 | A lock record published without replacement, a short transition mutex and the liveness probe, waiters polling every 250 ms; recovery and cleanup need the owner and every recorded cache-writing child `DEAD`, on a local-disk cache | Lock record and transition mutex; Recovery of a dead holder; Child process lifecycle | Kernel mutex held for the whole provisioning (second mechanism, abandonment proves only a thread ended); exclusive lock file (antivirus false contention) |
+| Q04 | One lock per version and platform, with evidence candidates in their own lock namespace | Lock record and transition mutex; Candidate cache | One lock for the whole cache (unrelated downloads serialize) |
+| Q05 | The budgets stay engine constants, plus one documented environment variable that raises the download and wait budgets; chosen by the user over the recommended fixed-only option. Requirement Q07 excludes a mirror setting, not this override, and every budget stays documented and finite | Time budgets and retries; The download budget override; Failure diagnostics | Fixed constants only (a slower link fails until a code change); budgets derived from the asset size (one more rule to explain) |
+| Q06 | One retry after 5 s for a connection error, a reset, HTTP 429 or 5xx, inside the download budget; none for another HTTP 4xx, a size overflow or a digest mismatch; `Retry-After` never extends the deadline | Time budgets and retries; Deadline enforcement; Archive verification | No retry (one reset fails a release); up to three growing retries (more states, the budget ends outages anyway) |
+| Q07 | A use guard, a read handle denying write and delete sharing, held from validation until git-cliff exits and inherited by every child that executes the entry; an invalid entry is replaced by renaming its executable first under the lock, with an in-use diagnostic when refused | Reuse check and the use guard; Publication; Child process lifecycle | Manual deletion only (a manual repair); immutable generation directories with a pointer file (every corrupted generation kept) |
+| Q08 | `urllib.request.getproxies()` only: proxy environment variables, else the static Windows proxy; a script-configured machine gets the diagnostic naming `HTTPS_PROXY` | Network path; Failure diagnostics | WinHTTP through `ctypes` with auto-configuration scripts (new failure surface); environment variables only (static Windows proxy breaks) |
+| Q09 | The entry point returns an invocation object with the engine policy (`GIT_CLIFF_*` removed, input closed) or the passthrough policy of `gcliff`; it owns the contained creation and the guard transfer, while item 4 keeps rendering arguments, postprocessing and timeouts | Target flow; Version probe; The provisioning entry point for items 4 and 5; Running git-cliff | Path only, each caller building its own start (the rule can be omitted); path plus a scrubbed environment mapping (wrong mapping still possible) |
+| Q10 | The Python launcher starts git-cliff as a contained child with inherited streams and the use guard and returns its status unchanged; the batch-argument guard stays | Launcher and entry kind; Running git-cliff | Batch file running the resolved path with raw `%*` (two-step status protocol); `os.execv` (loses the status on Windows) |
+| Q11 | Status 69 for any `gcliff` failure before git-cliff starts, holding only with each admitted version's exit-path audit; a version able to return 69 stops admission | Statuses; Outputs and classification | 3 (already incomplete restoration for releases); 255 (a generic fatal status) |
+| Q12 | Evidence candidates live in the `evidence/` subtree of the cache with their own namespace; a cached candidate runs only after its entry matches the immutable trust record and its executable matches the entry | Layout below the fixed path; Candidate cache | A sibling evidence tree (second ignore entry); a temporary directory per run (downloads every time) |
+| Q13 | The bundle stores the input manifest, output digests and statuses, differing hunks with context, the classification and the exit-path audit; identical outputs are regenerated from the controlled inputs | Outputs and classification; Testing approach | Every raw output (about 400 KB, growing per pin); the classification table only (nothing to verify against) |
+| Q14 | A committed script fixes every object-producing input of the snapshot-tag fixture, and the bundle records the resulting commit and tag hashes; a regeneration that differs fails the run | Frozen inputs and the coverage matrix | A committed `git bundle` (binary, unreadable in review); no fixture (contradicts requirement Q13) |
+| Q15 | The harness is an internal comparison module with a developer entry point; item 6 decides its public form | The harness; Foundation changes | A developer-only script (item 6 rewrites it); a public engine command now (contract before item 6's needs) |
+| Q16 | A tested single-line alias fragment beside the launcher; item 8 copies it into `senv.doskey` | Alias definition | Documentation only (untested, easy to mistype); a separate macro file loaded later (second alias file for consumers) |
+| Q17 | Every child is created suspended with an explicit inherited-handle list and creation-time membership in a parent-only kill-on-close job; cache-writing children are recorded before resume, reuse probes are record-free and guarded, children end at their deadline, and recovery waits for every recorded actor to be `DEAD`. Windows 10 or Windows Server 2016 is the baseline, and a refused nesting fails closed | Child process lifecycle; Deadline enforcement; Foundation changes; Testing approach | Self-limiting workers through `subprocess` (a hung probe or run can outlive its parent); a third-party cancellable transport (new dependency); socket timeouts with clock checks (name resolution not covered) |
+| Q18 | `LLM_SHARED_GIT_CLIFF_DOWNLOAD_TIMEOUT_SECONDS` sets an exact download budget D from 300 through 3600 s, refused when malformed or out of range; the caller's wait is D + 60 s; socket, probe and metadata budgets stay fixed; the value is validated once before any work, and each caller keeps its own finite wait | The download budget override; Time budgets and retries; Failure diagnostics; Statuses; Acceptance cases | A 1 to 12 multiplier for download and wait (coarse steps that move with the base); a 1 to 12 multiplier for every stage (widens Q05, slows unrelated hang detection) |
