@@ -1200,9 +1200,26 @@ design return.
 The 2026-11-14 disposable diagnostics established that Claude 2.1.325 can:
 new and resumed print roots ran tools, including background work, without
 writing transcript records. The user selected
-[Q26=A](#q26-claude-roots-outside-the-transcript-ledger) on 2026-11-14,
+[Q26=A](#design-decisions-for-resume-paused) on 2026-11-14,
 accepting this blind spot and possible duplicate watchers. This does not
 validate the remaining profile obligations or establish host support.
+
+Under Q26=A, validate parent lifecycle coverage for each pinned version,
+including ordinary exit, host kill, `TaskStop`, timeout and work surviving a
+parent. A parent ending does not itself prove its covered work ended. A
+foreground call holds the recorded parent's turn open, or a background start
+remains unmatched, for the full duration of covered work. Recorded starts
+without their own validated terminal record stay pending. Unrecorded work
+surviving a parent's validated end falls under the fourth limit; record which
+end paths leave such work so the activation disclosure can name them.
+Validate rejection of a target without a fresh persisted startup/clear marker,
+interactive handling of the print-only persistence flag, configuration-root
+resolution for each bound pane (which defines Q19's read set), and transcript
+retention/deletion behavior. Include interactive background sessions,
+reattachment, nested roots, Monitor, subagents and schedules under the existing
+coverage obligations. Help text and the decision itself establish no runtime
+guarantees.
+
 The reviewer observed 43 of 703
 timestamped records persisted after a later-stamped record, by up to 42.4
 seconds; this proves disorder and lag, not a complete source contract. A clock
@@ -1390,11 +1407,16 @@ options and recorded answers are preserved in snapshot commit `9e7d3d62`.
 Question IDs in this table refer to this design; the coverage table above
 refers to the requirement.
 
-Step 1 found the persistence counterexample on 2026-11-14;
-[Q26=A](#q26-claude-roots-outside-the-transcript-ledger) was confirmed by the
-user on 2026-11-14. Its retained answer qualifies the absence scope of Q17=A
-and Q20=A below; those rows retain their historical wording until consolidation.
-The other confirmed decisions remain unchanged.
+Step 1 found the persistence counterexample on 2026-11-14. The user confirmed
+Q26=A on that date by selecting "A: Accept limit (Recommended)". Round 5
+independently reviewed the decision and aligned design, both plans and evidence
+companion; the human then selected Consolidate. The complete question, options
+and recorded answer are preserved in snapshot commit `2589b033`.
+The Q26 row qualifies the absence scope of Q17=A and Q20=A below; those rows
+preserve their historical choices with this qualification. The other confirmed
+decisions remain unchanged. The accepted fourth limit may allow duplicate
+watchers; ownership fencing protects publication rather than proving absence.
+No collector or additional evidence source is approved.
 
 Q19 widens Q17's session-tied Claude history scope. Q20 limits positive
 absence to host-managed waiting mechanisms and discloses residual limits.
@@ -1458,125 +1480,4 @@ not a design return.
 | Q23 | A: Bind the requestor's post-marker range through the file proving marked-input acceptance. Initially and on continuation require current session identity source `report`, first timestamped validated TUIOS SessionStart `startup` or `clear` at/after creation of the shell's single direct Claude child, no later SessionStart except `compact`, proved marked input, stable process identity, and validated ordering and item 1's generation-scoped exclusivity. Uncertainty stays pending. | [Requestor generation binding](#takeover-observation-and-later-reviewer-continuation), [validation boundaries](#acceptance-examples-and-validation-boundaries-for-resume-paused). | B: Startup-only requestor binding blocks activation after clear. C: Skipping clear overrides the user's option and does not resolve prior manual clears. Retain reviewer complete-generation proof, Q19 history, Q22 lifecycle matching and Q21 clock limits. Step 1 must validate clear markers, process precedence and lifecycle matching; no hook, new channel or supported profile is approved. Historical choice, qualified by confirmed Q24=A below: writer attribution is replaced by validated requestor-operation content and completeness/closure; all other starts remain in scope. |
 | Q24 | A: Exclude only validated requestor review-exchange starts and their own lifecycle records in the Q23-bound marked-input file, ordered after marked resume by validated creation ordering, regardless of writer. Exactly one recognized requestor-only invocation is required; other starts remain in scope. Replace writer exclusivity with completeness and closure for every writer, including the requestor. This resolves answer-wait circularity using approved evidence without a new source. | [Requestor operation exception](#takeover-observation-and-later-reviewer-continuation), [acceptance examples](#acceptance-examples-and-validation-boundaries-for-resume-paused), [file-based IO](#file-based-io-cost-clarification-for-resume-paused). | B: The unprovable writer condition leaves the answer wait blocking its reviewer. C: A new writer-identity source needs separate approval and validation and still has attribution limits. Chained, piped, wrapped, multi-operation and shared-role commands remain in scope; unclosed turns still block. |
 | Q25 | A: Every Claude requestor starts each `wait-answer` through a host background mechanism as one recognized invocation form, ends its turn and resumes from the completion notification, on every route. Make the shared rule required and reference it from all three requestor instructions; Codex retains attached waiting. Step 1 validates background start, turn closure, terminal record and notification resumption. This preserves closure checks without relying on remembered entry-route context. | [Shared scope](#scope-and-deferred-integration-for-resume-paused), [answer-wait transport](#takeover-observation-and-later-reviewer-continuation), [acceptance and validation](#acceptance-examples-and-validation-boundaries-for-resume-paused). | B: Marked-route-only transport depends on remembered context and leaves two rules for one operation. C: A foreground wait times out and escalates before reviewer activation. D: Exempting an open turn weakens completeness and closure. Foreground or moved waits remain in scope and leave the reviewer pending. No new evidence channel or supported profile is established. |
-
-## Open questions for the v0.14.0 resume-paused design
-
-### Q26: Claude roots outside the transcript ledger
-
-Question description: Claude 2.1.325 runs print-mode roots with
-`--no-session-persistence`. Such a root can start a new session or resume an
-existing session id and run host-managed background work without writing a
-transcript record. A root using another configuration directory, or one whose
-transcripts were removed without detectable evidence, can likewise leave
-nothing in Q19's read set. These latter cases are coverage obligations, not
-additional runtime observations from the persistence diagnostics. Q20=A
-requires complete start/end persistence for in-scope waiting mechanisms. What
-should the Claude absence proof claim about roots outside that evidence?
-This question was raised as a proposed qualification to Q17=A and Q20=A.
-The dated answer below records the user's subsequent acceptance; Q01-Q25
-retain their history, with Q17=A and Q20=A qualified by that answer.
-
-#### BBQ for Q26
-
-The barbecue log records jobs that registered cooks start. A visiting cook
-can work without writing in it. If a registered cook brings the visitor in,
-the cook's entry must stay open until the visitor's covered work ends. A
-visitor arriving directly from the street leaves no entry. In this picture:
-the cooks are Claude roots, the log is the Q19 transcript set, the open entry
-is a recorded parent's foreground call or background task, and a street
-arrival is a root launched from a human shell, another host, a hook, a
-scheduler or detached work without an in-scope parent record.
-
-A visitor can also stay after the registered cook is sent home: this represents
-unrecorded work surviving its recorded parent's end.
-
-#### Options for Q26
-
-- Option A (recommended): Keep the transcript ledger as the only Claude
-  evidence source and qualify its absence claim. A root started by recorded
-  in-scope Claude work is covered only through a validated parent lifecycle:
-  the foreground call holds the parent's turn open, or the background start
-  remains unmatched, for the full duration of covered work. Work of a Claude
-  root with no records in the Q19 read set becomes a fourth disclosed residual
-  limit under `limits=claude-wait-scope`, except while a recorded in-scope
-  parent's open turn or unmatched start still brackets it. The limit covers
-  roots with no in-scope parent record, and work that outlives its parent's
-  validated end, such as after a kill, `TaskStop` or timeout. Its sources are
-  persistence-disabled roots, other configuration roots and transcripts
-  removed without detectable evidence. It does not excuse detected missing
-  history, incomplete reads, open calls or unmatched starts, which remain pending.
-  - Pro: No new source, durable artifact or launcher change. Automatic
-    activation can remain reachable with approved evidence if every remaining
-    profile gate passes. It extends the explicit residual-limit model of
-    Q20=A and requirement Q04=A.
-  - Con: Activation may duplicate a reviewer watcher in an unrecorded root,
-    including a root resuming the reviewer's session from a human shell, or
-    work left running after its recorded parent was stopped or killed.
-    Ownership fencing protects publication but does not prove absence.
-    This weakens the absence claim and requires explicit human acceptance.
-- Option B: Add a managed print-mode `stream-json` lifecycle collector for
-  roots launched through it, with durable structural history, and accept
-  option A's residual limit for roots the collector cannot cover.
-  - Pro: Can retain lifecycle events for collector-launched print roots even
-    when transcript persistence is disabled.
-  - Con: The format is print-only; it cannot observe interactive or background
-    sessions. Direct executable launches, another host, hooks and schedulers
-    can bypass the collector. Proving none did so would require an additional
-    complete source, such as the process inventory excluded by requirement
-    Q04=A. This option reopens the no-new-durable-artifact boundary, rejected
-    Q16 option C, Q18=A and Q20=A's no-extra-channel rule. Collector failure,
-    restart, event loss, payload filtering and normal output relay all need
-    design and validation. It does not restore a complete absence claim.
-- Option C: Keep the current contract unchanged.
-  - Pro: Preserves the absence claim within Q20=A's existing three disclosed
-    limits and adds neither a source nor another exception.
-  - Con: Claude versions that can run such roots remain unsupported, including
-    2.1.325. Required automatic Claude activation stays unreachable for those
-    versions. Delivering without it would require amending the requirement;
-    Q17 already rejected never activating as conflicting with requirement
-    Q01=D and Q22=A. Both hosts remain required, so this is no one-host path.
-
-Under option A or B, Step 1 must validate the parent lifecycle coverage for
-each pinned version, including ordinary exit, host kill, `TaskStop`, timeout
-and work surviving a parent. A parent ending does not by itself prove its
-covered work ended. Recorded starts without a validated terminal record stay
-pending. Under option A, unrecorded work that outlives its parent's validated
-end is part of the fourth limit; Step 1 records which end paths leave such
-work, so the reported limit can name them. Validate target rejection when no
-fresh startup/clear marker is persisted, interactive handling of the print-only
-flag, resolution of the configuration root that each bound pane root uses
-(which defines the Q19 read set), and retention/deletion behavior. Include
-interactive background sessions, reattachment, nested roots, Monitor, subagents and schedules under
-the existing coverage obligations. No help text or this answer supplies those
-runtime guarantees. Both plans, acceptance examples and reported limits are
-aligned with the confirmed answer for independent review before implementation
-resumes.
-
-#### Recommended option for Q26 (with arguments for this choice)
-
-Option A is the smallest proposed change that can keep the required automatic
-activation reachable with the approved evidence sources. It makes the
-unobservable-root risk explicit instead of claiming a complete inventory.
-Option B adds a collector and still needs the same limit; option C blocks
-the tested Claude version. This recommendation is conditional on accepting
-the duplicate-watcher risk and validating all remaining profile obligations.
-
-#### Answer to Q26: confirmed option A
-
-User decision: confirmed — A, keep transcript evidence and accept the fourth
-disclosed residual limit for work of roots with no records in Q19's read set.
-
-On 2026-11-14, after the explanation of all three options, the user selected
-"A: Accept limit (Recommended)". This accepts the blind spot and possible
-duplicate watchers, including unrecorded work surviving a recorded parent's
-validated end. A recorded parent's open turn or unmatched start still blocks;
-detected missing history, incomplete reads, open calls and recorded starts
-without validated terminal records remain pending. No collector or additional
-evidence source is approved.
-
-The choice qualifies Q17=A and Q20=A; it does not establish host support or
-complete Step 1. All remaining profile gates still require validation. The
-earlier recommendation remains above as history. The user's feasibility
-question and "OK return to design" were not the decision; the explicit option
-selection records it. Review must examine this answer and the related design
-and plan clarifications before implementation resumes.
+| Q26 | A: Keep transcript evidence and accept a fourth disclosed limit for work of roots with no records in Q19's read set, including persistence-disabled fresh/resumed roots, other configuration roots, transcripts removed without detectable evidence, and unrecorded work surviving a recorded parent's validated end. This qualifies Q17/Q20 and accepts possible duplicate watchers while retaining the approved sources. Open recorded parents, unmatched starts, partial records, detected history loss and incomplete reads still block; each recorded start needs its own validated terminal record. | [Claude absence proof](#takeover-observation-and-later-reviewer-continuation), [activation reporting](#reporting-and-exit-semantics-for-resume-paused), [validation boundaries](#acceptance-examples-and-validation-boundaries-for-resume-paused). | B: A managed print-mode collector adds source, artifact and validation costs while bypass routes still require the same limit. C: The unchanged contract leaves tested Claude 2.1.325 unsupported and required activation unreachable; both hosts remain required. No collector, new source or supported profile is established. Step 1 must still validate parent coverage and all remaining profile obligations. |

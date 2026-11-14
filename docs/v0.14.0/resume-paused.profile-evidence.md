@@ -3,7 +3,7 @@
 ## Step 1 investigation outcome
 
 Step 1 is **incomplete**. Read-only observations on 2026-11-10 and disposable
-experiments on 2026-11-12 and 2026-11-13 have not established a supported profile for either
+experiments on 2026-11-12 through 2026-11-14 have not established a supported profile for either
 host. This document records the
 feasibility stop required by
 [Step 1 of the implementation plan](plan.v0.14.0.resume-paused.md#step-1-validate-pane-tied-host-profiles-before-input).
@@ -21,6 +21,100 @@ within process metadata; the writer has since reproduced the primitive but
 has not validated a complete profile. An observed
 version alone does not establish a supported input, result, clearing or
 task-state profile. Claude ledger completeness remains unproved.
+
+## Persistence-disabled Claude counterexample on 2026-11-14
+
+Claude 2.1.325 executed both foreground and host-managed background work with
+`--print --no-session-persistence`. A new session created no transcript; a
+resume of an existing session left its saved transcript unchanged. This is a
+counterexample to the required complete transcript ledger, including Q20's
+host-managed waiting scope. Q24's operation exception and Q25's background
+transport do not supply evidence for work absent from the ledger.
+
+These were owned, bounded print-mode diagnostics in the checkout, using the
+existing explicit launcher settings and only the PowerShell tool. No existing
+pane received input or task control. No hook was installed, no reviewer was
+contacted and the bulk command was not invoked. The runs did not validate
+pane identity or a production task-observation channel. Native `RtlGetVersion`
+returned Windows build 26200 with status zero; update revision was 9711.
+
+The command forms were `claude --print --session-id <new-id>` for the control,
+the same form plus `--no-session-persistence` for a new session, and
+`claude --print --resume <control-id> --no-session-persistence` for the two
+resume cases. All used `--output-format stream-json --verbose`, the existing
+`--settings <launcher-settings>`, `--strict-mcp-config`, `--tools PowerShell`,
+`--allowedTools PowerShell` and `--permission-mode dontAsk`. A bounded system
+prompt and diagnostic input restricted each run to one private inspection
+script. The script recorded only structural evidence and returned; the
+background variant also waited 15 seconds. No permission bypass was used.
+
+| Case | Complete run seconds | Tool executed | Own input/call persisted when tool ran | Transcript result |
+| --- | --- | --- | --- | --- |
+| Normal persisted control | 28.548 | Yes | Both | One new file; final 31 records, 73549 bytes |
+| New session, persistence disabled | 34.452 | Yes | Neither | No session file; no existing file changed |
+| Resume saved control, persistence disabled | 36.264 | Yes | Neither | Saved control unchanged |
+| Resume with explicit background tool, persistence disabled | 42.795 | Yes | Neither | Saved control unchanged |
+
+All four CLI runs exited zero. The normal control contained one
+`stop_hook_summary` and ended with a `cost-state` record. This is an observed
+print-mode shape, not a validated universal closing-record contract. During
+both resume cases the inspector read the same 31-record, 73549-byte file,
+with a final newline and no input or tool call for the new diagnostic turn.
+
+The final case used exactly the requested PowerShell command with
+`run_in_background=true`. Its live JSON event stream contained
+`system/task_started` with `task_type=local_bash`, then
+`system/task_notification` with `status=completed`, matching both task id and
+tool-use id. A successful model result preceded the completion notification;
+another initialization and successful result followed it. The final stream
+was parsed in memory. Only event kinds, matching identifiers, flags, counts
+and timings were saved privately, never conversation or tool payloads. These
+stream events establish that the bounded task ran; they are not an approved
+production evidence source and do not validate Q25's full `wait-answer` route.
+
+The final audit read all 13 regular JSONL files under this checkout's encoded
+Claude project directory, including nested files: 41570735 bytes, all ending
+with a newline. Only the control marker appeared, in one file. None of the
+three persistence-disabled diagnostic input markers appeared. This complete
+content scan supplements the before/after metadata checks; the negative
+finding does not depend only on modification times. It is a bounded diagnostic
+audit, not validation of Q19's full checkout/subdirectory discovery contract.
+The background task completed, all four CLI executions returned, and no
+Claude or PowerShell process created during the diagnostic interval remained
+at cleanup. Native host transcripts were not copied into artifacts.
+
+### Design return required by the persistence counterexample
+
+Step 1 requires roots without session persistence to return to design review.
+The tested root can resume a saved session and start an in-scope background
+task without adding an input, open turn, start, or terminal record to that
+session's transcript. More transcript parsing or stricter closure checks cannot
+detect the missing work. This finding leaves both profiles unsupported and
+later implementation steps blocked; no supported adapter or profile test was
+created and no validation-plan implementation status was changed.
+
+A concrete candidate source for design assessment is Claude's print-mode
+`--output-format stream-json` task lifecycle feed, whose start and completion
+events were observed here even when session persistence was disabled. Using
+it for affirmative absence would require a managed launch boundary covering
+every relevant root, durable lifecycle history across root exit and restart,
+and proof that unmanaged roots and surviving work cannot escape that boundary.
+A stream from one root, an instruction to avoid the flag, or a launcher
+default is insufficient. This candidate would reopen the current evidence,
+launcher-integration and persisted-artifact boundaries; it is not selected,
+installed, implemented or proved complete by this experiment. If those
+boundaries remain unchanged, this tested Claude version cannot meet the
+current automatic-activation contract. Q01-Q25 remain unchanged.
+
+The user selected
+[Q26=A](design.v0.14.0.resume-paused.md#design-decisions-for-resume-paused)
+on 2026-11-14. Work of roots with no records in Q19's read set becomes a
+fourth disclosed limit, which qualifies the statement above that this tested
+version cannot meet the automatic-activation contract. Both plans now carry
+the limit and its validation obligations. The reviewer reports that Claude
+2.1.325 help describes the stream format as print-only, so it cannot observe
+interactive or background sessions. No collector was selected, and the
+decision establishes no supported profile.
 
 ## Initial read-only observation boundary
 
@@ -436,6 +530,8 @@ concurrently and after the original exits. The first-tool samples support the
 input ordering in those runs only; the universal properties remain unproved.
 Any root able to run without session persistence is outside the ledger and
 must return to review.
+Under Q26=A, confirmed on 2026-11-14, the work of such a root is the fourth
+disclosed limit instead.
 
 The user confirmed design Q24=A on 2026-11-14: only validated requestor
 review-exchange starts in the Q23-bound file ordered after the marked resume
@@ -726,6 +822,8 @@ mechanisms. Report three residual limits at activation: processes detached
 by completed foreground commands or hooks may be missed; earlier hook-handler
 configuration history is unavailable; backward clock changes between process
 generations are unobservable. Descendant enumeration remains excluded.
+Q26=A, confirmed on 2026-11-14, adds a fourth limit for work of roots with no
+records in Q19's read set.
 Ownership fencing and lease expiry cannot prove watcher absence. Optional
 validated rejection of recorded detaching launchers is defense in depth only.
 Unknown or incomplete in-scope evidence stays pending. These decisions approve
