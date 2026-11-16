@@ -934,6 +934,22 @@ parity.
 | Evidence harness with budget `900` | Candidate archive downloads use D = 900 s | Same policy for candidates |
 | Default waiter behind a holder with D = 1800 s | The waiter fails at 360 s with the lock-wait diagnostic; the live holder's lock and staging are kept | Per-caller finite wait |
 
+## File-based IO cost clarification for git-cliff provisioning
+
+The reuse check of
+[Reuse check and the use guard](#reuse-check-and-the-use-guard) is the whole
+read cost of a valid entry: one guard on `git-cliff.exe`, one read of
+`entry.json`, one hash through the guard and one probe, with no lock and no
+write. A waiting caller reads the lock record once per 250 ms poll. Under the
+lock, provisioning writes the lock record, the staging owner file, the
+archive, one extracted member and `entry.json`, then publishes by directory
+renames; recovery looks only at the attempt directories of the version being
+provisioned, never at the rest of the cache. Configuration loading reads
+`.release.ini` once as before, the manifest is an in-memory table, and
+operations that never need git-cliff import no provisioning module and never
+read the budget variable. No document index or new wall-clock target is added;
+the stage budgets are the only deadlines.
+
 ## Design decisions for git-cliff provisioning
 
 The user decided each question after an explanation on 2026-11-14, and

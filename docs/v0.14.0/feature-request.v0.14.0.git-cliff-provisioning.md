@@ -522,6 +522,18 @@ efforts; llm-shared's belongs to item 8.
   this item's provisioning replaces, and the configuration and flags of the
   raw-output comparison.
 
+## File-based IO cost clarification for git-cliff provisioning
+
+Operations that do not need git-cliff read `.release.ini` once, as every
+release command does, and never touch the cache or the network. Reusing a
+valid cached binary reads its local integrity record and the executable, runs
+its `--version` and writes nothing, without network access. Only provisioning
+writes, and only inside llm-shared's ignored cache: a temporary directory per
+attempt, the verified archive, the extracted executable and its local record,
+published atomically under the per-version and per-platform lock. It never
+writes the consuming project. No path scans a directory tree, and no document
+index or wall-clock target beyond the stage budgets is added.
+
 ## Requirement clarifications for git-cliff provisioning
 
 The user decided each question after an explanation on 2026-11-13, and
