@@ -90,6 +90,28 @@ repeats the one result line, with no command of its own. A new or cleared chat
 has nothing before the request: the copy then fails with `Nothing to copy` and
 leaves the clipboard alone.
 
+### Also append the copy to a mission journal
+
+Set `JOURNAL_MISSION` in the agent's environment to an existing absolute
+folder named `YYYYMM-NAME`, for example `C:\notes\202401-Project-A`.
+Restart an already-running host if it has not inherited a new user setting.
+Then invoke `copy-conversation` as usual. It also appends the copied block
+and a `~~~~~~~~~~~~~~~~` separator line to
+`<JOURNAL_MISSION>\YYYYMM\project-aYYYYMMDD.txt`.
+
+The prefix comes from the folder name after `YYYYMM-`, always lowercase.
+Before 06:00 local time, the journal day is yesterday; at 06:00 it becomes
+today. Both the month subfolder and filename follow that day. The mission
+root stays as configured, and a supplied trimming date does not change the
+journal day. The command creates the month subfolder and file as needed.
+
+Use UTF-8 for existing journal files. Each append holds exclusive access to
+the daily file on Windows (a cooperative lock on POSIX), then flushes and
+closes it. The result names the destination. If it reports that the clipboard
+is ready but the append failed, inspect that destination before retrying.
+Unset `JOURNAL_MISSION` to return to clipboard-only copying. The underlying
+CLI's `--no-clipboard` also skips journaling. This option does not change `tth`.
+
 ## Force the export format
 
 The format is detected from the markers in the text: the Claude prompt, answer,
