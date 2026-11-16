@@ -38,6 +38,7 @@ _HOST_VARIABLES = (
     "TUIOS_SESSION",
     "TUITP_PROJECT",
     "HOME",
+    "JOURNAL_MISSION",
 )
 _TAB_LIST = (
     "# layout\n--- dev\n=== demo qal\n+ %USERPROFILE%\\git\\demo|demo-claude|claude|qal\n"

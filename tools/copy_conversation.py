@@ -48,6 +48,12 @@ if __name__ == "__main__":
 
 from tools.copy_conversation_claude import render_claude_transcript
 from tools.copy_conversation_codex import render_codex_rollout
+from tools.copy_conversation_journal import (
+    JournalError,
+    append_journal,
+    check_output_path,
+    journal_path,
+)
 from tools.trim_thinking import TranscriptFormat, TrimThinkingError, trim_transcript
 
 if TYPE_CHECKING:
@@ -456,7 +462,7 @@ def _get_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--no-clipboard",
         action="store_true",
-        help="Leave the clipboard unchanged.",
+        help="Leave the clipboard unchanged and skip automatic mission journaling.",
     )
     return parser
 
@@ -465,6 +471,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     """CLI entry point."""
     args = _get_arg_parser().parse_args(argv)
     environ = os.environ
+    journal = None if args.no_clipboard else journal_path(environ)
+    check_output_path(args.output, journal)
     host: str = args.host or detect_host(environ)
     transcript = resolve_transcript(host, args.transcript, environ)
     dates = trim_dates(args.date, args.day)
@@ -476,11 +484,19 @@ def main(argv: Sequence[str] | None = None) -> int:
         Path(args.output).write_text(copy, encoding="utf-8")
     if not args.no_clipboard:
         set_clipboard_text(copy)
+    if journal is not None:
+        try:
+            append_journal(journal, copy)
+        except (JournalError, OSError) as err:
+            msg = f"Clipboard ready; mission journal append failed at {journal}: {err}"
+            raise CopyConversationError(msg) from err
     destination = (
         "Ready to paste from clipboard."
         if not args.no_clipboard
         else "Clipboard unchanged."
     )
+    if journal is not None:
+        destination += f" Mission folder: {journal.parent.parent}. Appended to: {journal}."
     sys.stdout.write(
         f"copy-conversation ({host}): {transcript.name} rendered to "
         f"{result.source_lines} lines, {result.kept_lines} kept under "
@@ -498,7 +514,7 @@ def _log_fatal(err: Exception) -> NoReturn:
 if __name__ == "__main__":
     try:
         raise SystemExit(main())
-    except (CopyConversationError, TrimThinkingError, OSError) as err:
+    except (CopyConversationError, JournalError, TrimThinkingError, OSError) as err:
         _log_fatal(err)
 
 
