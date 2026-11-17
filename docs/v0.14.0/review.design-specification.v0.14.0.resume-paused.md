@@ -13206,3 +13206,245 @@ Human choice: Consolidate
 Outcome: continue-owning-workflow
 
 <!-- review-entry-id: human-confirmation-round-5 -->
+
+## Round 1 by requestor (exchange 8)
+
+- Recorded: 2026-11-17T11:22:32+01:00
+- Exchange: specification/design-specification/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/design.v0.14.0.resume-paused.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: unrecorded
+- Outcome: request
+
+### Review identity for design-specification resume-paused (Q27 and Q28 review) (round 1)
+
+Umbrella draft: none
+Reviewed specification: docs/v0.14.0/design.v0.14.0.resume-paused.md
+Review round: 1
+
+### Requestor assessment for design-specification resume-paused (Q27 and Q28 review) (round 1)
+
+This exchange reviews the two open questions that Step 1 implementation added to the design on 2026-11-15, Q27 and Q28. The user answered both through the choice tool that day (Q27=B, Q28=A). Neither has had an independent review, and neither is consolidated: the design body, both plans and the evidence document still describe four disclosed limits. The user asked on 2026-11-17 for this review with the questions kept as they are; consolidation is not authorized and would come only from the `Consolidate` choice at convergence.
+
+Writer assessment of the questions:
+
+- Q27 (local shell command running before its input is recorded) rests on recorded evidence, the 2026-11-14 local-order probe in the profile evidence document. Its four options cover accepting a limit, accepting it with a pane guard, keeping the contract, and adding a source or an enforced restriction. Option B, the answer, reuses the existing TUIOS discovery channel and adds no evidence source.
+- Q28 (validation cases the implementation agent cannot reproduce) lists the boot-boundary clock, sleep and fast-startup cases, the real Codex updater, and the seven-day schedule expiry with restart restoration. Option A, the answer, keeps every listed case on its fail-closed rule and records it as designed but not reproduced.
+- The committed Step 1 code (plan Q05=A) already follows both answers: the profile module carries the fifth disclosed limit of Q27=B, and the live validation checklist records the Q28=A cases as not reproduced. No supported profile follows from either.
+
+One point needs the reviewer's judgment before consolidation. Q27=B's guard requires every live Claude pane that TUIOS shows for this checkout to be freshly idle before activation. The activating requestor's own pane is busy by definition while it runs the marked resume command, and design item 4's fresh idle and empty-input evidence concerns the target pane. As worded, the guard either blocks every activation started from a Claude requestor pane or relies on an exemption it does not state; the Q23=A binding already covers the requestor's own transcript. A covered wording correction of the answer (exempt the bound requestor pane, which Q23=A binds) may be enough, or a new question may be needed.
+
+No other missing question is known to the writer. The design body is unchanged since the Q26 consolidation; no reviewer wording suggestion is pending.
+
+### Change summary for design-specification resume-paused (Q27 and Q28 review) (round 1)
+
+Since the completed Q26 consolidation exchange (settled design at commit `50610b4c`), the design changed in one commit, `ffba391a` (`docs(resume-paused): record Step 1 decisions`): it gained a new `## Open questions for the v0.14.0 resume-paused design` section holding Q27 and Q28, each with its context, analogy, options, recommendation, answer and the user's dated decision. No line of the design body or of its decision table changed. The plan's own question blocks (Q05 to Q07) belong to the plan and are outside this exchange.
+
+### Writer response for design-specification resume-paused (Q27 and Q28 review) (round 1)
+
+Writer response:
+
+This is the first round of a new exchange; there is no earlier feedback to accept or dispute. The questions and the user's recorded answers are presented unchanged, as the user asked. The writer flags the requestor-pane scope of Q27=B's pane guard in the assessment for the reviewer to judge, and proposes no edit before that judgment.
+
+### Reviewer focus for design-specification resume-paused (Q27 and Q28 review) (round 1)
+
+Check for missing questions, assess the existing options and answers, and suggest any clearer wording.
+
+<!-- review-entry-id: request-round-1-exchange-8 -->
+
+### LLM nature completion for reviewer (exchange 8)
+
+Recorded nature: `codex`
+
+Completed artifacts:
+
+- `.reviews/a.review-active.specification.design-specification.v0.14.0.resume-paused.md`
+- `.reviews/a.review-requested.design-specification.v0.14.0.resume-paused.md`
+
+<!-- review-entry-id: llm-nature-completion-reviewer-exchange-8 -->
+
+## Round 1 by reviewer (exchange 8)
+
+- Recorded: 2026-11-17T11:30:53+01:00
+- Exchange: specification/design-specification/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/design.v0.14.0.resume-paused.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Outcome: answer
+
+### Reviewer assessment for design-specification resume-paused (Q27 and Q28 review) round 1
+
+The request and current design agree on specification/design-specification/v0.14.0/resume-paused, exchange 8, round 1, without an umbrella. I read the full current design and the cited local-command experiment, and checked the relevant live-validation rows and existing boot/schedule policy. This is a specification assessment; I ran no host experiments or tests and changed no specification.
+
+Q27 and Q28 are relevant, distinct questions. Q27=B and Q28=A are explicit human decisions from 2026-11-15; preserve both records. Neither decision establishes a supported profile. The design body still describes the pre-consolidation contract, as the request openly states. That deliberate state is not a demand to consolidate now.
+
+Q27's recorded input-order failure is substantiated by the cited experiment. Its pane guard should include the requestor. The request's proposed exemption is unnecessary under Q25=A and would weaken the chosen guard. Q28, however, overstates what rejection of detected disagreement proves: untested assumptions can suppress detection, and a wider tolerance admits more disagreement. Its support policy needs concrete conservative behavior before this formulation can converge.
+
+Disposition: changes-requested. The blocker is the missing operational meaning of Q28's fail-closed promise, not the human decision to defer experiments or the already reviewed Step 1 code deliverable with an empty registry. No new evidence source, hook, live experiment, or unilateral reversal of a human choice is requested.
+
+### Question verdicts for design-specification resume-paused (Q27 and Q28 review) round 1
+
+#### Q27 verdict for design-specification resume-paused (round 1)
+
+Agree with the question and choose B, as the human did. A and B differ meaningfully in coverage of visible panes; C preserves the original ordering requirement; D requires an additional concrete proposal. The observed 46-record transcript during execution and input at record 49 afterward justify asking this question.
+
+Keep every discovered live Claude pane in the guard, including the Q23-bound requestor. The requestor is busy during marked resume, but reviewer activation occurs later. Design item 4 explicitly requires closure even of the requestor's turn, and Q25=A requires a host-background answer wait followed by turn closure. Thus the intended sequence is marked resume and takeover, background answer wait, closed requestor turn, fresh idle evidence, then reviewer eligibility. Before closure, report pending; later continuation already exists. Q23 proves a binding, not absence of an unrecorded local command. Exempting that pane could miss a later local command while its transcript still shows the last closed turn.
+
+Suggested clarification, without changing B: "The guard includes the proved requestor pane. Under Q25=A the requestor starts its answer wait through the host background mechanism and closes its turn; activation remains pending until every discovered live Claude pane, including that requestor, has fresh validated idle evidence. No pane exemption follows from Q23 binding."
+
+Also qualify the benefit and risk claims. Passing this guard does not establish all remaining profile obligations, and the accepted risk is possible duplicate work/watchers, not a proved maximum of one duplicate. Ownership fencing protects authorized protocol publication; it is not proof that no duplicate process or earlier side effect occurs. In the analogy, B's guard uses an existing observation source; only D proposes a new one. The pane-idle signature must reject the observed running local command, and unknown or unreadable layouts remain pending. No additional human choice is needed to retain the explicitly chosen all-pane guard.
+
+#### Q28 verdict for design-specification resume-paused (round 1)
+
+Agree that reproducibility and support eligibility need an explicit question. Preserve the recorded A decision. I would choose A with a concrete fail-closed rule for each deferred case, rather than A's current unsupported assurance that missing experiments affect availability only. B is a distinct evidence-first alternative. C misstates the prior contract: the design already says a human owns later live validation. Explain that C retains the full pre-support evidence obligation; do not imply only the implementation agent could satisfy it.
+
+The present A rationale is not established. The boot comparison rejects only when now minus uptime is earlier than the fixed boundary beyond tolerance. A larger tolerance makes that predicate less restrictive. If uptime excludes a suspended interval, a backward clock step can be hidden by that interval, exactly as design item 5 already warns. A false true-boot assumption could also discharge surviving ordinary work. These outcomes are not necessarily extra pending results. Q21 already accepts some undetectable clock changes, but that does not prove every unvalidated boot or uptime assumption falls within that accepted limit.
+
+Schedule expiry and restoration similarly need explicit treatment: an untested seven-day expiry or restart must never be assumed to terminate a recorded schedule. Retaining its unresolved definition is conservative; silently dropping it could falsely establish absence. The current ledger's unmatched schedule reason illustrates the conservative alternative. Real-updater testing can be deferred while all image identity, path, manifest and process rechecks remain mandatory, but deferral alone does not validate those independent primitives or the updater's behavior.
+
+Suggested replacement principle: "The named experiments may remain recorded as designed fail-closed, not reproduced. That label is not evidence that an unvalidated predicate is true. A profile may be supported only with documented, tested conservative handling for each unresolved predicate; an affected activation remains pending when that predicate is needed. No schedule is discharged solely by untested expiry or restart assumptions, and no ordinary work is discharged by an uncertain true-boot boundary. All independent identity and binding checks remain required. The profile records the fixed tolerance, its basis and the exact clock uncertainty it accepts; widening tolerance is not described as strengthening fail-closed behavior."
+
+Missing decision boundary: if the intended interpretation of A is to authorize positive absence despite unresolved boot/schedule assumptions, the current question does not disclose those additional consequences. First provide the conservative branch rules above. If those cannot satisfy the intended support policy, add a narrowly scoped follow-up question offering conservative pending behavior versus an explicitly described additional residual risk, with consequences and a recommendation. Do not infer the latter from the existing choice or mark it confirmed. No mandatory new question is needed if the writer can implement the confirmed fail-closed intent without expanding its risks.
+
+### Requested changes for design-specification resume-paused (Q27 and Q28 review) round 1
+
+Requested changes:
+
+1. Make Q28=A's per-case runtime/support rules explicit. Cover the fixed boot source, sleep-inclusive uptime, fast startup/true-boot uncertainty, schedule expiry and restart restoration, and the real-updater scenario. Identify which uncertain predicate keeps an activation pending and which independent evidence must still pass before a profile is pinned. Distinguish a deferred experiment from permission to assume its outcome.
+2. Correct Q28's assertions that every unreproduced case necessarily fails toward pending and that a deliberately wide tolerance is conservative. State the tolerance's required basis and accepted uncertainty, retaining Q21's existing clock limit without silently broadening it to other missing evidence. Keep unresolved schedules until validated terminal/restoration evidence resolves them; retain the regardless-of-boot schedule scope.
+3. Address the requestor-pane concern by retaining the all-pane guard and explaining Q25's background-wait/turn-closure sequence. Do not add a Q23-based pane exemption. Preserve initial activation and later-continuation checks and the existing bounded observation behavior.
+4. Polish Q27's risk statements and analogy, and Q28's description of the existing human validation ownership, as detailed in the question verdicts. Preserve both dated human decisions verbatim. If a substantive expansion beyond their fail-closed intent is necessary, propose a new explicit question instead of silently changing an answer.
+5. Keep the Q27/Q28 question blocks and do not consolidate. Provide the proposed corrections in the next review request; if the user's keep-as-is instruction prevents editing those blocks, supply the proposed replacement wording in caller-owned review inputs and identify the approval still needed. Record the future alignment obligations for the design body, both plans and evidence companion, without claiming that consolidation or profile support has occurred.
+
+### Writer instructions for design-specification resume-paused (Q27 and Q28 review) round 1
+
+Preserve Q27=B and Q28=A as human decisions and keep the current question blocks unconsolidated. Address the Q28 support-policy gap and provide concrete proposed wording for another review round. Retain the requestor in Q27's all-pane guard; Q25 already supplies the path to a closed, idle requestor turn. Do not introduce an exemption or any additional accepted risk without an explicit decision.
+
+The future consolidation must align the ordering exception, fifth-limit disclosure, all-pane guard, deferred-case rules, acceptance scenarios and profile-support gates across the design, plans and evidence companion. That alignment is not authorized by this answer. Plan Q05's code-first/empty-registry decision is outside this exchange; distinguish code-deliverable completion from host support when later reconciling stale status prose. Neither profile is established by this review.
+
+Publish the revised formulation and the response through the existing specification exchange. The recommendation is changes-requested; no consolidation or commit is authorized.
+
+### Final reviewer decision for design-specification resume-paused (Q27 and Q28 review) round 1
+
+Decision: changes-requested. The writer should apply the concrete instructions and publish another automated review round.
+
+<!-- review-entry-id: answer-round-1-exchange-8 -->
+
+## Round 2 by requestor (exchange 8)
+
+- Recorded: 2026-11-17T11:41:00+01:00
+- Exchange: specification/design-specification/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/design.v0.14.0.resume-paused.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Outcome: request
+
+### Review identity for design-specification resume-paused (Q27 and Q28 review) (round 2)
+
+Umbrella draft: none
+Reviewed specification: docs/v0.14.0/design.v0.14.0.resume-paused.md
+Review round: 2
+
+### Requestor assessment for design-specification resume-paused (Q27 and Q28 review) (round 2)
+
+The Q27 and Q28 blocks now carry the round 1 corrections; both stay unconsolidated, and both dated user decisions are unchanged byte for byte.
+
+- Q27=B: option B states that the guard includes the proved requestor pane, with the Q25=A sequence (background answer wait, closed requestor turn, fresh validated idle evidence for every discovered live Claude pane) and no exemption from the Q23=A binding. The idle signature must reject the observed running local command, and passing the guard discharges no other profile obligation. The risk wording now says possible duplicate work or watchers, with ownership fencing rejecting only unauthorized protocol publication. The analogy maps the guard to the existing TUIOS pane observation and leaves new sources to option D. A dated clarification note under the answer records this and the consolidation alignment obligations.
+- Q28=A: option A now states that "designed fail-closed, not reproduced" is not evidence, that a profile needs documented, tested conservative handling for each unresolved predicate, and that an activation needing one stays pending. Its per-case rules cover the fixed boot source and recorded tolerance (a wider tolerance loosens the check), sleep-inclusive uptime and fast startup (no ordinary work discharged by an unproved boundary), schedule expiry and restart (no schedule discharged by an untested assumption, definitions read regardless of boot) and the Codex updater (every identity, path, manifest and process recheck stays mandatory). The pros, cons and recommendation no longer claim that every case fails toward pending by itself. Option C now keeps the full pre-support evidence obligation with the human who owns later live validation, not the agent alone.
+
+The writer judges that these rules narrow A toward pending and add no accepted risk, so no new question is needed. Because they change the text of the option the user chose, the Q28 note says the clarification is presented to the user at the review gate. No other missing question is known to the writer.
+
+Markdown lint, spelling and whitespace checks of the design pass.
+
+### Change summary for design-specification resume-paused (Q27 and Q28 review) (round 2)
+
+Only the Q27 and Q28 question blocks of the design changed (72 lines added, 27 removed); the design body and its decision table are unchanged.
+
+- Q27: the BBQ mapping of the guard; option A's risk pro; option B's requestor-pane scope, idle-signature and remaining-obligation sentences; the recommendation's risk wording; a dated clarification note after the unchanged decision record.
+- Q28: option A rewritten with its per-case rules, pros and cons; option C's evidence owner and consequence; the recommendation; a dated clarification note after the unchanged decision record.
+
+### Writer response for design-specification resume-paused (Q27 and Q28 review) (round 2)
+
+Writer response:
+
+All five requested changes of round 1 are accepted and applied in the question blocks; there is no disagreement. The writer withdraws the requestor-pane exemption raised in its round 1 assessment: the reviewer's Q25=A sequence makes the requestor's turn close before activation, so the all-pane guard stays whole.
+
+The user's "keep questions" instruction meant keeping the questions unconsolidated, not freezing their wording, so the corrections are edits of the blocks rather than proposals in review inputs. Both dated user decisions are preserved verbatim; the dated clarification notes sit after them.
+
+Two future obligations are recorded for consolidation and are not claimed as done: the alignment the notes list across the design body, both plans and the evidence document; and the Step 1 code, whose ledger already keeps unmatched schedules pending, but whose boot boundary will need the clarified Q28 rule (no ordinary work discharged by an unproved boundary) before any profile is pinned. No profile is pinned today, so no real pane is affected.
+
+### Reviewer focus for design-specification resume-paused (Q27 and Q28 review) (round 2)
+
+Check for missing questions, assess the existing options and answers, and suggest any clearer wording.
+
+<!-- review-entry-id: request-round-2-exchange-8 -->
+
+## Round 2 by reviewer (exchange 8)
+
+- Recorded: 2026-11-17T11:45:27+01:00
+- Exchange: specification/design-specification/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/design.v0.14.0.resume-paused.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Outcome: answer
+
+### Reviewer assessment for design-specification resume-paused (Q27 and Q28 review) round 2
+
+Recommend convergence of the Q27/Q28 formulation. The substantive round 1 concerns are resolved. Q27 includes the proved requestor in the all-pane guard, uses Q25's background-wait and closed-turn sequence, and no longer treats protocol fencing as protection against all duplicate work. Q28 distinguishes deferred experiments from evidence, requires tested conservative handling of unresolved predicates, and prevents uncertain boot or schedule assumptions from discharging recorded work.
+
+The dated human decisions remain Q27=B and Q28=A; both decision paragraphs were compared with HEAD and are unchanged. The Q28 clarification is later wording, not a new human decision recorded by this reviewer. Present its availability consequences at the existing human review gate as the document promises. No additional missing question is required for this conservative formulation. Any later proposal to permit activation by assuming an unresolved predicate would require a separate explicit decision.
+
+The unchanged design body and decision table still describe the pre-consolidation contract. This is explicitly disclosed and expected under the request to keep both questions unconsolidated. Agreement with these questions does not establish whole-document implementation readiness, complete consolidation, or support for either host profile. The design body, both plans and evidence companion still require the recorded alignment when consolidation is authorized. The boot-boundary implementation also needs the clarified rule before profile pinning; an empty supported-profile registry does not validate a host.
+
+Assessment uses the current question blocks, their working-tree diff, the design context already reviewed in round 1, and focused checks of Q19/Q21/Q24/Q25, lifecycle matching and boot/schedule scope. This is a specification assessment, not a rerun of implementation tests or live host validation.
+
+### Question verdicts for design-specification resume-paused (Q27 and Q28 review) round 2
+
+- Q27: Agree with the question and choose B, matching the recorded human decision. The options distinguish an unguarded residual limit, the existing-channel all-pane guard, retaining the unachievable tested-host contract, and a separately approved source or restriction. The revised wording correctly includes the requestor, requires its turn to close before fresh idle evidence can pass, and requires a signature that rejects the observed running local command. The guard does not discharge remaining profile obligations. No missing decision or substantive wording change remains.
+- Q28: Agree with the question and choose A with its current conservative per-case rules, matching the selected direction of the recorded decision. The label "designed fail-closed, not reproduced" cannot validate a predicate. An uncertain boot cannot discard earlier ordinary work; unvalidated expiry or restart cannot end a schedule; image/path/manifest/process checks remain mandatory; tolerance must have a recorded basis and cannot be described as safer merely because it is wider. These rules resolve the round 1 blocker without accepting a new risk. The later clarification must still be presented at the human gate; this answer does not retrospectively mark it human-confirmed.
+- Optional polish for Q28: the introductory statement "The design does not say whether that evidence must exist" can read as contradicting the first paragraph's existing validation requirement. Prefer: "The existing design requires validation before support; this question asks whether the named experiments may be deferred when tested conservative handling prevents reliance on their unresolved outcomes." The BBQ note can similarly say "a note plus tested conservative handling" so that it does not suggest that documentation alone permits support. Neither edit changes the now-explicit option A contract or requires another automated round.
+
+### Convergence evidence for design-specification resume-paused round 2
+
+Covered wording:
+
+Covered formulation: the current Q27 and Q28 question blocks in docs/v0.14.0/design.v0.14.0.resume-paused.md, including their options, recommendations, unchanged 2026-11-15 human decision records and 2026-11-17 clarification notes. Q27=B retains every discovered live Claude pane, including the requestor, in the validated idle guard. Q28=A permits named experiments to remain unreproduced only with documented, tested conservative handling, retaining pending whenever activation needs an unresolved predicate. The current SHA-256 is 415d6098051e877ca695b2597fd783e0357cc95459aba0ff2ad72dfffc4e5926.
+
+This coverage is advisory convergence of the unconsolidated formulation. It does not declare the unchanged body/plans/evidence aligned, the code compliant with the new clauses, or any host profile supported.
+
+Convergence rationale:
+
+All five round 1 requests are addressed in the reviewed formulation: Q28 has concrete conservative rules and an explicit evidence threshold; tolerance and uncertainty are described accurately; Q27 retains the requestor and explains the closed-turn sequence; fencing and validation-owner claims are corrected; both questions and dated decisions are preserved with future alignment obligations recorded. Only optional wording polish remains. No new risk acceptance or evidence channel is proposed, so no new specification question is missing. The human still owns the review-gate choice and any authorization to consolidate; present Q28's later clarification there. Recommend convergence, not automatic consolidation.
+
+### Writer instructions for design-specification resume-paused (Q27 and Q28 review) round 2
+
+Preserve the dated Q27=B and Q28=A decisions and keep the question blocks unconsolidated until the human chooses the next step. Recommend convergence at the existing gate, presenting Q28's later per-case clarification and its possible pending results without calling that clarification already human-confirmed. Optional introductory/analogy polish is listed in the question verdicts; there is no substantive change requiring another automated round.
+
+When consolidation is authorized, align the ordering exception, fifth-limit disclosure, all-pane guard, deferred-case rules, acceptance examples and support gates across the design body, decision table, implementation plan, validation plan and evidence companion. Apply the fresh guard on initial activation and later continuation. An uncertain boot must not exclude earlier records from the read set and thereby indirectly discharge their work; retain the required history or stay pending. A schedule terminal record must prove the schedule itself ended, not merely that one recurring firing completed. These are consequences of the reviewed rules, not new exceptions or sources.
+
+Keep implementation and support evidence distinct. Before any profile is pinned, implement and test the conservative branches and every remaining profile obligation. Preserve the mandatory independent image checks even when the real-updater experiment remains deferred. Plan Q05's code-deliverable decision is outside this exchange. This answer authorizes neither consolidation nor profile support nor a commit; those remain with their owning workflow and human gate.
+
+### Final reviewer decision for design-specification resume-paused (Q27 and Q28 review) round 2
+
+Decision: convergence-recommended. This recommendation is advisory; consolidation is not confirmed and remains at the durable human gate.
+
+<!-- review-entry-id: answer-round-2-exchange-8 -->
+
+## Round 2 by human - human-confirmation (exchange 8)
+
+- Recorded: 2026-11-17T12:28:05+01:00
+- Exchange: specification/design-specification/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/design.v0.14.0.resume-paused.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Outcome: human-confirmation
+
+Human choice: Consolidate
+Outcome: continue-owning-workflow
+
+<!-- review-entry-id: human-confirmation-round-2 -->
