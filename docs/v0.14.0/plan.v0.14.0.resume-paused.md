@@ -141,7 +141,7 @@ A bare Qxx in a framing line means the consolidated design decision table; requi
 - **Issues**: Neither host profile is validated. The consolidated design supplies a Codex loaded-image identity contract and a Claude generation-ledger candidate; both still require disposable validation.
 - **Fix intent**: Implement injected read-only host evidence adapters and document supported version/layout signatures with sanitized synthetic fixtures.
 - **Expected outcome**: Both hosts have explicit supported profiles or implementation stops for design review before delivery work.
-- **Framing**: [Design](design.v0.14.0.resume-paused.md), Clearing and delivery confirmation; Q06, Q08, Q14–Q17. Apply the shared execution command checklist and ready-to-run commands above.
+- **Framing**: [Design](design.v0.14.0.resume-paused.md), Clearing and delivery confirmation; Q06, Q08, Q14–Q17, Q27 and Q28. Apply the shared execution command checklist and ready-to-run commands above.
 - **Complexity impact**: Read cost follows the selected evidence bytes; return only typed allowlisted facts.
 - **Feature preservation**: Preserve legacy manual consent/readability, review-role isolation and existing ownership fencing while adding only the behavior assigned here.
 
@@ -157,6 +157,8 @@ A bare Qxx in a framing line means the consolidated design decision table; requi
 - `docs/v0.14.0/resume-paused.profile-evidence.md` (existing, to be updated with sanitized validation outcomes).
 - `tests/unit/tools/test_resume_paused_profiles/__init__.py` (new, to be created).
 - `tests/unit/tools/test_resume_paused_profiles/test_resume_paused_profiles_tdd.py` (new, to be created).
+
+**Current applicability (confirmed Q05=A, 2026-11-15)**: the adapter code and its tests were delivered before the live matrix, with an empty supported-profile registry; the round 6 code review covered that code deliverable. The feasibility work below continues as the open live validation checklist and gates only profile pinning and Steps 6 through 8, not adapter code. The current Step 1 tree holds `tools/resume_paused_profiles.py`, `tools/resume_paused_windows.py`, `tools/resume_paused_codex.py`, `tools/resume_paused_claude.py`, `tools/resume_paused_claude_graph.py` and `tools/resume_paused_claude_ledger.py`, each with its own `tests/unit/tools/test_resume_paused_<area>/` package, and the shared builders in `tests/unit/tools/resume_paused_test_support.py`.
 
 **Feasibility before adapter tests**: The implementation agent owns controlled disposable process/session experiments for both hosts. Existing working or review panes receive no input or task control. Never invoke the bulk CLI. Reuse existing launcher settings where available; install no hooks or new evidence channel. Record observed versions, Windows build and update revision, commands, complete lifecycle timing and sanitized outcomes. Synthetic evidence cannot establish actual host support. If a required contract fails, record the counterexample and return to design review before implementing a supported profile. Both hosts are required; later steps remain blocked until both validate.
 
@@ -228,6 +230,15 @@ Define the Codex candidate set in the profile evidence document: enumerate regul
 
 **Completion criteria**: Record the actual supported host versions, independent pre-input source, input/result/clear signatures and Claude positive no-task proof, with evidence limits. If neither Codex candidate works or required Claude proof cannot be validated, return the unresolved point to design review; do not silently enable hooks or ship one host. Run this step's listed test files with the shared targeted command, inspect its affected contracts with `rg`, and obtain exit 0 from the exact command printed by the scope resolver in the same repair cycle. Later steps remain unimplemented until separately checked.
 
+**Open follow-up for confirmed design Q28=A**: The committed Step 1 code applies a boot boundary as soon as one is supplied: `boot_boundary` in `tools/resume_paused_profiles.py` returns the fixed boot instant once its timestamp consistency check passes, and `ClaudeLedger._read` in `tools/resume_paused_claude_ledger.py` reads a non-bound transcript's ordinary lifecycle records only when it was modified since that instant. Under Q28=A an unproved boundary must exclude no earlier ordinary work. This follow-up is outside the round 6 code review and must be complete before any profile is pinned; Steps 2 through 5 may proceed meanwhile.
+
+- `tools/resume_paused_profiles.py` (existing, 270 lines): give `BootDecision` an explicit resolved or unresolved boundary. The boundary is resolved only when the pinned profile records validated true-boot semantics, sleep-inclusive uptime and its fixed tolerance with that tolerance's basis and accepted clock uncertainty; otherwise it stays unresolved with a classified reason, whatever the consistency check says.
+- `tools/resume_paused_claude_generation.py` (new, to be created): the ledger stands at 642 of its 650 lines, so first extract `continuation_places`, `_missing_predecessors`, `_writer_markers`, `_marker` and `_generation` into this module, moving their direct cases with them.
+- `tools/resume_paused_claude_ledger.py` (existing): with an unresolved boundary, evaluate the ordinary lifecycle records of every listed in-checkout transcript, as for recent files; required history that is missing, unreadable or incomplete stays pending under its existing reasons. Only a resolved boundary may bound ordinary work. Durable schedule definitions stay read regardless of boot, and a schedule closes only on its own validated deletion or terminal record: a recurring firing, an assumed seven-day expiry or a host restart closes nothing.
+- `tools/resume_paused_codex.py` (existing): unchanged; its process, image, path and manifest rechecks stay mandatory at every proof while the real-updater experiment is deferred.
+
+Tests for this follow-up: `tests/unit/tools/test_resume_paused_profiles/test_resume_paused_profiles_tdd.py` covers resolved and unresolved boot decisions and the recorded tolerance basis. `tests/unit/tools/test_resume_paused_claude_generation/test_resume_paused_claude_generation_tdd.py` (new) holds the moved generation and continuation cases. `tests/unit/tools/test_resume_paused_claude_ledger/test_resume_paused_claude_ledger_boot_tdd.py` (new) covers an older unmatched task under an unproved boundary (pending), the same task under a resolved true boot (discharged), complete older history with matched ends (proved), missing or incomplete required history (pending), and a durable schedule without validated termination, including a recurring firing, an assumed expiry and a host restart (pending). `tests/unit/tools/test_resume_paused_codex/test_resume_paused_codex_tdd.py` keeps its recheck cases. Completion evidence: these tests pass in the scope-resolved walk, and the validation plan's open Step 1 follow-up rows are closed with that evidence. Pinning a profile needs this follow-up and Step 1's validated idle signature for a running local command; it does not need Step 7's runtime guard, which stays blocked with Steps 6 through 8.
+
 #### Step 1 addendums
 
 **Line-budget checkpoint**:
@@ -242,7 +253,9 @@ Define the Codex candidate set in the profile evidence document: enumerate regul
 
 All non-Python file baselines are recorded above; new non-Python files start at 0. Recount all files at execution time.
 
-**Split guidance**: Keep host-specific parsing in its own adapter and Windows ancestry separate from profile policy. No advisory estimate is an independent completion gate.
+Current sizes for the Q28=A follow-up (2026-11-17): `tools/resume_paused_profiles.py` 270, `tools/resume_paused_claude_ledger.py` 642, `tools/resume_paused_codex.py` 496, `tests/unit/tools/test_resume_paused_profiles/test_resume_paused_profiles_tdd.py` 137; `tools/resume_paused_claude_generation.py` and the two new test files start at 0. Every file keeps the 550 safe-to-extend mark and the 650 ceiling.
+
+**Split guidance**: Keep host-specific parsing in its own adapter and Windows ancestry separate from profile policy. Extract the ledger's generation and continuation checks into `tools/resume_paused_claude_generation.py` before extending the ledger. No advisory estimate is an independent completion gate.
 
 **Full workflow timing run readiness**: Use the shared ready-to-run targeted command with all test paths listed in this step, then the scope-resolved shared gate. Fixtures must include setup, measured action and cleanup in the timing record; no live TUIOS dependency.
 
@@ -533,7 +546,7 @@ All non-Python file baselines are recorded above; new non-Python files start at 
 
 **Tests first**: Test guard contention/release and independent-checkout concurrency with deterministic barriers, including two processes on Windows. Recheck changed prompt/routing/digest/duplicates/selector/protection immediately before clear, resume and recovery Enter. Cover wildcard selector collisions, shell metacharacters as inert arguments, unconfirmed clear, Claude redundant clear with later prompt, and background-shell report-only behavior. Use fake clocks for 100-second action limits including recovery and 60-second stall. Permit Codex one Enter only after input was proved empty and two identical full captures prove this launch's exact unsubmitted command without Working/placeholder; wrong UUID, edits, expiry or ambiguous capture forbids it.
 
-**Types and behavior**: Call tuios by argument array using ask-agent --select with live session/name, --yes --stall-timeout 60000 --timeout 100000 --lines 1 --json -- and the native marked command. Resolve the wildcard selector to exactly the validated UUID before every send; preserve caller environment. Clear only the resumed conversation, never counterpart. Accept only supported profile evidence plus full latest-input proof from Step 1. Requestor precedes reviewer; no duplicate work per pane. Hold checkout OS guard through protected sequence and release on every exit.
+**Types and behavior**: Call tuios by argument array using ask-agent --select with live session/name, --yes --stall-timeout 60000 --timeout 100000 --lines 1 --json -- and the native marked command. Resolve the wildcard selector to exactly the validated UUID before every send; preserve caller environment. Clear only the resumed conversation, never counterpart. Accept only supported profile evidence plus full latest-input proof from Step 1. Requestor precedes reviewer; no duplicate work per pane. Hold checkout OS guard through protected sequence and release on every exit. Delivery accepts injected pre-send checks and runs them under the held checkout OS guard immediately before each send; a failed check stops that send without input. Step 7 supplies design Q27=B's all-pane idle guard as one such check for every Claude reviewer activation, initial or continued.
 
 **Completion criteria**: Injected transport captures exact argv and zero unintended input. Recovery is at most one pane-targeted Enter without retype or deadline reset. No bulk artifact writes or live CLI delivery occur during tests. Run this step's listed test files with the shared targeted command, inspect its affected contracts with `rg`, and obtain exit 0 from the exact command printed by the scope resolver in the same repair cycle. Later steps remain unimplemented until separately checked.
 
@@ -562,7 +575,7 @@ All non-Python file baselines are recorded above; new non-Python files start at 
 - **Issues**: Receipt alone cannot prove requestor ownership; waiter state and prior uncertain reviewer delivery cannot be guessed.
 - **Fix intent**: Observe exact schema-3 receipt/current marked claim and host result evidence under a separate fixed deadline for every receiver.
 - **Expected outcome**: Only proven requestor takeover and positive no-wait evidence permit a missing counterpart action.
-- **Framing**: [Design](design.v0.14.0.resume-paused.md), Takeover observation and later reviewer continuation; design Q04, Q12–Q17 and Q22–Q24. Apply the shared execution command checklist and ready-to-run commands above.
+- **Framing**: [Design](design.v0.14.0.resume-paused.md), Takeover observation and later reviewer continuation; design Q04, Q12–Q17, Q22–Q24 and Q27. Apply the shared execution command checklist and ready-to-run commands above.
 - **Complexity impact**: Keep responsibilities bounded; account for exact-path reads and fresh evidence as described in the shared complexity section.
 - **Feature preservation**: Preserve legacy manual consent/readability, review-role isolation and existing ownership fencing while adding only the behavior assigned here.
 
@@ -597,6 +610,28 @@ activation and later continuation, refresh every Q23 binding condition; reject
 missing or changed evidence. Preserve the reviewer's complete-generation rule
 and earlier-start lifecycle matching across session files.
 
+**Confirmed design Q27=B all-pane idle guard**: `tools/resume_paused_takeover.py`
+owns the guard composition. It takes every live Claude pane that TUIOS
+discovers for the checkout from the Step 5 planner's discovery, classifies
+each capture with Step 1's pinned screen profile, whose idle signature must
+reject a running local command, and requires fresh validated idle evidence
+from all of them, the proved requestor included after its Q25=A background
+answer wait and turn closure. The Q23=A binding and the Q24=A
+requestor-operation exclusion grant no screen exemption. A busy, unreadable or
+unknown-layout pane keeps activation pending. The guard is passed to Step 6's
+delivery as a pre-send check, so its pane discovery and captures are refreshed
+under the checkout OS guard immediately before the send, on initial activation
+and later continuation; a
+pane whose state changed since the previous check stops the send without input.
+Reporting the fifth limit in `limits=claude-wait-scope` does not replace the
+guard. Unit cases in
+`tests/unit/tools/test_resume_paused_takeover/test_resume_paused_takeover_tdd.py`
+cover a busy non-target Claude pane, a busy requestor pane before its turn
+closes, a running local command while its persisted transcript appears closed,
+unreadable and unknown-layout screens, a pane that turns busy between the check
+and the send, a successful all-idle control, and later continuation re-applying
+the guard.
+
 **Completion criteria**: Paused reviewer resumes only itself; non-requestor roles never activate a pair. Requestor receipt without current bound claim cannot trigger counterpart. No-wait ambiguity yields pending/no input, and uncertain earlier delivery is never resent. Run this step's listed test files with the shared targeted command, inspect its affected contracts with `rg`, and obtain exit 0 from the exact command printed by the scope resolver in the same repair cycle. Later steps remain unimplemented until separately checked.
 
 #### Step 7 addendums
@@ -609,7 +644,7 @@ and earlier-start lifecycle matching across session files.
 
 All non-Python file baselines are recorded above; new non-Python files start at 0. Recount all files at execution time.
 
-**Split guidance**: Keep takeover observation separate from delivery; extract reviewer-wait classification if needed before exceeding 650. No advisory estimate is an independent completion gate.
+**Split guidance**: Keep takeover observation separate from delivery; extract reviewer-wait classification, or the Q27=B pane guard into `tools/resume_paused_pane_guard.py`, if needed before exceeding 650. No advisory estimate is an independent completion gate.
 
 **Full workflow timing run readiness**: Use the shared ready-to-run targeted command with all test paths listed in this step, then the scope-resolved shared gate. Fixtures must include setup, measured action and cleanup in the timing record; no live TUIOS dependency.
 
@@ -660,7 +695,7 @@ Do not infer completion of a recorded start from its parent's termination.
 
 Verify `bin/resume_paused.bat` statically: its self-locating launcher selects the shared Python and forwards arguments only to `tools/resume_paused.py`. Agents never execute it, including help or preview. Parser/main acceptance uses injected caller/transport; live Windows launcher and pane-delivery validation remains human evidence, distinct from these automated checks. Receiver test harnesses prove their executed sequence and instruction contract, not arbitrary live-agent compliance. Import the approved Step 1 evidence builders and Step 4 receiver harness through the read dependencies above; keep scenario assertions in their owning acceptance module and transport fakes in `fakes.py`.
 
-Acceptance ownership: `test_resume_paused_cli_safety_tdd.py` covers caller rejection, dry run, exclusion/switch validation, reporting/exit codes, `tuitp` grammar and legacy manual resumes. `test_resume_paused_delivery_tdd.py` covers clear, transport, guard races, recovery Enter and receiver protected-write failures. `test_resume_paused_continuation_tdd.py` covers takeover, reviewer leave-alone, pending/activation and later/switched continuation. Keep the eight numbered steps unchanged.
+Acceptance ownership: `test_resume_paused_cli_safety_tdd.py` covers caller rejection, dry run, exclusion/switch validation, reporting/exit codes, `tuitp` grammar and legacy manual resumes. `test_resume_paused_delivery_tdd.py` covers clear, transport, guard races, recovery Enter and receiver protected-write failures. `test_resume_paused_continuation_tdd.py` covers takeover, reviewer leave-alone, pending/activation and later/switched continuation, including design Q27=B's all-pane idle guard as composed by Step 7 and refreshed by Step 6 before the send: a busy non-target or requestor pane, a running local command behind a closed-looking transcript, unreadable or unknown screens, a state change before the send and an all-idle control, on initial activation and later continuation. These cases exercise the composition, not only the `limits=claude-wait-scope` string. Keep the eight numbered steps unchanged.
 
 **Types and behavior**: Implement only documented --dry-run, --clear, repeatable --except NAME[,NAME...] and --switch-roles forms; no timeout overrides. Use one compact line per prompt-bearing checkout and omitted-pane count; distinguish accepted/unconfirmed, reviewer pending, exclusions, contention and errors. Exit 0 for expected skips/pending/success, 1 for execution/classification failures, 2 for syntax. State human-only and agent prohibition in help and canonical docs. Ship updated pause/resume/status/list instructions, validator and review tools together; older installs fail closed on new marked data.
 
@@ -722,9 +757,10 @@ read-only planner) do not send input to any pane.
 
 The adapters implement contracts the design already fixes: the Codex
 loaded-image identity sequence, the Codex session-file input proof, the Claude
-transcript ledger rules and caller classification. Their code does not change
-with the outcome of a live experiment; only the list of pinned supported
-profiles does.
+transcript ledger rules and caller classification. Synthetic tests verify the
+current design contracts. Live validation may require changes to adapter code,
+tests or profile data; no profile is pinned until its required evidence and
+conservative handling are satisfied.
 
 In which order should Step 1 deliver adapter code and live validation?
 
@@ -751,7 +787,8 @@ registry, and certifying a lock is one row of the live validation matrix.
   profile.
   - pro: The seven planned files exist, are tested and reviewed now.
   - pro: Cannot send input by construction: no profile is supported.
-  - pro: A live finding changes pinned data or one rule, not the structure.
+  - pro: Live findings can be incorporated through adapter, test or profile
+    changes while the empty registry prevents delivery.
   - con: A later counterexample can still force rework of an adapter rule.
   - con: Step 1's implementation check must report code complete and
     validation incomplete as two separate states.
@@ -783,6 +820,14 @@ through the choice tool ("A: Code now (Recommended)"): keep the adapters and
 tests with the empty registry, track the remaining live matrix as a checklist,
 let Steps 2 through 5 proceed, and keep Steps 6 through 8 blocked until both
 hosts have a pinned profile.
+
+Clarified in plan review exchange 2, round 1 (2026-11-17), without changing A:
+the context above is historical, since design Q27 and Q28 have been
+consolidated and the Step 1 adapters exist. Its earlier claim that adapter code
+does not change with a live experiment contradicted A's own rework con; the
+context now states that live validation may require code, test or profile
+changes. Code-first does not complete the Q27=B and Q28=A follow-ups that
+Steps 1 and 7 now carry.
 
 ### Q06: Check gate fails on the protocol-owned review transcripts
 
@@ -884,6 +929,15 @@ character changed in either file. The Markdown check then exits 0 and
 `rvw_status` reports a trustworthy idle state. The effective outcome of Q06 is
 therefore a transcript repair, not a baseline change.
 
+Effective outcome after the second 2026-11-15 decision, clarified in plan
+review exchange 2, round 1 (2026-11-17): retain the committed baseline and
+apply only the explicitly authorized whitespace repair. The initial baseline
+proposal of option A is superseded, and so is the recommendation's long-term
+option C: `MD024` is mandatory, and excluding checks would suppress findings
+rather than fix their generation. The baseline acceptance test restricts the
+Markdown rules to `MD033` and the authorized file-specific `MD038` row; the
+`LS003` row was dropped because the Q07 repair made it unnecessary.
+
 ### Q07: Clearing the mandatory duplicate-heading findings of the design transcript
 
 After Q06, 26 `MD024` findings remain in
@@ -978,3 +1032,11 @@ with the repair, so that Q06 baseline row was removed; the `MD032` rows were
 removed later, as the second correction under Q06 records. The renderer still
 omits the exchange on confirmation and escalation headings, so a later
 exchange on this design can repeat the finding.
+
+Recurrence recorded on 2026-11-17: design review exchange 8 produced ten new
+repeated headings, nine reviewer-rendered answer headings without an exchange
+qualifier and one core confirmation heading. They were repaired under a
+separate explicit user exception given that day. The 2026-11-15 exception
+covered only its own 26 headings and authorizes no later repair, and
+recurrence is not limited to confirmation and escalation headings. The
+renderer fix of option C remains a separate effort outside this plan.
