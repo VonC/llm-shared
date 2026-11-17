@@ -33,7 +33,9 @@ plan question Q05; the local-command failure below is design question Q27, and
 the cases the agent cannot reproduce are design question Q28. The user
 confirmed Q05=A, Q27=B and Q28=A on 2026-11-15. Design exchange 8 reviewed
 Q27 and Q28, and on 2026-11-17 the user accepted the clarified Q28 wording and
-consolidated both into the design; plan Q05 stays an open plan question block.
+consolidated both into the design; plan review exchange 2 reviewed plan Q05,
+and the user consolidated it into the plan's implementation decisions that
+day.
 Q27=B adds a fifth disclosed limit, for a running local command whose input is
 not yet recorded, and a guard requiring every live Claude pane of the
 checkout, the proved requestor included, to be freshly idle. Q28=A records the

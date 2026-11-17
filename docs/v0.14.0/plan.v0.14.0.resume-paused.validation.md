@@ -22,6 +22,8 @@ Yes. Step 1 has been fully implemented.
 
 The round 6 reviewer confirms the Step 1 code deliverable under plan Q05=A. The repairs of rounds 1 through 5 are present, including R5-1: every proved continuation into a listed file requires its predecessor, and the regression cases cover missing ancestors, foreign, unreadable and incomplete predecessors alongside a complete-history control and the boot boundary. No unresolved code finding remains. The read-only adapters and shared builders are implemented; the writer reports a green whole-suite speed gate with 6166 tests and 100% coverage over `tools`. The reviewer assessed coverage statically and did not repeat the gate. This is not host support: the registry remains empty, every live validation row stays open, and Steps 6 through 8 remain blocked until both hosts have a pinned profile.
 
+This verdict is the round 6 code-review result for the code deliverable that plan Q05=A scopes. It does not certify the obligations that design Q27=B and Q28=A, consolidated on 2026-11-17, added later: the conservative boot-boundary and schedule handling of Step 1 stays open in the follow-up section below and must be complete before any profile is pinned, and the all-pane idle guard belongs to Step 7.
+
 ### Goal for Step 1
 
 Establish usable read-only evidence for both hosts before enabling any delivery.
@@ -80,6 +82,17 @@ Establish usable read-only evidence for both hosts before enabling any delivery.
 - **Real enumeration**: `list_jsonl_files` lists regular JSONL files under a root across all sub-directories and reports an incomplete enumeration on any listing error, symbolic link or junction; `DirectorySessionStore` and `DirectoryTranscriptSource` put it behind the two store protocols with an injected whole-file reader.
 - **Validation evidence**: the round 6 review request records the writer's `ghog day --full=speed --whole-suite` walk on the staged tree that holds these repairs, with its time, exit code, coverage and outliers. The reviewer's findings of rounds 2 to 5 were static counterexamples; the writer turned each one into a test that fails without its repair.
 
+### Open code follow-up for Step 1
+
+Design Q28=A, consolidated on 2026-11-17, requires code that the round 6 code review did not cover. These rows stay open until the named tests pass in the scope-resolved walk; they must close before any profile is pinned, and they do not block Steps 2 through 5.
+
+- [ ] `tools/resume_paused_profiles.py`: `BootDecision` reports a resolved or unresolved boundary; only a profile that records validated true-boot semantics, sleep-inclusive uptime and its tolerance basis resolves it. Test: `test_resume_paused_profiles_tdd.py`.
+- [ ] `tools/resume_paused_claude_generation.py` (new): the ledger's generation and continuation checks are extracted before the ledger grows past its 642 of 650 lines. Test: `test_resume_paused_claude_generation/test_resume_paused_claude_generation_tdd.py` (new).
+- [ ] `tools/resume_paused_claude_ledger.py`: an unresolved boundary excludes no earlier ordinary work; missing or incomplete required history stays pending; a recurring firing, an assumed expiry or a host restart closes no schedule. Test: `test_resume_paused_claude_ledger/test_resume_paused_claude_ledger_boot_tdd.py` (new), with an older unmatched task under an unproved boundary, a resolved true-boot control, complete older history with matched ends, missing or incomplete history and durable schedules without validated termination.
+- [ ] `tools/resume_paused_codex.py`: unchanged, with every process, image, path and manifest recheck kept mandatory while the real-updater experiment is deferred. Test: `test_resume_paused_codex_tdd.py`.
+
+The all-pane idle guard of design Q27=B is Step 7 runtime work, not a Step 1 row: Step 1 validates only the screen profile's idle signature, which must reject a running local command, and pinning a profile does not wait for Step 7.
+
 ### Live validation checklist for Step 1
 
 Plan Q05=A keeps these rows open without blocking Steps 2 through 5. Steps 6 through 8 stay blocked until both hosts have a pinned profile. No row below is validated.
@@ -102,7 +115,6 @@ Plan Q05=A keeps these rows open without blocking Steps 2 through 5. Steps 6 thr
 - [ ] Codex: unique full-input and pane proof, refresh after scroll-off, timestamp resolution.
 - [ ] Codex: version-specific input, result, clear, idle and busy signatures.
 - [ ] Both: caller classification against real agent and human shells.
-- [ ] Both: tested conservative handling for each predicate design Q28=A leaves unresolved, including the Claude ledger's boot boundary, which must discharge no ordinary work until validated, before any profile is pinned.
 
 ### New types or classes introduced for Step 1
 
@@ -401,6 +413,8 @@ work is a disclosed possible duplicate-watcher limit when every other gate
 passes. Verify that open recorded parent turns, unmatched starts, partially
 recorded work, detected missing history and incomplete reads still block.
 Do not infer completion of a recorded start from its parent's termination.
+
+- Design Q27=B: `tools/resume_paused_takeover.py` composes the all-pane idle guard from the Step 5 planner's TUIOS discovery and Step 1's pinned screen profile, and passes it to Step 6's delivery as a pre-send check refreshed under the checkout OS guard. Every live Claude pane of the checkout, the proved requestor included after its Q25=A turn closure, needs fresh validated idle evidence; Q23=A and Q24=A grant no screen exemption, and a busy, unreadable or unknown-layout pane keeps activation pending. `test_resume_paused_takeover_tdd.py` covers a busy non-target pane, a busy requestor pane before its turn closes, a running local command behind a closed-looking transcript, unreadable and unknown screens, a state change between check and send, an all-idle control and later continuation; `test_resume_paused_continuation_tdd.py` exercises the composition end to end, not only the limits string.
 
 ### What was implemented for Step 7
 
