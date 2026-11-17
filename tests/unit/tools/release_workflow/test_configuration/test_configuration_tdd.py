@@ -1,13 +1,23 @@
-"""Prove strict, read-only parsing, domain defaults and managed path validation."""
+"""Prove strict, read-only parsing, domain defaults and managed path validation.
+
+Step 1 of v0.14.0 git-cliff-provisioning: `[git-cliff]` is a known section
+whose only key is `version`; the shipped empty pin table gives it no default
+and tests no pin, a synthetic table gives an omitted key a default with the
+usual source information, and loading configuration imports the manifest and
+no other `git_cliff` module.
+"""
 
 from __future__ import annotations
 
+import importlib
+import sys
 from pathlib import Path
 from typing import TYPE_CHECKING, cast
 
 import pytest
 
 from tools.release_workflow.configuration import ConfigurationError, load_configuration
+from tools.release_workflow.git_cliff.manifest import PLATFORM_TRIPLE, AdmittedPin
 from tools.release_workflow.paths import ProjectIdentity
 from tools.release_workflow.schemas import (
     TOOLING_SCHEMA,
@@ -15,12 +25,18 @@ from tools.release_workflow.schemas import (
     SchemaRegistry,
     SectionSchema,
     ValueRule,
+    git_cliff_domain,
 )
 
 if TYPE_CHECKING:
     from tools.release_workflow.schemas import ConfigSections, ConfigValue
 
 INVALID_INPUT = 2
+_GIT_CLIFF = "tools.release_workflow.git_cliff"
+_SYNTHETIC_PINS = (AdmittedPin(
+    version="2.14.2", default=True, triple=PLATFORM_TRIPLE, asset=f"git-cliff-2.14.2-{PLATFORM_TRIPLE}.zip",
+    size=1, sha256="b" * 64, member="git-cliff-2.14.2/git-cliff.exe", evidence="bundle",
+),)
 
 
 def project(root: Path) -> ProjectIdentity:
@@ -251,6 +267,61 @@ def test_empty_managed_path_is_not_the_project_root(tmp_path: Path) -> None:
     write(tmp_path, "[sample]\nfile=\n")
     with pytest.raises(ConfigurationError, match="must not be empty"):
         load_configuration(project(tmp_path), configured)
+
+
+@pytest.mark.parametrize("text", ["[git-cliff]\nexecutable=x.exe\n", "[git-cliff]\nversion=2.14.2\npath=bin\n"])
+def test_git_cliff_is_a_known_section_without_an_executable_key(tmp_path: Path, text: str) -> None:
+    """The section exists; any key other than `version` is unknown, like an executable."""
+    write(tmp_path, text)
+    with pytest.raises(ConfigurationError, match=r"^Unknown configuration key: .*\[git-cliff\]") as caught:
+        load_configuration(project(tmp_path))
+    assert caught.value.exit_code == INVALID_INPUT
+
+
+@pytest.mark.parametrize("text", ["", "[git-cliff]\n"])
+def test_shipped_empty_table_gives_no_value_and_tests_no_pin(tmp_path: Path, text: str) -> None:
+    """Until admission, an omitted key yields no value and a declared one is refused."""
+    if text:
+        write(tmp_path, text)
+    assert dict(load_configuration(project(tmp_path)).sections["git-cliff"]) == {}
+    write(tmp_path, "[git-cliff]\nversion = 2.14.2\n")
+    with pytest.raises(ConfigurationError, match=r"\[git-cliff\] version='2\.14\.2': not a tested git-cliff pin; tested: none$"):
+        load_configuration(project(tmp_path))
+
+
+def test_synthetic_pin_default_and_untested_pin(tmp_path: Path) -> None:
+    """An omitted key gets the manifest default with the source information of any default."""
+    configured = registry(git_cliff_domain(_SYNTHETIC_PINS))
+    value = load_configuration(project(tmp_path), configured).sections["git-cliff"]["version"]
+    source = tmp_path / ".release.ini"
+    assert (value.source, value.section, value.key, value.raw, value.value, value.defaulted) == (source, "git-cliff", "version", "2.14.2", "2.14.2", True)
+    write(tmp_path, "[git-cliff]\nversion = 2.15.0\n")
+    with pytest.raises(ConfigurationError) as caught:
+        load_configuration(project(tmp_path), configured)
+    assert str(caught.value) == f"{source} [git-cliff] version='2.15.0': not a tested git-cliff pin; tested: 2.14.2"
+    assert caught.value.exit_code == INVALID_INPUT
+
+
+def _git_cliff_modules() -> set[str]:
+    """Name the loaded modules of the git-cliff package."""
+    return {name for name in sys.modules if name == _GIT_CLIFF or name.startswith(_GIT_CLIFF + ".")}
+
+
+def test_loading_configuration_imports_only_the_manifest(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """A fresh import and load of configuration pull the manifest and no other git-cliff module.
+
+    The fresh modules are removed again on teardown, and the package attributes
+    that the fresh import rebinds are restored, so later tests keep the classes
+    they imported.
+    """
+    package = importlib.import_module("tools.release_workflow")
+    for attribute in ("configuration", "schemas", "git_cliff"):
+        monkeypatch.setattr(package, attribute, getattr(package, attribute))
+    for name in ("tools.release_workflow.configuration", "tools.release_workflow.schemas", *_git_cliff_modules()):
+        monkeypatch.delitem(sys.modules, name)
+    fresh = importlib.import_module("tools.release_workflow.configuration")
+    fresh.load_configuration(project(tmp_path))
+    assert _git_cliff_modules() == {_GIT_CLIFF, _GIT_CLIFF + ".manifest"}
 
 
 # eof
