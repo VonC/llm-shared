@@ -77,6 +77,10 @@ Relevant regression packages include artifact-home/configuration, review-resume/
 
 Every new unit test follows `tests/unit/tools/test_resume_paused_<area>/test_resume_paused_<area>_tdd.py`; create its listed `__init__.py`. The one exception is Step 4's instruction-contract test, which joins the existing `tests/unit/tools/test_instruction_structure/` package. Parsing/path/routing properties also use explicit `_pbt.py` files. Property-based testing is useful for malformed/duplicate JSON, canonicalization round trips and pane-order invariance; temporal transport/claim scenarios use deterministic state transitions rather than random sleeps. Step 8 adds larger process-boundary acceptance tests in the existing `tests/acceptance` tree convention.
 
+### Markdown gate and review transcripts
+
+Every step's walk opens with `check.bat`, whose Markdown step also reads the tracked review transcripts. `MD012`, `MD024` and `MD025` are mandatory: no baseline row or policy can allow or disable them, and the baseline acceptance test authorizes only `MD033` and one file-specific `MD038` row, so `.markdownlint-baseline.json` stays unchanged ([Q06](#implementation-decisions)). Review transcripts are protocol-owned and never edited by hand. When a transcript finding blocks the gate, repair only the exact lines under an explicit human exception that names them, keeping each entry's `review-entry-id` footer and its `## Round` prefix ([Q07](#implementation-decisions)): an exchange qualifier for a repeated heading, an empty line for list spacing. Each exception covers only its own lines: on 2026-11-15 one covered 26 headings and 11 list-spacing fixes, and on 2026-11-17 a separate one covered design exchange 8's ten headings. The renderer change that would make every heading unique remains a separate effort outside this plan.
+
 ## Shared execution command checklist
 
 Apply this checklist to every step, including changes to prior-step files.
@@ -158,7 +162,7 @@ A bare Qxx in a framing line means the consolidated design decision table; requi
 - `tests/unit/tools/test_resume_paused_profiles/__init__.py` (new, to be created).
 - `tests/unit/tools/test_resume_paused_profiles/test_resume_paused_profiles_tdd.py` (new, to be created).
 
-**Current applicability (confirmed Q05=A, 2026-11-15)**: the adapter code and its tests were delivered before the live matrix, with an empty supported-profile registry; the round 6 code review covered that code deliverable. The feasibility work below continues as the open live validation checklist and gates only profile pinning and Steps 6 through 8, not adapter code. The current Step 1 tree holds `tools/resume_paused_profiles.py`, `tools/resume_paused_windows.py`, `tools/resume_paused_codex.py`, `tools/resume_paused_claude.py`, `tools/resume_paused_claude_graph.py` and `tools/resume_paused_claude_ledger.py`, each with its own `tests/unit/tools/test_resume_paused_<area>/` package, and the shared builders in `tests/unit/tools/resume_paused_test_support.py`.
+**Current applicability ([Q05=A](#implementation-decisions))**: the adapter code and its tests were delivered before the live matrix, with an empty supported-profile registry; the round 6 code review covered that code deliverable. The feasibility work below continues as the open live validation checklist and gates only profile pinning and Steps 6 through 8, not adapter code. The current Step 1 tree holds `tools/resume_paused_profiles.py`, `tools/resume_paused_windows.py`, `tools/resume_paused_codex.py`, `tools/resume_paused_claude.py`, `tools/resume_paused_claude_graph.py` and `tools/resume_paused_claude_ledger.py`, each with its own `tests/unit/tools/test_resume_paused_<area>/` package, and the shared builders in `tests/unit/tools/resume_paused_test_support.py`.
 
 **Feasibility before adapter tests**: The implementation agent owns controlled disposable process/session experiments for both hosts. Existing working or review panes receive no input or task control. Never invoke the bulk CLI. Reuse existing launcher settings where available; install no hooks or new evidence channel. Record observed versions, Windows build and update revision, commands, complete lifecycle timing and sanitized outcomes. Synthetic evidence cannot establish actual host support. If a required contract fails, record the counterexample and return to design review before implementing a supported profile. Both hosts are required; later steps remain blocked until both validate.
 
@@ -732,311 +736,24 @@ All non-Python file baselines are recorded above; new non-Python files start at 
 
 ## Implementation decisions
 
+Step 1 raised Q05, Q06 and Q07, and the user confirmed each on 2026-11-15; Q06
+was answered again that day after its first option proved impossible. Plan
+review exchange 2 reviewed them together with the Step 1, 6, 7 and 8
+assignments for design Q27=B and Q28=A, and converged at round 2. On
+2026-11-17 the user selected Consolidate. The complete question blocks,
+options, recorded answers and application records are preserved in snapshot
+commit `29a964e9`.
+
 | Question | Decision and rationale | Integrated in | Rejected alternatives |
 | --- | --- | --- | --- |
 | Q01 | A: Pure shared synthetic host, pane and session builders keep unit and acceptance evidence consistent; scenario assertions remain local. | [Step 1](#step-1-implementation); read dependencies in Steps 2–8. | Duplicating builders per test leaf risks fixture drift. |
 | Q02 | A: A shared test-only receiver harness calls the real validator and locked claim against temporary files, with evidence changes before every protected step and separate instruction-contract checks. Its proof covers that sequence and contract, not arbitrary live-agent compliance. | [Step 4](#step-4-implementation), [Step 8](#step-8-implementation). | Text-contract checks alone omit executable write-boundary regressions; a production writer or new authorization mechanism is outside this choice. |
 | Q03 | A: Start acceptance in separate CLI/safety, delivery and continuation modules using the shared support. Each starts at 0, below 550 safe to extend, with ceiling 650; eight steps remain unchanged. | [Step 8](#step-8-implementation). | A single growing scenario module mixes responsibilities and would need a later split. |
 | Q04 | A: Derive marked-claim binding from raw marker/current prompt/routing/locked exchange under the transition lock; validate Codex carried identity/launch id and reject mismatches without a claim write. Fresh pane/input proof remains a separate pre-claim validator call. | [Step 4](#step-4-implementation). | Caller-copied binding fields can drift from locked evidence; reading host session files inside claim would mix host validation with ownership mutation. |
+| Q05 | A: Deliver the Step 1 adapters and tests before the live matrix, with an empty supported-profile registry, so every real pane stays unsupported or pending. Track the live matrix and the Q27/Q28 code follow-up as validation-plan rows; Steps 2 through 5 proceed, and Steps 6 through 8 stay blocked until both hosts have a pinned profile. Code completion and validation are reported as separate states, and live findings may still change adapter code, tests or profile data. | [Step 1](#step-1-implementation), [validation plan Step 1](plan.v0.14.0.resume-paused.validation.md#step-1-validate-pane-tied-host-profiles-before-input). | B: Feasibility first delivers nothing while the matrix and its open questions last. C: Splitting Step 1 into 1A and 1B changes the eight-step structure that the validation plan, the step journal and Q03 rely on. |
+| Q06 | Effective outcome: keep the committed `.markdownlint-baseline.json` and repair the 11 `MD032` list-spacing findings of the two v0.14.0 review transcripts as whitespace only, under the user's explicit exception extended from Q07. The first choice, baseline allowance rows, proved impossible: `MD024` is mandatory, and the baseline acceptance test authorizes only `MD033` and the file-specific `MD038` row. | [Markdown gate and review transcripts](#markdown-gate-and-review-transcripts). | A: Baseline rows cannot allow mandatory `MD024`, and the acceptance test rejects new Markdown rule rows. C: Excluding transcripts from Markdown rules would suppress findings rather than fix their generation, and mandatory rules cannot be disabled by policy. |
+| Q07 | A: Clear repeated `MD024` headings with a one-time repair under an explicit human exception scoped to the exact lines, appending the exchange qualifier and keeping entry footers and the `## Round` prefix. Applied to 26 headings on 2026-11-15; design exchange 8's ten headings were repaired on 2026-11-17 under a separate exception. No exception carries over to a later repair. | [Markdown gate and review transcripts](#markdown-gate-and-review-transcripts). | B: A disclosed failing gate breaks tools that require exit 0 and hides new findings among known ones. C: Waiting for a renderer change stops this plan; that fix remains a separate effort. |
 
 ## Completion handoff and validation limits
 
 Map the requirement acceptance criteria to Step 8 scenarios and record profile feasibility, fake-run evidence and whole-suite scope separately from human live validation. Keep the [deferred senv checklist](feature-request.v0.14.0.resume-paused.md#deferred-senv-integration-follow-up) unchecked: its separate effort still owes eligible-layout coverage for both hosts/review pairs, startup and daemon restoration, opt-out/native modes and saved/live pane-identity continuity. Open that effort at completion and revisit it when launch-time behavior changes. Preserve [the design's compatibility limits](design.v0.14.0.resume-paused.md#existing-tuitp-compatibility-and-later-shared-integration). No claim of full topic integration may rely on grammar fixtures alone.
-
-## Open questions for the v0.14.0 resume-paused implementation plan
-
-### Q05: Order of Step 1 adapters and the live validation matrix
-
-Step 1 says "Feasibility before adapter tests" and "Tests first after
-feasibility": no adapter or test is written until both host profiles pass
-disposable validation. After five days of experiments the remaining matrix
-still holds thirteen Claude obligations and six Codex obligations, and design
-Q27 and Q28 are open. Meanwhile none of the seven planned Step 1 files exists,
-and Steps 2 through 5 (artifact parsing, routing JSON, receiver validation,
-read-only planner) do not send input to any pane.
-
-The adapters implement contracts the design already fixes: the Codex
-loaded-image identity sequence, the Codex session-file input proof, the Claude
-transcript ledger rules and caller classification. Synthetic tests verify the
-current design contracts. Live validation may require changes to adapter code,
-tests or profile data; no profile is pinned until its required evidence and
-conservative handling are satisfied.
-
-In which order should Step 1 deliver adapter code and live validation?
-
-#### BBQ for Q05
-
-A workshop builds a lock tester before the locks arrive. The tester's wiring
-follows the published lock standard. The boss can let the crew build and bench
-test the tester now, with an empty list of approved lock models so it refuses
-every real lock until one is certified, or keep the bench empty until every
-lock model has been certified by hand.
-
-In this picture: the lock tester is the set of Step 1 adapters, the published
-standard is the consolidated design, the bench test is the unit suite with
-synthetic fixtures, the list of approved lock models is the supported-profile
-registry, and certifying a lock is one row of the live validation matrix.
-
-#### Options for Q05
-
-- Option A: Deliver adapters and tests now, with an empty supported-profile
-  registry. Every real pane classifies as unsupported or pending until a
-  profile is pinned from recorded evidence. Track the live matrix as a
-  checklist in the validation plan. Steps 2 through 5 may proceed; Steps 6
-  through 8, which deliver input, stay blocked until both hosts have a pinned
-  profile.
-  - pro: The seven planned files exist, are tested and reviewed now.
-  - pro: Cannot send input by construction: no profile is supported.
-  - pro: Live findings can be incorporated through adapter, test or profile
-    changes while the empty registry prevents delivery.
-  - con: A later counterexample can still force rework of an adapter rule.
-  - con: Step 1's implementation check must report code complete and
-    validation incomplete as two separate states.
-- Option B: Keep the current order. No adapter or test until both profiles
-  validate.
-  - pro: No code is written against a contract that may change.
-  - con: Nothing is delivered while the matrix and open design questions last.
-- Option C: Split Step 1 into 1A (adapters, tests, empty registry) and 1B
-  (live matrix, pinned profiles), renumbering the checklist only.
-  - pro: Each half has one clear completion state.
-  - con: Changes the eight-step structure that the validation plan, the step
-    journal and plan Q03 refer to.
-
-#### Recommended option for Q05 (with arguments for this choice)
-
-Option A: the contracts are settled in the design through Q26, the registry
-starts empty so no delivery is possible, and the remaining matrix becomes
-visible, checkable rows instead of a gate in front of all code. It keeps the
-eight steps unchanged, unlike option C.
-
-#### Answer to Q05: option A (with reason why it must be accepted as the answer)
-
-Option A: it produces tested, reviewable Step 1 code immediately, keeps both
-hosts fail-closed until evidence pins a profile, and blocks only the steps
-that send input.
-
-User decision: confirmed — A: Code now. Selected by the user on 2026-11-15
-through the choice tool ("A: Code now (Recommended)"): keep the adapters and
-tests with the empty registry, track the remaining live matrix as a checklist,
-let Steps 2 through 5 proceed, and keep Steps 6 through 8 blocked until both
-hosts have a pinned profile.
-
-Clarified in plan review exchange 2, round 1 (2026-11-17), without changing A:
-the context above is historical, since design Q27 and Q28 have been
-consolidated and the Step 1 adapters exist. Its earlier claim that adapter code
-does not change with a live experiment contradicted A's own rework con; the
-context now states that live validation may require code, test or profile
-changes. Code-first does not complete the Q27=B and Q28=A follow-ups that
-Steps 1 and 7 now carry.
-
-### Q06: Check gate fails on the protocol-owned review transcripts
-
-Every step ends with the scope-resolved `ghog day` walk, which opens with
-`check.bat`. On 2026-11-15 the first walk of this branch showed that its
-Markdown step fails on two files no implementation step edits:
-
-- `docs/v0.14.0/review.design-specification.v0.14.0.resume-paused.md`:
-  26 `MD024`, 26 `LS003` and 10 `MD032` findings.
-- `docs/v0.14.0/review.plan.v0.14.0.resume-paused.md`: 1 `MD032` finding.
-
-These transcripts are written by the review exchange and must not be edited by
-hand. The findings come from headings repeated across review rounds and from
-list spacing in published answers. With the Step 1 code in place, every other
-check step passes and the affected tests pass with 100% coverage, but the walk
-cannot reach exit 0, so no step of this plan can complete its gate.
-`.markdownlint-baseline.json` already carries an allowance for one earlier
-review transcript (`v0.11.0`, `MD038`).
-
-How should the step gate treat these transcript findings?
-
-#### BBQ for Q06
-
-A building inspector refuses to sign off a new extension because the visitors'
-book at reception has pages glued in crooked. Nobody on the build crew is
-allowed to touch the visitors' book. The owner can tell the inspector those
-exact pages are a known exception, have the receptionist redo the pages under
-supervision, or tell the inspector that visitors' books are never part of a
-building inspection.
-
-In this picture: the inspector is `check.bat`, the extension is the Step 1
-code, the visitors' book is the review transcript, the crooked pages are the
-`MD024`, `LS003` and `MD032` findings, the known-exception list is
-`.markdownlint-baseline.json`, the supervised redo is a human-approved
-transcript repair, and removing visitors' books from inspections is a policy
-exclusion for review transcripts.
-
-#### Options for Q06
-
-- Option A: Add baseline allowances for these two transcripts with the exact
-  rule counts above.
-  - pro: Follows the existing `v0.11.0` transcript precedent; no transcript
-    byte changes.
-  - pro: Any new finding outside the allowed counts still fails.
-  - con: The baseline is described as no-growth; this grows it by four rows.
-  - con: A later review round that repeats headings raises the counts and
-    needs the allowance raised again.
-- Option B: Repair the transcripts under an explicit human exception to the
-  hand-editing prohibition, as was done for the sensitive-path redactions.
-  - pro: The findings disappear instead of being allowed.
-  - con: Rewrites published protocol history in 63 places.
-  - con: The next review round reintroduces the same findings.
-- Option C: Exclude `review.*.md` transcripts from `MD024`, `LS003` and
-  `MD032` by check policy.
-  - pro: Fixes the cause for every effort and every later round.
-  - con: A shared check-policy change outside this effort's scope, needing its
-    own tests and its own review.
-
-#### Recommended option for Q06 (with arguments for this choice)
-
-Option A: it is the smallest change that lets this plan's gates run, it has a
-precedent in the same baseline file, and it keeps every other Markdown rule
-active on the transcripts. Option C is the better long-term repair but belongs
-to a separate effort; option B edits protocol history and does not last.
-
-#### Answer to Q06: option A (with reason why it must be accepted as the answer)
-
-Option A: without a decision no step of this plan can reach a green walk, and
-A unblocks the gate without touching protocol-owned text or shared check
-policy.
-
-User decision: confirmed — A: Baseline rows. Selected by the user on
-2026-11-15 through the choice tool ("A: Baseline rows (Recommended)"): add
-four allowance rows with the exact counts above to
-`.markdownlint-baseline.json`. No transcript text changes.
-
-Correction recorded on 2026-11-15 after applying the decision: option A cannot
-cover `MD024`. The check refuses the row with "mandatory rule MD024 cannot be
-allowed by the baseline"; `MD012`, `MD024` and `MD025` can be neither allowed
-by a baseline row nor disabled by policy. The writer had not verified this
-before recommending option A. Three rows were applied (`LS003` 26 and `MD032`
-10 for the design transcript, `MD032` 1 for the plan transcript). The Markdown
-step then reports exactly the 26 `MD024` findings of the design transcript.
-Q07 asks how to clear them.
-
-Second correction recorded on 2026-11-15: no baseline row of option A could
-stay. The full-suite run failed
-`test_markdown_baseline_contains_only_authorized_rules`, an existing
-acceptance test that authorizes only `MD033` and one file-specific `MD038`
-row. The `LS003` row had already become unnecessary after the Q07 repair. All
-rows were removed and `.markdownlint-baseline.json` is back to its committed
-content. Asked again through the choice tool, the user selected "A: Blank-line
-repair (Recommended)" for the 11 `MD032` findings, extending the Q07 exception
-to a whitespace-only repair. Applied on 2026-11-15: one empty line inserted
-before each of the 10 flagged list blocks of the design transcript; in the
-plan transcript, the token `314.` that began line 670 inside a paragraph moved
-to the end of line 669, so the paragraph keeps its text. No non-whitespace
-character changed in either file. The Markdown check then exits 0 and
-`rvw_status` reports a trustworthy idle state. The effective outcome of Q06 is
-therefore a transcript repair, not a baseline change.
-
-Effective outcome after the second 2026-11-15 decision, clarified in plan
-review exchange 2, round 1 (2026-11-17): retain the committed baseline and
-apply only the explicitly authorized whitespace repair. The initial baseline
-proposal of option A is superseded, and so is the recommendation's long-term
-option C: `MD024` is mandatory, and excluding checks would suppress findings
-rather than fix their generation. The baseline acceptance test restricts the
-Markdown rules to `MD033` and the authorized file-specific `MD038` row; the
-`LS003` row was dropped because the Q07 repair made it unnecessary.
-
-### Q07: Clearing the mandatory duplicate-heading findings of the design transcript
-
-After Q06, 26 `MD024` findings remain in
-`docs/v0.14.0/review.design-specification.v0.14.0.resume-paused.md`, and the
-step gate still cannot reach exit 0. The design went through several review
-exchanges. Each exchange restarts its round numbers, and the transcript
-headings carry the round but not the exchange, so later exchanges repeat
-earlier headings. Sixteen findings are protocol headings of the form
-`## Round N by human - human-confirmation` or `## Round 2 by requestor`; ten
-are section headings of published requests and answers, such as
-`### Reviewer focus for design-specification resume-paused (round 1)`.
-
-The review tools locate a transcript entry through its
-`<!-- review-entry-id: ... -->` footer and the `## Round` prefix before it, not
-through the full heading text. The headings are written by
-`tools/review_exchange_store.py` and by the request and answer renderers.
-
-How should these 26 findings be cleared so the step gate can pass?
-
-#### BBQ for Q07
-
-A club keeps one minute book for every committee meeting about the same
-subject. Each meeting numbers its agenda items from one, so the book holds
-several items called "Item 5". The auditor refuses any book with two items of
-the same name, and that rule has no exceptions list. The secretary may pencil
-the meeting number next to each repeated item, the club may change how minutes
-are numbered from now on and reprint the book, or the treasurer may sign the
-accounts anyway and note that the minute book alone failed the audit.
-
-In this picture: the minute book is the design review transcript, each meeting
-is one review exchange, "Item 5" is a heading such as
-`## Round 5 by human - human-confirmation`, the auditor's rule without an
-exceptions list is mandatory `MD024`, pencilling the meeting number is a
-one-time heading repair under a human exception, changing how minutes are
-numbered is a renderer change in the review tools, and signing anyway is a
-disclosed gate exception.
-
-#### Options for Q07
-
-- Option A: One-time repair under an explicit human exception. Append the
-  exchange number to each of the 26 repeated headings, for example
-  `## Round 5 by human - human-confirmation (exchange 3)`. Change no other
-  byte. Verify afterwards that `rvw_status` still reports a trustworthy idle
-  state and that the review tests pass, then drop the `LS003` row if those
-  findings disappear with the repair.
-  - pro: The gate becomes green for real, so every later tool in the chain
-    sees exit 0.
-  - pro: Entry lookup uses footers and the `## Round` prefix, which the repair
-    keeps.
-  - con: Edits published protocol history in 26 places.
-  - con: The next review exchange on this design repeats headings again and
-    needs the same repair, until the renderer changes.
-- Option B: Disclosed gate exception for this effort. Treat the walk as passed
-  when its only failing step is Markdown and its only findings are these 26,
-  and state that at every gate. Fix the renderer in a separate effort.
-  - pro: No transcript byte changes.
-  - con: Later tools that require exit 0, such as the handoff and the code
-    review evidence capture, may refuse to continue.
-  - con: A real new Markdown finding has to be told apart from the 26 by hand.
-- Option C: Stop this plan until a separate effort makes the review renderer
-  write unique headings and migrates existing transcripts.
-  - pro: Repairs the cause for every effort.
-  - con: Step 1 and every later step wait on another effort.
-
-#### Recommended option for Q07 (with arguments for this choice)
-
-Option A: it is the only option that gives a truly green gate today, it keeps
-the entry markers the tools rely on, and its scope is 26 heading lines with a
-mechanical, checkable change. The renderer fix of option C remains worth doing
-as its own effort so the repair is not needed again.
-
-#### Answer to Q07: option A (with reason why it must be accepted as the answer)
-
-Option A: it removes the last gate blocker without weakening a mandatory rule
-and without waiting on another effort, and each changed line can be listed for
-approval before it is applied.
-
-User decision: confirmed — A: One-time repair. Selected by the user on
-2026-11-15 through the choice tool ("A: One-time repair (Recommended)"), which
-grants the exception to edit the published design review transcript for this
-repair only.
-
-Applied on 2026-11-15: exactly 26 heading lines changed and no other byte
-(SHA-256 `3d288b3e…7015` before, `29c2ff5c…fe54` after; 13199 lines both).
-Each repeated heading received `(exchange N)`, the form the review tools
-already write on request and answer round headings; N comes from the entry
-footer or from the latest round-1 request before the heading. One escalation
-heading, whose qualified form already existed, received
-`(exchange 2, entry 2)`. Afterwards the Markdown check exits 0 and
-`rvw_status` reports a trustworthy idle state. The `LS003` findings disappeared
-with the repair, so that Q06 baseline row was removed; the `MD032` rows were
-removed later, as the second correction under Q06 records. The renderer still
-omits the exchange on confirmation and escalation headings, so a later
-exchange on this design can repeat the finding.
-
-Recurrence recorded on 2026-11-17: design review exchange 8 produced ten new
-repeated headings, nine reviewer-rendered answer headings without an exchange
-qualifier and one core confirmation heading. They were repaired under a
-separate explicit user exception given that day. The 2026-11-15 exception
-covered only its own 26 headings and authorizes no later repair, and
-recurrence is not limited to confirmation and escalation headings. The
-renderer fix of option C remains a separate effort outside this plan.
