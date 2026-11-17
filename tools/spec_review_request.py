@@ -6,6 +6,11 @@ apart. The pure renderer reuses the shared exchange envelope, while the command
 adapter validates every caller-owned root file before it writes either output.
 The request template is read through `template_text.read_template`, shared by
 every renderer.
+
+Fix: the transcript summary writes the reviewed specification and umbrella
+relative to the project root, as `code_review_request` does, so the tracked
+transcript never records a local user folder. The request keeps the exact
+absolute identity of its machine envelope.
 """
 
 # ruff: noqa: EM101, EM102, TRY003
@@ -67,7 +72,11 @@ _FATAL_EXIT = 2
 
 @dataclass(frozen=True)
 class SpecificationRoundInput:
-    """Validated authored content and exact identity for one request round."""
+    """Validated authored content and exact identity for one request round.
+
+    ``project_root``, when known, makes the transcript summary's paths
+    relative to it; the request content always keeps the exact identity.
+    """
 
     context: ReviewContext
     round_number: int
@@ -76,6 +85,7 @@ class SpecificationRoundInput:
     change_summary: str
     writer_response: str
     human_guidance: str | None = None
+    project_root: Path | None = None
 
     def __post_init__(self) -> None:
         """Reject invalid rounds, families, timestamps, or empty authored text."""
@@ -171,6 +181,30 @@ def _identity_fields(source: SpecificationRoundInput) -> str:
     )
 
 
+def _transcript_identity_fields(source: SpecificationRoundInput) -> str:
+    """Render portable paths for the tracked transcript when the root is known."""
+    root = source.project_root
+    if root is None:
+        return _identity_fields(source)
+    context = source.context
+    try:
+        document = context.document_path.relative_to(root).as_posix()
+        umbrella = (
+            context.umbrella_path.relative_to(root).as_posix()
+            if context.umbrella_path is not None
+            else "none"
+        )
+    except ValueError as error:
+        raise ReviewExchangeError("review paths must be within the project root") from error
+    return "\n".join(
+        (
+            f"Umbrella draft: {umbrella}",
+            f"Reviewed specification: {document}",
+            f"Review round: {source.round_number}",
+        ),
+    )
+
+
 def _response_section(
     source: SpecificationRoundInput,
     *,
@@ -255,7 +289,7 @@ def _transcript_summary(source: SpecificationRoundInput) -> str:
     label = _identity_label(source)
     sections = (
         f"### Review identity for {label} (round {source.round_number})\n\n"
-        f"{_identity_fields(source)}",
+        f"{_transcript_identity_fields(source)}",
         f"### Requestor assessment for {label} (round {source.round_number})\n\n"
         f"{_authored_body(source, source.assessment, parent_heading_level=3)}",
         f"### Change summary for {label} (round {source.round_number})\n\n"
@@ -430,6 +464,7 @@ def _render_from_arguments(args: argparse.Namespace, project_root: Path) -> None
         human_guidance=(
             None if guidance is None else _read_utf8(guidance, "guidance file")
         ),
+        project_root=root,
     )
     rendered = render_specification_request(source)
     _write_utf8(request_output, rendered.request_content, "request content output")

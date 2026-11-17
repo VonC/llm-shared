@@ -2,6 +2,11 @@
 
 The tests keep complete request Markdown and transcript feedback on one frozen
 round input, and exercise the thin file-based command boundary separately.
+
+Fix: the transcript summary writes the reviewed specification and umbrella
+relative to the project root, as the code review renderer does, so the tracked
+transcript never records a local user folder; the request keeps its exact
+absolute identity, and a path outside the root is rejected.
 """
 
 # ruff: noqa: S105
@@ -129,6 +134,35 @@ def _assert_paired_authored_content(
     assert "Review round: 2" in rendered.transcript_summary
     assert "if there are very few edits" not in rendered.transcript_summary
     assert "publish the project-root" not in rendered.transcript_summary
+
+
+def test_render_transcript_uses_project_relative_identity(tmp_path: Path) -> None:
+    """Keep the request identity exact and the tracked transcript paths portable."""
+    source = replace(_round_input(tmp_path), project_root=tmp_path)
+    assert source.context.umbrella_path is not None
+
+    rendered = requestor.render_specification_request(source)
+    _envelope, authored = parse_envelope_markdown(rendered.request_content)
+
+    assert "Reviewed specification: " + source.context.document_path.as_posix() in authored
+    assert "Umbrella draft: " + source.context.umbrella_path.as_posix() in authored
+    assert f"Reviewed specification: feature-request.{_VERSION}.{_SLUG}.md\n" in (
+        rendered.transcript_summary
+    )
+    assert "Umbrella draft: draft.v0.11.0.review-mode.md\n" in rendered.transcript_summary
+    assert tmp_path.as_posix() not in rendered.transcript_summary
+
+
+def test_render_transcript_rejects_a_document_outside_the_project_root(
+    tmp_path: Path,
+) -> None:
+    """A specification outside the declared root cannot get a portable transcript path."""
+    project = tmp_path / "project"
+    project.mkdir()
+    source = replace(_round_input(tmp_path, umbrella=False), project_root=project)
+
+    with pytest.raises(ReviewExchangeError, match="within the project root"):
+        requestor.render_specification_request(source)
 
 
 def test_render_accepts_no_umbrella_and_preserves_guidance_verbatim(
@@ -418,6 +452,9 @@ def test_cli_reads_explicit_files_and_writes_the_pair_once(
     assert "Assess these questions." in request_text
     assert "Added Q01." in summary_text
     assert "Human guidance:\n\nKeep the exact words." in summary_text
+    assert "Reviewed specification: " + document.resolve().as_posix() in request_text
+    assert f"Reviewed specification: plan.{_VERSION}.{_SLUG}.md\n" in summary_text
+    assert "Umbrella draft: none" in summary_text
 
 
 @pytest.mark.parametrize(
