@@ -1515,8 +1515,9 @@ book alone.
 
 In this picture: the sign-in book is the Claude transcript ledger, the workers
 are inputs that run commands, the side door is local shell mode (`!`), locking
-the gate is activating the reviewer, the guard is a new evidence source, and
-welding the door shut is an enforced restriction on local shell mode.
+the gate is activating the reviewer, the guard at every door is the existing
+TUIOS pane observation that option B reuses, and welding the door shut is
+option D's enforced restriction or new evidence source.
 
 #### Options for Q27
 
@@ -1527,8 +1528,9 @@ welding the door shut is an enforced restriction on local shell mode.
   still needs fresh idle and empty-input evidence, and recorded open work still
   blocks.
   - pro: Uses only approved evidence; Claude activation becomes reachable.
-  - pro: Same risk class as Q26=A: a duplicate watcher at worst, and ownership
-    fencing still protects publication.
+  - pro: Same risk class as Q26=A: possible duplicate work or watchers.
+    Ownership fencing still rejects an unauthorized protocol publication; it
+    does not prove that no duplicate process or earlier side effect occurred.
   - pro: Q20=A already requires reviewer watchers to start through host
     background mechanisms, so a watcher run in `!` mode is already outside the
     supported way to wait.
@@ -1540,6 +1542,14 @@ welding the door shut is an enforced restriction on local shell mode.
   checkout must show fresh idle evidence under a validated screen profile; a
   pane that is busy, unreadable or of unknown layout keeps activation pending.
   The disclosed limit then covers only Claude roots that have no TUIOS pane.
+  The guard includes the proved requestor pane. Under Q25=A the requestor
+  starts its answer wait through the host background mechanism and closes its
+  turn; activation remains pending until every discovered live Claude pane,
+  including that requestor, has fresh validated idle evidence. No pane
+  exemption follows from the Q23=A binding, which proves a binding, not the
+  absence of an unrecorded local command. The idle signature must reject the
+  observed running local command, and passing the guard discharges no other
+  profile obligation.
   - pro: Closes the gap for the roots the tool can already see, with no new
     evidence source.
   - pro: Narrows the limit to a case Q26=A nearly covers already.
@@ -1564,9 +1574,10 @@ welding the door shut is an enforced restriction on local shell mode.
 Option B: it keeps the approved evidence sources, makes activation reachable,
 and removes most of the newly accepted risk by reusing pane state the tool
 must already read. The residue, a Claude root outside TUIOS running a local
-command, sits next to Q26=A's accepted limit and has the same worst case: one
-duplicate watcher whose publication ownership fencing still rejects. Option A
-alone leaves visible panes unchecked for no saving in evidence sources.
+command, sits next to Q26=A's accepted limit and carries the same kind of
+risk: possible duplicate work or watchers, whose unauthorized protocol
+publication ownership fencing still rejects. Option A alone leaves visible
+panes unchecked for no saving in evidence sources.
 Option C blocks a required host indefinitely. Option D names nothing concrete.
 
 #### Answer to Q27: option B (with reason why it must be accepted as the answer)
@@ -1582,6 +1593,11 @@ accept a fifth disclosed limit for a running local command whose input is not
 yet recorded, and require every live Claude pane TUIOS shows for this checkout
 to be freshly idle before activation. The design body, both plans and the
 evidence document still describe four limits until consolidation.
+
+Clarified after review round 1 (2026-11-17), without changing B: the guard
+includes the proved requestor pane, as option B now states. Consolidation must
+align the ordering exception, the fifth-limit disclosure and the all-pane guard
+across the design body, both plans and the evidence document.
 
 ### Q28: Validation cases the implementation agent cannot reproduce
 
@@ -1601,8 +1617,9 @@ The fail-closed runtime rules for these cases are already designed: an image
 whose path, allocation or identity query disagrees is rejected, and a boot
 instant that disagrees with current time minus uptime beyond tolerance stays
 pending. What is missing is observed evidence that the host behaves as the
-rules assume. The design does not say whether that evidence must exist before
-a profile is supported, nor who produces it.
+rules assume. The existing design requires validation before support; this
+question asks whether the named experiments may be deferred when tested
+conservative handling prevents reliance on their unresolved outcomes.
 
 Which evidence is required for these cases before a profile is supported?
 
@@ -1611,32 +1628,54 @@ Which evidence is required for these cases before a profile is supported?
 A garage tests a new alarm before selling it. The fitter can slam doors and
 tap windows in the workshop. The fitter cannot stage a real break-in during a
 power cut, or wait a week to see whether the battery lasts. The garage can
-sell the alarm with a note saying which cases were bench-tested only, make the
-owner run a checklist at home before the warranty starts, or keep the alarm on
-the shelf until every case has happened for real.
+sell the alarm with a note saying which cases were bench-tested only, plus
+tested conservative handling for the others, make the owner run a checklist at
+home before the warranty starts, or keep the alarm on the shelf until every
+case has happened for real.
 
 In this picture: the alarm is a host profile, workshop tests are the agent's
 disposable sessions, the break-in during a power cut is a clock change across
 sleep or fast startup, the week-long battery wait is the schedule expiry and
-the real Codex update, the note is the profile evidence document, the owner's
+the real Codex update, the note is the profile evidence document with the
+per-case conservative rules, the owner's
 checklist is a human-run validation script, and the shelf is an unsupported
 profile.
 
 #### Options for Q28
 
 - Option A: Conservative runtime, recorded limits. The agent validates what it
-  can reproduce. For the cases above, the runtime keeps its designed
-  fail-closed rule, uses a deliberately wide fixed tolerance, and stays
-  pending on any detected disagreement. The evidence document lists each case
-  as "designed fail-closed, not reproduced", and a profile may be supported
-  with that list.
+  can reproduce, and the evidence document lists each case above as "designed
+  fail-closed, not reproduced". That label is not evidence that an unvalidated
+  predicate holds. A profile may be supported only with documented, tested
+  conservative handling for each unresolved predicate, and an activation that
+  needs such a predicate stays pending:
+  - Boot boundary: the fixed boot instant comes from the validated boot
+    process; a disagreement with current time minus uptime beyond the
+    profile's fixed tolerance stays pending. The profile records that
+    tolerance, its basis and the exact clock uncertainty it accepts, within
+    Q21=A's disclosed clock limit; a wider tolerance loosens this check and is
+    never described as strengthening it.
+  - Sleep-inclusive uptime and fast startup: until validation shows that
+    uptime counts suspended time and that the boundary is a true boot, the
+    boundary discharges no ordinary work; a start recorded before it stays in
+    scope until its own validated terminal record.
+  - Schedule expiry and restart: no recorded schedule is discharged by an
+    untested expiry or restart assumption; it stays unresolved until a
+    validated deletion or terminal record, and schedule definitions are still
+    read regardless of boot.
+  - Codex updater: deferring the real-updater experiment never waives the
+    image identity, path, manifest and process rechecks; each stays mandatory
+    at every proof.
   - pro: Step 1 can finish without waiting for a reboot, an upstream release
     or seven days.
-  - pro: Every listed case fails toward "pending, no input", never toward
-    input.
-  - con: A wrong assumption about uptime, fast startup or the updater would
-    show up as needless pending results, or stay unnoticed inside Q21=A's
-    already disclosed clock limit.
+  - pro: An unresolved predicate keeps the affected activation pending; its
+    outcome is never assumed.
+  - con: Until the deferred experiments run, activation is unavailable
+    whenever it depends on an unresolved predicate, such as work started
+    before an unproved boot boundary or a schedule without a validated end.
+  - con: A wrong assumption about uptime, fast startup or the updater can hide
+    a disagreement rather than show one; the rules above keep the affected
+    cases pending instead of relying on its detection.
 - Option B: Human-run checklist before support. The agent writes read-only
   observation scripts; the human runs them once around a reboot, a sleep, a
   clock change and a Codex update, and the results are recorded before a
@@ -1644,20 +1683,22 @@ profile.
   - pro: Real evidence for every case.
   - con: Support waits on manual steps and on an upstream release date.
   - con: The seven-day schedule case still cannot be finished quickly.
-- Option C: Keep the contract unchanged: the implementation agent must
-  reproduce every case before a profile is supported.
+- Option C: Keep the contract unchanged: every case is reproduced before a
+  profile is supported, by the implementation agent where it can and by the
+  human who owns later live validation otherwise.
   - pro: Strongest evidence standard.
-  - con: Some cases cannot be reproduced by the agent at all, so Step 1 never
-    completes.
+  - con: Support waits on every case, the seven-day schedule expiry and an
+    upstream Codex release included.
 
 #### Recommended option for Q28 (with arguments for this choice)
 
-Option A: every one of these cases already resolves to "pending, no input"
-when the runtime sees disagreement, so the missing experiments affect how
-often activation is available, not whether unsafe input can be sent. The
-human checklist of option B can still be run later and its results added to
-the evidence document without changing code. Option C makes a required host
-profile unreachable.
+Option A: with its per-case rules, each unresolved predicate keeps the
+affected activation pending instead of being assumed, so the missing
+experiments limit when activation is available, not whether unsafe input can
+be sent, and no untested assumption discharges recorded work. The human
+checklist of option B can still be run later and its results added to the
+evidence document without changing code. Option C keeps a required host
+profile unsupported until every case has been reproduced.
 
 #### Answer to Q28: option A (with reason why it must be accepted as the answer)
 
@@ -1670,3 +1711,10 @@ on 2026-11-15 through the choice tool ("A: Record as not reproduced
 (Recommended)"): the agent validates what it can reproduce; the listed cases
 keep their fail-closed rule with a wide fixed tolerance and are recorded in
 the evidence document as designed but not reproduced.
+
+Clarified after review round 1 (2026-11-17): option A above now states its
+per-case rules. They narrow A toward pending and add no accepted risk. The
+decision record above predates them and is unchanged; the clarification is
+presented to the user at the review gate. Consolidation must align the
+deferred-case rules, the acceptance scenarios and the profile-support gates
+across the design body, both plans and the evidence document.
