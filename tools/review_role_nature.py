@@ -195,13 +195,18 @@ class RoleNatureBackfillResult:
 
 @dataclass(frozen=True)
 class RoleNatureBackfillContext:
-    """Selected role, current nature, occurrence, and conflict authority."""
+    """Selected role, current nature, occurrence, and conflict authority.
+
+    ``project_root``, when known, makes the transcript completion entry list
+    its artifacts relative to it, never with the host's absolute folder.
+    """
 
     role: ReviewRole
     current_nature: LlmNature
     transcript_path: Path
     exchange_occurrence: int
     override: bool = False
+    project_root: Path | None = None
 
 
 class RoleNatureBackfill:
@@ -242,6 +247,7 @@ class RoleNatureBackfill:
             context.exchange_occurrence,
             context.current_nature,
             tuple(path for path, _content in rendered),
+            project_root=context.project_root,
         )
         marker = f"<!-- review-entry-id: {completion.entry_id} -->"
         if marker not in transcript_content:

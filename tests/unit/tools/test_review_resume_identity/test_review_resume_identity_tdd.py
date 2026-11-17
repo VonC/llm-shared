@@ -2,6 +2,9 @@
 
 Typed pickup prerequisites avoid replaying publication. Setup and the real
 backfill, fencing, and Override transitions remain inside lifecycle measurement.
+
+Fix: a pickup's nature-completion entry lists its artifacts relative to the
+project root, and the transcript holds no absolute project folder.
 """
 
 from __future__ import annotations
@@ -75,6 +78,16 @@ def _prepare_live_request(
     return record
 
 
+def _assert_portable_completion(store: ReviewExchangeStore) -> None:
+    """Check that the reviewer's completion entry lists the request relative to the project root."""
+    transcript = store.paths.transcript.read_text(encoding="utf-8")
+    root = store.paths.project_root.resolve()
+    request = store.paths.request.resolve().relative_to(root).as_posix()
+    assert "### LLM nature completion for reviewer (exchange 1)" in transcript
+    assert f"- `{request}`\n" in transcript
+    assert root.as_posix() not in transcript
+
+
 def test_pickup_backfills_and_fences_a_live_session(tmp_path: Path) -> None:
     """A bare resume claim needs no lease expiry and preserves counterpart nature."""
     old, store, context, clock = lifecycle._harness(tmp_path)
@@ -91,6 +104,7 @@ def test_pickup_backfills_and_fences_a_live_session(tmp_path: Path) -> None:
     envelope, _ = parse_envelope_markdown(store.paths.request.read_text(encoding="utf-8"))
     assert envelope.role_natures.reviewer is LlmNature.CLAUDE
     assert capability.token not in store.paths.coordination.read_text(encoding="utf-8")
+    _assert_portable_completion(store)
     with pytest.raises(OwnershipRejectedError):
         old.publish_request(lifecycle._request(context, clock, 1), "Displaced writer")
 

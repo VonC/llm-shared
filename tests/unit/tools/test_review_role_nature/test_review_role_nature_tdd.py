@@ -1,4 +1,8 @@
-"""Tests for strict role snapshots and selected-role reconciliation."""
+"""Tests for strict role snapshots and selected-role reconciliation.
+
+Fix: with a project root, the backfill's transcript completion entry lists
+each artifact relative to it.
+"""
 
 from __future__ import annotations
 
@@ -217,6 +221,26 @@ def test_backfill_changes_only_missing_selected_role_and_is_repeat_safe(
     assert transcript_after_first.count(
         b"### LLM nature completion for requestor (exchange 2)",
     ) == 1
+
+
+def test_backfill_completion_lists_artifacts_relative_to_the_project_root(
+    tmp_path: Path,
+) -> None:
+    """The appended completion entry names each artifact without the host's absolute folder."""
+    missing_path = tmp_path / ".reviews" / "a.request.json"
+    missing_path.parent.mkdir()
+    transcript = tmp_path / "transcript.md"
+    transcript.write_text("# Transcript\n", encoding="utf-8")
+    missing = _mutable_artifact(missing_path, ReviewRole.REQUESTOR, None, RoleNatureSnapshot())
+    context = RoleNatureBackfillContext(
+        ReviewRole.REQUESTOR, LlmNature.CODEX, transcript, 1, project_root=tmp_path,
+    )
+
+    RoleNatureBackfill().apply([missing], context)
+
+    text = transcript.read_text(encoding="utf-8")
+    assert "- `.reviews/a.request.json`\n" in text
+    assert tmp_path.resolve().as_posix() not in text
 
 
 def test_conflicts_stop_before_mutation_and_override_fills_only_missing(

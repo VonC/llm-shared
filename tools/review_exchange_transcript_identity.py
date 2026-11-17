@@ -2,6 +2,10 @@
 
 Step 2 adds an append-only completion form whose role and exchange occurrence
 keep both its heading and idempotency marker unique.
+
+Fix: given the project root, the completion entry lists each completed artifact
+relative to it, so the tracked transcript never records the host's absolute
+folder; an artifact outside the root is rejected.
 """
 
 from __future__ import annotations
@@ -56,13 +60,34 @@ class NatureCompletionEntry:
     markdown: str
 
 
+def _artifact_path(path: Path, project_root: Path | None) -> str:
+    """Render one completed artifact path, relative to the project root when it is known."""
+    if project_root is None:
+        return path.as_posix()
+    try:
+        return path.resolve().relative_to(project_root.resolve()).as_posix()
+    except ValueError as error:
+        message = "completed artifact is outside the project root"
+        raise ValueError(message) from error
+
+
 def render_nature_completion_entry(
     role: ReviewRole,
     exchange_occurrence: int,
     nature: LlmNature,
     artifact_paths: tuple[Path, ...],
+    *,
+    project_root: Path | None = None,
 ) -> NatureCompletionEntry:
-    """Render one unique, repeat-safe role identity completion entry."""
+    """Render one unique, repeat-safe role identity completion entry.
+
+    Args:
+        role: The LLM role whose nature the entry completes.
+        exchange_occurrence: The positive exchange occurrence of the entry.
+        nature: The recorded LLM nature.
+        artifact_paths: The artifacts the completion changed.
+        project_root: When given, each artifact path is written relative to it.
+    """
     if role is ReviewRole.HUMAN:
         message = "human role has no LLM nature completion"
         raise ValueError(message)
@@ -70,7 +95,7 @@ def render_nature_completion_entry(
         message = "exchange occurrence must be positive"
         raise ValueError(message)
     entry_id = f"llm-nature-completion-{role.value}-exchange-{exchange_occurrence}"
-    paths = "\n".join(f"- `{path.as_posix()}`" for path in artifact_paths)
+    paths = "\n".join(f"- `{_artifact_path(path, project_root)}`" for path in artifact_paths)
     markdown = (
         f"\n\n### LLM nature completion for {role.value} "
         f"(exchange {exchange_occurrence})\n\n"

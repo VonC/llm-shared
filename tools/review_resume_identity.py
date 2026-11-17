@@ -121,7 +121,11 @@ def _backfill_selected(  # noqa: PLR0913 - explicit selected identity transactio
     core: ReviewExchangeCore, record: CoordinationRecord, role: ReviewRole,
     nature: LlmNature, *, occurrence: int, override: bool,
 ) -> CoordinationRecord:
-    """Read and validate only the selected occurrence before missing-only identity completion."""
+    """Read and validate only the selected occurrence before missing-only identity completion.
+
+    The transcript completion entry lists its artifacts relative to the
+    project root, so the tracked transcript records no host folder.
+    """
     store = core.store
     artifacts = [_artifact(store.paths.coordination, role, coordination=True)]
     artifacts.extend(
@@ -135,7 +139,9 @@ def _backfill_selected(  # noqa: PLR0913 - explicit selected identity transactio
     if reconciliation.conflicts and not override:
         raise ReviewExchangeError("selected role conflicts require Override")
     backfill = RoleNatureBackfill()
-    backfill_context = RoleNatureBackfillContext(role, nature, store.paths.transcript, occurrence, override)
+    backfill_context = RoleNatureBackfillContext(
+        role, nature, store.paths.transcript, occurrence, override, project_root=store.paths.project_root,
+    )
     backfill.apply(artifacts, backfill_context)
     if nature is LlmNature.UNKNOWN:
         return record

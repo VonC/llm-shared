@@ -5,6 +5,9 @@ focused tests keep rejection and corrupt-marker branches out of that growing
 journey file while exercising the same real core and store. Typed convergence
 prerequisites declare the harness's registered family policy, so the prepared
 state classifies as the owning-action gate it stands for.
+
+Fix: a nature-completion entry given the project root lists its artifacts
+relative to it and rejects an artifact outside it.
 """
 
 from __future__ import annotations
@@ -79,6 +82,22 @@ def test_nature_completion_rejects_invalid_identity(
     """Completion entries fail closed for non-LLM roles and invalid occurrences."""
     with pytest.raises(ValueError, match=message):
         render_nature_completion_entry(role, occurrence, LlmNature.CODEX, ())
+
+
+def test_nature_completion_lists_artifacts_relative_to_the_project_root(tmp_path: Path) -> None:
+    """A tracked transcript names completed artifacts without the host's absolute folder."""
+    artifact = tmp_path / ".reviews" / "a.answer.md"
+
+    entry = render_nature_completion_entry(
+        ReviewRole.REVIEWER, 8, LlmNature.CODEX, (artifact,), project_root=tmp_path,
+    )
+
+    assert "- `.reviews/a.answer.md`\n" in entry.markdown
+    assert tmp_path.as_posix() not in entry.markdown
+    with pytest.raises(ValueError, match="outside the project root"):
+        render_nature_completion_entry(
+            ReviewRole.REVIEWER, 8, LlmNature.CODEX, (artifact,), project_root=tmp_path / "other",
+        )
 
 
 def test_publication_preserves_requestor_then_adds_reviewer_nature(
