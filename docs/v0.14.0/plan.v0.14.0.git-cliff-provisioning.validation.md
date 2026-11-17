@@ -4,11 +4,12 @@ No, it is not implemented.
 
 This document tracks the eight steps of the
 [implementation plan](plan.v0.14.0.git-cliff-provisioning.md) for item 3 of
-the sibling release tooling umbrella. No step has started: the pin manifest,
-the contained Windows children with their native checks, the cache and its
-lock, the download worker, the provisioning service, the evidence harness,
-the reviewed admission of 2.14.2 and the `gcliff` launcher are all still to
-be written.
+the sibling release tooling umbrella. Step 1 is implemented: the pin
+manifest, the `[git-cliff]` domain, the download budget policy and the shared
+record decoder. The contained Windows children with their native checks, the
+cache and its lock, the download worker, the provisioning service, the
+evidence harness, the reviewed admission of 2.14.2 and the `gcliff` launcher
+are still to be written.
 
 > Initial-skeleton note: this first version was written by the `write-plans`
 > skill, before any implementation check. It fills `Goal for Step N` and
@@ -69,10 +70,19 @@ Performance check section.
 
 ### Analysis of Step 1 implementation state
 
-Not started. Step 1 is not implemented because no implementation work has
-begun: the common reader still reports `[git-cliff]` as an unknown section,
-no manifest or budget module exists and the strict record helpers are still
-private to `operation_lock.py`.
+Yes. Step 1 has been fully implemented.
+
+The tested-pin manifest ships with its empty admitted tuple, the
+`[git-cliff]` domain is registered last in the shipped schemas, the download
+budget policy resolves every accepted value and refuses every other form the
+plan lists, and the strict record helpers live in `lock_records.py`, used by
+the operation lock with unchanged messages. Code review round 1 found that
+warm manifest lookups hashed every pin through a cache key made of the table;
+the cache is now keyed by the identity of the table it retains, and a
+regression proves that warm lookups never hash, compare or visit a pin. Every
+completion criterion holds: the command printed by `pw scope day` reports
+`exit=0`, the three `rg` checks find only the expected matches, and the
+import-freedom test passes.
 
 ### Goal for Step 1
 
@@ -99,27 +109,244 @@ into `lock_records.py` for the operation lock and the new record kinds.
 
 ### What was implemented for Step 1
 
-_(empty — no check has taken place yet.)_.
+The current diff delivers the Step 1 file list of the plan, plus two
+test-only changes outside it.
+
+- **Shared record decoder**: `tools/release_workflow/lock_records.py` holds
+  `decode_object`, `positive_integer` and `text`. Each message names the
+  caller's label (`Duplicate owner field: pid`,
+  `Owner record is not an object`, `Invalid owner pid`), duplicate keys are
+  refused at every object level, and the decoded object keeps the exact keys
+  of the document so each record kind compares them with the keys it expects.
+  `operation_lock._record`, `_integer` and `_text` delegate to these helpers
+  with `label="owner"`, and `json.loads` no longer appears in
+  `operation_lock.py`.
+- **Tested-pin manifest**: `tools/release_workflow/git_cliff/manifest.py`
+  defines the frozen `AdmittedPin`, `PLATFORM_TRIPLE`,
+  `ADMITTED_PINS = validate_pins(())`, `validate_pins`, `default_version`,
+  `admitted`, `parse_pin` and `download_url`. `parse_pin` accepts only ASCII
+  `X.Y.Z`, with the form message otherwise, then admission
+  (`not a tested git-cliff pin; tested: <list>`, `tested: none` for the empty
+  tuple). The invariant check refuses an invalid version, a triple other than
+  the platform triple, an asset or member name not derived from the version
+  and triple, a digest that is not 64 lowercase hexadecimal characters, a zero
+  size, an empty evidence reference, a duplicate version and any number of
+  defaults other than one in a nonempty table. Each table is validated and
+  indexed on first use; the private cache is keyed by `id(pins)` and each
+  entry keeps the table, so its identity cannot be reused while cached, and a
+  warm lookup is one dictionary access on an integer that never hashes,
+  compares or visits a pin. The module imports only `re` and `dataclasses`.
+- **Download budget policy**: `tools/release_workflow/git_cliff/budget.py`
+  defines `DOWNLOAD_BUDGET_VARIABLE`, the frozen keyword-only `BudgetPolicy`
+  (`download`, `wait`, `socket` 30, `probe` 15, `metadata` 60, `retry_delay`
+  5, `source`), `BudgetSettingError` (`exit_code = 2`) and
+  `resolve_budget(environment)`. Unset gives D 300 and W 360; a value from 300
+  through 3600 in ASCII digits, leading zeros allowed, gives exactly D and
+  D + 60; every other form is refused with the variable name and its range,
+  never clamped. The name matches whatever its case. The module reads no
+  process environment itself: the caller hands it the mapping.
+- **Git-cliff domain**: `schemas.git_cliff_domain(pins)` builds the
+  `git-cliff` domain with one fixed `[git-cliff]` section and one `version`
+  rule, whose converter is `partial(manifest.parse_pin, pins=pins)` and whose
+  default is `manifest.default_version(pins)`. `GIT_CLIFF_SCHEMA` follows the
+  version domain in `SHIPPED_SCHEMAS`. The schema module imports the manifest
+  at load time, as the confirmed facts of the plan require.
+- **Package surface**: `tools/release_workflow/git_cliff/__init__.py`
+  documents the two modules and imports nothing; the docstring of
+  `tools/release_workflow/__init__.py` names `lock_records` and the
+  `git_cliff` package.
+- **Tests**: new leaves `test_lock_records/`, `test_git_cliff_manifest/`
+  (TDD and PBT) and `test_git_cliff_budget/` (TDD and PBT).
+  `test_schemas_tdd.py` checks the three-domain shipped tuple, the fixed
+  section and the synthetic default. `test_configuration_tdd.py` checks the
+  known section, the unknown `executable` and other keys, the missing value
+  and the `tested: none` refusal of the empty table, the synthetic default
+  with its source information, the exact `2.15.0` message and the import
+  freedom in a fresh `sys.modules` snapshot.
+  `test_warm_lookups_never_hash_compare_or_visit_the_pins` passes a tuple
+  subclass that records every `__iter__`, `__hash__`, `__eq__`, `__len__`
+  and `__contains__` call, and asserts that warm `parse_pin`, `admitted` and
+  `default_version` calls, hits and misses, record none.
+- **Out-of-step test change**: the whole-suite walk measured a lifecycle CPU
+  overrun (0.27 s against the 0.25 s band top) for one batch of
+  `tests/unit/tools/test_scope_capture/test_scope_capture_pbt.py`, a test
+  outside this step. Its names are now sampled from a precomputed pool of the
+  same domain (one to four letters of a six-letter alphabet) instead of
+  generated text filtered for uniqueness, and its three explicit limits run
+  once in their own test instead of in each of the five batches. A
+  side-by-side measurement gave 5.4 ms instead of 8.8 ms of CPU per batch
+  call. No production code changes with it.
+- **Second out-of-step test change**: the round 2 speed walk failed on the
+  lifecycle CPU ceiling (0.109 s against 0.100 s, after the drift guard had
+  dropped the proof of a case measured at 0.125 s in round 1) for
+  `tests/unit/tools/shared_lifecycle/test_audit_declarations/test_audit_declarations_tdd.py::test_malformed_test_permission_prevents_setup[pytest.mark.process_allowed]`,
+  one of seven embedded pytest sessions of about 25 ms each. One embedded
+  session now proves that a malformed reason is a usage error before any
+  setup, and `test_malformed_test_permission_forms_are_refused` checks the six
+  distinct malformed forms directly against the mark validation of
+  `AuditSession`, which every form reaches; the bare and empty-call spellings
+  build the same mark. Every former assertion is still made, and no
+  production code changes with it.
+- **Validation evidence**:
+  - Red first: `ghog single` on the seven Step 1 test files failed at
+    collection on the missing modules (exit 4).
+  - Targeted: `ghog single` on the Step 1 test files with
+    `test_operation_lock_tdd.py` and `test_operation_lock_pbt.py`: exit 0,
+    212 tests.
+  - Gate: `ghog day --whole-suite`, the command printed by `pw scope day` at
+    the default level, exit 0 at 2026-11-17T09:30:28+01:00, after repairs for
+    ruff (`RUF043` and `RUF001` in new tests), the CPU overrun above and one
+    pyright annotation; the affected stage of the second walk ran 7410 tests.
+    The full stage is skipped at this level, so no coverage figure is
+    measured here.
+  - Code review round 1 repair: the new warm-lookup regression failed against
+    the reviewed manifest with twelve recorded tuple hashes (`ghog single`,
+    exit 2) and passes with the identity-keyed cache, together with the
+    manifest property tests and the schema and configuration tests (exit 0).
+  - `rg -n 'import' tools/release_workflow/git_cliff/manifest.py`:
+    `__future__`, `re` and `dataclasses` only, plus one docstring line.
+    `rg -n 'json.loads' tools/release_workflow/operation_lock.py`: no match.
+    `rg -n 'getenv|environ' tools/release_workflow/git_cliff`: only the
+    `environment` parameter of `budget.py`.
+- **Line counts**: `git_cliff/manifest.py` 172 (advisory 110),
+  `git_cliff/budget.py` 89 (advisory 80), `lock_records.py` 71 (advisory 70),
+  `git_cliff/__init__.py` 18, `schemas.py` 245 (+25, as advised),
+  `operation_lock.py` 244 (-17, advisory -25),
+  `release_workflow/__init__.py` 14; new tests 87, 188, 66, 70 and 53
+  (advisory 80, 180, 60, 130 and 50), initializers 3 each;
+  `test_schemas_tdd.py` 189 (+38, advisory +20),
+  `test_configuration_tdd.py` 327 (+71, advisory +30);
+  `test_scope_capture_pbt.py` 22 to 46, `test_audit_declarations_tdd.py` 355
+  to 379. Every Python file stays below 550;
+  the split guidance was not needed.
 
 ### New types or classes introduced for Step 1
 
-_(empty — no check has taken place yet.)_.
+- `tools.release_workflow.lock_records`: `decode_object`, `positive_integer`
+  and `text`.
+- `tools.release_workflow.git_cliff.manifest`: `AdmittedPin`, `PinError`,
+  `ManifestError`, `PLATFORM_TRIPLE`, `ADMITTED_PINS`, `validate_pins`,
+  `default_version`, `admitted`, `parse_pin`, `download_url`, and the private
+  per-table index `_Table`.
+- `tools.release_workflow.git_cliff.budget`: `BudgetPolicy`,
+  `BudgetSettingError`, `DOWNLOAD_BUDGET_VARIABLE`, the default, maximum and
+  wait-margin constants, and `resolve_budget`.
+- `tools.release_workflow.schemas`: `git_cliff_domain` and
+  `GIT_CLIFF_SCHEMA`.
+- Test folders `test_lock_records`, `test_git_cliff_manifest` and
+  `test_git_cliff_budget`, with the instrumented `_CountingPins` table local
+  to the manifest tests; no shared helper module, since the plan creates
+  `git_cliff_support.py` in Step 3.
 
 ### Architecture check for Step 1
 
-_(empty — no check has taken place yet.)_.
+- **Domain table**: the manifest is pure data and pure functions, with no
+  network, filesystem or process code and only standard-library imports. The
+  budget policy is a pure function of the mapping its caller hands over, so
+  the process environment is read at the provisioning boundary (Step 5), not
+  inside the domain.
+- **Composition point**: `schemas.py` is where the foundation declares the
+  shipped domains; the git-cliff domain joins tooling and version there and
+  imports only the manifest at load time, which the plan requires because the
+  reader applies a default through the converter. The import-freedom test
+  proves that loading configuration pulls no other `git_cliff` module.
+- **Shared decoding**: `lock_records.py` depends on nothing in the engine;
+  the operation lock depends on it, so the later cache lock never depends on
+  the operation lock (plan decision Q02).
+- **Module state**: the per-table index of the manifest is a private cache
+  keyed by the identity of each validated table, which the entry keeps; it
+  changes no result, only the cost of later lookups. The tables are the
+  shipped tuple and the one each git-cliff domain captures, so the cache holds
+  one entry in production.
+
+No, there is nothing that needs to be addressed: no DDD-Hexagonal violation or
+smell is visible in this step.
 
 ### Performance check for Step 1
 
-_(empty — no check has taken place yet.)_.
+- **No new `O(n^2)` or `O(n log n)` path**: validating a pin table is linear
+  in its pins, with one set and one pass, and happens once per table. Every
+  later `parse_pin`, `admitted` or `default_version` call is one dictionary
+  access on `id(pins)`, an identity check, and one access by version in the
+  cached index; no pin is hashed, compared or visited, which the warm-lookup
+  regression asserts for hits and misses. Decoding a record is linear in its
+  bytes. The budget lookup is one pass over the environment mapping of the
+  caller, made once per caller, and the conversion of the value is bounded by
+  stripping leading zeros and accepting at most four digits.
+- **Hot-path bound**: configuration loading adds one fixed section and one
+  rule; the empty table yields no value, and a declared pin costs one
+  regular-expression match and the constant-time cached lookup.
+- **Startup path**: importing the schemas also imports the manifest and
+  validates the empty tuple once; configuration loading never imports the
+  budget module.
+- **Plan-bound alignment**: within the "O(1) amortized per call" bound of the
+  plan for pin lookups, after the round 1 repair, and its single budget read
+  per caller.
+
+No, there is no performance issue that needs to be addressed.
 
 ### Unit test coverage check for Step 1
 
-_(empty — no check has taken place yet.)_.
+The coverage gate measures `tools` only (`[tool.coverage.run] source`), with
+`*/tests/*` and `*/__init__.py` omitted, at `fail_under = 100`. The round 2
+requestor reports 7414 passing tests and 100% coverage from
+`ghog day --full=speed --whole-suite`, with no outliers or exclusions, and a
+passing `ghog check` on the submitted tree after the documentation update.
+The reviewer independently assessed the code and tests statically; no
+reviewer test or coverage run was performed.
+
+- **`tools/release_workflow/lock_records.py`**: `test_lock_records/` reaches
+  the duplicate and unique paths of the pairs hook at the top level and in a
+  nested object, the object and non-object results, malformed bytes, and both
+  outcomes of `positive_integer` and `text`, missing keys included; covered.
+- **`tools/release_workflow/git_cliff/manifest.py`**:
+  `test_git_cliff_manifest/` reaches every invalid field, the duplicate
+  version, both wrong default counts, the empty and synthetic tables, the
+  cold and warm cache paths, both outcomes of `admitted` and `parse_pin`, and
+  `download_url`; covered.
+- **`tools/release_workflow/git_cliff/budget.py`**: `test_git_cliff_budget/`
+  reaches the unset and set lookups, other cases of the name, similar names,
+  the accepted values, and the non-digit, empty, out-of-range and long
+  zero-padded refusals; covered.
+- **`tools/release_workflow/schemas.py`**: `git_cliff_domain` runs at import
+  and in `test_schemas_tdd.py` and `test_configuration_tdd.py`; the existing
+  schema tests keep the rest covered.
+- **`tools/release_workflow/operation_lock.py`**: the three delegating
+  helpers run in the unchanged `test_operation_lock` suites, valid records and
+  every refused field included; covered.
+
+The lookup complexity is asserted by
+`test_warm_lookups_never_hash_compare_or_visit_the_pins`, beside the count of
+validations in `test_a_table_is_validated_and_indexed_once`.
+
+Review round 2 confirms that the identity-keyed cache retains the tuple and
+performs no warm traversal or tuple hash. The new regression detects the
+round 1 defect. The audit test rework keeps one embedded-session assertion
+that rejection precedes setup and checks every distinct malformed mark
+directly through the same validator, preserving its identifying diagnostics.
+
+No, there is no unit-tested class below 100% that needs completing for Step 1.
 
 ### Feature integrity for Step 1
 
-_(empty — no check has taken place yet.)_.
+- **Existing feature behavior**: the operation lock keeps its record format,
+  refusals and messages, and its TDD and PBT suites pass unchanged. Every
+  existing configuration test passes; `[tooling] git-cliff=...` stays an
+  unknown key.
+- **Reporting or diagnostics**: configuration errors keep their
+  `<file> [section] key='<value>': <reason>` form, which the new pin refusals
+  use; with a synthetic table, for example:
+  `.release.ini [git-cliff] version='2.15.0': not a tested git-cliff pin; tested: 2.14.2`.
+- **Compatibility or rollout note**: a project that declares `[git-cliff]`
+  no longer gets "Unknown configuration section": an empty section loads, and
+  any declared `version` is refused with `tested: none` until Step 7 admits
+  2.14.2. The `version` and `versions` commands and builds never read the
+  budget variable. The scope capture rework changes only how that property
+  test generates and replays its cases, and the audit declaration rework only
+  how many embedded sessions check the malformed marks.
+
+No, there is no existing feature or reporting capability that appears
+impaired.
 
 ---
 
