@@ -31,12 +31,15 @@ still classifies as unsupported or pending. This delivery changes no support
 claim in this document. Delivering code ahead of the remaining live matrix is
 plan question Q05; the local-command failure below is design question Q27, and
 the cases the agent cannot reproduce are design question Q28. The user
-confirmed Q05=A, Q27=B and Q28=A on 2026-11-15. The question blocks stay in
-the design and the plan until consolidation, and the decisions have had no
-independent review. Q27=B adds a fifth disclosed limit, for a running local
-command whose input is not yet recorded, and a guard requiring every live
-Claude pane of the checkout to be freshly idle; the sections below still
-describe four limits until then.
+confirmed Q05=A, Q27=B and Q28=A on 2026-11-15. Design exchange 8 reviewed
+Q27 and Q28, and on 2026-11-17 the user accepted the clarified Q28 wording and
+consolidated both into the design; plan Q05 stays an open plan question block.
+Q27=B adds a fifth disclosed limit, for a running local command whose input is
+not yet recorded, and a guard requiring every live Claude pane of the
+checkout, the proved requestor included, to be freshly idle. Q28=A records the
+cases below as designed fail-closed, not reproduced: that label is not
+evidence, and an activation that needs an unresolved predicate stays pending.
+Sections dated before 2026-11-17 describe four limits as they stood then.
 
 One new runtime observation comes from the unit suite on Windows build 26200.
 The binding inspects the test process itself with `PROCESS_QUERY_INFORMATION`
@@ -113,6 +116,13 @@ has been established by this probe; a user instruction to avoid local shell
 mode is not enforcement. No option is selected here. Step 1 remains
 incomplete, adapter implementation has not started, and the validation plan
 is unchanged. Q01-Q26 remain as confirmed; no new review was opened.
+
+The user later selected
+[Q27=B](design.v0.14.0.resume-paused.md#design-decisions-for-resume-paused)
+on 2026-11-15, consolidated on 2026-11-17: the proposal above becomes the
+fifth disclosed limit, combined with an all-pane idle guard whose signature
+must reject a running local command. Recorded open work still blocks, and
+local-command completion still needs its own validation.
 
 ## Persistence-disabled Claude counterexample on 2026-11-14
 
@@ -915,7 +925,10 @@ by completed foreground commands or hooks may be missed; earlier hook-handler
 configuration history is unavailable; backward clock changes between process
 generations are unobservable. Descendant enumeration remains excluded.
 Q26=A, confirmed on 2026-11-14, adds a fourth limit for work of roots with no
-records in Q19's read set.
+records in Q19's read set. Q27=B, confirmed on 2026-11-15 and consolidated on
+2026-11-17, adds a fifth limit for a running local shell command whose input
+is not yet recorded, with an all-pane idle guard; Q28=A keeps the cases the
+agent cannot reproduce on tested conservative handling.
 Ownership fencing and lease expiry cannot prove watcher absence. Optional
 validated rejection of recorded detaching launchers is defense in depth only.
 Unknown or incomplete in-scope evidence stays pending. These decisions approve
