@@ -1481,3 +1481,192 @@ not a design return.
 | Q24 | A: Exclude only validated requestor review-exchange starts and their own lifecycle records in the Q23-bound marked-input file, ordered after marked resume by validated creation ordering, regardless of writer. Exactly one recognized requestor-only invocation is required; other starts remain in scope. Replace writer exclusivity with completeness and closure for every writer, including the requestor. This resolves answer-wait circularity using approved evidence without a new source. | [Requestor operation exception](#takeover-observation-and-later-reviewer-continuation), [acceptance examples](#acceptance-examples-and-validation-boundaries-for-resume-paused), [file-based IO](#file-based-io-cost-clarification-for-resume-paused). | B: The unprovable writer condition leaves the answer wait blocking its reviewer. C: A new writer-identity source needs separate approval and validation and still has attribution limits. Chained, piped, wrapped, multi-operation and shared-role commands remain in scope; unclosed turns still block. |
 | Q25 | A: Every Claude requestor starts each `wait-answer` through a host background mechanism as one recognized invocation form, ends its turn and resumes from the completion notification, on every route. Make the shared rule required and reference it from all three requestor instructions; Codex retains attached waiting. Step 1 validates background start, turn closure, terminal record and notification resumption. This preserves closure checks without relying on remembered entry-route context. | [Shared scope](#scope-and-deferred-integration-for-resume-paused), [answer-wait transport](#takeover-observation-and-later-reviewer-continuation), [acceptance and validation](#acceptance-examples-and-validation-boundaries-for-resume-paused). | B: Marked-route-only transport depends on remembered context and leaves two rules for one operation. C: A foreground wait times out and escalates before reviewer activation. D: Exempting an open turn weakens completeness and closure. Foreground or moved waits remain in scope and leave the reviewer pending. No new evidence channel or supported profile is established. |
 | Q26 | A: Keep transcript evidence and accept a fourth disclosed limit for work of roots with no records in Q19's read set, including persistence-disabled fresh/resumed roots, other configuration roots, transcripts removed without detectable evidence, and unrecorded work surviving a recorded parent's validated end. This qualifies Q17/Q20 and accepts possible duplicate watchers while retaining the approved sources. Open recorded parents, unmatched starts, partial records, detected history loss and incomplete reads still block; each recorded start needs its own validated terminal record. | [Claude absence proof](#takeover-observation-and-later-reviewer-continuation), [activation reporting](#reporting-and-exit-semantics-for-resume-paused), [validation boundaries](#acceptance-examples-and-validation-boundaries-for-resume-paused). | B: A managed print-mode collector adds source, artifact and validation costs while bypass routes still require the same limit. C: The unchanged contract leaves tested Claude 2.1.325 unsupported and required activation unreachable; both hosts remain required. No collector, new source or supported profile is established. Step 1 must still validate parent coverage and all remaining profile obligations. |
+
+## Open questions for the v0.14.0 resume-paused design
+
+### Q27: Local shell command running before its input is recorded
+
+Step 1 found on 2026-11-14 that Claude 2.1.325 runs an interactive local
+shell command (`!` mode) before writing that command's input into an already
+existing transcript. During the command, a complete read showed the same 46
+records as before it; the input appeared as record 49 only after the command
+returned. See
+[the recorded local-command ordering failure](resume-paused.profile-evidence.md#recorded-local-command-ordering-failure-on-2026-11-14).
+
+Design item 1 requires every root contributing records to persist each input,
+"including a local command that executes work such as bash-mode input", before
+that input runs anything. Q26=A excuses roots with no records; this root had
+records. The transcript therefore cannot show a local command while it runs,
+and no amount of parsing closes that interval. With the contract unchanged,
+Claude 2.1.325 stays unsupported and reviewer activation is unreachable.
+
+Which contract applies to a local shell command whose input is not yet in the
+transcript?
+
+#### BBQ for Q27
+
+A site foreman checks the sign-in book before locking the gate for the night.
+Normal workers sign in before they pick up a tool. One side door lets a worker
+walk in, do a job, and sign the book only on the way out. While that worker is
+inside, the book looks exactly like an empty site. The foreman can lock the
+gate anyway and accept that a worker might still be inside, post a guard at
+every door, weld the side door shut, or refuse to ever lock the gate from the
+book alone.
+
+In this picture: the sign-in book is the Claude transcript ledger, the workers
+are inputs that run commands, the side door is local shell mode (`!`), locking
+the gate is activating the reviewer, the guard is a new evidence source, and
+welding the door shut is an enforced restriction on local shell mode.
+
+#### Options for Q27
+
+- Option A: Accept a fifth disclosed limit. A local shell command that is still
+  running, and whose input is not yet recorded, may be missed, together with
+  work it starts during that interval. Keep everything else: once the input
+  record appears it needs its validated completion record, the target pane
+  still needs fresh idle and empty-input evidence, and recorded open work still
+  blocks.
+  - pro: Uses only approved evidence; Claude activation becomes reachable.
+  - pro: Same risk class as Q26=A: a duplicate watcher at worst, and ownership
+    fencing still protects publication.
+  - pro: Q20=A already requires reviewer watchers to start through host
+    background mechanisms, so a watcher run in `!` mode is already outside the
+    supported way to wait.
+  - con: Weakens item 1's input-before-effect rule for one input kind.
+  - con: A long-running `!` command in another pane of the same checkout is
+    invisible to the ledger while it runs.
+- Option B: Option A, plus a pane guard using the existing TUIOS discovery
+  channel. Before activation, every live Claude pane discovered for this
+  checkout must show fresh idle evidence under a validated screen profile; a
+  pane that is busy, unreadable or of unknown layout keeps activation pending.
+  The disclosed limit then covers only Claude roots that have no TUIOS pane.
+  - pro: Closes the gap for the roots the tool can already see, with no new
+    evidence source.
+  - pro: Narrows the limit to a case Q26=A nearly covers already.
+  - con: One busy or unreadable Claude pane in the checkout blocks activation
+    of an unrelated reviewer.
+  - con: Requires a validated idle signature for a running local command on
+    each pinned version, which is new Step 1 validation work.
+- Option C: Keep the contract unchanged. Claude 2.1.325 stays unsupported
+  until a host version records local input before running it.
+  - pro: No weaker guarantee.
+  - con: Both hosts are required, so the whole delivery stays blocked on a host
+    behavior this project does not control.
+- Option D: Add a named evidence source or an enforced restriction, for
+  example launcher settings that disable local shell mode in every root.
+  - pro: Could restore the full ordering guarantee.
+  - con: No such source or switch is identified; roots started without the
+    launcher escape it, and Q18=A excludes installing hooks.
+  - con: Needs its own proposal, decision and validation before any progress.
+
+#### Recommended option for Q27 (with arguments for this choice)
+
+Option B: it keeps the approved evidence sources, makes activation reachable,
+and removes most of the newly accepted risk by reusing pane state the tool
+must already read. The residue, a Claude root outside TUIOS running a local
+command, sits next to Q26=A's accepted limit and has the same worst case: one
+duplicate watcher whose publication ownership fencing still rejects. Option A
+alone leaves visible panes unchecked for no saving in evidence sources.
+Option C blocks a required host indefinitely. Option D names nothing concrete.
+
+#### Answer to Q27: option B (with reason why it must be accepted as the answer)
+
+Option B: without a decision, transcript parsing cannot satisfy item 1 on the
+only Claude version tested, so Step 1 cannot declare Claude supported. B is
+the smallest change that restores a reachable contract while stating the
+remaining risk in every activation report, next to the four existing limits.
+
+User decision: confirmed — B: Limit + pane guard. Selected by the user on
+2026-11-15 through the choice tool ("B: Limit + pane guard (Recommended)"):
+accept a fifth disclosed limit for a running local command whose input is not
+yet recorded, and require every live Claude pane TUIOS shows for this checkout
+to be freshly idle before activation. The design body, both plans and the
+evidence document still describe four limits until consolidation.
+
+### Q28: Validation cases the implementation agent cannot reproduce
+
+Step 1 requires disposable validation of every profile obligation before a
+profile is declared supported. Several obligations depend on events an agent
+cannot safely or practically trigger from a working session:
+
+- Q21=A boot boundary: system clock steps forward and backward, sleep and
+  hibernation between boot and the decision, and Windows fast startup. These
+  need administrator clock changes and a suspended or restarted machine.
+- Codex image identity: the real updater's rename and cleanup of a release
+  while a pane runs. This needs an actual upstream release.
+- Claude schedules: a recurring job's seven-day expiry, and restoration after
+  a machine restart.
+
+The fail-closed runtime rules for these cases are already designed: an image
+whose path, allocation or identity query disagrees is rejected, and a boot
+instant that disagrees with current time minus uptime beyond tolerance stays
+pending. What is missing is observed evidence that the host behaves as the
+rules assume. The design does not say whether that evidence must exist before
+a profile is supported, nor who produces it.
+
+Which evidence is required for these cases before a profile is supported?
+
+#### BBQ for Q28
+
+A garage tests a new alarm before selling it. The fitter can slam doors and
+tap windows in the workshop. The fitter cannot stage a real break-in during a
+power cut, or wait a week to see whether the battery lasts. The garage can
+sell the alarm with a note saying which cases were bench-tested only, make the
+owner run a checklist at home before the warranty starts, or keep the alarm on
+the shelf until every case has happened for real.
+
+In this picture: the alarm is a host profile, workshop tests are the agent's
+disposable sessions, the break-in during a power cut is a clock change across
+sleep or fast startup, the week-long battery wait is the schedule expiry and
+the real Codex update, the note is the profile evidence document, the owner's
+checklist is a human-run validation script, and the shelf is an unsupported
+profile.
+
+#### Options for Q28
+
+- Option A: Conservative runtime, recorded limits. The agent validates what it
+  can reproduce. For the cases above, the runtime keeps its designed
+  fail-closed rule, uses a deliberately wide fixed tolerance, and stays
+  pending on any detected disagreement. The evidence document lists each case
+  as "designed fail-closed, not reproduced", and a profile may be supported
+  with that list.
+  - pro: Step 1 can finish without waiting for a reboot, an upstream release
+    or seven days.
+  - pro: Every listed case fails toward "pending, no input", never toward
+    input.
+  - con: A wrong assumption about uptime, fast startup or the updater would
+    show up as needless pending results, or stay unnoticed inside Q21=A's
+    already disclosed clock limit.
+- Option B: Human-run checklist before support. The agent writes read-only
+  observation scripts; the human runs them once around a reboot, a sleep, a
+  clock change and a Codex update, and the results are recorded before a
+  profile is supported.
+  - pro: Real evidence for every case.
+  - con: Support waits on manual steps and on an upstream release date.
+  - con: The seven-day schedule case still cannot be finished quickly.
+- Option C: Keep the contract unchanged: the implementation agent must
+  reproduce every case before a profile is supported.
+  - pro: Strongest evidence standard.
+  - con: Some cases cannot be reproduced by the agent at all, so Step 1 never
+    completes.
+
+#### Recommended option for Q28 (with arguments for this choice)
+
+Option A: every one of these cases already resolves to "pending, no input"
+when the runtime sees disagreement, so the missing experiments affect how
+often activation is available, not whether unsafe input can be sent. The
+human checklist of option B can still be run later and its results added to
+the evidence document without changing code. Option C makes a required host
+profile unreachable.
+
+#### Answer to Q28: option A (with reason why it must be accepted as the answer)
+
+Option A: it lets Step 1 close with an honest evidence record, keeps the safe
+direction of every case that was not reproduced, and leaves room to add
+human-run results later.
+
+User decision: confirmed — A: Record as not reproduced. Selected by the user
+on 2026-11-15 through the choice tool ("A: Record as not reproduced
+(Recommended)"): the agent validates what it can reproduce; the listed cases
+keep their fail-closed rule with a wide fixed tolerance and are recorded in
+the evidence document as designed but not reproduced.
