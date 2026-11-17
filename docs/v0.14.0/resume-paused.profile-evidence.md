@@ -22,6 +22,98 @@ has not validated a complete profile. An observed
 version alone does not establish a supported input, result, clearing or
 task-state profile. Claude ledger completeness remains unproved.
 
+## Adapter delivery with an empty profile registry on 2026-11-15
+
+The four Step 1 modules and their tests now exist: profile policy, the
+query-only Windows binding, the Codex image and input proofs, and the Claude
+transcript ledger. The shipped registry pins no profile, so every real pane
+still classifies as unsupported or pending. This delivery changes no support
+claim in this document. Delivering code ahead of the remaining live matrix is
+plan question Q05; the local-command failure below is design question Q27, and
+the cases the agent cannot reproduce are design question Q28. The user
+confirmed Q05=A, Q27=B and Q28=A on 2026-11-15. The question blocks stay in
+the design and the plan until consolidation, and the decisions have had no
+independent review. Q27=B adds a fifth disclosed limit, for a running local
+command whose input is not yet recorded, and a guard requiring every live
+Claude pane of the checkout to be freshly idle; the sections below still
+describe four limits until then.
+
+One new runtime observation comes from the unit suite on Windows build 26200.
+The binding inspects the test process itself with `PROCESS_QUERY_INFORMATION`
+only. Its allocation walk completed and mapped the native image name to
+exactly one committed image allocation. The image file, opened through the
+`\\?\GLOBALROOT` prefix for read and execute, returned `STATUS_SUCCESS` from
+class 44, and hashing through that same handle matched a separate shared read
+of the file. Invalid handles and missing paths returned no evidence. This
+confirms the binding against one more image on this build; it is not a Codex
+pane validation and pins nothing.
+
+The synthetic fixtures encode the record shapes observed above. They test
+that the code applies the designed rules; they do not show that a host
+provides the evidence. The Claude ledger takes its closed-world sets (record,
+attachment and tool names, Stop handlers, allowed leaf and input-parent
+shapes) from a profile object that validation must supply.
+
+## Recorded local-command ordering failure on 2026-11-14
+
+After Q26 consolidation, an owned disposable interactive Claude 2.1.325
+session executed a local shell command before its input appeared in its
+existing native transcript. This fails Step 1's input-before-effect contract
+for a root contributing records. Q26's exception for roots with no records
+does not cover this case. Both host profiles remain unsupported.
+
+The diagnostic used a new detached TUIOS session and the existing launcher
+settings. After an initial model turn ended, local shell mode (`!`) ran a
+PowerShell inspection script. While executing, that script read its own
+complete transcript, saved only structural facts, then waited three seconds.
+The transcript observations were:
+
+| Observation | Local time (UTC+01:00) | Bytes | Records | Local-command input present |
+| --- | --- | --- | --- | --- |
+| Before local input | 23:39:11.100 | 414265 | 46 | No |
+| Inside the executing command | 23:39:34.228 | 414265 | 46 | No |
+| After the command returned | 23:39:44.559 | 423490 | 54 | Yes, one record |
+| After Claude exited | 23:41:57.848 | 426962 | 60 | Yes, one record |
+
+Every read ended with a complete final newline. Before and during execution,
+the transcript ended with the initial turn's `stop_hook_summary` and linked
+`turn_duration`. The later local-command input was record 49, a `user` record
+with string content linked to that earlier `turn_duration`; record 50 was
+the local result. The input's stored timestamp preceded the during-command
+observation, but the record was absent from that observation. A timestamp
+assigned before execution does not prove that the record was persisted then.
+
+The probe establishes an ordering failure, not an actual unsafe activation.
+It did not validate pane guards, other roots, local-command completion
+semantics, or background mechanisms. It installed no hook or evidence source,
+contacted no reviewer and sent no input to existing panes. The owned Claude
+process exited, its TUIOS session was removed, and the owned shell and Claude
+processes and their direct children were absent at cleanup. Structural
+evidence and diagnostic scripts remain in the private Step 1 artifact home;
+no native transcript, screen capture or tool payload was copied there.
+
+### Design return required by local-command persistence ordering
+
+The approved transcript source cannot distinguish this executing command
+from the preceding completed turn during the observed gap. Rejecting a
+local-command record after it appears cannot close that gap. Further parsing
+cannot satisfy the unchanged input-before-effect obligation for this version.
+
+A concrete proposal for design assessment is an additional disclosed limit
+for local commands whose input is not yet persisted, including work they
+start during that gap. Adopting it would explicitly weaken the ordering
+contract and accept possible activation while such work is running. It must
+retain blocking for recorded open work and require separate validation of
+local-command completion; Q26 alone does not authorize that change.
+
+If that risk is unacceptable, support requires a specifically named,
+independently validated source that observes local execution before effects,
+or an enforced execution restriction covering every relevant root. Neither
+has been established by this probe; a user instruction to avoid local shell
+mode is not enforcement. No option is selected here. Step 1 remains
+incomplete, adapter implementation has not started, and the validation plan
+is unchanged. Q01-Q26 remain as confirmed; no new review was opened.
+
 ## Persistence-disabled Claude counterexample on 2026-11-14
 
 Claude 2.1.325 executed both foreground and host-managed background work with
