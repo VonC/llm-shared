@@ -18,7 +18,9 @@ The [deferred senv integration checklist](feature-request.v0.14.0.resume-paused.
 
 ### Analysis of Step 1 implementation state
 
-Not started. Step 1 is not implemented because its planned code, contract changes and focused validation have not been delivered or checked.
+Yes. Step 1 has been fully implemented.
+
+The round 6 reviewer confirms the Step 1 code deliverable under plan Q05=A. The repairs of rounds 1 through 5 are present, including R5-1: every proved continuation into a listed file requires its predecessor, and the regression cases cover missing ancestors, foreign, unreadable and incomplete predecessors alongside a complete-history control and the boot boundary. No unresolved code finding remains. The read-only adapters and shared builders are implemented; the writer reports a green whole-suite speed gate with 6166 tests and 100% coverage over `tools`. The reviewer assessed coverage statically and did not repeat the gate. This is not host support: the registry remains empty, every live validation row stays open, and Steps 6 through 8 remain blocked until both hosts have a pinned profile.
 
 ### Goal for Step 1
 
@@ -63,27 +65,95 @@ Establish usable read-only evidence for both hosts before enabling any delivery.
 
 ### What was implemented for Step 1
 
-_(empty — no check has taken place yet.)_.
+- **Profile policy** (`tools/resume_paused_profiles.py`): verdicts, counted reasons, byte accounting, process identity, clock and command protocols, a pinned-profile registry that ships empty, caller classification from agent markers and ancestry, the Q21 boot comparison and the disclosed limits, including the fifth from design Q27=B.
+- **Windows observations** (`tools/resume_paused_windows.py`): the `WindowsApi` protocol, pure direct-child and ancestry helpers, and `Win32Api`, which uses `PROCESS_QUERY_INFORMATION` only, an allocation-metadata walk, the native image name, the class 44 identity query, same-handle hashing and shared file reads.
+- **Codex evidence** (`tools/resume_paused_codex.py`): release-layout parsing, the exact eight-key layout-1 manifest check, `CodexImageProver` with proof, recheck and release, and the session-file input proof with later refresh.
+- **Claude evidence** (`tools/resume_paused_claude.py`, `tools/resume_paused_claude_graph.py`, `tools/resume_paused_claude_ledger.py`): allowlisted transcript parsing, record shapes, latest typed input, the in-memory marked-input match, review-exchange command classification and process-generation lookup; `TranscriptGraph`, which orders the records of one transcript by their parent links; and `ClaudeLedger`, which reports absence or pending with counted reasons.
+- **Code review round 1 repairs**: R1 closure over every identified record, sidechains included, with repeated identifiers, unidentified inputs and missing parents pending. R2 pinned version and closed-world classification for every transcript read, schedule-only reads included. R3 each start matched to its own later end; a preceding end, a reused identifier and an unrelated session's end close nothing, and only a clear-marked file continues an earlier one. R4 checkout, report-sourced identity and unchanged process binding for the bound transcript, and the requestor-operation exception after a proved marked input. R5 missing or non-string linkage identifiers, timestamps without a timezone and repeated JSON keys rejected. R6 a process listing only when the walk ends with `ERROR_NO_MORE_FILES`. R7 well-typed Codex session identity and the single `input_text` message shape. R8 pane proof on the pinned submitted-command prefix, whole-token launch id and whole-line working pattern.
+- **Code review round 2 repairs**: R2-1 a parent loop is counted, every input needs a final record below it that follows the pinned Stop summary and is reached before any other input, and a pinned leaf shape counts only under an input whose turn closed. R2-2 a call identifier shared by two calls or two results is pending, and a result must be recorded below its call in the parent chain. R2-3 an end closes a start only when strictly later; in another file it also needs a continuation pair the caller proved, `LedgerScope.continuations`, into a file that begins with a clear marker, so a clear marker alone closes nothing. No caller supplies such a pair yet. R2-4 the bound transcript needs at least one recorded `cwd` and none outside the checkout; a non-string `cwd` rejects the transcript. R2-5 a recognized invocation is one line naming `review_exchange.bat` by its exact file name; a line break or a longer file name keeps the start in scope. R2-6 each record keeps the type of every message content block, the profile pins the allowed block types, and a message, content or block of an unexpected JSON type rejects the transcript.
+- **Code review round 3 repairs**: R3-1 the requestor exception covers the qualifying start record, never its task id; that start still counts as a use of its identifier, so an earlier or later start sharing it stays pending with the reuse, with or without a terminal record. R3-2 a pinned leaf needs an instant strictly before the final record of its turn; a leaf recorded at or after it, or with an unknown instant on either side, is pending. R3-3 `continuation_places` numbers each file along its single proved chain in one pass; a file with two proved successors or predecessors, or on a loop, is placed nowhere, so its link closes nothing.
+- **Code review round 4 repairs**: R4-1 every transcript read since boot needs a complete generation, not only the bound one: its first timestamped record is an accepted marker and no later SessionStart other than a compaction follows. Another writer's transcript accepts the startup marker, or a clear marker only as the later file of a proved continuation; the bound process creation is never applied to it. R4-2 a supplied background task id, task id, queue status or `is_error` flag of the wrong type, or an empty one, rejects the transcript; a tool result whose container is not an object, or is absent, is unclassified unless it is a recorded error or every tool it answers is listed in the profile's `plain_result_tools`; a schedule creation without a nonempty string id is unrecognized; and a recorded error creates and deletes no schedule.
+- **Code review round 5 repair**: R5-1 a proved continuation into a listed file needs its earlier file in the scope: an earlier file missing from the enumeration, or excluded as another checkout's transcript, counts `continuation-predecessor-missing`, link by link, so a missing ancestor in a chain of clears is counted too. An unreadable or incomplete earlier file stays pending under its own read reason, and one older than the boot boundary stays under the boot rule.
+- **Shared builders** (`tests/unit/tools/resume_paused_test_support.py`): declared Windows observations, Codex sessions and manifests, Claude records and sources, with no assertion.
+- **Evidence document**: a 2026-11-15 section records the delivery, the unchanged support status and the self-observation of the binding.
+- **Pane tie and carried launch id**: `prove_codex_pane` requires this delivery's launch id on exactly one captured line, which must be a submitted-command line, followed by a line matching the profile's working pattern; the input proof carries the launch id, the delivered command must contain it, and the refresh rejects a proof from another delivery.
+- **Real enumeration**: `list_jsonl_files` lists regular JSONL files under a root across all sub-directories and reports an incomplete enumeration on any listing error, symbolic link or junction; `DirectorySessionStore` and `DirectoryTranscriptSource` put it behind the two store protocols with an injected whole-file reader.
+- **Validation evidence**: the round 6 review request records the writer's `ghog day --full=speed --whole-suite` walk on the staged tree that holds these repairs, with its time, exit code, coverage and outliers. The reviewer's findings of rounds 2 to 5 were static counterexamples; the writer turned each one into a test that fails without its repair.
+
+### Live validation checklist for Step 1
+
+Plan Q05=A keeps these rows open without blocking Steps 2 through 5. Steps 6 through 8 stay blocked until both hosts have a pinned profile. No row below is validated.
+
+- [ ] Claude: local-command completion and the pane-idle guard of design Q27=B on each pinned version.
+- [ ] Claude: turn closure for every input kind and chain tip, including parallel calls, fan-out leaves, notifications, slash input and compaction.
+- [ ] Claude: every attach and continuation path, with and without launcher settings, original alive and exited.
+- [ ] Claude: launcher-only provenance and root or nested classification.
+- [ ] Claude: lifecycle records of PowerShell, Bash, moved foreground work, Monitor, subagents and schedules.
+- [ ] Claude: checkout transcript discovery with lossy project names and sub-directories.
+- [ ] Claude: boot-process source and tolerance (design Q28=A: clock, sleep and fast-startup cases recorded as not reproduced).
+- [ ] Claude: schedule survival and restoration (seven-day expiry recorded as not reproduced).
+- [ ] Claude: requestor-operation exception, requestor file binding and background `wait-answer` transport.
+- [ ] Claude: recorded parent coverage through exit, kill, TaskStop and timeout; fresh delivery-time guards.
+- [ ] Claude: the evidence that proves a clear continuation between two session files, such as the pane's reported session id changing while its Claude process stays the same, and how a caller records that pair.
+- [ ] Claude: the message content block types, the leaf shapes and the call-to-result parent linkage of each pinned version, parallel calls included.
+- [ ] Claude: the tool result containers of each pinned version: which tools return a result that is not an object, and that a result flagged `is_error` starts, creates and deletes nothing.
+- [ ] Codex: image identity under rename, stale paths, tunneling, replacements, junction retargeting and races (real updater run recorded as not reproduced).
+- [ ] Codex: pinned release, build, digest and manifest set.
+- [ ] Codex: unique full-input and pane proof, refresh after scroll-off, timestamp resolution.
+- [ ] Codex: version-specific input, result, clear, idle and busy signatures.
+- [ ] Both: caller classification against real agent and human shells.
 
 ### New types or classes introduced for Step 1
 
-_(empty — no check has taken place yet.)_.
+- `Host`, `Verdict`, `CallerOrigin`, `Reason`, `ReadAccount`, `ProcessIdentity`, `CommandResult`, `Clock`, `CommandRunner`: shared vocabulary and injected protocols.
+- `HostProfile`, `ProfileDecision`, `ProfileRegistry`, `CallerDecision`, `BootObservation`, `BootDecision`: profile and boundary policy.
+- `ProcessRecord`, `ImageWalk`, `WindowsApi`, `Win32Api`, `JsonlFile`: Windows and file observations.
+- `DirectorySessionStore`, `DirectoryTranscriptSource`: real directory access behind the store protocols.
+- `ReleaseLayout`, `CodexImageProof`, `CodexImageDecision`, `CodexImageProver`, `SessionFile`, `SessionStore`, `CodexInputQuery`, `CodexInputProof`, `CodexInputDecision`: Codex evidence.
+- `ClaudeLedgerProfile`, `ParseScope`, `RecordFact`, `ExchangeCall`, `TranscriptRejectedError`, `TranscriptFile`, `TranscriptSource`: Claude parsing.
+- `TranscriptGraph`: Claude record graph.
+- `Absence`, `LedgerScope`, `LedgerDecision`, `ClaudeLedger`: Claude ledger.
+- `CodexPaneProfile`: pinned Codex screen signatures.
+- `FakeWindowsApi`, `FakeSessionStore`, `FakeTranscriptSource`: test-only declared observations.
 
 ### Architecture check for Step 1
 
-_(empty — no check has taken place yet.)_.
+- **Ports and adapters**: policy and both host modules depend on the `WindowsApi`, `SessionStore` and `TranscriptSource` protocols; only `Win32Api` touches `ctypes`.
+- **Import direction**: `resume_paused_profiles` imports no sibling; `resume_paused_windows` imports none; the Codex and Claude modules import those two and not each other; the graph imports the Claude parsing module, and the ledger imports the parsing and graph modules.
+- **Read-only boundary**: no module writes a file, sends input, starts a process or calls the bulk command.
+- **File size**: all new files are below the 650-line ceiling. The largest implementation module, `tools/resume_paused_claude_ledger.py`, has 642 lines; the largest test file, the first ledger test file, has 578. The plan explicitly makes advisory estimates nonblocking. The ledger was split from the parsing module, and the record graph from the ledger, by responsibility; ordering and evidence-completeness tests occupy separate files.
+
+No DDD-Hexagonal violation or adapter smell is visible. No, there is nothing that needs to be addressed.
 
 ### Performance check for Step 1
 
-_(empty — no check has taken place yet.)_.
+- **No new `O(n^2)` or `O(n log n)` path**: parsing and the ledger make single passes with set and map lookups; reason codes are sorted once over a fixed small set of codes. The record graph numbers each transcript's records in one depth-first walk, so "is this record below that one" is two map lookups, and it walks each record at most once to find its turn. The proved continuation pairs are indexed once: each file gets its chain head and position in one pass over the pairs, and "does this file continue that one" is two map lookups. No reachable-pair set is built; a test numbers a chain of a thousand clears and finds one entry per file. The files a continuation leads into are indexed once per decision, so each transcript's accepted first markers come from one set lookup.
+- **Read cost**: bytes read follow the selected transcripts and session files and are accounted per file.
+- **Windows path**: one process listing per proof, one allocation walk per binding check, one hash per image per invocation.
+- **Plan-bound alignment**: within the plan's evidence-proportional bound.
+
+The step stays inside the plan's complexity target. No, there is no performance issue that needs to be addressed.
 
 ### Unit test coverage check for Step 1
 
-_(empty — no check has taken place yet.)_.
+The coverage gate measures `tools` (`pyproject.toml`, `[tool.coverage.run]`); all six implementation modules are inside it. The percentages below are the writer's measured coverage from the walk named above.
+
+- **`tools/resume_paused_profiles.py`**: covered at 100% by `test_resume_paused_profiles`.
+- **`tools/resume_paused_windows.py`**: covered at 100% by `test_resume_paused_windows`; two failure branches that need a failing kernel call carry a coverage exclusion comment. Its `Win32Api` and junction tests run on Windows only.
+- **`tools/resume_paused_codex.py`**: covered at 100% by `test_resume_paused_codex`.
+- **`tools/resume_paused_claude.py`**: covered at 100% by `test_resume_paused_claude`, including malformed lifecycle fields and the plain and failed result flags.
+- **`tools/resume_paused_claude_graph.py`**: covered at 100% by `test_resume_paused_claude_graph`, which tests ordering, turns, loops and call faults directly.
+- **`tools/resume_paused_claude_ledger.py`**: covered at 100% by `test_resume_paused_claude_ledger`, with one regression case per round 1 finding and one regression group per round 2 finding: allowed-leaf open sidechains and loops, shared and out-of-order call identifiers, unrelated clear-marked files and equal instants for tasks and schedules, absent, mixed and malformed bound `cwd`, multiline and wrong-launcher commands, and unknown or malformed message content. Its second test file holds one group per round 3 finding: starts sharing a covered task id, pinned leaves at or after their turn's final record, and long, branching and looping continuation chains. Its third holds one group per round 4 finding: other writers' missing, resume, unproved clear and restart markers next to complete, compacted and early-started ones; malformed task identifiers, schedule creations without an identifier, plain and absent result containers, recorded errors and validated plain tools; and, for round 5, absent, foreign, unreadable, incomplete and pre-boot predecessors of a cleared file, a missing ancestor in a chain of clears and the complete chain.
+
+No, there is no unit-tested class below 100% that needs completing for Step 1.
 
 ### Feature integrity for Step 1
 
-_(empty — no check has taken place yet.)_.
+- **Existing feature behavior**: no existing module is imported differently or changed; the new modules have no caller yet.
+- **Reporting or diagnostics**: unchanged.
+- **Compatibility note**: `instructions/pause-session.md` regains the wording an existing structure test pins; `.markdownlint-baseline.json` is unchanged. Under the user's exceptions of 2026-11-15 (plan Q06 and Q07), 26 headings of the design review transcript gained an exchange qualifier, and the two v0.14.0 review transcripts received a whitespace-only list-spacing repair; `rvw_status` still reports a trustworthy idle state.
+
+No existing feature or reporting capability appears impaired.
 
 ## Step 2. Parse pause artifacts and observe exact review state without writes
 
