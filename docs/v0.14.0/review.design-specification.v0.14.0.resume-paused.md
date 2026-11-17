@@ -2852,13 +2852,13 @@ Outcome: continue-owning-workflow
 - Reviewer LLM nature: unrecorded
 - Outcome: request
 
-### Review identity for design-specification resume-paused (round 1)
+### Review identity for design-specification resume-paused (round 1) (exchange 2)
 
 Umbrella draft: none
 Reviewed specification: docs/v0.14.0/design.v0.14.0.resume-paused.md
 Review round: 1
 
-### Requestor assessment for design-specification resume-paused (round 1)
+### Requestor assessment for design-specification resume-paused (round 1) (exchange 2)
 
 The design has confirmed decisions Q01 through Q17 and no remaining open-question section. Step 1 stopped at its feasibility gate before any adapter or fixture implementation. The current design therefore needs an evidence review, not an implementation-complete recommendation.
 
@@ -2873,7 +2873,7 @@ For each gap, distinguish confirmed evidence, a testable hypothesis and an unava
 
 Questions may be missing if the existing confirmed contracts are infeasible. Existing answers are sufficient as policy, but have not established feasibility. Please identify the exact new question needed only if reproducible evidence cannot close a gap. Any new design choice remains for the human; reviewer convergence alone does not authorize selecting it. No reviewer wording suggestions have been applied in this new exchange yet.
 
-### Change summary for design-specification resume-paused (round 1)
+### Change summary for design-specification resume-paused (round 1) (exchange 2)
 
 No change to the reviewed design since its confirmed decisions. Added the staged, uncommitted companion docs/v0.14.0/resume-paused.profile-evidence.md recording sanitized read-only feasibility observations and the Step 1 stop. No code, tests, host input or clear experiments were performed. The implementation and validation plans remain unchanged and Step 1 is incomplete.
 
@@ -2889,7 +2889,7 @@ Writer response:
 
 The writer requests concrete independent ideas before choosing any alternative design. The observations establish a local evidence gap, not universal impossibility. We will verify proposed channels against the current confirmed rules, record accepted evidence and disagreements, and return any genuinely new policy choice to the human. Do not treat this request as authority to operate panes or background tasks.
 
-### Reviewer focus for design-specification resume-paused (round 1)
+### Reviewer focus for design-specification resume-paused (round 1) (exchange 2)
 
 Check for missing questions, assess the existing options and answers, and suggest any clearer wording.
 
@@ -2916,7 +2916,7 @@ Completed artifacts:
 - Reviewer LLM nature: claude
 - Outcome: answer
 
-### Reviewer assessment for design-specification resume-paused round 1
+### Reviewer assessment for design-specification resume-paused round 1 (exchange 2)
 
 I assessed the current design: 725 lines, SHA-256
 `9f2ac1ef716da1acc9c122fd453c0214108bab0e1c90ab725d49d3722b767ddb`, unchanged
@@ -3104,7 +3104,7 @@ would need to choose between accepting that limit and approving another
 channel. The design still has to state these channels, their limits and their
 validation, which is more than wording.
 
-### Question verdicts for design-specification resume-paused round 1
+### Question verdicts for design-specification resume-paused round 1 (exchange 2)
 
 All seventeen design decisions are explicit user decisions recorded on
 2026-11-09 and 2026-11-10. I agree with each of them, and none needs
@@ -3143,7 +3143,7 @@ no recognizable transcript record. Then the exact question would be: should
 Claude reviewer activation stay permanently pending, accepting the resulting
 limit on requirement Q22=A, or should a named additional channel be approved?
 
-### Requested changes for design-specification resume-paused round 1
+### Requested changes for design-specification resume-paused round 1 (exchange 2)
 
 Requested changes:
 
@@ -3273,7 +3273,7 @@ requestor or another agent, so these ideas come from my own investigation.
 Nothing here authorizes operating panes or background tasks, or
 consolidation.
 
-### Writer instructions for design-specification resume-paused round 1
+### Writer instructions for design-specification resume-paused round 1 (exchange 2)
 
 Apply requested changes 1 to 10 to the design. Keep every Q01-Q17 decision,
 rationale and rejected alternative unchanged, and add no open-question
@@ -3295,7 +3295,7 @@ that validation shows an unrecognizable start or end record.
 Then request another automated review round. This answer authorizes neither
 consolidation nor implementation.
 
-### Final reviewer decision for design-specification resume-paused round 1
+### Final reviewer decision for design-specification resume-paused round 1 (exchange 2)
 
 Decision: changes-requested. The writer should apply the concrete instructions and publish another automated review round.
 
@@ -3718,7 +3718,7 @@ Decision: changes-requested. The writer should apply the concrete instructions a
 
 <!-- review-entry-id: answer-round-2-exchange-2 -->
 
-## Round 2 by requestor
+## Round 2 by requestor (exchange 2, entry 2)
 
 - Recorded: 2026-11-10T21:51:12+01:00
 - Exchange: specification/design-specification/v0.14.0/resume-paused
@@ -5037,7 +5037,7 @@ Decision: convergence-recommended. This recommendation is advisory; consolidatio
 
 <!-- review-entry-id: answer-round-5-exchange-2 -->
 
-## Round 5 by human - human-confirmation
+## Round 5 by human - human-confirmation (exchange 2)
 
 - Recorded: 2026-11-12T09:08:13+01:00
 - Exchange: specification/design-specification/v0.14.0/resume-paused
@@ -6322,7 +6322,7 @@ Decision: convergence-recommended. This recommendation is advisory; consolidatio
 
 <!-- review-entry-id: answer-round-3-exchange-3 -->
 
-## Round 3 by human - human-confirmation
+## Round 3 by human - human-confirmation (exchange 3)
 
 - Recorded: 2026-11-12T19:19:14+01:00
 - Exchange: specification/design-specification/v0.14.0/resume-paused
@@ -6553,6 +6553,7 @@ Findings:
 
 One more of my observations is relevant to validation. In Claude 2.1.322,
 the `CronCreate` tool description shown to my session states three things:
+
 - its `durable` parameter has no effect;
 - jobs are session-only and disappear when Claude exits;
 - recurring jobs expire automatically after seven days.
@@ -6598,6 +6599,7 @@ Requested changes:
 
 Line numbers refer to the current design (1303 lines). Make these changes
 and leave the following untouched:
+
 - every Q01-Q17 row, rationale and rejected alternative;
 - the Q18-Q20 answers and their "User decision: confirmed" text.
 
@@ -6810,6 +6812,7 @@ open questions marked "User decision: pending", and do not record answers
 yourself. Present them to the human with their recommendations, and
 request another automated review round once the edits are applied. After
 the human answers, align the following:
+
 - item 5;
 - the Q19 validation text;
 - the IO section;
@@ -6817,6 +6820,7 @@ the human answers, align the following:
 - both plans and the companion.
 
 Do not change:
+
 - any Q01-Q17 decision, rationale or rejected alternative;
 - the confirmed Q18-Q20 answers and their recorded user-decision text.
 
@@ -7142,6 +7146,7 @@ answers yourself. Apply the covered wording edit before or together with
 the human's decisions.
 
 Once the human answers, align the following:
+
 - item 5;
 - the validation text and the IO section;
 - reporting and help, if Q21 widens the clock limit;
@@ -7164,7 +7169,7 @@ Decision: convergence-recommended. This recommendation is advisory; consolidatio
 
 <!-- review-entry-id: answer-round-5-exchange-3 -->
 
-## Round 5 by human - human-confirmation
+## Round 5 by human - human-confirmation (exchange 3)
 
 - Recorded: 2026-11-12T21:27:06+01:00
 - Exchange: specification/design-specification/v0.14.0/resume-paused
@@ -7436,6 +7441,7 @@ missing: the uptime value must count suspended time (requested change 4).
 
 Q22, confirmed A: I agree and would choose A. Requested changes 2 and 3
 make it precise and only narrow what it excludes:
+
 - the exclusion covers starts after the marker, under creation ordering,
   together with their own lifecycle records;
 - terminal records for earlier starts still match;
@@ -7455,6 +7461,7 @@ Requested changes:
 
 Line numbers refer to the current design (1542 lines). Make these changes
 and leave the following untouched:
+
 - every Q01-Q17 row, rationale and rejected alternative;
 - the Q18-Q22 answers and their "User decision: confirmed" text.
 
@@ -7627,6 +7634,7 @@ Changes 2-5 clarify the confirmed Q21 and Q22 decisions without changing
 either choice. Do not edit their "User decision: confirmed" text.
 
 After the human answers Q23, align the following:
+
 - item 5 and, if needed, item 1;
 - the acceptance rows;
 - the validation text;
@@ -7634,6 +7642,7 @@ After the human answers Q23, align the following:
 - both plans and the companion.
 
 Do not change:
+
 - any Q01-Q17 decision, rationale or rejected alternative;
 - the confirmed Q18-Q22 answers and their recorded user-decision text.
 
@@ -7968,6 +7977,7 @@ yourself. Apply covered edit 1 before or together with the human's
 decision; edit 2 is optional.
 
 Once the human answers Q23, align the following:
+
 - item 5 and, if needed, item 1;
 - the acceptance rows;
 - the validation text;
@@ -7990,7 +8000,7 @@ Decision: convergence-recommended. This recommendation is advisory; consolidatio
 
 <!-- review-entry-id: answer-round-7-exchange-2 -->
 
-## Round 7 by human - human-confirmation
+## Round 7 by human - human-confirmation (exchange 3)
 
 - Recorded: 2026-11-12T23:07:05+01:00
 - Exchange: specification/design-specification/v0.14.0/resume-paused
@@ -8321,7 +8331,7 @@ Decision: convergence-recommended. This recommendation is advisory; consolidatio
 
 <!-- review-entry-id: answer-round-8-exchange-2 -->
 
-## Round 8 by human - human-confirmation
+## Round 8 by human - human-confirmation (exchange 3)
 
 - Recorded: 2026-11-12T23:29:52+01:00
 - Exchange: specification/design-specification/v0.14.0/resume-paused
@@ -9644,7 +9654,7 @@ Decision: convergence-recommended. This recommendation is advisory; consolidatio
 
 <!-- review-entry-id: answer-round-2-exchange-5 -->
 
-## Round 2 by human - human-confirmation
+## Round 2 by human - human-confirmation (exchange 5)
 
 - Recorded: 2026-11-13T22:35:47+01:00
 - Exchange: specification/design-specification/v0.14.0/resume-paused
@@ -9669,13 +9679,13 @@ Outcome: continue-owning-workflow
 - Reviewer LLM nature: unrecorded
 - Outcome: request
 
-### Review identity for design-specification resume-paused (round 1)
+### Review identity for design-specification resume-paused (round 1) (exchange 6)
 
 Umbrella draft: none
 Reviewed specification: docs/v0.14.0/design.v0.14.0.resume-paused.md
 Review round: 1
 
-### Requestor assessment for design-specification resume-paused (round 1)
+### Requestor assessment for design-specification resume-paused (round 1) (exchange 6)
 
 Step 1 is continuation after the completed prior consolidation, not a replay of it. The reviewed design remains consolidated Q01-Q23, with no open-ended questions or pending human decision. A new disposable Claude 2.1.325 counterexample requires the design item 1 return already specified by that design and the plan. Both host profiles remain unsupported; no production adapter, test, implementation-check, delivery or bulk CLI was run.
 
@@ -9689,17 +9699,17 @@ Please assess whether this is a technically sufficient bounded correction within
 
 Writer notes: .reviews/a.resume-paused.step1.journal.md and .reviews/a.resume-paused.step1.handoff.md. Structural evidence: .reviews/a.resume-paused.step1.tmp.stop-summary.json and .reviews/a.resume-paused.step1.tmp.stop-persist-SAME.json, -SAME-during.json, -DIFFERENT.json, -DIFFERENT-during.json, -ORIGINAL_RETRY-during.json, -CONTROL.json and -FINAL.json (each uses the same stop-persist prefix). These files contain allowlisted facts only. Do not read the accumulated versioned review transcript as working context.
 
-### Change summary for design-specification resume-paused (round 1)
+### Change summary for design-specification resume-paused (round 1) (exchange 6)
 
 Added the new Claude 2.1.325 Stop-only same/different-handler experiment, first-tool persistence samples, later original branch, native OS build/update revision, complete read counts, cleanup and limits to docs/v0.14.0/resume-paused.profile-evidence.md. Added a clearly unadopted mandatory checkpoint-coverage proposal for independent review. The reviewed design's confirmed decisions, requirement, implementation plan and validation plan are unchanged. Prior consolidation, commits and pushes remain complete.
 
-### Writer response for design-specification resume-paused (round 1)
+### Writer response for design-specification resume-paused (round 1) (exchange 6)
 
 Writer response:
 
 This new exchange returns the exact Step 1 attribution gap to review as the settled design requires. The proposal deliberately narrows eligibility and retains fail-closed behavior; no extra source, hook, residual limit or weaker absence rule is selected. Please evaluate the proposed invariant against the counterexample before asking the human to decide anything. Remaining feasibility work is retained, including other append paths, complete wait/schedule/boot contracts and Codex image/input/race checks. Both hosts are required. No unsupported host is being enabled and Step 1 is not being marked complete.
 
-### Reviewer focus for design-specification resume-paused (round 1)
+### Reviewer focus for design-specification resume-paused (round 1) (exchange 6)
 
 Check for missing questions, assess the existing options and answers, and suggest any clearer wording.
 
@@ -10389,7 +10399,7 @@ Decision: convergence-recommended. This recommendation is advisory; consolidatio
 
 <!-- review-entry-id: answer-round-2-exchange-6 -->
 
-## Round 2 by human - human-confirmation
+## Round 2 by human - human-confirmation (exchange 6)
 
 - Recorded: 2026-11-14T16:21:24+01:00
 - Exchange: specification/design-specification/v0.14.0/resume-paused
@@ -11336,7 +11346,7 @@ Decision: convergence-recommended. This recommendation is advisory; consolidatio
 
 <!-- review-entry-id: answer-round-5-exchange-4 -->
 
-## Round 5 by human - human-confirmation
+## Round 5 by human - human-confirmation (exchange 6)
 
 - Recorded: 2026-11-14T17:15:41+01:00
 - Exchange: specification/design-specification/v0.14.0/resume-paused
@@ -11833,7 +11843,7 @@ Decision: convergence-recommended. This recommendation is advisory; consolidatio
 
 <!-- review-entry-id: answer-round-7-exchange-3 -->
 
-## Round 7 by human - human-confirmation
+## Round 7 by human - human-confirmation (exchange 6)
 
 - Recorded: 2026-11-14T17:37:02+01:00
 - Exchange: specification/design-specification/v0.14.0/resume-paused
@@ -12712,7 +12722,7 @@ Decision: convergence-recommended. This recommendation is advisory; consolidatio
 
 <!-- review-entry-id: answer-round-3-exchange-5 -->
 
-## Round 3 by human - human-confirmation
+## Round 3 by human - human-confirmation (exchange 7)
 
 - Recorded: 2026-11-14T21:59:17+01:00
 - Exchange: specification/design-specification/v0.14.0/resume-paused
@@ -13182,7 +13192,7 @@ Decision: convergence-recommended. This recommendation is advisory; consolidatio
 
 <!-- review-entry-id: answer-round-5-exchange-5 -->
 
-## Round 5 by human - human-confirmation
+## Round 5 by human - human-confirmation (exchange 7)
 
 - Recorded: 2026-11-14T22:31:36+01:00
 - Exchange: specification/design-specification/v0.14.0/resume-paused

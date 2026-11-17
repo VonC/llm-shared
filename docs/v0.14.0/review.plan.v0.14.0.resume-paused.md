@@ -666,8 +666,8 @@ makes the chosen option precise; it does not reopen it.
 The remaining "pending" wording in the body is conditional text that the
 consolidation workflow replaces, not an unresolved human choice. It is in
 plan lines 128, 318 and 514, the three file lists that do not yet name the
-approved support and acceptance files, and validation lines 32, 153, 154 and
-314. No human decision is outstanding, and no new question arises from these
+approved support and acceptance files, and validation lines 32, 153, 154 and 314.
+No human decision is outstanding, and no new question arises from these
 decisions.
 
 ### Question verdicts for plan resume-paused round 3
