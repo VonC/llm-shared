@@ -86,7 +86,7 @@ replacing it discards a checkpoint that was never resumed. Compare historical
 pausing identities, not intended future role assignments. For legacy prompts
 without pane or role fields, retain the agent-id comparison. A pane or role
 recorded as unknown, for the existing checkpoint or the current pause, is not
-by itself a difference; compare the remaining recorded fields. Ask as a choice
+by itself a difference; compare the remaining recorded fields. Ask it as a choice
 under [interactive_menu.md](../rules/interactive_menu.md). If the user
 declines, preserve the existing prompt and stop without writing a new one. This guard
 applies at pause time only; it adds no confirmation to bulk resume. Keep one
