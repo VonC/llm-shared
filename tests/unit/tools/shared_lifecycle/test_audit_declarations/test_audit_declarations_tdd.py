@@ -1,4 +1,13 @@
-"""Reject invalid declarations before setup, including unused fixture entries."""
+"""Reject invalid declarations before setup, including unused fixture entries.
+
+Step 1 of v0.14.0 git-cliff-provisioning lowered the cost of the malformed
+test-permission cases after a whole-suite walk measured 0.11 to 0.125 s of
+lifecycle CPU for one of their seven embedded sessions: one embedded session
+still proves that a malformed reason is a usage error before any setup, and
+the plugin's mark validation refuses each malformed form directly, since every
+form reaches that same check. The `pytest.mark.process_allowed()` spelling
+builds the same mark as the bare decorator, so the direct cases list it once.
+"""
 
 # pyright: reportPrivateUsage=false
 
@@ -21,23 +30,27 @@ def pytest_configure(config):
 """
 
 
-@pytest.mark.parametrize("mark", [
-    "pytest.mark.process_allowed", "pytest.mark.process_allowed()",
-    "pytest.mark.process_allowed('why')", "pytest.mark.process_allowed(reason='')",
-    "pytest.mark.process_allowed(reason='  ')", "pytest.mark.process_allowed(reason=3)",
-    "pytest.mark.process_allowed(reason='why', extra=True)",
-])
-def test_malformed_test_permission_prevents_setup(tmp_path: Path, capsys: pytest.CaptureFixture[str], mark: str) -> None:
-    """Malformed named-test reasons are usage errors before any setup."""
+_MALFORMED_MARKS: dict[str, tuple[tuple[object, ...], dict[str, object]]] = {
+    "no-arguments": ((), {}),
+    "positional-reason": (("why",), {}),
+    "empty-reason": ((), {"reason": ""}),
+    "blank-reason": ((), {"reason": "  "}),
+    "non-string-reason": ((), {"reason": 3}),
+    "extra-keyword": ((), {"reason": "why", "extra": True}),
+}
+
+
+def test_malformed_test_permission_prevents_setup(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    """A malformed named-test reason is a usage error before any setup."""
     configuration = tmp_path / "pytest.ini"
     configuration.write_text(
         "[pytest]\nmarkers = process_allowed(reason): process permission\n", encoding="utf-8")
-    (tmp_path / "test_case.py").write_text(f"""
+    (tmp_path / "test_case.py").write_text("""
 import pytest
 @pytest.fixture(autouse=True)
 def never():
     raise AssertionError('SETUP STARTED')
-@{mark}
+@pytest.mark.process_allowed
 def test_case(): pass
 """, encoding="utf-8")
     assert run_inline(tmp_path, "-c", str(configuration), "--noconftest", plugins=(audit,)) == pytest.ExitCode.USAGE_ERROR
@@ -45,6 +58,17 @@ def test_case(): pass
     assert "process_allowed" in output.err
     assert "test_case" in output.err
     assert "SETUP STARTED" not in output.out
+
+
+@pytest.mark.parametrize(("args", "kwargs"), list(_MALFORMED_MARKS.values()), ids=list(_MALFORMED_MARKS))
+def test_malformed_test_permission_forms_are_refused(tmp_path: Path, args: tuple[object, ...], kwargs: dict[str, object]) -> None:
+    """Every malformed named-test reason is refused by the validation that runs before setup."""
+    mark = SimpleNamespace(name="process_allowed", args=args, kwargs=kwargs)
+    item = cast("pytest.Item", SimpleNamespace(nodeid="test_case.py::test_case", own_markers=[mark]))
+    with pytest.raises(pytest.UsageError) as caught:
+        audit.AuditSession(tmp_path)._test_marks([item])
+    assert "process_allowed" in str(caught.value)
+    assert "test_case" in str(caught.value)
 
 
 @pytest.mark.parametrize("level", ["module", "class"])
