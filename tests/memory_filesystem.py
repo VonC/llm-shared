@@ -4,6 +4,8 @@ Only pytest's scratch tree is simulated. Source files, Python imports and
 runner reports keep their normal filesystem. The router is installed in a
 measured fixture, and production pathlib, parsing and publication code run
 unchanged. No real directories, processes or waits implement scenarios.
+The resume-paused artifact and review leaves join the scenarios: their
+read-only proofs compare whole checkout trees before and after each read.
 """
 
 from __future__ import annotations
@@ -75,6 +77,8 @@ _SCENARIOS = (
     "tests/unit/tools/test_new_draft_workflow_from_draft.py",
     "tests/unit/tools/test_open_questions_md.py",
     "tests/unit/tools/markdown_check/test_policy/",
+    "tests/unit/tools/test_resume_paused_artifacts/",
+    "tests/unit/tools/test_resume_paused_review/",
 )
 _active_scenario = False
 _COPY_FUNCTION_POSITION = 3
