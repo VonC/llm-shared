@@ -172,7 +172,11 @@ No existing feature or reporting capability appears impaired.
 
 ### Analysis of Step 2 implementation state
 
-Not started. Step 2 is not implemented because its planned code, contract changes and focused validation have not been delivered or checked.
+Yes. Step 2 has been fully implemented.
+
+The shared readers and the read-only observation boundary exist. Reviewer round 2 confirmed that orphan evidence is classified under the observation lock and that lock entry, acquisition and exit failures become damaged results; the remaining read-accounting gap is repaired: the observer's exact exchange paths record each read where its bytes are consumed, before decoding or parsing, so malformed envelopes, coordination records and undecodable transcripts stay in the damaged snapshot's account. Tests compare whole checkout trees before and after every read, make every home preparation, migration, review-core construction and filesystem mutation fail, and check every read account against an independent recorder, on success and on rejection.
+
+Independent reviewer round 3 confirms the read-accounting repair and its three rejected-evidence regression cases. No carried finding remains. The current resolver still selects `ghog day --full=speed --whole-suite`; the requestor reports 6467 passing tests and 100% line coverage over `tools`. The reviewer assessed coverage statically and did not repeat the walk.
 
 ### Goal for Step 2
 
@@ -186,27 +190,61 @@ Provide strict shared inputs and a pure exact-exchange observation boundary.
 
 ### What was implemented for Step 2
 
-_(empty — no check has taken place yet.)_.
+The step delivers four read-only modules, the legacy routing study and one unit-test leaf per module.
+
+- **Shared values**: `tools/resume_paused_models.py` defines canonical Windows checkout roots (case, separator, repeated or trailing separator and extended-prefix spellings share one key; dot segments, trailing dots or spaces and reserved characters fail), prompt digests, agent ids, full pane UUIDs, offset timestamps and single-line text, which also refuses the U+2028 and U+2029 separators that would split a JSON or table line.
+- **Routing schema**: `tools/resume_paused_routing.py` defines schema `resume-paused-routing` version 1 with pause identity, observation, resumed, requestor and reviewer targets and the exact exchange. A part may be `{"unknown": reason}` (unresolved, pause kept) or, for a pair slot or the exchange, `{"not_applicable": reason}`. Unrecognized keys, wrong types, other versions, pair applicability, slot roles, foreign checkouts, one pane assigned to two targets and a resumed target differing from its pair slot are errors. The exchange derives its complete identity from the reviewed document and leaves the current round to live state.
+- **Artifact readers**: `tools/resume_paused_artifacts.py` loads the home through `ReviewArtifactConfiguration.load`, validates the existing ignore bytes without creating anything, reads the prompt's exact bytes and the receipt, and returns a `CheckoutSnapshot` with the resume-session state (no saved prompt, unused, new since use, used, error), the exact paths read and their byte account. Receipts of schemas 1, 2 and 3 parse; schema 3 adds `Launch id`, `Receiving pane` and `Assignment binding`. Routing is read only from one top-level fenced block opened by `` ```json resume-paused-routing ``; the readable table is rendered from that object and must equal the rendering when present; a legacy table beside the JSON, two blocks, two tables or a header contradiction is an error, and table-only or routing-free prompts are classified for a bulk skip.
+- **Exact-exchange observation**: `tools/resume_paused_review.py` rebuilds the saved context, derives the exact paths, takes the nonblocking `observe_transition` lock first and classifies through `ReviewExchangeObserver` and `current_request_occurrence`, without `ReviewExchangeCore`, preparation or migration; the caller supplies the review configuration, loaded once per checkout as the status collector does. Only an empty artifact set is not live. A held lock is busy with or without a coordination record, and so is a record changing between the two probes; an orphan request or answer keeps its abandoned state and an orphan tombstone its interrupted state; another occurrence, an earlier round, or another document, umbrella or step is a changed selection; unreadable, invalid or inconsistent evidence and any lock entry, acquisition or exit failure are damaged. An observed snapshot carries state, round, occurrence, owner, next actor, ownership generation and role natures, never the token digest. The reused store reads through accounted exact paths, a `Path` subclass that records the consumed bytes at the read and decodes text from those bytes without a second read, so the snapshot reports every exact path in order with its bytes, including reads that parsing then rejects.
+- **Legacy routing study**: `docs/v0.14.0/resume-paused.legacy-routing-study.md` explains why the prose table cannot be read as routing, the digest and used-receipt hazards of any rewrite, the manual resume and fresh pause path, and the preconditions a separate converter would need; no converter is implemented.
+- **Installed launcher grammar**: a local replay of the launcher's heading and field readers, copied without importing senv, reads the same author, title and `Session role` from a prompt carrying routing, and the same `Prompt`, `SHA-256` and `Project root` values from a schema 3 receipt.
+- **Deviations from the planned file list**: the first models module (653 lines) and test module (732) exceeded the 650-line ceiling, so the routing schema moved to the new `tools/resume_paused_routing.py`, and the tests were split into `tests/unit/tools/test_resume_paused_artifacts/`, `test_resume_paused_models/`, `test_resume_paused_routing/` and `test_resume_paused_review/` after the module they test. `tests/memory_filesystem.py` registers the artifact and review leaves with the memory-backed scratch filesystem. Under the user's exception of 2026-11-18, twelve bare `__init__.py` path lines of the committed code-review transcript were wrapped in code spans to clear `MD050`, the only change to that transcript.
+- **Read accounting**: the checkout snapshot's exact reads and bytes start with the `.review-artifacts.ini` declaration that the configuration load reads, both when the home resolves and when the declaration is refused. An independent recorder of `Path` reads confirms every account: a custom-home snapshot reads the declaration, the ignore file and the prompt; a populated exchange reads the coordination record four times (two stability probes, the adapter's own read and the observer's), then the request and the transcript; a malformed orphan answer, a malformed coordination record and an undecodable transcript each stay in the damaged account.
+- **Validation evidence**: `ghog single` on the four leaves exit 0 after the round 2 repairs; contract inspection of the four modules (with the Grep tool, `rg` being unavailable in the shell) found no preparation, migration, core, write, claim, token-digest, process or TUIOS call; each review request is validated by `ghog day --full=speed --whole-suite` (6464 tests, coverage 100%, no outlier or exclusion before round 2), and the repaired tree is validated by the same walk before the round 3 request.
 
 ### New types or classes introduced for Step 2
 
-_(empty — no check has taken place yet.)_.
+- `ArtifactError`, `SessionRole`, `CanonicalRoot`, `PromptDigest`: shared values.
+- `Unresolved`, `NotApplicable`, `PaneIdentity`, `RoutingTarget`, `SavedExchange`, `PauseIdentity`, `RoutingObservation`, `PairSlot`, `SavedRouting`: routing schema.
+- `PromptState`, `RoutingState`, `PromptMetadata`, `RoutingReading`, `UsageReceipt`, `CheckoutSnapshot`: artifact readings.
+- `ExchangeObservationKind`, `ExchangeSnapshot`: exact-exchange observation.
 
 ### Architecture check for Step 2
 
-_(empty — no check has taken place yet.)_.
+- **Pure values and schema**: `resume_paused_models` and `resume_paused_routing` perform no IO; they import only the shared host vocabulary, the review identity model and its timestamp validator.
+- **Read adapters**: `resume_paused_artifacts` is the filesystem adapter over the pure parsers, and `resume_paused_review` follows the existing `review_status` read pattern: exact paths, the observation lock and the observer, with the review configuration supplied by the caller. Its accounted path type only records and decodes whole-file reads of the exact exchange paths it hands to the unchanged store.
+- **Import direction**: models, then routing, then artifacts; the review adapter imports the routing type for annotations only. No cycle, and no module imports TUIOS, a process API or a writing path.
+- **File size**: all files are below the 650-line ceiling after the responsibility split; `resume_paused_artifacts.py` has 578 lines and `resume_paused_review.py` 346.
+
+No DDD-Hexagonal violation or adapter smell is visible. No, there is nothing that needs to be addressed.
 
 ### Performance check for Step 2
 
-_(empty — no check has taken place yet.)_.
+- **No new `O(n^2)` or `O(n log n)` path**: prompt and receipt parsing are single passes over their lines; the fence scan visits each line once; the table comparison is linear in its rows; target consistency uses one map keyed by pane UUID.
+- **Read cost**: one checkout reads at most the declaration, the ignore file, the prompt and the receipt, each once. One observation reads the coordination record four times (two stability probes, the adapter's own read and the observer's), each present request, answer or tombstone once, and the transcript once when a round is known. Every observation, successful or damaged, returns these paths in order with the bytes each read consumed; text is decoded from those bytes, so accounting adds no read. The independent recorder checks success and rejection paths.
+- **No cache**: nothing mutable is retained between calls; each call reads fresh evidence.
+- **Plan-bound alignment**: within the plan's evidence-proportional bound for exact-path reads.
+
+The step stays inside the plan's complexity target. No, there is no performance issue that needs to be addressed.
 
 ### Unit test coverage check for Step 2
 
-_(empty — no check has taken place yet.)_.
+The coverage gate measures `tools` (`pyproject.toml`, `[tool.coverage.run]`), line coverage; all four modules are inside it. The statements below are a static assessment of each leaf against its module; the `--full=speed` walk measured 100% before rounds 1 and 2 and measures the repaired tree again before round 3.
+
+- **`tools/resume_paused_models.py`**: every line is exercised by `test_resume_paused_models`, including UNC, extended and drive spellings, every rejection and both digest forms.
+- **`tools/resume_paused_routing.py`**: every line is exercised by `test_resume_paused_routing`: each contradiction and malformed form, explicit unknowns and not-applicable parts, a non-pair resumed target, exchange identity and rejections, and exhaustive missing-key, wrong-type and added-key cases.
+- **`tools/resume_paused_artifacts.py`**: every line is exercised by `test_resume_paused_artifacts`: each prompt and receipt failure, homes, declaration accounting on success and refusal, routing states, rendering of unknown and absent parts, the launcher grammar, duplicate keys and generated round trips.
+- **`tools/resume_paused_review.py`**: every line is exercised by `test_resume_paused_review`: a populated exchange with its complete read account, genuine absence, orphan request and tombstone, a malformed orphan answer, a held lock with and without a record, a changing record, lock entry, acquisition and exit failures, both changed-selection forms, another step, damaged evidence, and recorder-checked read accounts for a malformed orphan answer, a malformed coordination record and an undecodable transcript.
+
+No, there is no unit-tested class below 100% that needs completing for Step 2.
 
 ### Feature integrity for Step 2
 
-_(empty — no check has taken place yet.)_.
+- **Existing feature behavior**: no existing production module changed; the new modules have no caller yet.
+- **Reporting or diagnostics**: unchanged; the review transcript repair touches only twelve list lines, and `MD050` no longer fails the Markdown gate.
+- **Compatibility note**: prompts and receipts keep the grammar the installed launcher parses. The memory-backed scratch filesystem now also serves the two new leaves; other scenarios are unchanged.
+
+No existing feature or reporting capability appears impaired.
 
 ## Step 3. Emit JSON routing at pause and align manual artifact readers
 
