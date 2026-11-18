@@ -9,6 +9,8 @@ and groundhog activation, compatibility preflight, CLI, selection and artifact-c
 this same route.
 Shared-policy acceptance also routes generated consumer resources here; its
 local source adapter lets the real Python loader read those in-memory files.
+The resume-paused artifact and review leaves join the scenarios: their
+read-only proofs compare whole checkout trees before and after each read.
 """
 
 from __future__ import annotations
@@ -94,6 +96,8 @@ _SCENARIOS = (
     "tests/unit/tools/shared_lifecycle/test_compatibility/",
     "tests/unit/tools/shared_lifecycle/test_gate_contract/test_gate_contract_tdd.py::test_home_spelling_and_containment_are_strict",
     "tests/unit/tools/shared_lifecycle/test_gate_contract/test_gate_contract_tdd.py::test_invalid_declaration_never_falls_back",
+    "tests/unit/tools/test_resume_paused_artifacts/",
+    "tests/unit/tools/test_resume_paused_review/",
 )
 _active_scenario = False
 _COPY_FUNCTION_POSITION = 3
