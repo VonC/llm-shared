@@ -119,3 +119,6 @@ docs/llm-shared_presentation.pptx
 
 build/
 .claude/skills/synced/
+
+# Pinned git-cliff cache of this checkout (entries, lock records, attempts)
+/.tools/git-cliff/
