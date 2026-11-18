@@ -92,7 +92,7 @@ Everything else is supporting design context for those outcomes or deferred.
 | Windows job objects ([Job Objects](https://learn.microsoft.com/en-us/windows/win32/procthread/job-objects)) | With `JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE`, closing the last handle to a job terminates every process associated with it; nested jobs are supported | A parent that alone holds a non-inheritable job handle bounds the life of every child associated with the job, even if the parent dies; completion of that termination is still observed per child |
 | Job assignment after creation ([AssignProcessToJobObject](https://learn.microsoft.com/en-us/windows/win32/api/jobapi2/nf-jobapi2-assignprocesstojobobject)) | Associates an existing process with a job only when it is called | A child created first and assigned later is outside the job until that call; a parent that dies in between leaves it uncontained, suspended or not, for as long as it lives |
 | Process attributes ([UpdateProcThreadAttribute](https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-updateprocthreadattribute)) | `PROC_THREAD_ATTRIBUTE_JOB_LIST` lists job handles assigned to the child process, supported in Windows 10 and newer and Windows Server 2016 and newer; `PROC_THREAD_ATTRIBUTE_HANDLE_LIST` lists the only handles the child inherits, which must be inheritable, with `bInheritHandles` true | One `STARTUPINFOEX` carrying both attributes gives a child its job and its handles as part of its creation; the provisioning platform baseline is Windows 10 or Windows Server 2016, x64 |
-| Nested jobs ([Nested Jobs](https://learn.microsoft.com/en-us/windows/win32/procthread/nested-jobs)) | A process already in a job joins another job only if a valid hierarchy forms and neither job sets UI limits; a child created by a process in a job belongs to every job of its parent's chain | A parent running inside a job, such as a terminal, an editor or a CI agent, nests the new job under it; a refused nesting is a creation failure, never a reason to create the child outside the job |
+| Nested jobs ([Nested Jobs](https://learn.microsoft.com/en-us/windows/win32/procthread/nested-jobs)) | The documentation says a process already in a job joins another job only if a valid hierarchy forms and neither job sets UI limits; on Windows 11 build 26200 (checked 2026-11-18), a job with UI restrictions did not refuse that nesting, while a job of the parent's chain at its active-process limit refuses the new member (`CreateProcessW` fails with error 1816 and no process is left). A child created by a process in a job belongs to every job of its parent's chain | A parent running inside a job, such as a terminal, an editor or a CI agent, nests the new job under it; a refused nesting or a refused member is a creation failure, never a reason to create the child outside the job |
 | CPython `subprocess.Popen` on Windows | `_execute_child` closes the new process's primary thread handle at once, and `STARTUPINFO.lpAttributeList` supports only `handle_list` | Creating a child suspended inside a job and resuming it after recording its identity needs the engine's Windows layer, not `subprocess` |
 | Python `urllib.request.urlopen` ([documentation](https://docs.python.org/3/library/urllib.request.html#urllib.request.urlopen)) | Its `timeout` applies to blocking socket operations, not to a whole transfer, and name resolution is not covered by it | A wall-clock stage budget needs an actor that can be stopped and reaped; clock checks between blocking calls are not enough |
 | `tools/release_workflow/git.py` | Owns the only Git subprocess boundary; tests replace it with programmatic observations | Running `git-cliff.exe` and downloading get their own injectable boundaries |
@@ -436,8 +436,8 @@ that entry's use guard.
    entry's use guard. The listed handles are made inheritable only for this
    creation call.
 3. If the attribute list, the job association or the creation fails, for
-   example because Windows refuses to nest the job under a job of the parent's
-   chain that sets UI limits, `CreateProcessW` returns no child and the stage
+   example because a job of the parent's chain refuses a new member once its
+   active-process limit is reached, `CreateProcessW` returns no child and the stage
    fails with a containment diagnostic. There is no fallback to creating the
    child first and assigning it to a job afterwards, and no fallback to
    `subprocess`.
@@ -576,7 +576,7 @@ github.com and release-assets.githubusercontent.com through HTTPS_PROXY.
 | Stage | Remedy given |
 | --- | --- |
 | Platform | Windows 10 or Windows Server 2016 and later, x64 only, in v0.14.0 |
-| Containment | Windows refused to create the child inside its job, for example under a host job that sets UI limits; run from a console outside such a job |
+| Containment | Windows refused to create the child inside its job, for example under a host job that limits its processes; run from a console outside such a job |
 | Budget setting | Set `LLM_SHARED_GIT_CLIFF_DOWNLOAD_TIMEOUT_SECONDS` to a whole number of seconds from 300 through 3600, or unset it |
 | Permission | Grant write access to the named directory of this llm-shared checkout |
 | Lock wait | Another process holds the named lock; retry when it ends, or wait longer by raising `LLM_SHARED_GIT_CLIFF_DOWNLOAD_TIMEOUT_SECONDS` (300 through 3600 s) |
@@ -838,7 +838,7 @@ parity.
   through the job list reporting membership with `IsProcessInJob` before it
   resumes, and ending when its parent is killed while the child is still
   suspended; a creation refused, with no child process left, when the parent
-  runs inside a job that sets UI limits; real kill-on-close termination of a
+  runs inside a job at its active-process limit; real kill-on-close termination of a
   worker and of a git-cliff child after the parent is killed; the inherited use
   guard refusing an executable rename while a child runs, including after its
   launcher was killed, while a reuse probe runs after its caller was killed,
@@ -898,7 +898,7 @@ parity.
 | Parent dies while its recorded worker writes | Kill-on-close ends the worker; staging kept while the worker reports `ALIVE`, removed once it is `DEAD` | Every writer `DEAD` before cleanup |
 | Parent dies during a staging probe | Same as a writing worker, with the probe's recorded identity | Probe children are recorded too |
 | Child `ALIVE` or `UNKNOWN` after its parent is `DEAD` | Lock and staging preserved; a waiter fails at its budget | Parent death proves nothing about children |
-| Job creation, attribute list or creation-time job association fails, including a nesting refused under a host job with UI limits | `CreateProcessW` returns no child; containment diagnostic; nothing written; no create-then-assign or `subprocess` fallback | Fail closed on containment |
+| Job creation, attribute list or creation-time job association fails, including a new member refused by a host job at its process limit | `CreateProcessW` returns no child; containment diagnostic; nothing written; no create-then-assign or `subprocess` fallback | Fail closed on containment |
 | Windows older than Windows 10 or Windows Server 2016 | Platform diagnostic before any download or child | Supported baseline of the job list |
 | Identity recording fails for a suspended cache-writing child | Child terminated and reaped; stage fails; nothing written | Recording before any work |
 | Valid-entry reuse, writable or read-only checkout | The reuse probe is created in its job with the entry's guard in its handle list; no lock, lock record, staging directory or owner file is written | Record-free reuse probe |

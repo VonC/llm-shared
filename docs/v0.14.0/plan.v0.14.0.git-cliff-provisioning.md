@@ -887,7 +887,10 @@ Step framing:
   exercises. The Step 2 due set runs on temporary paths outside
   `.tools/git-cliff/` and on stand-in children, never on the cache:
   `IsProcessInJob` before resume; a suspended child ending when its parent is
-  killed; a refused creation under a job with UI limits leaving no process;
+  killed; a creation refused by the job of a helper parent limited to one
+  active process, leaving no process (on Windows 11 build 26200 a job with UI
+  limits did not refuse the nesting, so the user chose this refusal on
+  2026-11-18);
   kill-on-close of a running child after its parent is killed; a root that
   exits while a descendant keeps its stdout open, returning within the
   check's bound with the descendant ended; a helper parent whose
