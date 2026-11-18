@@ -1266,19 +1266,19 @@ Paths staged:
 - docs/v0.14.0/review.plan.v0.14.0.resume-paused.md
 - instructions/pause-session.md
 - tests/unit/tools/resume_paused_test_support.py
-- tests/unit/tools/test_resume_paused_claude/__init__.py
+- `tests/unit/tools/test_resume_paused_claude/__init__.py`
 - tests/unit/tools/test_resume_paused_claude/test_resume_paused_claude_tdd.py
-- tests/unit/tools/test_resume_paused_claude_graph/__init__.py
+- `tests/unit/tools/test_resume_paused_claude_graph/__init__.py`
 - tests/unit/tools/test_resume_paused_claude_graph/test_resume_paused_claude_graph_tdd.py
-- tests/unit/tools/test_resume_paused_claude_ledger/__init__.py
+- `tests/unit/tools/test_resume_paused_claude_ledger/__init__.py`
 - tests/unit/tools/test_resume_paused_claude_ledger/test_resume_paused_claude_ledger_evidence_tdd.py
 - tests/unit/tools/test_resume_paused_claude_ledger/test_resume_paused_claude_ledger_ordering_tdd.py
 - tests/unit/tools/test_resume_paused_claude_ledger/test_resume_paused_claude_ledger_tdd.py
-- tests/unit/tools/test_resume_paused_codex/__init__.py
+- `tests/unit/tools/test_resume_paused_codex/__init__.py`
 - tests/unit/tools/test_resume_paused_codex/test_resume_paused_codex_tdd.py
-- tests/unit/tools/test_resume_paused_profiles/__init__.py
+- `tests/unit/tools/test_resume_paused_profiles/__init__.py`
 - tests/unit/tools/test_resume_paused_profiles/test_resume_paused_profiles_tdd.py
-- tests/unit/tools/test_resume_paused_windows/__init__.py
+- `tests/unit/tools/test_resume_paused_windows/__init__.py`
 - tests/unit/tools/test_resume_paused_windows/test_resume_paused_windows_tdd.py
 - tools/resume_paused_claude.py
 - tools/resume_paused_claude_graph.py
@@ -1540,19 +1540,19 @@ Paths staged:
 - docs/v0.14.0/review.plan.v0.14.0.resume-paused.md
 - instructions/pause-session.md
 - tests/unit/tools/resume_paused_test_support.py
-- tests/unit/tools/test_resume_paused_claude/__init__.py
+- `tests/unit/tools/test_resume_paused_claude/__init__.py`
 - tests/unit/tools/test_resume_paused_claude/test_resume_paused_claude_tdd.py
-- tests/unit/tools/test_resume_paused_claude_graph/__init__.py
+- `tests/unit/tools/test_resume_paused_claude_graph/__init__.py`
 - tests/unit/tools/test_resume_paused_claude_graph/test_resume_paused_claude_graph_tdd.py
-- tests/unit/tools/test_resume_paused_claude_ledger/__init__.py
+- `tests/unit/tools/test_resume_paused_claude_ledger/__init__.py`
 - tests/unit/tools/test_resume_paused_claude_ledger/test_resume_paused_claude_ledger_evidence_tdd.py
 - tests/unit/tools/test_resume_paused_claude_ledger/test_resume_paused_claude_ledger_ordering_tdd.py
 - tests/unit/tools/test_resume_paused_claude_ledger/test_resume_paused_claude_ledger_tdd.py
-- tests/unit/tools/test_resume_paused_codex/__init__.py
+- `tests/unit/tools/test_resume_paused_codex/__init__.py`
 - tests/unit/tools/test_resume_paused_codex/test_resume_paused_codex_tdd.py
-- tests/unit/tools/test_resume_paused_profiles/__init__.py
+- `tests/unit/tools/test_resume_paused_profiles/__init__.py`
 - tests/unit/tools/test_resume_paused_profiles/test_resume_paused_profiles_tdd.py
-- tests/unit/tools/test_resume_paused_windows/__init__.py
+- `tests/unit/tools/test_resume_paused_windows/__init__.py`
 - tests/unit/tools/test_resume_paused_windows/test_resume_paused_windows_tdd.py
 - tools/resume_paused_claude.py
 - tools/resume_paused_claude_graph.py
@@ -1600,3 +1600,1021 @@ Human choice: Commit
 Outcome: continue-owning-workflow
 
 <!-- review-entry-id: human-confirmation-round-6 -->
+
+## Round 1 by requestor - Step 2
+
+- Recorded: 2026-11-18T09:20:02+01:00
+- Exchange: code/code/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.resume-paused.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: unrecorded
+- Implementation step: 2
+- Outcome: request
+
+### Review identity for step 2 resume-paused (round 1)
+
+Umbrella draft: none
+Implementation plan: docs/v0.14.0/plan.v0.14.0.resume-paused.md
+Implementation step: 2
+Review round: 1
+
+### Code review evidence for step 2 resume-paused (round 1)
+
+request_index_tree: 85cc988c0563b7773d2f8ce671dc87d702d67057
+resolved_validation_set:
+
+- `ghog day --full=speed --whole-suite` (sources: project)
+
+test_scope:
+{"fingerprint": "686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6", "group": null, "proof": "speed", "requirement": "docs/v0.14.0/feature-request.v0.14.0.resume-paused.md", "scope": "whole"}
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: docs(resume-paused): repair code transcript lint
+group 1 path: docs/v0.14.0/review.code.v0.14.0.resume-paused.md
+group 2: feat(resume-paused): add pause routing models
+group 2 path: tools/resume_paused_models.py
+group 2 path: tools/resume_paused_routing.py
+group 2 path: tests/unit/tools/test_resume_paused_models/__init__.py
+group 2 path: tests/unit/tools/test_resume_paused_models/test_resume_paused_models_tdd.py
+group 2 path: tests/unit/tools/test_resume_paused_models/test_resume_paused_models_pbt.py
+group 2 path: tests/unit/tools/test_resume_paused_routing/__init__.py
+group 2 path: tests/unit/tools/test_resume_paused_routing/test_resume_paused_routing_tdd.py
+group 2 path: tests/unit/tools/test_resume_paused_routing/test_resume_paused_routing_pbt.py
+group 3: feat(resume-paused): read pause prompts and receipts
+group 3 path: tools/resume_paused_artifacts.py
+group 3 path: tests/memory_filesystem.py
+group 3 path: tests/unit/tools/test_resume_paused_artifacts/__init__.py
+group 3 path: tests/unit/tools/test_resume_paused_artifacts/test_resume_paused_artifacts_tdd.py
+group 3 path: tests/unit/tools/test_resume_paused_artifacts/test_resume_paused_artifacts_pbt.py
+group 4: feat(resume-paused): observe the saved exchange
+group 4 path: tools/resume_paused_review.py
+group 4 path: tests/unit/tools/test_resume_paused_review/__init__.py
+group 4 path: tests/unit/tools/test_resume_paused_review/test_resume_paused_review_tdd.py
+group 5: docs(resume-paused): add legacy routing study
+group 5 path: docs/v0.14.0/resume-paused.legacy-routing-study.md
+group 6: docs(resume-paused): record step 2 validation
+group 6 path: docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md
+staged path: docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md
+staged path: docs/v0.14.0/resume-paused.legacy-routing-study.md
+staged path: docs/v0.14.0/review.code.v0.14.0.resume-paused.md
+staged path: tests/memory_filesystem.py
+staged path: tests/unit/tools/test_resume_paused_artifacts/__init__.py
+staged path: tests/unit/tools/test_resume_paused_artifacts/test_resume_paused_artifacts_pbt.py
+staged path: tests/unit/tools/test_resume_paused_artifacts/test_resume_paused_artifacts_tdd.py
+staged path: tests/unit/tools/test_resume_paused_models/__init__.py
+staged path: tests/unit/tools/test_resume_paused_models/test_resume_paused_models_pbt.py
+staged path: tests/unit/tools/test_resume_paused_models/test_resume_paused_models_tdd.py
+staged path: tests/unit/tools/test_resume_paused_review/__init__.py
+staged path: tests/unit/tools/test_resume_paused_review/test_resume_paused_review_tdd.py
+staged path: tests/unit/tools/test_resume_paused_routing/__init__.py
+staged path: tests/unit/tools/test_resume_paused_routing/test_resume_paused_routing_pbt.py
+staged path: tests/unit/tools/test_resume_paused_routing/test_resume_paused_routing_tdd.py
+staged path: tools/resume_paused_artifacts.py
+staged path: tools/resume_paused_models.py
+staged path: tools/resume_paused_review.py
+staged path: tools/resume_paused_routing.py
+```
+
+### Validation scope for step 2 resume-paused (round 1)
+
+Validation scope: the whole suite.
+
+### Requestor assessment for step 2 resume-paused (round 1)
+
+Step 2 is fully implemented: the strict pause prompt, receipt and versioned routing readers and the exact-exchange observation boundary exist, and tests prove that reading writes nothing and prepares, migrates or claims nothing. The implementation check recorded `Yes. Step 2 has been fully implemented.`
+
+- Tests: `ghog day --full=speed --whole-suite` exit 0 at 2026-11-18T09:18:05+01:00, 6456 tests, no failure, no outlier, no exclusion; slowest call 0.31 s.
+- Static checks: the same walk's `check.bat` passes ty, pyright, ruff, radon, vulture, big files, Markdown, ShellCheck and the end-of-file check.
+- Coverage: 100% over `tools`, the four new modules included.
+- Architecture: the values and routing modules perform no IO; the artifact reader is the filesystem adapter over them; the observer follows the existing read-only status pattern of exact paths, the observation lock and the observer. No module writes a file, claims a role, starts a process or calls TUIOS.
+- Performance: single passes over prompt and receipt lines, one fence scan, linear table comparison, one map of panes; each checkout reads at most four exact files once, and the observer reads the exact exchange paths and the transcript once.
+- Feature integrity: no existing production module changes; the new modules have no caller yet. Prompts and receipts keep the grammar the installed launcher parses.
+
+### Implementation report for step 2 resume-paused (round 1)
+
+Four read-only modules implement the Step 2 contracts of the consolidated design, beside the legacy routing study.
+
+- `tools/resume_paused_models.py`: shared values. `CanonicalRoot` compares checkout roots by Windows rules (case, `/` or `\`, repeated or trailing separators, the `\\?\` and `\\?\UNC\` prefixes) and refuses dot segments, trailing dots or spaces and reserved characters. `PromptDigest`, agent ids, full pane UUIDs, offset timestamps and single-line text checks complete it; the text check also refuses U+2028 and U+2029, which `str.splitlines` treats as line breaks.
+- `tools/resume_paused_routing.py`: schema `resume-paused-routing` version 1. `SavedRouting` holds the pause identity, the observation, the resumed, requestor and reviewer targets and the exact exchange, and renders back to the same canonical JSON. A part recorded as `{"unknown": reason}` stays unresolved without failing the pause; a pair slot or the exchange may be `{"not_applicable": reason}`. Unrecognized keys, wrong types, other versions and contradictions between parts are errors. `SavedExchange` derives the complete exchange identity from the reviewed document and leaves the current round to live state.
+- `tools/resume_paused_artifacts.py`: `read_checkout_snapshot` loads the home through `ReviewArtifactConfiguration.load`, validates the existing ignore bytes, reads the prompt's exact bytes and the receipt, and applies the resume-session state table (no saved prompt, unused, new since use, used, error) with the exact paths read and their byte account. Receipts of schemas 1, 2 and 3 parse. Routing is read only from one top-level block fenced as `` ```json resume-paused-routing ``; the readable table headed `| Routing item | Value |` is rendered from that object and must equal the rendering when present.
+- `tools/resume_paused_review.py`: `observe_saved_exchange` rebuilds the saved context, derives its exact paths, takes the nonblocking `observe_transition` lock and classifies through `ReviewExchangeObserver` and `current_request_occurrence`, reading the coordination record before and after. It reports not live, busy, selection changed, damaged or observed, with the ownership generation and role natures and never the token digest.
+- `docs/v0.14.0/resume-paused.legacy-routing-study.md`: why the prose table cannot be read as routing, the digest and used-receipt hazards of any rewrite, the manual resume and fresh pause path, and the preconditions of a separate converter. No converter is implemented.
+- Tests: one leaf per module, each declaring its files in the memory-backed scratch tree or as plain data. Read-only proofs compare whole checkout trees before and after each read and make every home preparation, migration, review-core construction and filesystem mutation fail. A local replay of the installed launcher's heading and field readers, copied without importing senv, checks the prompt and receipt grammar.
+
+Points for the reviewer's attention:
+
+- Interpretation: the plan's "unknown routing fields" is read as fields recorded with an explicit `{"unknown": reason}` value, which give unresolved-target skips. Unrecognized keys, duplicate keys and unsupported versions remain errors, like every strict review model.
+- Contracts this step fixes for later steps: the routing fence line and table header (Step 3 writes them), and the schema 3 receipt field names `Launch id` (32 lowercase hexadecimal characters), `Receiving pane` and `Assignment binding` (Step 4 writes them).
+- Deviations from the planned file list: the first models module (653 lines) and test module (732) exceeded the 650-line ceiling, so the routing schema moved to the new `tools/resume_paused_routing.py`, and the tests were split into `test_resume_paused_artifacts`, `test_resume_paused_models`, `test_resume_paused_routing` and `test_resume_paused_review`. `tests/memory_filesystem.py` registers the artifact and review leaves with the memory-backed scratch filesystem. `tools/resume_paused_artifacts.py` has 562 lines.
+- Under the user's exception of 2026-11-18, twelve bare `__init__.py` path lines in the Step 1 round 5 and round 6 repair inventories of the code review transcript were wrapped in code spans to clear the `MD050` findings that blocked the Markdown gate; no other transcript line changed. That repair is its own commit group.
+- The first models module was written before its tests; the tests for the artifacts, review and split modules came first.
+- `rg` is not available in the shell used, so the contract inspection used the equivalent Grep search over the four modules.
+- The first whole-suite day walk lost its affected stage to two lifecycle overruns in untouched groundhog tests (one wall-only, one CPU at 0.3125 s); both passed in focus and the restarted walk was green.
+- The validation plan states coverage as a static assessment, written before the coverage walk; the speed walk below measures it.
+- No accepted duration exclusion exists.
+
+Writer notes: `.reviews/a.resume-paused.step2.journal.md` and `.reviews/a.resume-paused.step2.handoff.md`.
+
+### Change summary for step 2 resume-paused (round 1)
+
+Nineteen staged paths in six `a.commit` groups, in this order:
+
+1. `docs(resume-paused): repair code transcript lint`: `docs/v0.14.0/review.code.v0.14.0.resume-paused.md`.
+2. `feat(resume-paused): add pause routing models`: `tools/resume_paused_models.py`, `tools/resume_paused_routing.py`, and the `tests/unit/tools/test_resume_paused_models` and `tests/unit/tools/test_resume_paused_routing` packages (one package file, one tdd and one pbt file each).
+3. `feat(resume-paused): read pause prompts and receipts`: `tools/resume_paused_artifacts.py`, `tests/memory_filesystem.py`, and the `tests/unit/tools/test_resume_paused_artifacts` package (package file, tdd and pbt files).
+4. `feat(resume-paused): observe the saved exchange`: `tools/resume_paused_review.py` and the `tests/unit/tools/test_resume_paused_review` package (package file and tdd file).
+5. `docs(resume-paused): add legacy routing study`: `docs/v0.14.0/resume-paused.legacy-routing-study.md`.
+6. `docs(resume-paused): record step 2 validation`: `docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md`.
+
+The commit-plan checker reports the plan valid and ready.
+
+### Writer response for step 2 resume-paused (round 1)
+
+Writer response:
+
+First round: no earlier feedback to answer and no disagreement.
+
+### Reviewer focus for step 2 resume-paused (round 1)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-2-round-1 -->
+
+## Round 1 by reviewer - Step 2
+
+- Recorded: 2026-11-18T09:47:43+01:00
+- Exchange: code/code/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.resume-paused.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 2
+- Outcome: answer
+
+### Assessed index identity for step 2 resume-paused (exchange 1) (round 1)
+
+Baseline index tree: 85cc988c0563b7773d2f8ce671dc87d702d67057
+
+Assessed index tree: 444c155d7be2771932347e75c31b047ac807a15b
+
+### Implementation check for step 2 resume-paused (exchange 1) (round 1)
+
+Result:
+
+No. Step 2 has NOT been fully implemented.
+
+The four modules, legacy study and no-write tests deliver most of the planned structure, but the observer can report absence for incomplete or busy evidence, lock IO failures escape the typed boundary, and read accounting omits actual IO. These are step 2 requirements; later implementation and deferred senv integration remain outside this assessment. Pure values and adapters have appropriate dependency direction, and all staged Python files remain under 650 lines.
+
+Validation plan effects:
+
+Updated only the Step 2 section of `docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md`: exact No verdict, three concrete missing-work bullets, corrected read-cost and static coverage assessments. The patch was attributed from the retained pre-edit blob and staged alone. No other step, umbrella, implementation, tests or a.commit was edited.
+
+### Pre-repair mandatory checks and coverage for step 2 resume-paused (exchange 1) (round 1)
+
+The requestor reports `ghog day --full=speed --whole-suite` exit 0 at 2026-11-18T09:18:05+01:00, 6456 tests, 100% line coverage over `tools`, no failure, outlier or exclusion, with static checks passing. This is requestor evidence, not an independent reviewer run. Reviewer inspected source and module-specific tests statically; no ghog test/check command or coverage run was needed to establish these defects. Reported line coverage does not cover the missing combinations and IO failure behaviors.
+
+### Resolved validation set and sources for step 2 resume-paused (exchange 1) (round 1)
+
+Request and current resolution: `ghog day --full=speed --whole-suite`, source `project`. No `.review-validation` declaration exists; the built-in speed default applies. `prompt_workflow.bat scope day --full=speed` returned the identical command. No plan/request additions are present. Bound round scope: whole; fingerprint `686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6`. The reviewer did not execute the resolved requestor command.
+
+### Resolver drift and direction for step 2 resume-paused (exchange 1) (round 1)
+
+None. Project default, requirement selector and request validation command agree.
+
+### Repository state around validation for step 2 resume-paused (exchange 1) (round 1)
+
+Baseline/request tree: `85cc988c0563b7773d2f8ce671dc87d702d67057`. Assessed tree: `444c155d7be2771932347e75c31b047ac807a15b`. The evidence launcher compared the same ordered 19-path set before and after: only the validation plan and index changed. Raw comparison reports acceptable=false because these are tracked changes; inspection and patch attribution show the difference is entirely the authorized Step 2 review metadata. Tree-to-tree comparison names only that validation plan, and its worktree matches its staged version. No implementation/test change or validation side effect occurred. Umbrella comparison: applicable=false, changed=false.
+
+### Repair inventory for step 2 resume-paused (exchange 1) (round 1)
+
+Repairs made:
+
+- Review metadata only (polishing-only): `docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md`; recorded the No assessment and missing work. No substantive repair.
+
+Paths staged:
+
+- `docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md` — only the attributable Step 2 assessment patch was staged by the reviewer.
+
+### Commit plan assessment for step 2 resume-paused (exchange 1) (round 1)
+
+Independent `commit-plan-check.bat --format json` passed before assessment and after staging review metadata: exit 0, state=valid, ready=true, diagnostics=[]. The 19 staged paths remain assigned exactly once across these ordered groups:
+
+1. `docs(resume-paused): repair code transcript lint`: `docs/v0.14.0/review.code.v0.14.0.resume-paused.md`.
+2. `feat(resume-paused): add pause routing models`: `tools/resume_paused_models.py`, `tools/resume_paused_routing.py`, `tests/unit/tools/test_resume_paused_models/__init__.py`, `tests/unit/tools/test_resume_paused_models/test_resume_paused_models_tdd.py`, `tests/unit/tools/test_resume_paused_models/test_resume_paused_models_pbt.py`, `tests/unit/tools/test_resume_paused_routing/__init__.py`, `tests/unit/tools/test_resume_paused_routing/test_resume_paused_routing_tdd.py`, `tests/unit/tools/test_resume_paused_routing/test_resume_paused_routing_pbt.py`.
+3. `feat(resume-paused): read pause prompts and receipts`: `tools/resume_paused_artifacts.py`, `tests/memory_filesystem.py`, `tests/unit/tools/test_resume_paused_artifacts/__init__.py`, `tests/unit/tools/test_resume_paused_artifacts/test_resume_paused_artifacts_tdd.py`, `tests/unit/tools/test_resume_paused_artifacts/test_resume_paused_artifacts_pbt.py`.
+4. `feat(resume-paused): observe the saved exchange`: `tools/resume_paused_review.py`, `tests/unit/tools/test_resume_paused_review/__init__.py`, `tests/unit/tools/test_resume_paused_review/test_resume_paused_review_tdd.py`.
+5. `docs(resume-paused): add legacy routing study`: `docs/v0.14.0/resume-paused.legacy-routing-study.md`.
+6. `docs(resume-paused): record step 2 validation`: `docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md`.
+
+Ordering is coherent: isolated human-authorized transcript lint repair, pure models/routing, artifact parser, exchange observer, legacy study, then validation. The additional routing module and test leaves are justified responsibility splits. Subjects and membership remain accurate; mechanical readiness does not overcome the findings.
+
+### Findings and boundaries for step 2 resume-paused (exchange 1) (round 1)
+
+Unresolved findings:
+
+- [P1] Validate absence under the observation lock (`tools/resume_paused_review.py:181`). The early `coordination.exists()` return bypasses both the lock and `ReviewExchangeObserver`. With no coordination and an existing malformed request/answer/tombstone, it returns NOT_LIVE without reading the damaged evidence. With a publisher holding the lock before coordination appears, it also returns NOT_LIVE instead of BUSY. The existing core classifier preserves valid orphan requests/answers as abandoned and tombstones as interrupted; this adapter discards all of those distinctions. Move absence classification under the lock, validate the exact artifact set, preserve explicit orphan/incomplete states and return DAMAGED for invalid evidence. Add no-write cases for malformed and valid orphan artifacts, held lock without coordination, and genuinely absent state.
+- [P2] Catch observation-lock IO failures at the public boundary (`tools/resume_paused_review.py:183`). `observe_transition` can raise PermissionError when opening the lock, unexpected OSError during native acquisition, or an unlock error on exit. `_observe_settled` catches IO only inside the with body, so these failures escape rather than returning ExchangeObservationKind.DAMAGED for this checkout. Wrap the complete lock context in the typed error boundary; test denied/unreadable locks and injected acquisition/exit IO failures while retaining BUSY for ordinary contention and zero writes.
+- [P2] Account for the reads the adapters actually perform (`tools/resume_paused_artifacts.py:531`, `tools/resume_paused_review.py:118`). `ReviewArtifactConfiguration.load` reads `.review-artifacts.ini` before `_CheckoutReader` initializes its empty account, so custom-home snapshots omit that path and its bytes, including when declaration parsing fails. The observer callback counts only its before/after probes: `store.read_coordination` and `ReviewExchangeObserver._snapshot` read coordination again (four total), and delegated envelope/configuration/transcript reads have no complete returned account. This contradicts the step's deterministic exact-path IO evidence and validation claim of two coordination reads. Provide accounting across the reused readers and assert actual paths/bytes independently, including custom declarations, declaration errors and a populated exchange; update the validation claims to match.
+
+Boundary-crossing work: None.
+
+### Writer instructions for step 2 resume-paused (exchange 1) (round 1)
+
+Implement the three missing-work items in the Step 2 validation section, with deterministic regression tests preserving the read-only boundary. Keep absence distinct from busy, incomplete and damaged evidence; include lock entry/exit failures and all actual evidence reads in the tests. Update only the affected step evidence and keep a.commit aligned. Run the writer-owned scope-resolved validation, including its speed/coverage gate, before publishing a replacement request for this exact plan and step. Do not treat this answer as commit authorization.
+
+### Decision rationale for step 2 resume-paused (exchange 1) (round 1)
+
+Changes requested. Six readiness results: exact identity PASS; completeness FAIL (three findings); validation/coverage FAIL for behavioral completeness despite the reported green requestor walk; staged attribution PASS (only review metadata added); unresolved findings FAIL (three); a.commit PASS (independently valid/ready, no diagnostics). No Human guidance block was supplied, so no implementation or test repair was made. The review is advisory and grants no commit authority.
+
+### Final reviewer decision for step 2 resume-paused (exchange 1) (round 1)
+
+Decision: changes-requested. The writer must address the concrete instructions and publish another review round. This advisory answer does not authorize a commit.
+
+<!-- review-entry-id: answer-step-2-round-1 -->
+
+## Round 2 by requestor - Step 2
+
+- Recorded: 2026-11-18T10:40:47+01:00
+- Exchange: code/code/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.resume-paused.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 2
+- Outcome: request
+
+### Review identity for step 2 resume-paused (round 2)
+
+Umbrella draft: none
+Implementation plan: docs/v0.14.0/plan.v0.14.0.resume-paused.md
+Implementation step: 2
+Review round: 2
+
+### Code review evidence for step 2 resume-paused (round 2)
+
+request_index_tree: 6c13d1372e3bb9c59779934bbff1896f3b4bb092
+resolved_validation_set:
+
+- `ghog day --full=speed --whole-suite` (sources: project)
+
+test_scope:
+{"fingerprint": "686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6", "group": null, "proof": "speed", "requirement": "docs/v0.14.0/feature-request.v0.14.0.resume-paused.md", "scope": "whole"}
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: docs(resume-paused): repair code transcript lint
+group 1 path: docs/v0.14.0/review.code.v0.14.0.resume-paused.md
+group 2: feat(resume-paused): add pause routing models
+group 2 path: tools/resume_paused_models.py
+group 2 path: tools/resume_paused_routing.py
+group 2 path: tests/unit/tools/test_resume_paused_models/__init__.py
+group 2 path: tests/unit/tools/test_resume_paused_models/test_resume_paused_models_tdd.py
+group 2 path: tests/unit/tools/test_resume_paused_models/test_resume_paused_models_pbt.py
+group 2 path: tests/unit/tools/test_resume_paused_routing/__init__.py
+group 2 path: tests/unit/tools/test_resume_paused_routing/test_resume_paused_routing_tdd.py
+group 2 path: tests/unit/tools/test_resume_paused_routing/test_resume_paused_routing_pbt.py
+group 3: feat(resume-paused): read pause prompts and receipts
+group 3 path: tools/resume_paused_artifacts.py
+group 3 path: tests/memory_filesystem.py
+group 3 path: tests/unit/tools/test_resume_paused_artifacts/__init__.py
+group 3 path: tests/unit/tools/test_resume_paused_artifacts/test_resume_paused_artifacts_tdd.py
+group 3 path: tests/unit/tools/test_resume_paused_artifacts/test_resume_paused_artifacts_pbt.py
+group 4: feat(resume-paused): observe the saved exchange
+group 4 path: tools/resume_paused_review.py
+group 4 path: tests/unit/tools/test_resume_paused_review/__init__.py
+group 4 path: tests/unit/tools/test_resume_paused_review/test_resume_paused_review_tdd.py
+group 5: docs(resume-paused): add legacy routing study
+group 5 path: docs/v0.14.0/resume-paused.legacy-routing-study.md
+group 6: docs(resume-paused): record step 2 validation
+group 6 path: docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md
+staged path: docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md
+staged path: docs/v0.14.0/resume-paused.legacy-routing-study.md
+staged path: docs/v0.14.0/review.code.v0.14.0.resume-paused.md
+staged path: tests/memory_filesystem.py
+staged path: tests/unit/tools/test_resume_paused_artifacts/__init__.py
+staged path: tests/unit/tools/test_resume_paused_artifacts/test_resume_paused_artifacts_pbt.py
+staged path: tests/unit/tools/test_resume_paused_artifacts/test_resume_paused_artifacts_tdd.py
+staged path: tests/unit/tools/test_resume_paused_models/__init__.py
+staged path: tests/unit/tools/test_resume_paused_models/test_resume_paused_models_pbt.py
+staged path: tests/unit/tools/test_resume_paused_models/test_resume_paused_models_tdd.py
+staged path: tests/unit/tools/test_resume_paused_review/__init__.py
+staged path: tests/unit/tools/test_resume_paused_review/test_resume_paused_review_tdd.py
+staged path: tests/unit/tools/test_resume_paused_routing/__init__.py
+staged path: tests/unit/tools/test_resume_paused_routing/test_resume_paused_routing_pbt.py
+staged path: tests/unit/tools/test_resume_paused_routing/test_resume_paused_routing_tdd.py
+staged path: tools/resume_paused_artifacts.py
+staged path: tools/resume_paused_models.py
+staged path: tools/resume_paused_review.py
+staged path: tools/resume_paused_routing.py
+```
+
+### Validation scope for step 2 resume-paused (round 2)
+
+Validation scope: the whole suite.
+
+### Requestor assessment for step 2 resume-paused (round 2)
+
+Step 2 is fully implemented after the round 1 repairs: absence is decided under the observation lock through the observer, lock IO failures are damaged results, and both adapters account for every read they and the reused readers make. The implementation check records `Yes. Step 2 has been fully implemented.`
+
+- Tests: `ghog day --full=speed --whole-suite` exit 0 at 2026-11-18T10:39:02+01:00, 6464 tests, no failure, no outlier, no exclusion; slowest call 0.31 s.
+- Static checks: the same walk's `check.bat` passes ty, pyright, ruff, radon, vulture, big files, Markdown, ShellCheck and the end-of-file check, on a working tree that holds the repaired transcript.
+- Coverage: 100% over `tools`, the four new modules included.
+- Architecture: the values and routing modules perform no IO; the artifact reader is the filesystem adapter over them; the observer follows the read-only status pattern of exact paths, the observation lock and the observer, with the review configuration supplied by its caller and an accounted subclass of the exchange store for its reads. No module writes a file, claims a role, starts a process or calls TUIOS.
+- Performance: single passes over prompt and receipt lines, one fence scan, linear table comparison, one map of panes; a checkout reads at most four exact files once; an observation reads the coordination record four times, each present artifact once and the transcript once, all returned in its account.
+- Feature integrity: no existing production module changes; the new modules have no caller yet. Prompts and receipts keep the grammar the installed launcher parses.
+
+### Implementation report for step 2 resume-paused (round 2)
+
+Four read-only modules implement the Step 2 contracts of the consolidated design, beside the legacy routing study; round 2 repairs the observer and both read accounts.
+
+- `tools/resume_paused_models.py`: shared values. `CanonicalRoot` compares checkout roots by Windows rules (case, `/` or `\`, repeated or trailing separators, the `\\?\` and `\\?\UNC\` prefixes) and refuses dot segments, trailing dots or spaces and reserved characters. `PromptDigest`, agent ids, full pane UUIDs, offset timestamps and single-line text checks complete it; the text check also refuses U+2028 and U+2029, which `str.splitlines` treats as line breaks.
+- `tools/resume_paused_routing.py`: schema `resume-paused-routing` version 1. `SavedRouting` holds the pause identity, the observation, the resumed, requestor and reviewer targets and the exact exchange, and renders back to the same canonical JSON. A part recorded as `{"unknown": reason}` stays unresolved without failing the pause; a pair slot or the exchange may be `{"not_applicable": reason}`. Unrecognized keys, wrong types, other versions and contradictions between parts are errors.
+- `tools/resume_paused_artifacts.py`: `read_checkout_snapshot` loads the home through `ReviewArtifactConfiguration.load`, validates the existing ignore bytes, reads the prompt's exact bytes and the receipt, and applies the resume-session state table with the exact paths read and their byte account, which now starts with the `.review-artifacts.ini` declaration whenever the load reads it, including when the declaration is refused. Receipts of schemas 1, 2 and 3 parse. Routing is read only from one top-level block fenced as `` ```json resume-paused-routing ``; the readable table headed `| Routing item | Value |` is rendered from that object and must equal the rendering when present.
+- `tools/resume_paused_review.py`: `observe_saved_exchange(configuration, review_configuration, exchange, wall_clock)` takes the nonblocking `observe_transition` lock first and classifies through `ReviewExchangeObserver` and `current_request_occurrence`, with or without a coordination record. Only an empty artifact set is not live; a held lock or a record changing between the two probes is busy; orphan requests and answers keep their abandoned states and a tombstone its interrupted state; another occurrence, round, document, umbrella or step is a changed selection; invalid evidence and lock entry, acquisition or exit failures are damaged. Reads go through `_AccountedStore`, a subclass of the exchange store that records each read of its read methods, and the snapshot returns the exact paths in order with their bytes. The caller supplies the review configuration, loaded once per checkout as the status collector does.
+- `docs/v0.14.0/resume-paused.legacy-routing-study.md`: unchanged since round 1.
+- Tests: one leaf per module. Read-only proofs compare whole checkout trees before and after each read and make every home preparation, migration, review-core construction and filesystem mutation fail. An independent recorder of `Path.read_text` and `Path.read_bytes` checks both read accounts. A local replay of the installed launcher's heading and field readers, copied without importing senv, checks the prompt and receipt grammar.
+
+Points for the reviewer's attention:
+
+- The observer's signature gained the `review_configuration` argument; it has no caller yet. Its four coordination reads are now reported, not hidden: two stability probes, the adapter's read (it needs the record's policy before constructing the observer) and the observer's own.
+- The neutral `FamilyPolicy` passed when no coordination record exists is never consulted by the observer, which compares a policy only against a record.
+- Interpretation kept from round 1: "unknown routing fields" means fields recorded as `{"unknown": reason}`; unrecognized keys stay errors.
+- Contracts this step fixes for later steps: the routing fence line and table header (Step 3), and the schema 3 receipt fields `Launch id` (32 lowercase hexadecimal characters), `Receiving pane` and `Assignment binding` (Step 4).
+- Deviations from the planned file list (round 1): the routing schema module and the per-module test leaves split for the 650-line ceiling, and `tests/memory_filesystem.py` registers the artifact and review leaves. Line counts: `tools/resume_paused_artifacts.py` 578, `tools/resume_paused_review.py` 318.
+- Transcript repairs, each under its own user exception of 2026-11-18: the staged group 1 wraps twelve bare `__init__.py` paths of the Step 1 entries; in the working copy, the round 1 answer's `- N.` lines 1807-1812 lost their leading `-` to clear `MD029`. The latter belongs to the residual transcript commit with the unstaged `.vscode/settings.json` word `nonbound`.
+- `rg` is not available in the shell used; the contract inspection used the equivalent Grep search.
+- No accepted duration exclusion exists.
+
+Writer notes: `.reviews/a.resume-paused.step2.journal.md` and `.reviews/a.resume-paused.step2.handoff.md`.
+
+### Change summary for step 2 resume-paused (round 2)
+
+Nineteen staged paths in the same six `a.commit` groups as round 1; the repairs change five of them and no membership, order or subject.
+
+1. `docs(resume-paused): repair code transcript lint`: `docs/v0.14.0/review.code.v0.14.0.resume-paused.md` (staged copy: the twelve-line group 1 repair only).
+2. `feat(resume-paused): add pause routing models`: `tools/resume_paused_models.py`, `tools/resume_paused_routing.py`, and the `tests/unit/tools/test_resume_paused_models` and `tests/unit/tools/test_resume_paused_routing` packages; unchanged in round 2.
+3. `feat(resume-paused): read pause prompts and receipts`: `tools/resume_paused_artifacts.py` (declaration accounting), `tests/memory_filesystem.py`, and the `tests/unit/tools/test_resume_paused_artifacts` package (read recorder and two accounting tests).
+4. `feat(resume-paused): observe the saved exchange`: `tools/resume_paused_review.py` (lock-first observation, lock failures, accounted store) and the `tests/unit/tools/test_resume_paused_review` package (orphan, held-lock, lock-failure and accounting cases).
+5. `docs(resume-paused): add legacy routing study`: `docs/v0.14.0/resume-paused.legacy-routing-study.md`; unchanged.
+6. `docs(resume-paused): record step 2 validation`: `docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md` (Step 2 back to Yes after the repairs).
+
+Unstaged, for the residual commit after the review: the transcript's round entries with the approved lines 1807-1812 repair, and `.vscode/settings.json` with the project word `nonbound`. The commit-plan checker reports the plan valid and ready.
+
+### Writer response for step 2 resume-paused (round 2)
+
+Writer response:
+
+All three round 1 findings are accepted and repaired, with no disagreement.
+
+- [P1] Absence under the observation lock: `observe_saved_exchange` now takes `observe_transition` first and decides every outcome under it through `ReviewExchangeObserver`, with or without a coordination record (a neutral policy is passed when no record exists, since the observer compares a policy only against a record). Only an empty artifact set is not live. A held lock is busy before and after the record exists; a valid orphan request keeps `abandoned-request` with its envelope round and transcript occurrence, a tombstone keeps `interrupted-answer-publication`, and a malformed orphan answer is damaged. New no-write tests cover each case beside the genuinely absent one.
+- [P2] Lock IO failures: the whole lock context sits inside the typed boundary, so a lock that cannot be opened (a directory at the lock path), a failing native acquisition and a failing unlock on exit each return `damaged` with an `observation lock failed` diagnostic, while ordinary contention stays busy.
+- [P2] Read accounting: `read_checkout_snapshot` now starts its exact reads and bytes with the `.review-artifacts.ini` declaration whenever the configuration load reads it, on success and on refusal. The observer reads through an accounted subclass of the exchange store, so the reads the store and the observer make are recorded with the two stability probes; the snapshot returns the exact paths in order with their bytes. The review configuration is now supplied by the caller, loaded once per checkout as the status collector does, so the observer reads only exchange evidence. An independent recorder of `Path.read_text` and `Path.read_bytes` checks both accounts: a custom-home snapshot reads the declaration, ignore file and prompt; a refused declaration is still accounted; a populated exchange reads coordination four times, then the request and transcript, in the order the snapshot reports.
+- The validation plan's Step 2 section returns to `Yes` with corrected read-cost and coverage statements and no missing-work section; the reviewer's No rewrite was the starting point.
+- Transcript, under the user's exception of 2026-11-18: the round 1 answer's commit-group list at lines 1807-1812 used `- N.` bullets, each nesting a one-item numbered list, which fails `MD029` and therefore the Markdown gate. Only the leading `-` of those six lines was removed. A later answer can avoid this by writing the groups as a plain numbered list. The user also chose to add `nonbound`, a word of the committed Step 1 entries, to the project cSpell words; that `.vscode/settings.json` change is unstaged and joins the transcript's residual commit.
+
+### Reviewer focus for step 2 resume-paused (round 2)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-2-round-2 -->
+
+## Round 2 by reviewer - Step 2
+
+- Recorded: 2026-11-18T10:47:29+01:00
+- Exchange: code/code/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.resume-paused.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 2
+- Outcome: answer
+
+### Assessed index identity for step 2 resume-paused (exchange 1) (round 2)
+
+Baseline index tree: 6c13d1372e3bb9c59779934bbff1896f3b4bb092
+
+Assessed index tree: 5d55575e5da641c41d39cdaa307e94c35cb024cf
+
+### Implementation check for step 2 resume-paused (exchange 1) (round 2)
+
+Result:
+
+No. Step 2 has NOT been fully implemented.
+
+The first two round 1 findings are resolved: absence is classified under the lock through the existing observer, and lock entry/acquisition/release failures become damaged outcomes. Declaration and successful exchange reads are now accounted. One carried finding remains: failed parsing drops completed delegated reads. Models, routing, legacy study, read-only boundaries, architecture and file sizes remain acceptable. No implementation or test changes were made by the reviewer.
+
+Validation plan effects:
+
+Updated only Step 2 of `docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md`: exact No verdict, explanation, missing-work section, read-cost qualification and unit-test gap. The attributable metadata patch alone was staged. Other steps and document-level status were unchanged. Umbrella: none.
+
+### Pre-repair mandatory checks and coverage for step 2 resume-paused (exchange 1) (round 2)
+
+Requestor reports `ghog day --full=speed --whole-suite` exit 0 at 2026-11-18T10:39:02+01:00: 6464 tests, 100% line coverage over `tools`, no outlier or exclusion, slowest call 0.31 s, all static checks green. These are requestor results, not a reviewer rerun. Static review compared the five-file round 2 change with the round 1 assessed tree and traced delegated error paths. No reviewer test or coverage command was needed or run. Current tests check damaged classification but omit accounting assertions for malformed evidence.
+
+### Resolved validation set and sources for step 2 resume-paused (exchange 1) (round 2)
+
+`ghog day --full=speed --whole-suite` (source: project). No plan or request additions. Bound scope: whole; fingerprint `686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6`, from `.reviews/a.review-scope.code.v0.14.0.resume-paused.json`.
+
+### Resolver drift and direction for step 2 resume-paused (exchange 1) (round 2)
+
+No drift in either direction. Exact marker check found `.review-validation` absent; current `prompt_workflow.bat scope day --full=speed` returned the same command as the request.
+
+### Repository state around validation for step 2 resume-paused (exchange 1) (round 2)
+
+Request-time and baseline index tree: `6c13d1372e3bb9c59779934bbff1896f3b4bb092`. Assessed index tree: `5d55575e5da641c41d39cdaa307e94c35cb024cf`. The same ordered set of 19 staged paths was captured before and after. Raw comparison flags only the Step 2 validation plan and index; exact attribution proves both result solely from the permitted reviewer metadata patch. No implementation/test/other-step change, unrelated staging, or validation side effect occurred. Umbrella comparison is not applicable and unchanged. Pre-existing transcript and editor-settings work remains unstaged.
+
+### Repair inventory for step 2 resume-paused (exchange 1) (round 2)
+
+Repairs made:
+
+- None to implementation or tests. Review metadata only: Step 2 validation verdict and missing-work rows in `docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md`.
+
+Paths staged:
+
+- `docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md`
+- `docs/v0.14.0/resume-paused.legacy-routing-study.md`
+- `docs/v0.14.0/review.code.v0.14.0.resume-paused.md`
+- `tests/memory_filesystem.py`
+- `tests/unit/tools/test_resume_paused_artifacts/__init__.py`
+- `tests/unit/tools/test_resume_paused_artifacts/test_resume_paused_artifacts_pbt.py`
+- `tests/unit/tools/test_resume_paused_artifacts/test_resume_paused_artifacts_tdd.py`
+- `tests/unit/tools/test_resume_paused_models/__init__.py`
+- `tests/unit/tools/test_resume_paused_models/test_resume_paused_models_pbt.py`
+- `tests/unit/tools/test_resume_paused_models/test_resume_paused_models_tdd.py`
+- `tests/unit/tools/test_resume_paused_review/__init__.py`
+- `tests/unit/tools/test_resume_paused_review/test_resume_paused_review_tdd.py`
+- `tests/unit/tools/test_resume_paused_routing/__init__.py`
+- `tests/unit/tools/test_resume_paused_routing/test_resume_paused_routing_pbt.py`
+- `tests/unit/tools/test_resume_paused_routing/test_resume_paused_routing_tdd.py`
+- `tools/resume_paused_artifacts.py`
+- `tools/resume_paused_models.py`
+- `tools/resume_paused_review.py`
+- `tools/resume_paused_routing.py`
+
+### Commit plan assessment for step 2 resume-paused (exchange 1) (round 2)
+
+Independent `commit-plan-check.bat --format json`: exit 0, state valid, ready true, no diagnostics; all 19 staged paths assigned once. Group membership, dependency order and conventional subjects remain accurate after the metadata update. No `a.commit` amendment.
+
+- `docs(resume-paused): repair code transcript lint` (1 path).
+- `feat(resume-paused): add pause routing models` (8 paths).
+- `feat(resume-paused): read pause prompts and receipts` (5 paths).
+- `feat(resume-paused): observe the saved exchange` (3 paths).
+- `docs(resume-paused): add legacy routing study` (1 path).
+- `docs(resume-paused): record step 2 validation` (1 path).
+
+### Findings and boundaries for step 2 resume-paused (exchange 1) (round 2)
+
+Unresolved findings:
+
+- [P2] Account reads before evidence parsing can reject them (`tools/resume_paused_review.py:129-148`). Each `_AccountedStore` override calls its superclass before recording the read. `ReviewExchangeStore.read_artifact` reads the bytes as text and validates the envelope before returning; malformed content therefore raises before `_reads.record`. In the existing malformed-orphan-answer fixture, the answer is read, but the damaged snapshot returns `reads=()` and zero files/bytes. Invalid coordination likewise loses its delegated read, and a transcript decode failure loses the transcript read. This leaves the exact-path/byte contract and carried round 1 accounting finding incomplete. Record actual consumed bytes at the read boundary, before parsing, retain them on failure, and extend the independent recorder tests to these cases without extra accounting reads.
+
+Boundary-crossing work: None.
+
+### Writer instructions for step 2 resume-paused (exchange 1) (round 2)
+
+Complete the carried accounting repair at the underlying read boundary. Preserve consumed paths and byte counts when envelope/coordination parsing or transcript decoding fails, while keeping classification and no-write behavior. Add independent recorder assertions for malformed orphan answers, malformed coordination and invalid UTF-8 transcripts; do not reread merely to calculate accounting. Update Step 2 validation, run the requestor-owned resolved validation set, and publish a fresh request for the resulting index tree.
+
+### Decision rationale for step 2 resume-paused (exchange 1) (round 2)
+
+Changes requested. Readiness floor: identity passes; implementation completeness fails on the carried read-accounting defect; requestor validation is green but static test assessment finds missing failure-path accounting assertions; staged attribution passes; unresolved-findings gate fails on one P2; commit-plan assessment passes. No substantive reviewer repair occurred. This advisory answer does not authorize a commit.
+
+### Final reviewer decision for step 2 resume-paused (exchange 1) (round 2)
+
+Decision: changes-requested. The writer must address the concrete instructions and publish another review round. This advisory answer does not authorize a commit.
+
+<!-- review-entry-id: answer-step-2-round-2 -->
+
+## Round 3 by requestor - Step 2
+
+- Recorded: 2026-11-18T14:10:06+01:00
+- Exchange: code/code/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.resume-paused.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 2
+- Outcome: request
+
+### Review identity for step 2 resume-paused (round 3)
+
+Umbrella draft: none
+Implementation plan: docs/v0.14.0/plan.v0.14.0.resume-paused.md
+Implementation step: 2
+Review round: 3
+
+### Code review evidence for step 2 resume-paused (round 3)
+
+request_index_tree: 38c0813a65e435707fd157987aface6b2b2ca510
+resolved_validation_set:
+
+- `ghog day --full=speed --whole-suite` (sources: project)
+
+test_scope:
+{"fingerprint": "686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6", "group": null, "proof": "speed", "requirement": "docs/v0.14.0/feature-request.v0.14.0.resume-paused.md", "scope": "whole"}
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: docs(resume-paused): repair code transcript lint
+group 1 path: docs/v0.14.0/review.code.v0.14.0.resume-paused.md
+group 2: test(groundhog): shorten args-file acceptance tests
+group 2 path: tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_group_args_file_tdd.py
+group 3: feat(resume-paused): add pause routing models
+group 3 path: tools/resume_paused_models.py
+group 3 path: tools/resume_paused_routing.py
+group 3 path: tests/unit/tools/test_resume_paused_models/__init__.py
+group 3 path: tests/unit/tools/test_resume_paused_models/test_resume_paused_models_tdd.py
+group 3 path: tests/unit/tools/test_resume_paused_models/test_resume_paused_models_pbt.py
+group 3 path: tests/unit/tools/test_resume_paused_routing/__init__.py
+group 3 path: tests/unit/tools/test_resume_paused_routing/test_resume_paused_routing_tdd.py
+group 3 path: tests/unit/tools/test_resume_paused_routing/test_resume_paused_routing_pbt.py
+group 4: feat(resume-paused): read pause prompts and receipts
+group 4 path: tools/resume_paused_artifacts.py
+group 4 path: tests/memory_filesystem.py
+group 4 path: tests/unit/tools/test_resume_paused_artifacts/__init__.py
+group 4 path: tests/unit/tools/test_resume_paused_artifacts/test_resume_paused_artifacts_tdd.py
+group 4 path: tests/unit/tools/test_resume_paused_artifacts/test_resume_paused_artifacts_pbt.py
+group 5: feat(resume-paused): observe the saved exchange
+group 5 path: tools/resume_paused_review.py
+group 5 path: tests/unit/tools/test_resume_paused_review/__init__.py
+group 5 path: tests/unit/tools/test_resume_paused_review/test_resume_paused_review_tdd.py
+group 6: docs(resume-paused): add legacy routing study
+group 6 path: docs/v0.14.0/resume-paused.legacy-routing-study.md
+group 7: docs(resume-paused): record step 2 validation
+group 7 path: docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md
+staged path: docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md
+staged path: docs/v0.14.0/resume-paused.legacy-routing-study.md
+staged path: docs/v0.14.0/review.code.v0.14.0.resume-paused.md
+staged path: tests/memory_filesystem.py
+staged path: tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_group_args_file_tdd.py
+staged path: tests/unit/tools/test_resume_paused_artifacts/__init__.py
+staged path: tests/unit/tools/test_resume_paused_artifacts/test_resume_paused_artifacts_pbt.py
+staged path: tests/unit/tools/test_resume_paused_artifacts/test_resume_paused_artifacts_tdd.py
+staged path: tests/unit/tools/test_resume_paused_models/__init__.py
+staged path: tests/unit/tools/test_resume_paused_models/test_resume_paused_models_pbt.py
+staged path: tests/unit/tools/test_resume_paused_models/test_resume_paused_models_tdd.py
+staged path: tests/unit/tools/test_resume_paused_review/__init__.py
+staged path: tests/unit/tools/test_resume_paused_review/test_resume_paused_review_tdd.py
+staged path: tests/unit/tools/test_resume_paused_routing/__init__.py
+staged path: tests/unit/tools/test_resume_paused_routing/test_resume_paused_routing_pbt.py
+staged path: tests/unit/tools/test_resume_paused_routing/test_resume_paused_routing_tdd.py
+staged path: tools/resume_paused_artifacts.py
+staged path: tools/resume_paused_models.py
+staged path: tools/resume_paused_review.py
+staged path: tools/resume_paused_routing.py
+```
+
+### Validation scope for step 2 resume-paused (round 3)
+
+Validation scope: the whole suite.
+
+### Requestor assessment for step 2 resume-paused (round 3)
+
+Step 2 is fully implemented after the round 2 repair: every exchange read is accounted where its bytes are consumed, before decoding or parsing, so damaged snapshots keep their reads. The implementation check records `Yes. Step 2 has been fully implemented.`
+
+- Tests: `ghog day --full=speed --whole-suite` exit 0 at 2026-11-18T14:08:41+01:00, 6467 tests, no failure, no outlier, no exclusion; slowest call 0.43 s.
+- Static checks: the same walk's `check.bat` passes ty, pyright, ruff, radon, vulture, big files, Markdown, ShellCheck and the end-of-file check, on a working tree that holds the repaired transcript.
+- Coverage: 100% over `tools`, the four new modules included.
+- Architecture: the values and routing modules perform no IO; the artifact reader is the filesystem adapter over them; the observer follows the read-only status pattern, with the review configuration supplied by its caller and accounted exact paths handed to the unchanged exchange store. No module writes a file, claims a role, starts a process or calls TUIOS.
+- Performance: single passes over prompt and receipt lines, one fence scan, linear table comparison, one map of panes; a checkout reads at most four exact files once; an observation reads the coordination record four times, each present artifact once and the transcript once, all in its account, and decoding reuses the bytes read.
+- Feature integrity: no existing production module changes; the new modules have no caller yet; the separate groundhog test group keeps every assertion of the three args-file tests. Prompts and receipts keep the grammar the installed launcher parses.
+
+### Implementation report for step 2 resume-paused (round 3)
+
+Four read-only modules implement the Step 2 contracts of the consolidated design, beside the legacy routing study; round 3 moves the observer's read accounting to the read boundary.
+
+- `tools/resume_paused_models.py`: shared values. `CanonicalRoot` compares checkout roots by Windows rules (case, `/` or `\`, repeated or trailing separators, the `\\?\` and `\\?\UNC\` prefixes) and refuses dot segments, trailing dots or spaces and reserved characters. `PromptDigest`, agent ids, full pane UUIDs, offset timestamps and single-line text checks complete it; the text check also refuses U+2028 and U+2029, which `str.splitlines` treats as line breaks.
+- `tools/resume_paused_routing.py`: schema `resume-paused-routing` version 1. `SavedRouting` holds the pause identity, the observation, the resumed, requestor and reviewer targets and the exact exchange, and renders back to the same canonical JSON. A part recorded as `{"unknown": reason}` stays unresolved without failing the pause; a pair slot or the exchange may be `{"not_applicable": reason}`. Unrecognized keys, wrong types, other versions and contradictions between parts are errors.
+- `tools/resume_paused_artifacts.py`: `read_checkout_snapshot` loads the home through `ReviewArtifactConfiguration.load`, validates the existing ignore bytes, reads the prompt's exact bytes and the receipt, and applies the resume-session state table with the exact paths read and their byte account, which now starts with the `.review-artifacts.ini` declaration whenever the load reads it, including when the declaration is refused. Receipts of schemas 1, 2 and 3 parse. Routing is read only from one top-level block fenced as `` ```json resume-paused-routing ``; the readable table headed `| Routing item | Value |` is rendered from that object and must equal the rendering when present.
+- `tools/resume_paused_review.py`: `observe_saved_exchange(configuration, review_configuration, exchange, wall_clock)` takes the nonblocking `observe_transition` lock first and classifies through `ReviewExchangeObserver` and `current_request_occurrence`, with or without a coordination record. Only an empty artifact set is not live; a held lock or a record changing between the two probes is busy; orphan requests and answers keep their abandoned states and a tombstone its interrupted state; another occurrence, round, document, umbrella or step is a changed selection; invalid evidence and lock entry, acquisition or exit failures are damaged. The unchanged `ReviewExchangeStore` reads through `_AccountedPath` objects, a `Path` subclass that records each consumed byte count where the bytes are read and decodes text from those bytes, so the snapshot returns every exact path in order with its bytes, including reads that parsing or decoding then rejects. The caller supplies the review configuration, loaded once per checkout as the status collector does.
+- `docs/v0.14.0/resume-paused.legacy-routing-study.md`: unchanged since round 1.
+- Tests: one leaf per module. Read-only proofs compare whole checkout trees before and after each read and make every home preparation, migration, review-core construction and filesystem mutation fail. An independent recorder of `Path.read_text` and `Path.read_bytes` checks both read accounts, on success and on rejected evidence. A local replay of the installed launcher's heading and field readers, copied without importing senv, checks the prompt and receipt grammar.
+
+Points for the reviewer's attention:
+
+- The observer's signature gained the `review_configuration` argument in round 2; it has no caller yet. Its four coordination reads are reported: two stability probes, the adapter's read (it needs the record's policy before constructing the observer) and the observer's own.
+- `_AccountedPath.read_text` reproduces `Path.read_text` through `io.TextIOWrapper` over the accounted bytes, with the same encoding, errors and newline arguments; `resolve` is overridden as well as `with_segments` so a resolved path stays accounted under any `resolve` implementation.
+- The neutral `FamilyPolicy` passed when no coordination record exists is never consulted by the observer, which compares a policy only against a record.
+- Interpretation kept from round 1: "unknown routing fields" means fields recorded as `{"unknown": reason}`; unrecognized keys stay errors.
+- Contracts this step fixes for later steps: the routing fence line and table header (Step 3), and the schema 3 receipt fields `Launch id` (32 lowercase hexadecimal characters), `Receiving pane` and `Assignment binding` (Step 4).
+- Deviations from the planned file list (round 1): the routing schema module and the per-module test leaves split for the 650-line ceiling, and `tests/memory_filesystem.py` registers the artifact and review leaves. Line counts: `tools/resume_paused_artifacts.py` 578, `tools/resume_paused_review.py` 346.
+- Transcript repairs, each under its own user exception of 2026-11-18: the staged group 1 wraps twelve bare `__init__.py` paths of the Step 1 entries; in the working copy, the round 1 answer's numbered lines 1807-1812 lost their leading bullet to clear `MD029`, and my round 2 lines 1952, 1978 and 1981 were corrected for `MD038` and one cSpell word. The working-copy edits belong to the residual transcript commit with the unstaged `.vscode/settings.json` word `nonbound`.
+- Outside the Step 2 plan, at the user's direction on 2026-11-18: the round 3 speed walk failed only on the CPU lifecycle budget of the three tests in `tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_group_args_file_tdd.py`, untouched by this step (0.11 to 0.16 s against the 0.1 s ceiling, band tolerance lost after three runs above it, reproduced in focus). A pyinstrument profile put most of the call in resolving the 61-file sentinel group. The tests now lower `args_file.COMMAND_LINE_BUDGET` to 100 and use three short files; a new precondition asserts that the expanded command exceeds the lowered budget, and every earlier assertion is kept. This is its own commit group, `test(groundhog): shorten args-file acceptance tests`.
+- `rg` is not available in the shell used; the contract inspection used the equivalent Grep search.
+- No accepted duration exclusion exists.
+
+Writer notes: `.reviews/a.resume-paused.step2.journal.md` and `.reviews/a.resume-paused.step2.handoff.md`.
+
+### Change summary for step 2 resume-paused (round 3)
+
+Twenty staged paths in seven `a.commit` groups; round 3 adds group 2 and changes three Step 2 paths, with no other membership, order or subject change.
+
+1. `docs(resume-paused): repair code transcript lint`: `docs/v0.14.0/review.code.v0.14.0.resume-paused.md` (staged copy: the twelve-line group 1 repair only).
+2. `test(groundhog): shorten args-file acceptance tests`: `tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_group_args_file_tdd.py` (new in round 3, outside the Step 2 plan, at the user's direction).
+3. `feat(resume-paused): add pause routing models`: `tools/resume_paused_models.py`, `tools/resume_paused_routing.py`, and the `tests/unit/tools/test_resume_paused_models` and `tests/unit/tools/test_resume_paused_routing` packages; unchanged.
+4. `feat(resume-paused): read pause prompts and receipts`: `tools/resume_paused_artifacts.py`, `tests/memory_filesystem.py`, and the `tests/unit/tools/test_resume_paused_artifacts` package; unchanged since round 2.
+5. `feat(resume-paused): observe the saved exchange`: `tools/resume_paused_review.py` (accounted paths at the read boundary) and the `tests/unit/tools/test_resume_paused_review` package (rejected-read accounting test).
+6. `docs(resume-paused): add legacy routing study`: `docs/v0.14.0/resume-paused.legacy-routing-study.md`; unchanged.
+7. `docs(resume-paused): record step 2 validation`: `docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md` (Step 2 back to Yes after the round 2 repair).
+
+Unstaged, for the residual commit after the review: the transcript's round entries with the approved working-copy repairs, and `.vscode/settings.json` with the project word `nonbound`. The commit-plan checker reports the plan valid and ready.
+
+### Writer response for step 2 resume-paused (round 3)
+
+Writer response:
+
+The round 2 finding is accepted and repaired, with no disagreement.
+
+- [P2] Reads accounted before parsing: the accounting moved from the store's methods to the exact paths the store reads. `_accounted_paths` hands the unchanged `ReviewExchangeStore` an `ArtifactPaths` whose request, answer, tombstone, coordination and transcript entries are `_AccountedPath` objects, a `Path` subclass bound to the observation's read record. `read_bytes` records the path and the bytes it consumed before returning them; `read_text` decodes those same bytes through `io.TextIOWrapper` with the caller's encoding, errors and newline, the text-mode semantics of `open`, so no file is read twice. `with_segments` and `resolve` keep derived paths accounted, because `read_artifact` reads through the resolved path. A malformed envelope, a malformed coordination record or an undecodable transcript is therefore recorded before the parser or decoder rejects it.
+- New regression test `test_rejected_reads_stay_accounted`, parametrized over a malformed orphan answer, a malformed coordination record and an invalid UTF-8 transcript: each snapshot is damaged, its exact reads equal the independent recorder's (answer; coordination twice; coordination three times then transcript), and its bytes equal the sizes of those files.
+- Validation-only change outside the plan: three untouched groundhog args-file acceptance tests lost their CPU band tolerance and failed the round 3 speed walk; at the user's direction they were shortened in a separate commit group (lowered command-line budget, three short files, all assertions kept, one added precondition, its assertions moved into one helper to stay within the complexity limit). Please review that group as well.
+- The validation plan's Step 2 section returns to `Yes` from the reviewer's round 2 rewrite, with the corrected accounting description and checks.
+- Transcript, under the user's exceptions of 2026-11-18: my own round 2 request text wrote a code span with a trailing space on lines 1952 and 1981, which fails `MD038`, and the word "unopenable" on line 1978, which cSpell refuses. Only the inner space of those two spans was removed, and line 1978 now reads "a lock that cannot be opened". These working-copy edits join the transcript's residual commit.
+
+### Reviewer focus for step 2 resume-paused (round 3)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-2-round-3 -->
+
+## Round 3 by reviewer - Step 2
+
+- Recorded: 2026-11-18T14:18:41+01:00
+- Exchange: code/code/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.resume-paused.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 2
+- Outcome: answer
+
+### Assessed index identity for step 2 resume-paused (exchange 1) (round 3)
+
+Baseline index tree: 38c0813a65e435707fd157987aface6b2b2ca510
+
+Assessed index tree: 6dc383e4880a4f19f1fdf218ce5a9e11d3d08712
+
+### Implementation check for step 2 resume-paused (exchange 1) (round 3)
+
+Result:
+
+Yes. Step 2 has been fully implemented.
+
+The independent review confirms the four read-only modules and legacy routing study against the exact Step 2 plan. The carried round 2 finding is resolved: `_AccountedPath` records bytes before decoding or parsing, preserves accounting on resolved paths, and avoids a second content read. Independent recorder tests cover a malformed orphan answer, malformed coordination, and invalid UTF-8 transcript. The prior orphan-evidence and lock-failure repairs remain intact. No architecture, complexity, file-size or feature-integrity gap remains.
+
+The separately disclosed groundhog test optimization preserves pass/fail cleanup, expanded-versus-inline equality and coverage-tail ordering. Its lowered budget and explicit over-budget assertion preserve the behavior under test while reducing fixture work.
+
+Validation plan effects:
+
+Polishing-only review metadata: added one independent round 3 confirmation paragraph within Step 2 of docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md. Retained the exact Yes sentence; no Missing work section remains. Other steps and document-level status are unchanged.
+
+### Pre-repair mandatory checks and coverage for step 2 resume-paused (exchange 1) (round 3)
+
+Requestor evidence: ghog day --full=speed --whole-suite exited 0 at 2026-11-18T14:08:41+01:00, with 6467 tests, 100% line coverage over tools, no failures, outliers or exclusions, and passing static checks. These are the requestor's reported results. The reviewer did not rerun the full walk, coverage, or optional focused evidence commands.
+
+### Resolved validation set and sources for step 2 resume-paused (exchange 1) (round 3)
+
+Current project default: ghog day --full=speed --whole-suite (source: project). Exact .review-validation marker check returned absent; prompt_workflow.bat scope day --full=speed returned this command. It matches the request's resolved validation set. Bound scope is whole, fingerprint 686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6.
+
+### Resolver drift and direction for step 2 resume-paused (exchange 1) (round 3)
+
+None. The current command and project source match the request.
+
+### Repository state around validation for step 2 resume-paused (exchange 1) (round 3)
+
+Baseline index 38c0813a65e435707fd157987aface6b2b2ca510 matched the request and retained manifest. Assessed index 6dc383e4880a4f19f1fdf218ce5a9e11d3d08712 differs only by the attributable two-line Step 2 validation metadata patch. The identical ordered 20-path validation-state comparison reports only that validation plan and `<index>`; both are explained by this permitted patch. Attribution returned attributable=true before staging. No other tracked or untracked change appeared in the compared set. Umbrella comparison is not applicable and unchanged. Pre-existing writer edits remain unstaged.
+
+### Repair inventory for step 2 resume-paused (exchange 1) (round 3)
+
+Repairs made:
+
+- Polishing-only review metadata: docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md; independent Step 2 confirmation, attributed and staged.
+- No implementation or test repair; no substantive reviewer change.
+
+Paths staged:
+
+- `docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md`
+- `docs/v0.14.0/resume-paused.legacy-routing-study.md`
+- `docs/v0.14.0/review.code.v0.14.0.resume-paused.md`
+- `tests/memory_filesystem.py`
+- `tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_group_args_file_tdd.py`
+- `tests/unit/tools/test_resume_paused_artifacts/__init__.py`
+- `tests/unit/tools/test_resume_paused_artifacts/test_resume_paused_artifacts_pbt.py`
+- `tests/unit/tools/test_resume_paused_artifacts/test_resume_paused_artifacts_tdd.py`
+- `tests/unit/tools/test_resume_paused_models/__init__.py`
+- `tests/unit/tools/test_resume_paused_models/test_resume_paused_models_pbt.py`
+- `tests/unit/tools/test_resume_paused_models/test_resume_paused_models_tdd.py`
+- `tests/unit/tools/test_resume_paused_review/__init__.py`
+- `tests/unit/tools/test_resume_paused_review/test_resume_paused_review_tdd.py`
+- `tests/unit/tools/test_resume_paused_routing/__init__.py`
+- `tests/unit/tools/test_resume_paused_routing/test_resume_paused_routing_pbt.py`
+- `tests/unit/tools/test_resume_paused_routing/test_resume_paused_routing_tdd.py`
+- `tools/resume_paused_artifacts.py`
+- `tools/resume_paused_models.py`
+- `tools/resume_paused_review.py`
+- `tools/resume_paused_routing.py`
+
+### Commit plan assessment for step 2 resume-paused (exchange 1) (round 3)
+
+The independent commit-plan checker returned state=valid, ready=true, exit 0, with no diagnostics: 20 paths in seven ordered groups. Membership, dependency order and conventional subjects are accurate. Group 2 is the explicitly disclosed groundhog test optimization; group 1 is the disclosed transcript lint repair. The reviewer metadata paragraph remains within the existing final validation group. No a.commit edit is needed.
+
+- docs(resume-paused): repair code transcript lint (1 path)
+- test(groundhog): shorten args-file acceptance tests (1 path)
+- feat(resume-paused): add pause routing models (8 paths)
+- feat(resume-paused): read pause prompts and receipts (5 paths)
+- feat(resume-paused): observe the saved exchange (3 paths)
+- docs(resume-paused): add legacy routing study (1 path)
+- docs(resume-paused): record step 2 validation (1 path)
+
+### Findings and boundaries for step 2 resume-paused (exchange 1) (round 3)
+
+Unresolved findings: None.
+
+Boundary-crossing work: None.
+
+### Writer instructions for step 2 resume-paused (exchange 1) (round 3)
+
+No rework is requested. The advisory commit-ready recommendation leaves the human commit choice and all continuation actions with the requestor workflow.
+
+### Decision rationale for step 2 resume-paused (exchange 1) (round 3)
+
+All six readiness conditions pass: exact identity and request tree; complete Step 2; matching requestor validation and static coverage assessment; attributable staged scope; no unresolved findings; accurate independent commit plan. The coverage gate measures tools, including all four new production modules; the module test leaves cover the changed failure paths. No substantive repair was made. Commit-ready is advisory and does not authorize a commit.
+
+### Final reviewer decision for step 2 resume-paused (exchange 1) (round 3)
+
+Decision: commit-ready (advisory). The evidence floor is complete, but this recommendation does not authorize a commit; authority remains at the durable human gate.
+
+<!-- review-entry-id: answer-step-2-round-3 -->
+
+## Round 3 by human - Step 2 - human-confirmation
+
+- Recorded: 2026-11-18T20:21:35+01:00
+- Exchange: code/code/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.resume-paused.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 2
+- Outcome: human-confirmation
+
+Human choice: Rework and review again
+Outcome: another-round
+
+<!-- review-entry-id: human-confirmation-round-3 -->
+
+## Round 4 by requestor - Step 2
+
+- Recorded: 2026-11-18T20:26:22+01:00
+- Exchange: code/code/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.resume-paused.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 2
+- Outcome: request
+
+### Review identity for step 2 resume-paused (round 4)
+
+Umbrella draft: none
+Implementation plan: docs/v0.14.0/plan.v0.14.0.resume-paused.md
+Implementation step: 2
+Review round: 4
+
+### Code review evidence for step 2 resume-paused (round 4)
+
+request_index_tree: ba294f5ab976b9061df5bc0f82fe75f45d625e6b
+resolved_validation_set:
+
+- `ghog day --full=speed --whole-suite` (sources: project)
+
+test_scope:
+{"fingerprint": "686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6", "group": null, "proof": "speed", "requirement": "docs/v0.14.0/feature-request.v0.14.0.resume-paused.md", "scope": "whole"}
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: test(groundhog): shorten args-file acceptance tests
+group 1 path: tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_group_args_file_tdd.py
+group 2: feat(resume-paused): add pause routing models
+group 2 path: tools/resume_paused_models.py
+group 2 path: tools/resume_paused_routing.py
+group 2 path: tests/unit/tools/test_resume_paused_models/__init__.py
+group 2 path: tests/unit/tools/test_resume_paused_models/test_resume_paused_models_tdd.py
+group 2 path: tests/unit/tools/test_resume_paused_models/test_resume_paused_models_pbt.py
+group 2 path: tests/unit/tools/test_resume_paused_routing/__init__.py
+group 2 path: tests/unit/tools/test_resume_paused_routing/test_resume_paused_routing_tdd.py
+group 2 path: tests/unit/tools/test_resume_paused_routing/test_resume_paused_routing_pbt.py
+group 3: feat(resume-paused): read pause prompts and receipts
+group 3 path: tools/resume_paused_artifacts.py
+group 3 path: tests/memory_filesystem.py
+group 3 path: tests/unit/tools/test_resume_paused_artifacts/__init__.py
+group 3 path: tests/unit/tools/test_resume_paused_artifacts/test_resume_paused_artifacts_tdd.py
+group 3 path: tests/unit/tools/test_resume_paused_artifacts/test_resume_paused_artifacts_pbt.py
+group 4: feat(resume-paused): observe the saved exchange
+group 4 path: tools/resume_paused_review.py
+group 4 path: tests/unit/tools/test_resume_paused_review/__init__.py
+group 4 path: tests/unit/tools/test_resume_paused_review/test_resume_paused_review_tdd.py
+group 5: docs(resume-paused): add legacy routing study
+group 5 path: docs/v0.14.0/resume-paused.legacy-routing-study.md
+group 6: docs(resume-paused): record step 2 validation
+group 6 path: docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md
+staged path: docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md
+staged path: docs/v0.14.0/resume-paused.legacy-routing-study.md
+staged path: tests/memory_filesystem.py
+staged path: tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_group_args_file_tdd.py
+staged path: tests/unit/tools/test_resume_paused_artifacts/__init__.py
+staged path: tests/unit/tools/test_resume_paused_artifacts/test_resume_paused_artifacts_pbt.py
+staged path: tests/unit/tools/test_resume_paused_artifacts/test_resume_paused_artifacts_tdd.py
+staged path: tests/unit/tools/test_resume_paused_models/__init__.py
+staged path: tests/unit/tools/test_resume_paused_models/test_resume_paused_models_pbt.py
+staged path: tests/unit/tools/test_resume_paused_models/test_resume_paused_models_tdd.py
+staged path: tests/unit/tools/test_resume_paused_review/__init__.py
+staged path: tests/unit/tools/test_resume_paused_review/test_resume_paused_review_tdd.py
+staged path: tests/unit/tools/test_resume_paused_routing/__init__.py
+staged path: tests/unit/tools/test_resume_paused_routing/test_resume_paused_routing_pbt.py
+staged path: tests/unit/tools/test_resume_paused_routing/test_resume_paused_routing_tdd.py
+staged path: tools/resume_paused_artifacts.py
+staged path: tools/resume_paused_models.py
+staged path: tools/resume_paused_review.py
+staged path: tools/resume_paused_routing.py
+```
+
+### Validation scope for step 2 resume-paused (round 4)
+
+Validation scope: the whole suite.
+
+### Requestor assessment for step 2 resume-paused (round 4)
+
+Step 2 is fully implemented, as round 3 confirmed; round 4 only regroups `a.commit` so the review transcript leaves the staged groups for the residual commit. The implementation check records `Yes. Step 2 has been fully implemented.`
+
+- Tests: `ghog day --full=speed --whole-suite` exit 0 at 2026-11-18T20:23:39+01:00 with `proof=speed reused=all`: groundhog reused the speed proof of the round 3 walk (2026-11-18T14:08:41+01:00, 6467 tests, no failure, no outlier, no exclusion), since no working-tree file changed, only the index.
+- Static checks: the same proof covers `check.bat` (ty, pyright, ruff, radon, vulture, big files, Markdown, ShellCheck, end-of-file).
+- Coverage: 100% over `tools`, the four new modules included.
+- Architecture, performance and feature integrity: unchanged since round 3, which found no gap.
+- Commit plan: six groups, nineteen staged paths, no transcript; the checker reports it valid and ready.
+
+### Implementation report for step 2 resume-paused (round 4)
+
+Four read-only modules implement the Step 2 contracts of the consolidated design, beside the legacy routing study; round 3 moves the observer's read accounting to the read boundary.
+
+- `tools/resume_paused_models.py`: shared values. `CanonicalRoot` compares checkout roots by Windows rules (case, `/` or `\`, repeated or trailing separators, the `\\?\` and `\\?\UNC\` prefixes) and refuses dot segments, trailing dots or spaces and reserved characters. `PromptDigest`, agent ids, full pane UUIDs, offset timestamps and single-line text checks complete it; the text check also refuses U+2028 and U+2029, which `str.splitlines` treats as line breaks.
+- `tools/resume_paused_routing.py`: schema `resume-paused-routing` version 1. `SavedRouting` holds the pause identity, the observation, the resumed, requestor and reviewer targets and the exact exchange, and renders back to the same canonical JSON. A part recorded as `{"unknown": reason}` stays unresolved without failing the pause; a pair slot or the exchange may be `{"not_applicable": reason}`. Unrecognized keys, wrong types, other versions and contradictions between parts are errors.
+- `tools/resume_paused_artifacts.py`: `read_checkout_snapshot` loads the home through `ReviewArtifactConfiguration.load`, validates the existing ignore bytes, reads the prompt's exact bytes and the receipt, and applies the resume-session state table with the exact paths read and their byte account, which now starts with the `.review-artifacts.ini` declaration whenever the load reads it, including when the declaration is refused. Receipts of schemas 1, 2 and 3 parse. Routing is read only from one top-level block fenced as `` ```json resume-paused-routing ``; the readable table headed `| Routing item | Value |` is rendered from that object and must equal the rendering when present.
+- `tools/resume_paused_review.py`: `observe_saved_exchange(configuration, review_configuration, exchange, wall_clock)` takes the nonblocking `observe_transition` lock first and classifies through `ReviewExchangeObserver` and `current_request_occurrence`, with or without a coordination record. Only an empty artifact set is not live; a held lock or a record changing between the two probes is busy; orphan requests and answers keep their abandoned states and a tombstone its interrupted state; another occurrence, round, document, umbrella or step is a changed selection; invalid evidence and lock entry, acquisition or exit failures are damaged. The unchanged `ReviewExchangeStore` reads through `_AccountedPath` objects, a `Path` subclass that records each consumed byte count where the bytes are read and decodes text from those bytes, so the snapshot returns every exact path in order with its bytes, including reads that parsing or decoding then rejects. The caller supplies the review configuration, loaded once per checkout as the status collector does.
+- `docs/v0.14.0/resume-paused.legacy-routing-study.md`: unchanged since round 1.
+- Tests: one leaf per module. Read-only proofs compare whole checkout trees before and after each read and make every home preparation, migration, review-core construction and filesystem mutation fail. An independent recorder of `Path.read_text` and `Path.read_bytes` checks both read accounts, on success and on rejected evidence. A local replay of the installed launcher's heading and field readers, copied without importing senv, checks the prompt and receipt grammar.
+
+Points for the reviewer's attention:
+
+- The observer's signature gained the `review_configuration` argument in round 2; it has no caller yet. Its four coordination reads are reported: two stability probes, the adapter's read (it needs the record's policy before constructing the observer) and the observer's own.
+- `_AccountedPath.read_text` reproduces `Path.read_text` through `io.TextIOWrapper` over the accounted bytes, with the same encoding, errors and newline arguments; `resolve` is overridden as well as `with_segments` so a resolved path stays accounted under any `resolve` implementation.
+- The neutral `FamilyPolicy` passed when no coordination record exists is never consulted by the observer, which compares a policy only against a record.
+- Interpretation kept from round 1: "unknown routing fields" means fields recorded as `{"unknown": reason}`; unrecognized keys stay errors.
+- Contracts this step fixes for later steps: the routing fence line and table header (Step 3), and the schema 3 receipt fields `Launch id` (32 lowercase hexadecimal characters), `Receiving pane` and `Assignment binding` (Step 4).
+- Deviations from the planned file list (round 1): the routing schema module and the per-module test leaves split for the 650-line ceiling, and `tests/memory_filesystem.py` registers the artifact and review leaves. Line counts: `tools/resume_paused_artifacts.py` 578, `tools/resume_paused_review.py` 346.
+- Transcript repairs, each under its own user exception of 2026-11-18: twelve bare `__init__.py` paths of the Step 1 entries wrapped in code spans; the round 1 answer's numbered lines 1807-1812 lost their leading bullet to clear `MD029`; my round 2 lines 1952, 1978 and 1981 were corrected for `MD038` and one cSpell word. Since round 4 none of them is in `a.commit`: the whole transcript stays unstaged for the residual commit, with the unstaged `.vscode/settings.json` word `nonbound`, because the batch commit re-adds a listed path whole and would otherwise carry the appended rounds under the lint-repair message.
+- Outside the Step 2 plan, at the user's direction on 2026-11-18: the round 3 speed walk failed only on the CPU lifecycle budget of the three tests in `tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_group_args_file_tdd.py`, untouched by this step (0.11 to 0.16 s against the 0.1 s ceiling, band tolerance lost after three runs above it, reproduced in focus). A pyinstrument profile put most of the call in resolving the 61-file sentinel group. The tests now lower `args_file.COMMAND_LINE_BUDGET` to 100 and use three short files; a new precondition asserts that the expanded command exceeds the lowered budget, and every earlier assertion is kept. This is its own commit group, `test(groundhog): shorten args-file acceptance tests`, now group 1.
+- `rg` is not available in the shell used; the contract inspection used the equivalent Grep search.
+- No accepted duration exclusion exists.
+
+Writer notes: `.reviews/a.resume-paused.step2.journal.md` and `.reviews/a.resume-paused.step2.handoff.md`.
+
+### Change summary for step 2 resume-paused (round 4)
+
+Nineteen staged paths in six `a.commit` groups; round 4 removes the former transcript group and changes nothing else.
+
+1. `test(groundhog): shorten args-file acceptance tests`: `tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_group_args_file_tdd.py` (outside the Step 2 plan, at the user's direction).
+2. `feat(resume-paused): add pause routing models`: `tools/resume_paused_models.py`, `tools/resume_paused_routing.py`, and the `tests/unit/tools/test_resume_paused_models` and `tests/unit/tools/test_resume_paused_routing` packages.
+3. `feat(resume-paused): read pause prompts and receipts`: `tools/resume_paused_artifacts.py`, `tests/memory_filesystem.py`, and the `tests/unit/tools/test_resume_paused_artifacts` package.
+4. `feat(resume-paused): observe the saved exchange`: `tools/resume_paused_review.py` and the `tests/unit/tools/test_resume_paused_review` package.
+5. `docs(resume-paused): add legacy routing study`: `docs/v0.14.0/resume-paused.legacy-routing-study.md`.
+6. `docs(resume-paused): record step 2 validation`: `docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md` (with the reviewer's round 3 confirmation paragraph).
+
+Unstaged, for the residual commit after the review: the code review transcript, with its twelve-line `MD050` repair, the approved round 1 and round 2 line repairs and every appended round, and `.vscode/settings.json` with the project word `nonbound`. The commit-plan checker reports the plan valid and ready.
+
+### Writer response for step 2 resume-paused (round 4)
+
+Writer response:
+
+Round 3 recommended commit-ready with no finding, and its polishing paragraph in the Step 2 validation section is kept unchanged. The human chose "Rework and review again" at that gate for one commit-grouping change, made by the writer:
+
+- `pw code-review-commit` re-adds each listed path whole, so the former group 1, which listed the code review transcript, would have committed all three appended review rounds under its "repair code transcript lint" message. That group is removed and the remaining groups are renumbered. The transcript is no longer staged: its working copy, with the twelve-line `MD050` repair and the approved line repairs of rounds 1 and 2, goes entirely to the residual commit that retains this exchange, together with `.vscode/settings.json` and its project word `nonbound`.
+- No code, test or validation-plan content changed since round 3. The requestor-owned speed walk was rerun for the regrouped tree.
+
+### Reviewer focus for step 2 resume-paused (round 4)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-2-round-4 -->
+
+## Round 4 by reviewer - Step 2
+
+- Recorded: 2026-11-18T20:31:12+01:00
+- Exchange: code/code/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.resume-paused.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 2
+- Outcome: answer
+
+### Assessed index identity for step 2 resume-paused (exchange 1) (round 4)
+
+Baseline index tree: ba294f5ab976b9061df5bc0f82fe75f45d625e6b
+
+Assessed index tree: ba294f5ab976b9061df5bc0f82fe75f45d625e6b
+
+### Implementation check for step 2 resume-paused (exchange 1) (round 4)
+
+Result:
+
+Yes. Step 2 has been fully implemented.
+
+The exact plan and Step 2 validation rows remain satisfied. The four read-only modules, per-module tests, memory-filesystem registration and legacy routing study are unchanged from the independently accepted round 3 state. The staged-tree comparison reports only the transcript difference, and the retained file-digest comparison confirms unchanged implementation, tests, study and validation-plan content. The read-accounting, orphan-evidence and lock-error findings remain resolved. No new architecture, performance, coverage or feature-integrity gap is introduced by removing the transcript from the commit groups. Later steps remain outside this assessment.
+
+Validation plan effects:
+
+No edit was needed. The Step 2 status remains exactly `Yes. Step 2 has been fully implemented.`, with its round 3 reviewer confirmation and no Missing work section. All other step rows and the document-level status are unchanged. Umbrella: not applicable.
+
+### Pre-repair mandatory checks and coverage for step 2 resume-paused (exchange 1) (round 4)
+
+No reviewer repair or test command was run. The requestor reports `ghog day --full=speed --whole-suite` exit 0 at 2026-11-18T20:23:39+01:00 with `proof=speed reused=all`, reusing the round 3 result of 6467 passing tests, no failures, no duration outliers or exclusions, and 100% line coverage over `tools`. The coverage configuration still measures `tools`; the four production modules are inside that scope. Static coverage assessment from round 3 remains applicable because the code and tests are identical.
+
+### Resolved validation set and sources for step 2 resume-paused (exchange 1) (round 4)
+
+The `.review-validation` marker was sampled and is absent. The current project resolver, `prompt_workflow.bat scope day --full=speed`, returns `ghog day --full=speed --whole-suite`, exactly matching the request's project source. The core-bound scope is whole, fingerprint `686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6`. The reviewer did not repeat requestor validation or measure coverage.
+
+### Resolver drift and direction for step 2 resume-paused (exchange 1) (round 4)
+
+None. The command and source remain unchanged.
+
+### Repository state around validation for step 2 resume-paused (exchange 1) (round 4)
+
+The request-time, baseline and assessed index trees all equal `ba294f5ab976b9061df5bc0f82fe75f45d625e6b`. The round 4 before/after validation comparison is acceptable with no tracked, untracked or ignored changes. The umbrella comparison is not applicable and unchanged. Comparing round 3's assessed tree with this tree reports only the review transcript; the broader retained-file comparison reports only that transcript and `<index>`, as expected from transcript publication and the disclosed unstaging. All nineteen current staged paths retain the accepted content. The reviewer changed no tracked file and staged nothing.
+
+### Repair inventory for step 2 resume-paused (exchange 1) (round 4)
+
+Repairs made: None.
+
+Paths staged: None.
+
+### Commit plan assessment for step 2 resume-paused (exchange 1) (round 4)
+
+The independent `commit-plan-check.bat --format json` run exits 0: state `valid`, ready `true`, nineteen staged paths, six ordered groups, no diagnostics. Reading `a.commit` confirms these subjects and dependency order:
+
+1. `test(groundhog): shorten args-file acceptance tests`
+2. `feat(resume-paused): add pause routing models`
+3. `feat(resume-paused): read pause prompts and receipts`
+4. `feat(resume-paused): observe the saved exchange`
+5. `docs(resume-paused): add legacy routing study`
+6. `docs(resume-paused): record step 2 validation`
+
+The requestor's removal of the transcript group addresses the human-selected regrouping: the batch commit will no longer re-add the whole transcript under a lint-repair subject. The transcript and disclosed spelling setting remain reserved for the requestor's residual commit. The independent groundhog test optimization remains in its own first group. Group membership, order, scopes and conventional subjects are accurate. The reviewer made no grouping change.
+
+### Findings and boundaries for step 2 resume-paused (exchange 1) (round 4)
+
+Unresolved findings: None.
+
+Boundary-crossing work: None.
+
+### Writer instructions for step 2 resume-paused (exchange 1) (round 4)
+
+No implementation rework is requested. Present the advisory recommendation at the human convergence gate. The requestor retains responsibility for the commit choice and the disclosed residual transcript/settings commit.
+
+### Decision rationale for step 2 resume-paused (exchange 1) (round 4)
+
+Recommend `commit-ready` for round 4, occurrence 1. All six readiness results pass: exact identity and index, complete Step 2 implementation, matching validation evidence and static coverage assessment, attributable staged scope, no unresolved current or carried findings, and an independently valid commit plan. No literal Human guidance block is present. No substantive repair, polishing edit or staging action was made by the reviewer. This recommendation does not authorize a commit.
+
+### Final reviewer decision for step 2 resume-paused (exchange 1) (round 4)
+
+Decision: commit-ready (advisory). The evidence floor is complete, but this recommendation does not authorize a commit; authority remains at the durable human gate.
+
+<!-- review-entry-id: answer-step-2-round-4 -->
+
+## Round 4 by human - Step 2 - human-confirmation
+
+- Recorded: 2026-11-18T22:01:57+01:00
+- Exchange: code/code/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.resume-paused.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 2
+- Outcome: human-confirmation
+
+Human choice: Commit
+Outcome: continue-owning-workflow
+
+<!-- review-entry-id: human-confirmation-round-4 -->

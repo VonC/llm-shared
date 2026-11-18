@@ -115,6 +115,7 @@
     "nextstep",
     "NOCOV",
     "nonblocking",
+    "nonbound",
     "noncompact",
     "nonescaping",
     "noninteractive",
