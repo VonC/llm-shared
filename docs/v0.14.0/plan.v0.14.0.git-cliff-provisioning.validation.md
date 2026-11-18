@@ -4,12 +4,13 @@ No, it is not implemented.
 
 This document tracks the eight steps of the
 [implementation plan](plan.v0.14.0.git-cliff-provisioning.md) for item 3 of
-the sibling release tooling umbrella. Steps 1 and 2 are implemented: the pin
+the sibling release tooling umbrella. Steps 1 to 3 are implemented: the pin
 manifest, the `[git-cliff]` domain, the download budget policy, the shared
-record decoder, and the contained Windows children with the use guard and
-their first committed native check record. The cache and its lock, the
-download worker, the provisioning service, the evidence harness, the reviewed
-admission of 2.14.2 and the `gcliff` launcher are still to be written.
+record decoder, the contained Windows children with the use guard and their
+first committed native check record, and the cache with its reuse check and
+its lock. The download worker, the provisioning service, the evidence
+harness, the reviewed admission of 2.14.2 and the `gcliff` launcher are still
+to be written.
 
 > Initial-skeleton note: this first version was written by the `write-plans`
 > skill, before any implementation check. It fills `Goal for Step N` and
@@ -739,10 +740,37 @@ impaired.
 
 ### Analysis of Step 3 implementation state
 
-Not started. Step 3 is not implemented because no implementation work has
-begun: nothing computes the fixed cache path, records a published entry,
-checks an entry before use or locks a version and platform, and the root
-`.gitignore` has no `/.tools/git-cliff/` entry.
+Yes. Step 3 has been fully implemented.
+
+`git_cliff/cache.py` places every pin at its fixed path, with a separate
+evidence namespace that no production version can reach. It decodes the entry
+record and the owner file strictly. Its reuse check opens the guard, reads the
+record, hashes and probes in that order, stopping at the first failure.
+`git_cliff/cache_lock.py` publishes a complete lock record without
+replacement under a transition mutex named from the cache root's file
+identity, namespace, version and triple. A waiter gets one callback for a live
+holder, then polls every 250 ms until its own deadline, which a holder change
+never resets. Recovery of a record or of an attempt directory needs its owner
+and every recorded child `DEAD`. The root `.gitignore` holds
+`/.tools/git-cliff/`. Code review round 1 found that the wait could still
+publish after its deadline when a sleep woke late, or when entering the mutex
+or proving a dead holder ran past W (R1). A poll now reads the clock inside
+the mutex after those steps and publishes or replaces nothing once the
+deadline has passed. Regressions cover a late wake-up and liveness queries
+crossing W; both failed on the reviewed module. Every behavior of the plan's
+test list is exercised with a fake clock, declared process states, an
+uncontended mutex, fake guards and a write-denying helper, without a process
+or a real wait. The command printed by `pw scope day` reports `exit=0`, and
+the three `rg` checks find only the expected match. The interface differs
+from the plan's sketch in a few details, listed below with their reasons.
+
+The independent round 2 review confirms that R1 is resolved: the fixed
+deadline is checked inside the transition after record reading and liveness
+queries, before authorizing acquisition. The late-wake and slow-probe cases
+preserve absence or the dead record, respectively; the last holder remains
+available for diagnostics and the waiting callback remains single. The
+review assessed the staged implementation and tests without rerunning tests
+or measuring coverage.
 
 ### Goal for Step 3
 
@@ -771,27 +799,262 @@ and add `/.tools/git-cliff/` to the root `.gitignore`.
 
 ### What was implemented for Step 3
 
-_(empty — no check has taken place yet.)_.
+The current diff delivers the Step 3 file list of the plan and a docstring
+update in `tools/release_workflow/git_cliff/__init__.py`, which now names the
+two new modules.
+
+- **Cache layout**: `CacheLayout(tooling_root, namespace="production")` is a
+  frozen value whose `root` is `<tooling_root>/.tools/git-cliff`, or its
+  `evidence` folder for the evidence namespace; any other namespace is
+  refused. `version_dir`, `entry_dir`, `executable`, `record` and `lock_path`
+  give `<pin>/`, `<pin>/<triple>/`, `git-cliff.exe`, `entry.json` and
+  `<pin>/<triple>.lock`. A version directory name must be three dot-separated
+  digit runs and a triple a dashed lowercase name. So `evidence`, `..`, a
+  `v` prefix or a path separator never becomes a directory, and no
+  production pin resolves into `evidence/`. `attempt_dir(pin, kind, owner,
+  token)` builds `.staging-<pid>-<created>-<token>` or `.retired-...` only
+  for a positive PID and creation time and a lowercase hexadecimal token.
+  `parse_attempt(name)` gives back an `Attempt` (kind, owner, token) for a
+  canonical name and `None` for anything else, leading zeros and suffixes
+  included.
+- **Records**: `EntryRecord` (schema 1, eight fields in a fixed order) checks
+  its own values when built: schema 1, non-empty names, two lowercase
+  SHA-256 digests, a positive size and a `provisioned` time with its offset.
+  `decode` goes through `lock_records` with the `entry` label, so an extra,
+  missing, duplicate or mistyped field and a foreign schema are refused.
+  `OwnerFile` (owner and children, schema 1) decodes the same way with the
+  `owner file` label. Its children, and those of the lock record, are objects
+  holding exactly a positive `pid` and `created`.
+- **Reuse check**: `check_entry(layout, pin, *, open_guard, probe)` returns a
+  `ValidEntry` holding the open guard and the record, or an `UnusableEntry`
+  with `absent` and a reason. A missing executable is absent, and nothing else
+  is read. A missing, unparsable or foreign `entry.json` is invalid before any
+  hash. A size or digest mismatch is invalid before the probe. A probe that
+  timed out, exited with a status other than 0, or whose first line is not
+  `git-cliff <pin>` is invalid. Each of these closes the guard. An
+  `UnconfirmedEndError` from the probe retains the guard first, so the
+  caller's cleanup leaves it open. Any other exception closes the guard and
+  propagates, as does a guard open failure other than a missing file, so its
+  real cause is reported.
+- **Cache lock**: `CacheLock(layout, pin, *, caller, seams)` builds nothing on
+  disk until its first transition. That transition creates the version
+  directory with its parents and names the mutex
+  `Global\llm-shared-git-cliff-<dev>-<ino>-<namespace>-<version>-<triple>`
+  from `stat` of the namespace root. Each poll enters the mutex and reads the
+  record. With no record, or with one whose owner and every child are `DEAD`,
+  it writes this caller's complete record (owner, start time with offset,
+  caller kind, no child) to a flushed temporary beside it. It then publishes
+  by a non-replacing rename, or replaces a proven-dead record in the same
+  transition, and the temporary never stays. `acquire(wait_seconds, on_wait)`
+  fixes its deadline once and calls `on_wait(holder, W)` once for the first
+  live holder. It then sleeps `min(0.25, remaining)` between polls and raises
+  `LockWaitError` at W. The error carries the lock path, the last live
+  holder's PID and start time and the design's lock-wait remedy
+  (`LOCK_WAIT_REMEDY`, built from the budget variable and its bounds). An
+  unverifiable record raises
+  `LockRecordError` at once and stays in place. `record_child` appends one
+  identity under the mutex. `release` removes the record only while it is
+  still this caller's. After `retain_record()`, `release` removes nothing, and
+  `record_child` and `recover_attempts` are refused.
+- **Code review round 1 repair (R1)**: `_poll` receives the fixed deadline and
+  reads the clock inside the mutex, after entering it, reading the record and
+  probing the actors. Past the deadline it publishes nothing and replaces no
+  dead record. `acquire` then raises `LockWaitError` naming the last live
+  holder seen; `owner` and `started` are `None` only when no live holder was
+  ever seen, as when proving a dead holder itself ran past W. A lock freed by
+  the poll at exactly W is still taken.
+- **Attempt recovery**: `recover_attempts()`, refused unless the lock is held,
+  lists the version directory once without recursion. It keeps only
+  directories with a canonical attempt name, then removes one only when its
+  name owner is `DEAD` and every child of its `owner.json` is `DEAD`. The
+  owner file must name the same owner; a missing file means no child was ever
+  recorded. An unreadable or invalid owner file, a live or `UNKNOWN` actor and
+  a refused removal keep the directory. The call returns the names it
+  removed.
+- **Ignore rule**: the root `.gitignore` ends with a comment and
+  `/.tools/git-cliff/`.
+- **Test support and tests**: `tests/unit/tools/release_workflow/git_cliff_support.py`
+  holds the fake clock (with an optional oversleep for a late wake-up),
+  declared process states, the uncontended mutex that can declare its entries
+  abandoned, and the `LockWorld` scenario builder, whose liveness queries can
+  each take fake time. It
+  also holds the synthetic 2.14.2 pin built from a generated archive, the
+  entry installer, the fake guard opener and probe, and the write-denying
+  helper. That helper refuses and records `mkdir`, `rename`, `replace`,
+  `remove`, `unlink`, `rmdir`, a write-mode `open` and a writing `os.open`.
+  The new leaves `test_git_cliff_cache/` (tdd and pbt) and
+  `test_git_cliff_cache_lock/` (lock and recovery) cover the plan's test
+  list.
+- **Interface details that differ from the plan's sketch**:
+  - `CacheLock` takes its seams as one frozen `LockSeams` (clock, sleep, then
+    `probe=process_state`, `current=current_identity`,
+    `mutex=transition_mutex` and a local-time `now`) instead of six keywords,
+    because the repository's lint allows five arguments.
+  - `recover_attempts()` takes no pin, since a lock already serves one
+    version and platform.
+  - A pin is any value with a `version` and a `triple` (the `CachePin`
+    protocol), so an evidence candidate fits too.
+  - The probe seam returns a `ChildOutcome`, whose status and time-out the
+    check reads beside the first line.
+  - `EntryCheck` is the union of `ValidEntry` and `UnusableEntry`.
+  - An unverifiable lock record fails at once with `LockRecordError` instead
+    of being waited on, because it cannot prove an owner and waiting cannot
+    change it.
+- **Validation evidence**:
+  - Red first: `ghog single` on the four Step 3 test files, with `cache.py`
+    and `cache_lock.py` held aside, failed at collection on the missing
+    `git_cliff.cache` module (exit 4).
+  - Targeted: `ghog single` on the four test files, exit 0.
+  - Gate: `ghog day --whole-suite`, the command printed by `pw scope day` at
+    the default level, exit 0 at 2026-11-18T21:02:24+01:00. One earlier walk
+    failed at check on typing in the test support and on lint (a function with
+    eight returns, now split into three helpers, and a docstring with a
+    backslash, now raw).
+  - Round 1 repair, red first: the three new deadline cases run against the
+    reviewed `cache_lock.py`: `ghog single` exit 2, the late wake-up and the
+    liveness queries crossing W both failed with `DID NOT RAISE
+    LockWaitError`. Green with the repaired module: the four Step 3 test
+    files, exit 0.
+  - `rg -n '\.tools/git-cliff/' .gitignore`: line 124.
+    `rg -n 'getmtime|st_mtime|age' tools/release_workflow/git_cliff/cache_lock.py`:
+    no match. `rg -n 'subprocess|Popen'
+    tests/unit/tools/release_workflow/git_cliff_support.py`: no match.
+- **Line counts**: `cache.py` 395 (advisory 260), `cache_lock.py` 377
+  (advisory 290), `git_cliff_support.py` 327 (advisory 230); tests 289, 49,
+  255 and 175 (advisory 230, 60, 250 and 220), initializers 3 each;
+  `git_cliff/__init__.py` 24 (+6); `.gitignore` 124 (+3, advisory +2). Every
+  Python file stays below 550; the advisory overruns are variance.
 
 ### New types or classes introduced for Step 3
 
-_(empty — no check has taken place yet.)_.
+- `tools.release_workflow.git_cliff.cache`: the `CachePin` and `Guard`
+  protocols, `Attempt`, `CacheLayout`, `EntryRecord`, `OwnerFile`,
+  `ValidEntry`, `UnusableEntry`, the `EntryCheck` alias, `check_entry`, the
+  record helpers `local_time`, `identity_fields` and `decode_children`, and the
+  names `SCHEMA`, `EXECUTABLE`, `ENTRY_RECORD`, `OWNER_FILE`, `NAMESPACES` and
+  `ATTEMPT_KINDS`.
+- `tools.release_workflow.git_cliff.cache_lock`: `LockRecord`,
+  `LockRecordError`, `LockWaitError`, `LockSeams`, `CacheLock` and
+  `LOCK_WAIT_REMEDY`.
+- Test support: `FakeClock`, `ProcessStates`, `UncontendedMutex`,
+  `LockWorld`, `synthetic_archive`, `synthetic_pin`, `entry_record`,
+  `install_entry`, `FakeGuard`, `FakeGuardOpener`, `FakeProbe`, `WriteDenial`
+  and `deny_writes` in `git_cliff_support.py`.
 
 ### Architecture check for Step 3
 
-_(empty — no check has taken place yet.)_.
+- **Ports at the consumer**: the reuse check depends on two protocols it
+  defines, `Guard` and `CachePin`, and on two injected callables, the guard
+  opener and the probe. The production adapters, `windows_guard.open_guard`
+  and the Step 5 invocation's contained probe, are passed in; the cache
+  imports no native module beyond the error and outcome types of
+  `windows_child`.
+- **Lock seams**: the cache lock reaches the kernel only through `LockSeams`,
+  whose defaults are the item 1 `windows_process` primitives, reused
+  unchanged. The lock stays separate from the per-project `OperationLock`, as
+  the design requires, and shares only the strict decoder of `lock_records`
+  with it (plan decision Q02).
+- **Dependency direction**: `cache_lock` depends on `cache` (layout, owner
+  file, record helpers) and on the `budget` constants for its remedy text;
+  `cache` never imports `cache_lock`, and neither imports configuration,
+  dispatch or the operation lock. `LOCK_WAIT_REMEDY` is the single source of
+  the lock-wait remedy wording.
+- **Records and paths**: persisted records decode through the shared strict
+  decoder before reuse or recovery. `EntryRecord` also validates construction;
+  `OwnerFile` and `LockRecord` rely on typed caller inputs when constructed.
+
+No, there is nothing that needs to be addressed: no DDD-Hexagonal violation or
+smell is visible in this step.
 
 ### Performance check for Step 3
 
-_(empty — no check has taken place yet.)_.
+- **Reuse**: one guard, one record read, one hash pass through the guard
+  (linear in the executable's bytes) and one probe; the probe output is
+  decoded once and only its first line is compared. Nothing is written.
+- **Lock wait**: each poll is one mutex entry, one record read and the
+  liveness probe of the owner, then of its children only when the owner is
+  `DEAD`, so the wait is linear in its polls (W / 250 ms at most). The mutex
+  name is computed once per lock. Since the round 1 repair the deadline is
+  enforced at publication too: a poll reads the clock inside the mutex after
+  its entry and the probes, so no oversleep or slow transition acquires or
+  recovers after W.
+- **Child recording**: `record_child` rewrites the complete record, linear in
+  its children, as the design publishes only complete records; an attempt
+  records at most three children (two download attempts and the staging
+  probe), so the rewrites stay constant per attempt.
+- **Recovery**: one non-recursive listing of one version directory; per
+  attempt directory one owner probe, at most one owner file read, the probes
+  of its children and a removal linear in the directory's files. No sort, no
+  pairwise comparison and no tree scan.
+- **Plan-bound alignment**: within "O(1) amortized per call" for reuse and a
+  poll, and "O(n) total per phase" for the wait and recovery.
+
+No, there is no performance issue that needs to be addressed.
 
 ### Unit test coverage check for Step 3
 
-_(empty — no check has taken place yet.)_.
+The coverage gate measures `tools` only (`[tool.coverage.run] source`), with
+`*/tests/*` and `*/__init__.py` omitted, at `fail_under = 100`. This check
+reasons from the code and the tests. The writer reports each review request's
+whole-suite speed walk, `ghog day --full=speed --whole-suite`, with 100%
+measured coverage, no outlier and no exclusion on that request's tree (round
+1: 7636 tests; round 2: 7639 tests on index tree
+`78c002416187a2ba1488ea1915eb4099d7b5ed3a`). The reviewers assessed code and
+tests statically and ran no test or coverage measurement. The bound scope is
+whole, with speed proof, and the built-in default command has no
+`.review-validation` override.
+
+- **`tools/release_workflow/git_cliff/cache.py`**: `test_git_cliff_cache/`
+  reaches both namespaces and the refused one, every path method, the refused
+  version and triple names, valid and refused attempt parts, canonical and
+  malformed attempt names, the entry record round trip and thirteen invalid
+  records, the owner file round trip, a malformed child and refused fields or
+  schema. It also reaches every reuse outcome: absent, missing, unparsable and
+  foreign records, size and digest mismatches, the four probe failures, a
+  valid entry under the write-denying helper, an unconfirmed probe end and
+  another probe failure. The children decoder is also reached through the
+  lock record cases; covered.
+- **`tools/release_workflow/git_cliff/cache_lock.py`**: `test_git_cliff_cache_lock/`
+  reaches the publication, the mutex name in both namespaces, a live holder
+  until W, a holder that releases mid-wait, a holder change, child
+  recording, release, a record replaced by hand, retention, an unheld or
+  doubly acquired lock, an empty caller kind and the default seams with the
+  local clock. Eleven unverifiable records are covered, along with recovery
+  of a dead owner and dead children, a live or `UNKNOWN` child, an `UNKNOWN`
+  owner and an abandoned mutex. The attempt cases run for both kinds and
+  eight verdicts each: a file or unknown name ignored, an unreadable owner
+  file, a non-holder and a refused removal. Since round 1 it also reaches the
+  deadline at publication: a lock freed at exactly W is taken, a late wake-up
+  finding the lock freed fails without publishing, and liveness queries
+  running past W leave a dead record in place with no holder named; the last
+  two failed on the reviewed module. Covered.
+- **Files outside the gate**: `git_cliff_support.py` lives under `tests` and
+  is not measured. Each of its top-level symbols is used by the Step 3 tests
+  or inside the module (`synthetic_archive` by `synthetic_pin`,
+  `_alive_current` and `_no_actions` as default factories, `_denied` by
+  `deny_writes`).
+
+No, there is no unit-tested class below 100% that needs completing for Step 3.
+No, none of the top-level symbols of the files outside the gate is
+unreferenced.
 
 ### Feature integrity for Step 3
 
-_(empty — no check has taken place yet.)_.
+- **Existing feature behavior**: no existing module changes behavior;
+  `windows_process`, `lock_records`, `manifest` and `budget` are only
+  imported, and the only edit to an existing source file is the package
+  docstring.
+- **Reporting or diagnostics**: `LockWaitError` and `LockRecordError` name the
+  lock path, and the former the last live holder seen and the remedy;
+  `UnusableEntry` reasons
+  name the failing check. Nothing is printed: the waiting line itself is left
+  to the caller's `on_wait`, which Step 5 formats.
+- **Compatibility or rollout note**: the new ignore rule covers only
+  `/.tools/git-cliff/` at the repository root; the existing generic patterns
+  are unchanged. Nothing calls the cache or its lock before Step 5.
+
+No, there is no existing feature or reporting capability that appears
+impaired.
 
 ---
 
