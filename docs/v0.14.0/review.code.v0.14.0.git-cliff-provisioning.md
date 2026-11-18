@@ -416,7 +416,7 @@ Independent commit-plan-check.bat --format json returned state=valid, ready=true
 
 Unresolved findings:
 
-- [P2] Avoid hashing every pin on warm cache access (tools/release_workflow/git_cliff/manifest.py:118). _TABLES.get(pins) hashes the tuple on every call, including hits using the same tuple object; tuple hashing invokes AdmittedPin.__hash__ once per pin. Thus parse_pin, admitted and default_version remain O(n) in manifest size after warm-up, contrary to the plan's O(1) amortized bound and the module/validation claims. test_a_table_is_validated_and_indexed_once counts only validate_pins calls and cannot detect the repeated work. Use a cache lookup that does not traverse or hash all pins (retaining tuple ownership if keyed by identity), and add an operation-count regression for the three warm entry points.
+- [P2] Avoid hashing every pin on warm cache access (`tools/release_workflow/git_cliff/manifest.py:118`). `_TABLES.get(pins)` hashes the tuple on every call, including hits using the same tuple object; tuple hashing invokes `AdmittedPin.__hash__` once per pin. Thus `parse_pin`, `admitted` and `default_version` remain O(n) in manifest size after warm-up, contrary to the plan's O(1) amortized bound and the module/validation claims. `test_a_table_is_validated_and_indexed_once` counts only `validate_pins` calls and cannot detect the repeated work. Use a cache lookup that does not traverse or hash all pins (retaining tuple ownership if keyed by identity), and add an operation-count regression for the three warm entry points.
 
 Boundary-crossing work: None.
 
