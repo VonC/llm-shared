@@ -7,6 +7,12 @@ still proves that a malformed reason is a usage error before any setup, and
 the plugin's mark validation refuses each malformed form directly, since every
 form reaches that same check. The `pytest.mark.process_allowed()` spelling
 builds the same mark as the bare decorator, so the direct cases list it once.
+
+Step 2 did the same for the inherited permissions after a whole-suite walk
+measured 0.109 s for the module-level embedded session: the class level keeps
+its embedded session, proving the usage error from a real collection, and the
+module level is refused by the same collector check, called directly on a
+module collector that carries the mark.
 """
 
 # pyright: reportPrivateUsage=false
@@ -71,16 +77,26 @@ def test_malformed_test_permission_forms_are_refused(tmp_path: Path, args: tuple
     assert "test_case" in str(caught.value)
 
 
-@pytest.mark.parametrize("level", ["module", "class"])
-def test_inherited_permissions_are_invalid(tmp_path: Path, capsys: pytest.CaptureFixture[str], level: str) -> None:
-    """A valid reason cannot turn a class or module mark into a test permission."""
-    source = "pytestmark = pytest.mark.process_allowed(reason='why')\ndef test_case(): pass\n"
-    if level == "class":
-        source = "@pytest.mark.process_allowed(reason='why')\nclass TestCases:\n    def test_case(self): pass\n"
+def test_an_inherited_class_permission_is_invalid(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    """A valid reason cannot turn a class mark into a test permission: a usage error from a real session."""
+    source = "@pytest.mark.process_allowed(reason='why')\nclass TestCases:\n    def test_case(self): pass\n"
     (tmp_path / "conftest.py").write_text(_REGISTER, encoding="utf-8")
     (tmp_path / "test_case.py").write_text("import pytest\n" + source, encoding="utf-8")
     assert run_inline(tmp_path, plugins=(audit,)) == pytest.ExitCode.USAGE_ERROR
-    assert level in capsys.readouterr().err
+    assert "class" in capsys.readouterr().err
+
+
+def test_an_inherited_module_permission_is_refused_by_the_collector_check(tmp_path: Path) -> None:
+    """A module mark reaches the same collector check as a class mark, which refuses it at module level."""
+    mark = SimpleNamespace(name="process_allowed", args=(), kwargs={"reason": "why"})
+    collector = object.__new__(pytest.Module)
+    collector._nodeid = "test_case.py"
+    collector.own_markers = cast("list[pytest.Mark]", [mark])
+    state = audit.AuditSession(tmp_path)
+    state.collectors.append(collector)
+    session = cast("pytest.Session", SimpleNamespace(config=SimpleNamespace(pluginmanager=SimpleNamespace(_conftest_plugins=set()))))
+    with pytest.raises(pytest.UsageError, match=r"test_case\.py: process_allowed is invalid at module level"):
+        state._modules(session)
 
 
 @pytest.mark.parametrize("declaration", [
