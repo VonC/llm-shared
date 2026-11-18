@@ -4,12 +4,12 @@ No, it is not implemented.
 
 This document tracks the eight steps of the
 [implementation plan](plan.v0.14.0.git-cliff-provisioning.md) for item 3 of
-the sibling release tooling umbrella. Step 1 is implemented: the pin
-manifest, the `[git-cliff]` domain, the download budget policy and the shared
-record decoder. The contained Windows children with their native checks, the
-cache and its lock, the download worker, the provisioning service, the
-evidence harness, the reviewed admission of 2.14.2 and the `gcliff` launcher
-are still to be written.
+the sibling release tooling umbrella. Steps 1 and 2 are implemented: the pin
+manifest, the `[git-cliff]` domain, the download budget policy, the shared
+record decoder, and the contained Windows children with the use guard and
+their first committed native check record. The cache and its lock, the
+download worker, the provisioning service, the evidence harness, the reviewed
+admission of 2.14.2 and the `gcliff` launcher are still to be written.
 
 > Initial-skeleton note: this first version was written by the `write-plans`
 > skill, before any implementation check. It fills `Goal for Step N` and
@@ -354,9 +354,35 @@ impaired.
 
 ### Analysis of Step 2 implementation state
 
-Not started. Step 2 is not implemented because no implementation work has
-begun: the engine has no job object, no suspended creation with a job list and
-a handle list, no deadline termination and no use guard.
+Yes. Step 2 has been fully implemented.
+
+Reviewer round 3 independently inspected the staged changes and closes R1,
+R2 and R4: failed handles remain owned through interruption, default SIGINT
+delivery is deferred across native-call bookkeeping, outstanding resources
+are retained even when an interrupt propagates, and release traversal is
+linear. R3 remains resolved by the bounded native runners. The independent
+commit-plan check is valid and ready for all six groups; no implementation
+or test repair was made by the reviewer.
+
+The three native modules exist with the plan's structure: `windows_native.py`
+declares the structures, constants and kernel32 functions, `windows_child.py`
+runs every child through the seven phases (no `subprocess` and no
+create-then-assign path), and `windows_guard.py` holds the use guard. Code
+review rounds 1 and 2 found gaps, now repaired. Cleanup dropped a handle
+before its reset or close succeeded, or lost it when a failure and an
+interrupt overlapped. An interrupt could escape the teardown or land between
+a native call and its bookkeeping. The reset traversal was quadratic, and the
+native recorder could not stop a stalled check. Every branch, each reviewer
+sequence included, is exercised through the fake kernel and a fake loader.
+The recorder, which bounds each check in its own contained runner, passed its
+eight checks on a real kernel. The committed `native_checks.v1.json`, with its
+stalled-runner demonstration, is accepted by its validator for the current
+sources. One planned check changed by user decision: on Windows 11 build 26200
+a job with UI limits did not refuse the nesting the design named, so the
+refused creation is proven under a job limited to one active process, and the
+design and plan now say so. Every completion criterion holds: the command
+printed by `pw scope day` reports `exit=0` and the three `rg` checks find only
+the expected matches.
 
 ### Goal for Step 2
 
@@ -408,27 +434,304 @@ record and the test that validates it.
 
 ### What was implemented for Step 2
 
-_(empty — no check has taken place yet.)_.
+The current diff delivers the Step 2 file list of the plan, a docstring line
+in `tools/release_workflow/__init__.py`, the design and plan corrections for
+the refused creation, and one formatting fix outside the step.
+
+- **Native declarations**: `tools/release_workflow/windows_native.py` defines
+  the x64 structures `STARTUPINFOW`, `STARTUPINFOEXW`, `PROCESS_INFORMATION`,
+  `JOBOBJECT_BASIC_LIMIT_INFORMATION`, `IO_COUNTERS`,
+  `JOBOBJECT_EXTENDED_LIMIT_INFORMATION` and
+  `JOBOBJECT_BASIC_ACCOUNTING_INFORMATION`, the creation, job, file, wait,
+  console and error constants, the `PHANDLER_ROUTINE` callback type and
+  `kernel(loader=None)`. It gives each of the 23 functions the layer calls its
+  argument types, result type and error check, then caches the declared
+  library per loader. Every error check raises `NativeCallError` (an
+  `OSError` carrying the call name and the Windows error) on a failed result:
+  a zero BOOL, a NULL or invalid handle, `WAIT_FAILED` or a failed resume.
+  Only the sizing call of the attribute list may answer with an insufficient
+  buffer. Pointer arguments take the ctypes instances themselves.
+- **Contained children**: `tools/release_workflow/windows_child.py` defines
+  `require_supported_platform` (platform version 10 or later on an x64
+  machine, otherwise `PlatformError` with the baseline remedy), the frozen
+  `ChildRequest` (stream modes and environment entries checked when built,
+  `list2cmdline` command line, environment block sorted case-insensitively),
+  the frozen `ChildOutcome`, and `run_contained(request, *, api=None,
+  sleep=time.sleep)` in the seven phases of the plan. Setup creates the
+  kill-on-close job, the `NUL` handle or the parent's standard handles, the
+  capture pipes and an attribute list holding exactly the job list and the
+  handle list (standard handles listed once, then the guard handles).
+  Creation makes only the not yet inheritable listed handles inheritable,
+  calls `CreateProcessW` suspended, then restores inheritance, deletes the
+  list and closes the parent's write ends and `NUL`. Pre-resume reads the
+  identity, calls the recording callback and resumes. The wait starts two
+  daemon readers over the native read handles and waits within the deadline.
+  The teardown terminates the job, reaps the root and polls the accounting
+  count to 0 through the injected sleep. Only then does the drain read the
+  root's status, join the readers and close every handle. Any failure before
+  the teardown, an interrupt included, settles the attempt: a created child is
+  ended and its end confirmed, every resource released, then a native or other
+  error raises `ContainmentError` and an interrupt propagates as is. A failing
+  termination, reap wait or accounting query, or any other error while
+  polling, moves the job, process, thread and read handles with the readers
+  into `RETAINED` and raises `UnconfirmedEndError`, which names the PID, the
+  identity (`None` when it was never read) and the call. `is_process_in_job`
+  and the `ignore_console_interrupts` handler routine complete the module.
+- **Code review repairs, rounds 1 and 2**: the handle bookkeeping is a set of
+  ordered dictionaries, so every release is linear. A handle is registered
+  before the call that makes it inheritable, the process and thread handles
+  are adopted from the filled process information, and each close takes its
+  handle out of the set first and puts it back if the close fails. A failed
+  reset or close keeps its handle and failure, every other handle is still
+  released, and settling retries what remains. Whatever still remains goes to
+  `RETAINED` on every exit path, named in `ContainmentError.cleanup` or, when an
+  interrupt propagates, in a note on it (a caller's guard left inheritable
+  among them). On the main thread, with Python's default handler, the run
+  replaces the SIGINT handler with one that records a Ctrl+C; the run raises
+  it at safe points where every handle is accounted for (after setup, before
+  resuming, after the wait) or once it is settled. A launcher's console filter
+  still swallows Ctrl+C before Python sees it. A `KeyboardInterrupt` raised
+  while the run is ended or released is held back the same way: the action
+  runs again to its end, and a successful termination is not repeated. An
+  `UnconfirmedEndError` still wins, so its caller keeps every resource. The
+  recorder runs each check in its own runner process, started through
+  `run_contained` with the check's bound as deadline. On expiry the job-wide
+  termination ends the runner and its whole helper tree and the check is
+  recorded `timed-out`; production reap semantics are unchanged.
+- **Use guard**: `tools/release_workflow/windows_guard.py` defines `UseGuard`
+  and `open_guard`. The guard is a `CreateFileW` handle with `GENERIC_READ`,
+  `FILE_SHARE_READ` only, `OPEN_EXISTING` and no security attributes. A
+  missing file or folder raises `FileNotFoundError` and any other refusal an
+  `OSError` carrying the Windows error and the path. `sha256_and_size()`
+  duplicates the handle, rewinds the shared position, hashes to the end and
+  closes only the duplicate. `close()` is idempotent, the context manager
+  closes, and `retain()` registers the guard in `RETAINED`, after which no path
+  closes it.
+- **Fake kernel and tests**: `tests/unit/tools/release_workflow/native_kernel_fake.py`
+  logs every call, fails a chosen occurrence of a function as its error check
+  would or interrupts it once it ran, plays a declared child (status, output,
+  still running at its deadline, a descendant holding stdout until
+  termination) and blocks pipe
+  reads until data or the last write-end holder ends, with a safety bound and
+  a logged end of file. The new leaves `test_windows_native/`,
+  `test_windows_child/` (lifecycle and faults) and `test_windows_guard/`
+  cover the plan's test list.
+- **Native check recorder and record**:
+  `tests/unit/tools/release_workflow/git_cliff_native_checks.py`, started by
+  hand and never imported by a test, runs the cumulative due set of a
+  milestone on stand-in children and temporary paths, each check in its own
+  bounded runner process, restarting itself as helper parents, and writes
+  `native_checks.v1.json` (sorted keys, LF, no host path). The record's
+  `recorder_timeout` entry shows a deliberately stalled runner ended at its
+  3 s bound, its helper child alive then and ended after it. The Step 2 set: job membership before resume; a suspended child
+  ending with its killed parent; a creation refused by the job of a helper
+  limited to one active process; kill-on-close of a running child; a root
+  exiting while its descendant holds stdout; a helper exiting normally after
+  its termination call was made to fail, its descendant then ended by
+  kill-on-close; the guard refusing a rename before any child and while a
+  child runs with the inherited copy only. The two descendant checks also
+  observe the descendant alive at the decisive moment.
+  `test_git_cliff_native_evidence_tdd.py` validates the record against its own
+  catalog (outcome, expected and observed observation, bound and
+  LF-normalized source digests, commit and host facts, the timeout
+  demonstration, no host path or user or host name) and refuses each
+  defective record built in memory.
+- **Deviation decided by the user (2026-11-18)**: the planned check "a refused
+  creation under a job with UI limits" could not pass, since on Windows 11
+  build 26200 a helper inside a job with UI restrictions (0x1, 0x20, 0x40,
+  0xff) created the job-list child normally. Two real refusals were found: a
+  job limited to one active process (`CreateProcessW` error 1816, the job
+  counting only the helper) and a job list holding a query-only job handle
+  (error 5). The user chose the first. The design facts row, lifecycle step 3,
+  the Containment remedy, the testing approach and the acceptance row, and the
+  plan's Step 2 recorder text, now name it.
+- **Out-of-step test change**: the round 3 request walk measured 0.109 s of
+  lifecycle CPU, above the 0.100 s ceiling and not proven here, for
+  `tests/unit/tools/shared_lifecycle/test_audit_declarations/test_audit_declarations_tdd.py::test_inherited_permissions_are_invalid[module]`,
+  whose cost is one embedded pytest session. As Step 1 did for the same file,
+  the class-level case keeps its embedded session, and the module-level case
+  calls the plugin's collector check directly on a module collector carrying
+  the mark, the check both levels reach. No production code changes with it.
+- **Out-of-step formatting fix**: line 419 of
+  `docs/v0.14.0/review.code.v0.14.0.git-cliff-provisioning.md`, committed with
+  Step 1, held a bare `AdmittedPin.__hash__` from the reviewer's answer, which
+  fails Markdown rule MD050 at `HEAD`. Its identifiers are now code spans; no
+  word changed.
+- **Validation evidence**:
+  - Red first: `ghog single` on the five Step 2 test files failed at
+    collection on the missing `windows_native` module (exit 4).
+  - Targeted: `ghog single` on the five Step 2 test files with
+    `test_windows_process_tdd.py`: exit 0, 91 tests.
+  - Gate: `ghog day --whole-suite`, the command printed by `pw scope day` at
+    the default level, exit 0 at 2026-11-18T09:49:42+01:00, after one walk
+    that failed at check (typing, lint, complexity and the MD050 line above).
+  - Round 1 repairs, red first: the thirteen new fault cases run against the
+    reviewed `windows_child.py`: `ghog single` exit 4, 10 failed (cleanup
+    stopping early, a failed reset lost, raw interrupts escaping the end).
+    Green with the repaired module: the four kernel-based files with
+    `test_windows_process_tdd.py`, exit 0, 91 tests; then every Step 2 test
+    file with it, 107 tests, after `ghog check` passed.
+  - Round 2 repairs, red first: the nine new sequences run against the
+    round 2 reviewed `windows_child.py`: `ghog single` exit 2, 9 failed.
+    Green with the repaired module: 100 tests with the other kernel-based
+    files and `test_windows_process_tdd.py`, then every Step 2 test file, 116
+    tests, after `ghog check` passed.
+  - Native record, after the last source change: the recorder with
+    `--milestone step-2` passed 8 of 8 checks through their runners (0.38 s
+    to 1.03 s each), and the stalled runner timed out at its 3 s bound in
+    3.08 s with its helper tree ended; the validator accepts the record.
+  - `rg -n 'subprocess\.(Popen|run|call)|AssignProcessToJobObject'` on the
+    three modules: no match. `rg -n 'SetConsoleCtrlHandler'
+    tools/release_workflow`: the registration and removal in
+    `windows_child.py` and the declaration in `windows_native.py`.
+    `rg -n 'TerminateJobObject|\.join\(' tools/release_workflow/windows_child.py`:
+    the termination in `_teardown`, then the single reader join in
+    `_release`, which runs only after a confirmed end (the drain and the
+    settling both call the teardown first).
+- **Line counts**: `windows_native.py` 286 (advisory 180),
+  `windows_child.py` 594 (advisory 360), `windows_guard.py` 120 (advisory
+  120), `native_kernel_fake.py` 456 (advisory 310),
+  `git_cliff_native_checks.py` 598 (advisory 190); tests 165, 234, 474, 104
+  and 212 (advisory 90, 280, 380, 140 and 130), initializers 3 each;
+  `release_workflow/__init__.py` 17 (+3); `native_checks.v1.json` 213. Every
+  Python file stays below the 650 ceiling; the advisory overruns are variance.
+  `windows_child.py` and the recorder sit in the 550 to 650 band.
+  `windows_child.py` grew with the review repairs, and no later step plans to
+  extend it. The plan adds about 190 lines to the recorder in Steps 4, 5 and
+  8, so Step 4 meets the split guidance of shared checklist item 7 before it
+  adds its check.
 
 ### New types or classes introduced for Step 2
 
-_(empty — no check has taken place yet.)_.
+- `tools.release_workflow.windows_native`: the seven structures above,
+  `PHANDLER_ROUTINE`, `NativeCallError`, the `Kernel` protocol and `kernel`.
+- `tools.release_workflow.windows_child`: `PlatformError`,
+  `ContainmentError` (with `call`, `error` and `cleanup`),
+  `UnconfirmedEndError`, `RetainedChild`, `RETAINED` (the private `_Retained`
+  owner), `require_supported_platform`, `ChildRequest`, `ChildOutcome`,
+  `run_contained` (with the private `_Run` phases, its settling and
+  interrupt-deferring helpers, and `_Reader` threads), `is_process_in_job` and
+  `ignore_console_interrupts`.
+- `tools.release_workflow.windows_guard`: `UseGuard` and `open_guard`.
+- Test support: `FakeKernel` (with `fail` and `interrupt`), `FakeChild` and
+  `Creation` in `native_kernel_fake.py`; the recorder with its `_Check`
+  catalog, runner mode and timeout demonstration; the validator catalog `_Due`
+  in the evidence test.
 
 ### Architecture check for Step 2
 
-_(empty — no check has taken place yet.)_.
+- **Infrastructure placement**: the three modules are the engine's Windows
+  adapter layer, beside `windows_process.py`; they import only the standard
+  library, `windows_process.ProcessIdentity` and each other, never a domain or
+  configuration module, and nothing outside the recorder imports them yet.
+- **Dependency direction**: `windows_guard` depends on `windows_child` for
+  `RETAINED` and both depend on `windows_native`; `windows_child` never
+  imports the guard and receives guard handles as plain integers in
+  `ChildRequest.inherited`, so there is no cycle.
+- **Kernel seam**: every native call goes through the declared `Kernel`
+  object passed as `api`, the real library only when `api` is `None` (plan
+  decision Q05); no test patches a module attribute to reach it.
+- **Process-lifetime state**: `RETAINED` is append-only by design: it owns
+  what an unconfirmed end forbids closing, and the operating system closes it
+  with the process. The declaration cache holds the declared library per
+  loader.
+
+No, there is nothing that needs to be addressed: no DDD-Hexagonal violation or
+smell is visible in this step.
 
 ### Performance check for Step 2
 
-_(empty — no check has taken place yet.)_.
+- **One required `O(n log n)` sort**: building the
+  environment block sorts the environment entries, because `CreateProcessW`
+  requires a sorted block and the plan names that order; it runs once per
+  child over the environment's tens of entries. Setup, creation and teardown
+  make a constant number of kernel calls plus one inheritance query per
+  listed handle (at most three standard handles and the guards). The readers
+  and the guard hash are linear in the bytes read, in 64 KiB and 1 MiB
+  chunks.
+- **Hot-path bound**: none of this runs during configuration loading or any
+  existing command; the accounting poll sleeps 10 ms between reads and only
+  after a successful termination, which the design leaves unbudgeted.
+- **Startup path**: importing the modules declares nothing; the kernel is
+  loaded and declared on first use, once per process.
+- **Plan-bound alignment**: within the "O(n) total per phase" bound for child
+  runs and the one hash pass the reuse check allows. Since round 2 the
+  bookkeeping is ordered dictionaries: each reset, close, retry and adoption
+  is a constant-time membership change, so a release is linear in the
+  inherited handles (round 1 had a quadratic `list.remove` traversal). A
+  resumed teardown repeats a constant number of kernel calls, and the
+  developer-run recorder bounds each whole check from outside the production
+  lifecycle, whose reap stays unbudgeted as designed.
+
+No, there is no performance issue that needs to be addressed.
 
 ### Unit test coverage check for Step 2
 
-_(empty — no check has taken place yet.)_.
+The coverage gate measures `tools` only (`[tool.coverage.run] source`), with
+`*/tests/*` and `*/__init__.py` omitted, at `fail_under = 100`. This check
+reasons from the code and the tests. The writer reports a whole-suite speed
+walk of 7,519 tests with 100% measured coverage, zero outliers and zero
+exclusions on the round 3 request tree. The reviewer did not rerun that walk
+or measure coverage independently.
+
+- **`tools/release_workflow/windows_native.py`**: `test_windows_native/`
+  checks the layouts and constants, declares the 23 functions through a fake
+  loader (cached per loader) and reaches the failing and passing result of
+  every error check, both sizing answers included; covered.
+- **`tools/release_workflow/windows_child.py`**: `test_windows_child/`
+  reaches both platform outcomes, every request refusal, the environment
+  block with entries, empty and inherited, both stdin and output modes with a
+  guard, the inheritance skip and set, the deadline conversions, expiry, the
+  descendant cases, the accounting poll, membership and the console filter.
+  The faults file reaches every setup and creation failure, a missing
+  standard handle, the three pre-resume failures, the interrupt, a failed
+  deadline wait, status read and pipe read, the three unconfirmed ends and the
+  identity failure with an unconfirmed teardown. Since round 1 it also
+  reaches a reset failure retried while settling and one left retained, close
+  failures before and after the end, a refused creation with both cleanup
+  failures, an interrupt during setup, right after creation, while polling
+  and repeatedly during recovery, a pending interrupt replacing a containment
+  error, an error while polling and an unconfirmed end winning over an
+  interrupt; ten of these failed on the round 1 module. Round 2 adds the
+  reviewer's sequences: a failed close then a Ctrl+C, a failed close left by
+  an interrupt from the callback (retained and noted), and a Ctrl+C right
+  after a guard's inheritance is enabled, after `CreateProcessW`, and after
+  the job, `NUL`, a pipe or the attribute list is acquired. It also checks
+  where the Ctrl+C deferral applies (main thread, default handler) and that
+  no handle is ever closed twice; the nine new cases failed on the round 2
+  module. Covered.
+- **`tools/release_workflow/windows_guard.py`**: `test_windows_guard/`
+  reaches the open, both missing-file errors, the sharing violation, hashing
+  twice through duplicates, the closed guard, the idempotent close and the
+  retained guard; covered.
+- **Files outside the gate**: `native_kernel_fake.py` and
+  `git_cliff_native_checks.py` live under `tests` and are not measured.
+  Every top-level symbol of the fake is used by the Step 2 tests or inside
+  the fake itself; every
+  top-level function and class of the recorder is reached from its `main`,
+  its runner or helper dispatch or its check catalog, and the record proves
+  the run.
+
+No, there is no unit-tested class below 100% that needs completing for Step 2.
+No, none of the top-level symbols of the files outside the gate is
+unreferenced.
 
 ### Feature integrity for Step 2
 
-_(empty — no check has taken place yet.)_.
+- **Existing feature behavior**: no existing module changes behavior;
+  `windows_process.py` is reused unchanged and its tests pass, and the only
+  edit to an existing source file is the package docstring.
+- **Reporting or diagnostics**: the new errors carry the stage name the Step 5
+  messages module will map (`platform`, `containment`, `unconfirmed-end`), the
+  failing call and, for a release that left handles, the failed cleanup calls;
+  an interrupt never replaces an unconfirmed end. Nothing is printed yet.
+- **Compatibility or rollout note**: nothing calls the layer before Step 3.
+  The design's containment example and remedy now name a host job that
+  limits its processes instead of UI limits; the transcript fix only adds code
+  spans.
+
+No, there is no existing feature or reporting capability that appears
+impaired.
 
 ---
 
