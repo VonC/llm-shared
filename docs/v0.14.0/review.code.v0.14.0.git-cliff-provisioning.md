@@ -2376,3 +2376,873 @@ Human choice: Commit
 Outcome: continue-owning-workflow
 
 <!-- review-entry-id: human-confirmation-round-3 -->
+
+## Round 1 by requestor - Step 3
+
+- Recorded: 2026-11-18T21:15:09+01:00
+- Exchange: code/code/v0.14.0/git-cliff-provisioning
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: unrecorded
+- Implementation step: 3
+- Outcome: request
+
+### Review identity for step 3 git-cliff-provisioning (round 1)
+
+Umbrella draft: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+Implementation plan: docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.md
+Implementation step: 3
+Review round: 1
+
+### Code review evidence for step 3 git-cliff-provisioning (round 1)
+
+request_index_tree: 3efddd6aed408e84d4672d1797544b73a7dbe234
+resolved_validation_set:
+
+- `ghog day --full=speed --whole-suite` (sources: project)
+
+test_scope:
+{"fingerprint": "686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6", "group": null, "proof": "speed", "requirement": "docs/v0.14.0/feature-request.v0.14.0.git-cliff-provisioning.md", "scope": "whole"}
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: feat(release): add the git-cliff cache and its lock
+group 1 path: .gitignore
+group 1 path: tools/release_workflow/git_cliff/__init__.py
+group 1 path: tools/release_workflow/git_cliff/cache.py
+group 1 path: tools/release_workflow/git_cliff/cache_lock.py
+group 1 path: tests/unit/tools/release_workflow/git_cliff_support.py
+group 1 path: tests/unit/tools/release_workflow/test_git_cliff_cache/__init__.py
+group 1 path: tests/unit/tools/release_workflow/test_git_cliff_cache/test_git_cliff_cache_tdd.py
+group 1 path: tests/unit/tools/release_workflow/test_git_cliff_cache/test_git_cliff_cache_pbt.py
+group 1 path: tests/unit/tools/release_workflow/test_git_cliff_cache_lock/__init__.py
+group 1 path: tests/unit/tools/release_workflow/test_git_cliff_cache_lock/test_git_cliff_cache_lock_tdd.py
+group 1 path: tests/unit/tools/release_workflow/test_git_cliff_cache_lock/test_git_cliff_cache_lock_recovery_tdd.py
+group 2: docs(git-cliff-provisioning): record step 3 validation
+group 2 path: docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.validation.md
+staged path: .gitignore
+staged path: docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.validation.md
+staged path: tests/unit/tools/release_workflow/git_cliff_support.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_cache/__init__.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_cache/test_git_cliff_cache_pbt.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_cache/test_git_cliff_cache_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_cache_lock/__init__.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_cache_lock/test_git_cliff_cache_lock_recovery_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_cache_lock/test_git_cliff_cache_lock_tdd.py
+staged path: tools/release_workflow/git_cliff/__init__.py
+staged path: tools/release_workflow/git_cliff/cache.py
+staged path: tools/release_workflow/git_cliff/cache_lock.py
+```
+
+### Validation scope for step 3 git-cliff-provisioning (round 1)
+
+Validation scope: the whole suite.
+
+### Requestor assessment for step 3 git-cliff-provisioning (round 1)
+
+Writer assessment for Step 3 of the git-cliff-provisioning plan, round 1: the
+step is fully implemented, and its implementation check records
+`Yes. Step 3 has been fully implemented.` in the staged validation plan,
+whose document status stays `No, it is not implemented.` while Steps 4 to 8
+are not started.
+
+Evidence, all on the staged tree:
+
+- Tests first: with `cache.py` and `cache_lock.py` held aside, `ghog single`
+  on the four Step 3 test files failed at collection on the missing
+  `tools.release_workflow.git_cliff.cache` module (exit 4). With the modules
+  restored they pass.
+- `ghog day --whole-suite`, the command printed by `pw scope day`, exit 0
+  after one walk that failed at check: ty and pyright on the test support
+  (untyped default factories, `io.open` and `os.open` wrappers, a scheduled
+  action returning a value), ruff (`PLR0911` on the reuse validator, now split
+  into three helpers; `D301` on the lock docstring, now raw; `EM101`, `S105`,
+  `PLR0913` and `PTH116` in tests). Four tests were then added for paths a
+  static coverage reading found unexercised (owner file fields, default seams,
+  empty caller kind, unreadable owner file).
+- Review validation, `ghog day --full=speed --whole-suite` (the built-in
+  default; no `.review-validation`): exit 0 with
+  `cov=100 outliers=0 excluded=0 proof=speed` (7636 tests, slowest call
+  0.79 s, outside this step), on index tree
+  `3efddd6aed408e84d4672d1797544b73a7dbe234`. No budget was changed and no
+  exclusion is accepted (`ghog exclude --list`: `exclusions=0`).
+- `rg -n '\.tools/git-cliff/' .gitignore`: line 124.
+  `rg -n 'getmtime|st_mtime|age' tools/release_workflow/git_cliff/cache_lock.py`:
+  no match. `rg -n 'subprocess|Popen'
+  tests/unit/tools/release_workflow/git_cliff_support.py`: no match.
+- Line counts: `cache.py` 395 (advisory 260), `cache_lock.py` 358 (290),
+  `git_cliff_support.py` 318 (230), tests 289, 49, 217 and 175; every Python
+  file stays below 550.
+- Markdown check and cSpell on the staged validation plan: clean.
+- No source file covered by the committed native check record changed, so
+  `native_checks.v1.json` needs no refresh.
+
+Architecture: `cache` defines the `Guard` and `CachePin` ports it consumes and
+receives the guard opener and the probe; it imports only `lock_records`,
+`windows_process.ProcessIdentity` and the `windows_child` error and outcome
+types. `cache_lock` depends on `cache` and the `budget` constants, reaches the
+kernel only through `LockSeams` (defaults: the unchanged `windows_process`
+primitives) and stays separate from the project `OperationLock`.
+Performance: reuse is one guard, one record read, one hash pass and one
+probe; a poll is one mutex entry, one record read and the liveness probes;
+recovery lists one version directory once without recursion. Feature
+integrity: no existing module changes behavior; the ignore rule covers only
+`/.tools/git-cliff/`.
+
+Please check in particular: the reuse order and that no ordinary failure
+leaves the guard open while an unconfirmed probe end leaves it retained; that
+no path publishes over or removes a record whose owner or any child is not
+proven `DEAD`; the deadline and polling arithmetic of the wait; ownership
+checks in `record_child`, `release` and after `retain_record()`; the attempt
+recovery rules, including a missing owner file meaning no child; the layout's
+refusal of names that could reach `evidence/` or leave their directory; and
+the interface details that differ from the plan's sketch (writer response).
+
+### Implementation report for step 3 git-cliff-provisioning (round 1)
+
+Step 3, "Cache layout, entry record, reuse check and the cache lock", is the
+third of eight steps of the git-cliff-provisioning plan. It adds the cache of
+the executing checkout, the lock-free reuse check and the provisioning lock of
+one version and platform; nothing calls them before Step 5.
+
+Cache, `tools/release_workflow/git_cliff/cache.py` (design "Cache layout and
+the local integrity record" and "Reuse check and the use guard"; design
+decisions Q03, Q07 and Q12):
+
+- `CachePin` (protocol: `version`, `triple`) and `Guard` (protocol: `path`,
+  `handle`, `sha256_and_size()`, `close()`, `retain()`), met by
+  `manifest.AdmittedPin` and `windows_guard.UseGuard`.
+- `CacheLayout(tooling_root, namespace="production")` (frozen): `root` is
+  `<tooling_root>/.tools/git-cliff`, or its `evidence` folder; any other
+  namespace raises `ValueError`. `version_dir`, `entry_dir`, `executable`,
+  `record`, `lock_path` and `attempt_dir(pin, kind, owner, token)`. A version
+  directory name must match `[0-9]+\.[0-9]+\.[0-9]+` and a triple
+  `[a-z0-9_]+(-[a-z0-9_]+)+`, otherwise `ValueError` ("not a cache place"),
+  so no production pin resolves into `evidence/`. Attempt names are
+  `.staging-<pid>-<created>-<token>` and `.retired-...` with a positive PID
+  and creation time and a lowercase hexadecimal token; `parse_attempt(name)`
+  (static) returns `Attempt(kind, owner, token)` for a canonical name and
+  `None` otherwise (leading zeros, suffixes, other kinds).
+- `EntryRecord` (frozen, keyword-only, schema 1): `version`, `triple`,
+  `asset`, `asset_sha256`, `executable_sha256`, `executable_size`,
+  `provisioned`. `__post_init__` refuses another schema, an empty name, a
+  digest that is not 64 lowercase hexadecimal characters, a size below 1 and
+  a `provisioned` time without an offset. `encode()` writes one JSON line in
+  a fixed key order; `decode()` uses `lock_records.decode_object` with the
+  `entry` label and requires exactly the eight keys.
+- `OwnerFile(owner, children=())` (frozen, schema 1): `with_child`, `encode`,
+  `decode` with the `owner file` label and exactly four keys. The shared
+  helpers `identity_fields`, `decode_children` (a list of objects holding
+  exactly a positive `pid` and `created`) and `local_time` (ISO time with an
+  offset) also serve the lock record.
+- `check_entry(layout, pin, *, open_guard, probe) -> EntryCheck`, where
+  `EntryCheck` is `ValidEntry(guard, record) | UnusableEntry(absent, reason)`:
+  1. `open_guard(executable)`; `FileNotFoundError` returns the absent result,
+     any other error propagates.
+  2. `entry.json` read; missing, undecodable or naming another version or
+     triple returns an invalid result, before any hash.
+  3. `guard.sha256_and_size()`; a size or digest other than the record's
+     returns an invalid result, before the probe.
+  4. `probe(guard) -> ChildOutcome`; timed out, a status other than 0 or a
+     first line other than `git-cliff <pin>` returns an invalid result.
+  Every invalid result closes the guard. An `UnconfirmedEndError` from the
+  probe calls `guard.retain()` and propagates; any other exception closes the
+  guard and propagates. A valid result keeps the guard open for the caller.
+
+Lock, `tools/release_workflow/git_cliff/cache_lock.py` (design "Provisioning
+lock, contention and recovery"; design decisions Q03 and Q04):
+
+- `LockRecord(owner, started, caller, children=())` (frozen, schema 1, six
+  keys, non-empty caller, `started` with an offset).
+- `LockSeams` (frozen, keyword-only): `clock` and `sleep` required; `probe`
+  (`process_state`), `current` (`current_identity`), `mutex`
+  (`transition_mutex`) and `now` (local time with offset) default to the
+  item 1 primitives.
+- `CacheLock(layout, pin, *, caller, seams)`; the first transition creates
+  the version directory with its parents and names the mutex
+  `Global\llm-shared-git-cliff-<dev>-<ino>-<namespace>-<version>-<triple>`
+  from `stat` of `layout.root`.
+- `acquire(wait_seconds, on_wait)`: deadline fixed once. Each poll enters the
+  mutex and reads the record. Absent: publish this caller's record (flushed
+  temporary from `tempfile.mkstemp` beside it, then `Path.rename`, which
+  Windows never lets replace). Present with owner and every child `DEAD`
+  (owner probed first, children only then): replace it with `Path.replace` in
+  the same transition. Otherwise the holder is returned. The first holder
+  gets `on_wait(holder, W)` once; then `sleep(min(0.25, remaining))` until
+  the deadline, where `LockWaitError(path, holder, W)` is raised (message:
+  path, PID, start time, caller kind, W and `LOCK_WAIT_REMEDY`, the design's
+  lock-wait remedy). The temporary is always unlinked. An unverifiable record
+  raises `LockRecordError` at once; acquiring a held lock is refused.
+- `record_child(identity)`, `release()` and `retain_record()`: each change
+  rereads the record under the mutex and requires it to equal the held one;
+  `release` unlinks it. After `retain_record()`, `release` returns without
+  touching anything and `record_child` and `recover_attempts` raise
+  `LockRecordError`.
+- `recover_attempts()`: refused unless held; one `os.scandir` of the version
+  directory; for each directory (not following links) whose name parses as an
+  attempt: probe the name owner; read `owner.json` (missing: no children;
+  another read error or an invalid file: keep); require the same owner and
+  every child `DEAD`; then `shutil.rmtree`, a refusal keeping the directory.
+  Returns the removed names.
+
+Ignore rule: the root `.gitignore` ends with a comment and
+`/.tools/git-cliff/` (design "Ignore rule", requirement Q05, plan Q01).
+
+Tests (no process, no native call, no real wait):
+
+- `git_cliff_support.py`: `FakeClock` (monotonic, `now`, `sleep`, scheduled
+  actions), `ProcessStates` (undeclared is `UNKNOWN`, queries recorded),
+  `UncontendedMutex` (can declare entries abandoned), `LockWorld` (lock built
+  on those seams, `hold`, `attempt`, `declare`, `on_wait` recording),
+  `synthetic_pin()` from a generated archive with its real size and SHA-256,
+  `entry_record`, `install_entry`, `FakeGuard` and `FakeGuardOpener` over
+  scenario files, `FakeProbe`, and `deny_writes`.
+- `test_git_cliff_cache_tdd.py`: fixed paths, evidence namespace, refused
+  names and namespace, attempt names both ways, the `.gitignore` line, entry
+  record round trip and thirteen invalid records, owner file round trip and
+  refusals, and every reuse outcome in order, including the valid reuse under
+  `deny_writes` and the retained guard on an unconfirmed probe end.
+- `test_git_cliff_cache_pbt.py`: attempt names and entry records round-trip.
+- `test_git_cliff_cache_lock_tdd.py`: publication and key order, mutex names
+  in both namespaces, a live holder until W (4 sleeps of 0.25 s, 5 polls, one
+  callback, exact message), release mid-wait, a holder change, child
+  recording, release and a replaced record, retention, refused double
+  acquisition and retention, the caller kind, the default seams and eleven
+  unverifiable records.
+- `test_git_cliff_cache_lock_recovery_tdd.py`: dead owner and children
+  recovered in one transition; a live or `UNKNOWN` child, an `UNKNOWN` owner
+  and an abandoned mutex keep the record; eight attempt verdicts for both
+  kinds; non-attempt entries and an unreadable owner file kept; recovery
+  refused without the lock; a refused removal kept.
+
+Documentation: the validation plan entry and the `git_cliff/__init__.py`
+docstring described in the change summary.
+
+Writer notes: `.reviews/a.git-cliff-provisioning.step3.journal.md` and
+`.reviews/a.git-cliff-provisioning.step3.handoff.md`.
+
+### Change summary for step 3 git-cliff-provisioning (round 1)
+
+Staged paths (12), grouped in the root `a.commit` (two groups, checker
+`ready: true`):
+
+1. `feat(release): add the git-cliff cache and its lock`:
+   `.gitignore`,
+   `tools/release_workflow/git_cliff/__init__.py`,
+   `tools/release_workflow/git_cliff/cache.py`,
+   `tools/release_workflow/git_cliff/cache_lock.py`,
+   `tests/unit/tools/release_workflow/git_cliff_support.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_cache/__init__.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_cache/test_git_cliff_cache_tdd.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_cache/test_git_cliff_cache_pbt.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_cache_lock/__init__.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_cache_lock/test_git_cliff_cache_lock_tdd.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_cache_lock/test_git_cliff_cache_lock_recovery_tdd.py`.
+   The ignore rule travels with the first code that writes under the cache
+   path (design "Ignore rule", plan decision Q01).
+2. `docs(git-cliff-provisioning): record step 3 validation`:
+   `docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.validation.md`.
+
+Steps 1 and 2 of this plan are committed and pushed (`644f0041` is the base
+of this review). This round's transcript entry is appended to
+`docs/v0.14.0/review.code.v0.14.0.git-cliff-provisioning.md` and stays
+unstaged for the residual commit.
+
+### Writer response for step 3 git-cliff-provisioning (round 1)
+
+Writer response:
+
+Writer response:
+
+This is the first round of the Step 3 code review; there is no earlier
+reviewer feedback to answer.
+
+Choices worth checking, all recorded in the step notes and in the staged
+validation plan:
+
+- `CacheLock` takes its seams as one frozen `LockSeams` value instead of the
+  six keywords of the plan's sketch, because the repository's lint allows
+  five arguments (ruff `PLR0913`); the defaults are the item 1
+  `windows_process` primitives.
+- `recover_attempts()` takes no pin: a lock already serves exactly one
+  version and platform, and another pin would clean a version the caller does
+  not lock.
+- A pin is typed as the `CachePin` protocol (`version`, `triple`), so the
+  Step 6 evidence candidates fit the layout without being admitted pins. The
+  layout refuses any version or triple that is not a plain name instead of
+  relying on admission, which is how production can never reach `evidence/`.
+- The probe seam returns the `ChildOutcome` of Step 2: beside the first line,
+  a timed-out probe or a status other than 0 makes the entry invalid.
+- A guard open failure other than a missing executable propagates instead of
+  making the entry invalid, so its real cause reaches the diagnostic rather
+  than a retirement attempt that would fail on the same handle.
+- An unverifiable lock record raises `LockRecordError` at once instead of
+  being waited on: it cannot prove an owner, so it is never recovered, and
+  waiting W cannot change it. It stays in place.
+- A missing `owner.json` in an attempt directory means no child was recorded:
+  Step 5 writes it before creating any child and removes it only after every
+  recorded child has exited. A present but unreadable or invalid owner file,
+  or one naming another owner, keeps the directory.
+- A lock record publication writes a flushed temporary beside the record;
+  a crash between that write and the rename can leave a temporary, which
+  confers no ownership, as for the project operation lock.
+- `record_child` rewrites the complete record: the design publishes only
+  complete records, and an attempt records at most three children.
+
+### Reviewer focus for step 3 git-cliff-provisioning (round 1)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-3-round-1 -->
+
+## Round 1 by reviewer - Step 3
+
+- Recorded: 2026-11-18T21:24:44+01:00
+- Exchange: code/code/v0.14.0/git-cliff-provisioning
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 3
+- Outcome: answer
+
+### Assessed index identity for step 3 git-cliff-provisioning (exchange 1) (round 1)
+
+Baseline index tree: 3efddd6aed408e84d4672d1797544b73a7dbe234
+
+Assessed index tree: 3efddd6aed408e84d4672d1797544b73a7dbe234
+
+### Implementation check for step 3 git-cliff-provisioning (exchange 1) (round 1)
+
+Result:
+
+No. Step 3 has NOT been fully implemented.
+
+The cache layout, strict persisted records, guard -> record -> hash -> probe reuse order, retention on UnconfirmedEndError, DEAD-only recovery and root ignore rule match the step. The LockSeams and CachePin interface adjustments preserve the intended boundaries. R1 blocks completeness: acquisition can succeed after the fixed wait deadline.
+
+Architecture: no dependency-direction violation; cache owns its consumed ports, and `cache_lock` uses injected Windows primitives. All added Python files are below 550 lines. Work is linear in hashed bytes, polls or recovered files; the deadline gap is the performance-contract defect.
+
+Static unit-test review covers all four new test files and their support module. The coverage gate measures tools, excluding tests and initializers. Every top-level test-support symbol is referenced, including default factories and module-level builders. The reported 100% line coverage does not exercise oversleep or elapsed time inside a transition. No reviewer tests or coverage measurement were run. Existing behavior is unchanged because the added modules are not wired until Step 5.
+
+Validation plan effects:
+
+Only Step 3 rows of docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.validation.md changed: exact No status, R1 missing-work bullets, bounded-wait assessment, static coverage evidence and correction of the construction-versus-decoding description. No other step, opening document status or umbrella row was changed.
+
+The evidence launcher reports the patch attributable. Its attribute-reviewer-patch operation returns a patch but does not stage it; the reviewer left this metadata patch unstaged for writer reconciliation rather than substituting a direct index mutation. Markdown lint and git diff --check pass.
+
+### Pre-repair mandatory checks and coverage for step 3 git-cliff-provisioning (exchange 1) (round 1)
+
+Request-time and independently captured baseline index tree: 3efddd6aed408e84d4672d1797544b73a7dbe234. The requestor reports ghog day --full=speed --whole-suite green on that tree: 7636 tests, coverage 100, outliers 0, exclusions 0. These are writer-reported results. This review ran no ghog command and measured no coverage; it assessed source, tests and the exact bound scope statically.
+
+### Resolved validation set and sources for step 3 git-cliff-provisioning (exchange 1) (round 1)
+
+ghog day --full=speed --whole-suite (source: project). The bound scope file is .reviews/a.review-scope.code.v0.14.0.git-cliff-provisioning.json, scope whole, fingerprint 686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6, proof speed. No plan or request additions were declared.
+
+### Resolver drift and direction for step 3 git-cliff-provisioning (exchange 1) (round 1)
+
+No drift. Test-Path sampled the exact root .review-validation during assessment and returned false. The resolver's built-in ghog day --full=speed default completed with the bound --whole-suite selector equals the request command and its project source.
+
+### Repository state around validation for step 3 git-cliff-provisioning (exchange 1) (round 1)
+
+Before and after index trees both equal 3efddd6aed408e84d4672d1797544b73a7dbe234. The evidence boundary reports only the exact validation-plan path changed, attributable to this review and confined to Step 3. The raw validation comparator returns acceptable:false because that tracked metadata changed; the reviewer-mode contract explicitly permits those rows. No implementation or test changed, no untracked validation side effect appeared, and the umbrella digest is unchanged: 20d33b54a61c645055c81982c205f05156767827d0233567b218b7504fe0661c.
+
+### Repair inventory for step 3 git-cliff-provisioning (exchange 1) (round 1)
+
+Repairs made:
+
+- docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.validation.md: polishing-only review metadata; Step 3 assessment and missing-work list. Attributable, left unstaged for writer reconciliation. No substantive implementation or test repair.
+
+Paths staged:
+
+- .gitignore
+- docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.validation.md
+- `tests/unit/tools/release_workflow/git_cliff_support.py`
+- `tests/unit/tools/release_workflow/test_git_cliff_cache/__init__.py`
+- `tests/unit/tools/release_workflow/test_git_cliff_cache/test_git_cliff_cache_pbt.py`
+- `tests/unit/tools/release_workflow/test_git_cliff_cache/test_git_cliff_cache_tdd.py`
+- `tests/unit/tools/release_workflow/test_git_cliff_cache_lock/__init__.py`
+- `tests/unit/tools/release_workflow/test_git_cliff_cache_lock/test_git_cliff_cache_lock_recovery_tdd.py`
+- `tests/unit/tools/release_workflow/test_git_cliff_cache_lock/test_git_cliff_cache_lock_tdd.py`
+- `tools/release_workflow/git_cliff/__init__.py`
+- `tools/release_workflow/git_cliff/cache.py`
+- `tools/release_workflow/git_cliff/cache_lock.py`
+
+### Commit plan assessment for step 3 git-cliff-provisioning (exchange 1) (round 1)
+
+Independent commit-plan-check.bat --format json returned exit 0, state valid, ready true, diagnostics []. Ordered groups: (1) feat(release): add the git-cliff cache and its lock, with the 11 implementation/ignore/test paths; (2) docs(git-cliff-provisioning): record step 3 validation, with the validation plan. All 12 staged paths occur exactly once. Grouping, ordering and subjects remain appropriate; a.commit was not changed. Its prose claims Step 3 is implemented, so reconcile that claim with R1 and the revised validation rows before the next request.
+
+### Findings and boundaries for step 3 git-cliff-provisioning (exchange 1) (round 1)
+
+Unresolved findings:
+
+- R1 [P2] Enforce the wait deadline before acquiring a newly freed lock. In `tools/release_workflow/git_cliff/cache_lock.py`:283, acquire calls `_poll` before inspecting remaining time; `_poll` at lines 253-262 publishes and returns None without checking the deadline. Example traced from the code: with W=360, the last sleep starts at 359.75, resumes at 360.5 after scheduling delay, and the holder has released in between. `_poll` publishes this caller's record and acquire returns success at 360.5 instead of LockWaitError. A mutex entry or DEAD-actor probe that crosses W has the same effect. This defeats the caller's own finite wait and can start provisioning after its budget expired. Carry the original deadline into the transition, reject expiry after waiting and before publication/recovery under the mutex, and retain last-holder diagnostics. Add fake-clock regressions for oversleep plus release and for a transition/probe crossing W; assert no ownership publication or DEAD-record replacement after expiry. Existing tests use an exact FakeClock.sleep and UncontendedMutex, so the reported green suite does not cover this scenario. This is a static code trace, not a claimed executed reproduction.
+
+Boundary-crossing work: None.
+
+### Writer instructions for step 3 git-cliff-provisioning (exchange 1) (round 1)
+
+Fix R1 within `cache_lock.py` and its unit tests. Preserve successful acquisition before W, one waiting callback, the unchanged deadline and DEAD-only recovery. Reconcile the attributable unstaged Step 3 validation metadata, update the implementation check and a.commit prose to the resulting state, run the writer-owned required validation set, and publish another exact staged review request with its new index tree. No Human guidance block authorized reviewer code repairs.
+
+### Decision rationale for step 3 git-cliff-provisioning (exchange 1) (round 1)
+
+Readiness floor:
+
+1. Exact identity: PASS, code/code v0.14.0 git-cliff-provisioning, Step 3 round 1 occurrence 1; request tree matches the baseline.
+2. Complete implementation: FAIL, R1 allows acquisition after W.
+3. Validation and coverage: FAIL, writer reports a green speed/coverage walk, but static review identifies missing deadline regressions. No reviewer test failure is claimed.
+4. Staged scope and attribution: implementation scope PASS; the only reviewer patch is attributable Step 3 metadata and remains unstaged for writer reconciliation.
+5. Unresolved findings: FAIL, R1 remains open.
+6. a.commit: mechanical PASS, state valid and ready true, no diagnostics; grouping and subjects fit. Reconcile its completed-step prose after the fix.
+
+Disposition: changes-requested. No substantive repair was made. This answer is advisory and does not authorize a commit.
+
+### Final reviewer decision for step 3 git-cliff-provisioning (exchange 1) (round 1)
+
+Decision: changes-requested. The writer must address the concrete instructions and publish another review round. This advisory answer does not authorize a commit.
+
+<!-- review-entry-id: answer-step-3-round-1 -->
+
+## Round 2 by requestor - Step 3
+
+- Recorded: 2026-11-18T21:40:37+01:00
+- Exchange: code/code/v0.14.0/git-cliff-provisioning
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 3
+- Outcome: request
+
+### Review identity for step 3 git-cliff-provisioning (round 2)
+
+Umbrella draft: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+Implementation plan: docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.md
+Implementation step: 3
+Review round: 2
+
+### Code review evidence for step 3 git-cliff-provisioning (round 2)
+
+request_index_tree: 78c002416187a2ba1488ea1915eb4099d7b5ed3a
+resolved_validation_set:
+
+- `ghog day --full=speed --whole-suite` (sources: project)
+
+test_scope:
+{"fingerprint": "686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6", "group": null, "proof": "speed", "requirement": "docs/v0.14.0/feature-request.v0.14.0.git-cliff-provisioning.md", "scope": "whole"}
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: feat(release): add the git-cliff cache and its lock
+group 1 path: .gitignore
+group 1 path: tools/release_workflow/git_cliff/__init__.py
+group 1 path: tools/release_workflow/git_cliff/cache.py
+group 1 path: tools/release_workflow/git_cliff/cache_lock.py
+group 1 path: tests/unit/tools/release_workflow/git_cliff_support.py
+group 1 path: tests/unit/tools/release_workflow/test_git_cliff_cache/__init__.py
+group 1 path: tests/unit/tools/release_workflow/test_git_cliff_cache/test_git_cliff_cache_tdd.py
+group 1 path: tests/unit/tools/release_workflow/test_git_cliff_cache/test_git_cliff_cache_pbt.py
+group 1 path: tests/unit/tools/release_workflow/test_git_cliff_cache_lock/__init__.py
+group 1 path: tests/unit/tools/release_workflow/test_git_cliff_cache_lock/test_git_cliff_cache_lock_tdd.py
+group 1 path: tests/unit/tools/release_workflow/test_git_cliff_cache_lock/test_git_cliff_cache_lock_recovery_tdd.py
+group 2: docs(git-cliff-provisioning): record step 3 validation
+group 2 path: docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.validation.md
+staged path: .gitignore
+staged path: docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.validation.md
+staged path: tests/unit/tools/release_workflow/git_cliff_support.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_cache/__init__.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_cache/test_git_cliff_cache_pbt.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_cache/test_git_cliff_cache_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_cache_lock/__init__.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_cache_lock/test_git_cliff_cache_lock_recovery_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_cache_lock/test_git_cliff_cache_lock_tdd.py
+staged path: tools/release_workflow/git_cliff/__init__.py
+staged path: tools/release_workflow/git_cliff/cache.py
+staged path: tools/release_workflow/git_cliff/cache_lock.py
+```
+
+### Validation scope for step 3 git-cliff-provisioning (round 2)
+
+Validation scope: the whole suite.
+
+### Requestor assessment for step 3 git-cliff-provisioning (round 2)
+
+Writer assessment for Step 3 of the git-cliff-provisioning plan, round 2: the
+step is fully implemented after the round 1 repair, and the reconciled
+implementation check records `Yes. Step 3 has been fully implemented.` in the
+staged validation plan, whose document status stays
+`No, it is not implemented.` while Steps 4 to 8 are not started.
+
+Evidence, all on the staged tree:
+
+- R1 repair, red first: with the round 1 `cache_lock.py` restored from the
+  index, `ghog single` on `test_git_cliff_cache_lock_tdd.py` (with the new
+  support and cases) exit 2: the late wake-up and the liveness queries
+  crossing W both failed with `DID NOT RAISE LockWaitError`. With the repaired
+  module (restored and hash-verified) the four Step 3 test files pass.
+- Review validation, `ghog day --full=speed --whole-suite` (the built-in
+  default; no `.review-validation`): exit 0 with
+  `cov=100 outliers=0 excluded=0 proof=speed` (7639 tests: round 1's 7636
+  plus the three new lock cases), on index tree
+  `78c002416187a2ba1488ea1915eb4099d7b5ed3a`. No budget was changed and no
+  exclusion is accepted (`ghog exclude --list`: `exclusions=0`). Check, lint
+  and types passed in that walk.
+- `rg -n 'getmtime|st_mtime|age' tools/release_workflow/git_cliff/cache_lock.py`:
+  no match; the two other `rg` checks are unchanged (`.gitignore` line 124,
+  no process start in the support).
+- Line counts: `cache_lock.py` 377, `git_cliff_support.py` 327, lock test
+  255; every Python file stays below 550.
+- Markdown check (whole repository, the transcript included) and cSpell on
+  the validation plan: clean. `commit-plan-check`: ready, 12 paths, two
+  groups, subjects unchanged.
+
+Architecture, performance and integrity are unchanged from round 1: the
+repair adds one clock read per poll inside the existing transition and one
+local variable in `acquire`; no new dependency, no new state on disk.
+
+Please check in particular: that no path publishes or replaces a record once
+the deadline has passed, counting the mutex entry, the record read and the
+liveness queries; that a lock freed at exactly W is still taken; that the
+deadline is never reset and the waiting callback stays single; the
+`LockWaitError` fields when no live holder was ever seen; and the reconciled
+validation plan rows, including the kept architecture correction.
+
+### Implementation report for step 3 git-cliff-provisioning (round 2)
+
+Step 3, "Cache layout, entry record, reuse check and the cache lock", is the
+third of eight steps of the git-cliff-provisioning plan. It adds the cache of
+the executing checkout, the lock-free reuse check and the provisioning lock of
+one version and platform; nothing calls them before Step 5.
+
+Cache, `tools/release_workflow/git_cliff/cache.py` (design "Cache layout and
+the local integrity record" and "Reuse check and the use guard"; design
+decisions Q03, Q07 and Q12):
+
+- `CachePin` (protocol: `version`, `triple`) and `Guard` (protocol: `path`,
+  `handle`, `sha256_and_size()`, `close()`, `retain()`), met by
+  `manifest.AdmittedPin` and `windows_guard.UseGuard`.
+- `CacheLayout(tooling_root, namespace="production")` (frozen): `root` is
+  `<tooling_root>/.tools/git-cliff`, or its `evidence` folder; any other
+  namespace raises `ValueError`. `version_dir`, `entry_dir`, `executable`,
+  `record`, `lock_path` and `attempt_dir(pin, kind, owner, token)`. A version
+  directory name must match `[0-9]+\.[0-9]+\.[0-9]+` and a triple
+  `[a-z0-9_]+(-[a-z0-9_]+)+`, otherwise `ValueError` ("not a cache place"),
+  so no production pin resolves into `evidence/`. Attempt names are
+  `.staging-<pid>-<created>-<token>` and `.retired-...` with a positive PID
+  and creation time and a lowercase hexadecimal token; `parse_attempt(name)`
+  (static) returns `Attempt(kind, owner, token)` for a canonical name and
+  `None` otherwise (leading zeros, suffixes, other kinds).
+- `EntryRecord` (frozen, keyword-only, schema 1): `version`, `triple`,
+  `asset`, `asset_sha256`, `executable_sha256`, `executable_size`,
+  `provisioned`. `__post_init__` refuses another schema, an empty name, a
+  digest that is not 64 lowercase hexadecimal characters, a size below 1 and
+  a `provisioned` time without an offset. `encode()` writes one JSON line in
+  a fixed key order; `decode()` uses `lock_records.decode_object` with the
+  `entry` label and requires exactly the eight keys.
+- `OwnerFile(owner, children=())` (frozen, schema 1): `with_child`, `encode`,
+  `decode` with the `owner file` label and exactly four keys. The shared
+  helpers `identity_fields`, `decode_children` (a list of objects holding
+  exactly a positive `pid` and `created`) and `local_time` (ISO time with an
+  offset) also serve the lock record.
+- `check_entry(layout, pin, *, open_guard, probe) -> EntryCheck`, where
+  `EntryCheck` is `ValidEntry(guard, record) | UnusableEntry(absent, reason)`:
+  1. `open_guard(executable)`; `FileNotFoundError` returns the absent result,
+     any other error propagates.
+  2. `entry.json` read; missing, undecodable or naming another version or
+     triple returns an invalid result, before any hash.
+  3. `guard.sha256_and_size()`; a size or digest other than the record's
+     returns an invalid result, before the probe.
+  4. `probe(guard) -> ChildOutcome`; timed out, a status other than 0 or a
+     first line other than `git-cliff <pin>` returns an invalid result.
+  Every invalid result closes the guard. An `UnconfirmedEndError` from the
+  probe calls `guard.retain()` and propagates; any other exception closes the
+  guard and propagates. A valid result keeps the guard open for the caller.
+
+Lock, `tools/release_workflow/git_cliff/cache_lock.py` (design "Provisioning
+lock, contention and recovery"; design decisions Q03 and Q04):
+
+- `LockRecord(owner, started, caller, children=())` (frozen, schema 1, six
+  keys, non-empty caller, `started` with an offset).
+- `LockSeams` (frozen, keyword-only): `clock` and `sleep` required; `probe`
+  (`process_state`), `current` (`current_identity`), `mutex`
+  (`transition_mutex`) and `now` (local time with offset) default to the
+  item 1 primitives.
+- `CacheLock(layout, pin, *, caller, seams)`; the first transition creates
+  the version directory with its parents and names the mutex
+  `Global\llm-shared-git-cliff-<dev>-<ino>-<namespace>-<version>-<triple>`
+  from `stat` of `layout.root`.
+- `acquire(wait_seconds, on_wait)`: deadline fixed once. Each poll enters the
+  mutex and reads the record. A live holder is returned. Absent, or present
+  with owner and every child `DEAD` (owner probed first, children only then):
+  if the clock is past the deadline nothing is done (round 1 repair below);
+  otherwise this caller's record is published (flushed temporary from
+  `tempfile.mkstemp` beside it, then `Path.rename`, which Windows never lets
+  replace) or replaces the dead one with `Path.replace` in the same
+  transition. The first holder gets `on_wait(holder, W)` once; then
+  `sleep(min(0.25, remaining))` until the deadline, where
+  `LockWaitError(path, last_live_holder, W)` is raised (message: path, PID,
+  start time, caller kind, W and `LOCK_WAIT_REMEDY`, the design's lock-wait
+  remedy). The temporary is always unlinked. An unverifiable record
+  raises `LockRecordError` at once; acquiring a held lock is refused.
+- `record_child(identity)`, `release()` and `retain_record()`: each change
+  rereads the record under the mutex and requires it to equal the held one;
+  `release` unlinks it. After `retain_record()`, `release` returns without
+  touching anything and `record_child` and `recover_attempts` raise
+  `LockRecordError`.
+- `recover_attempts()`: refused unless held; one `os.scandir` of the version
+  directory; for each directory (not following links) whose name parses as an
+  attempt: probe the name owner; read `owner.json` (missing: no children;
+  another read error or an invalid file: keep); require the same owner and
+  every child `DEAD`; then `shutil.rmtree`, a refusal keeping the directory.
+  Returns the removed names.
+
+Ignore rule: the root `.gitignore` ends with a comment and
+`/.tools/git-cliff/` (design "Ignore rule", requirement Q05, plan Q01).
+
+Tests (no process, no native call, no real wait):
+
+- `git_cliff_support.py`: `FakeClock` (monotonic, `now`, `sleep`, scheduled
+  actions), `ProcessStates` (undeclared is `UNKNOWN`, queries recorded),
+  `UncontendedMutex` (can declare entries abandoned), `LockWorld` (lock built
+  on those seams, `hold`, `attempt`, `declare`, `on_wait` recording),
+  `synthetic_pin()` from a generated archive with its real size and SHA-256,
+  `entry_record`, `install_entry`, `FakeGuard` and `FakeGuardOpener` over
+  scenario files, `FakeProbe`, and `deny_writes`.
+- `test_git_cliff_cache_tdd.py`: fixed paths, evidence namespace, refused
+  names and namespace, attempt names both ways, the `.gitignore` line, entry
+  record round trip and thirteen invalid records, owner file round trip and
+  refusals, and every reuse outcome in order, including the valid reuse under
+  `deny_writes` and the retained guard on an unconfirmed probe end.
+- `test_git_cliff_cache_pbt.py`: attempt names and entry records round-trip.
+- `test_git_cliff_cache_lock_tdd.py`: publication and key order, mutex names
+  in both namespaces, a live holder until W (4 sleeps of 0.25 s, 5 polls, one
+  callback, exact message), release mid-wait, a holder change, child
+  recording, release and a replaced record, retention, refused double
+  acquisition and retention, the caller kind, the default seams and eleven
+  unverifiable records.
+- `test_git_cliff_cache_lock_recovery_tdd.py`: dead owner and children
+  recovered in one transition; a live or `UNKNOWN` child, an `UNKNOWN` owner
+  and an abandoned mutex keep the record; eight attempt verdicts for both
+  kinds; non-attempt entries and an unreadable owner file kept; recovery
+  refused without the lock; a refused removal kept.
+
+Code review round 1 repair (R1, wait deadline at publication):
+
+- `CacheLock._poll(deadline) -> tuple[LockRecord | None, bool]`: inside the
+  mutex it reads the record and probes the actors as before; a live holder
+  returns `(holder, False)`. Otherwise it reads `seams.clock()` and, when the
+  time is past the deadline, returns `(None, False)` without publishing its
+  record and without replacing a dead one. Only then does it publish and
+  return `(None, True)`. Entering the mutex, reading the record and every
+  liveness query thus count against W.
+- `acquire` keeps `last`, the last live holder seen: the first one gets the
+  single `on_wait` callback; after a poll that did not acquire, the remaining
+  time is computed and `LockWaitError(path, last, W)` is raised once it is not
+  positive. The deadline is still fixed once. A poll at exactly W may still
+  publish (`clock() > deadline` refuses only a later time).
+- `LockWaitError(path, holder | None, wait)`: names the last live holder's
+  PID, start time and caller kind; with no live holder ever seen (proving a
+  dead holder itself ran past W), the message says `not acquired before its
+  deadline` and `owner` and `started` are `None`. The remedy text is
+  unchanged.
+- Test support: `FakeClock.oversleep` adds a fixed late wake-up to every
+  sleep; `LockWorld.query_seconds` makes each liveness query take fake time.
+- New lock cases: a lock freed at exactly W is taken by the last poll (4
+  sleeps, record stamped one second later); a waiter oversleeping 0.1 s per
+  sleep wakes at 1.05 s after the holder released at 1.0 s and fails naming
+  that holder, with no record and no temporary left; two liveness queries of
+  0.6 s proving a dead holder and child cross W at the first poll, so the
+  dead record stays byte-identical, no callback, no sleep, no holder named.
+  The last two failed (`DID NOT RAISE LockWaitError`) on the round 1 module.
+- Validation plan: Step 3 back to Yes with the repair and its evidence; the
+  reviewer's correction that only `EntryRecord` validates its values when
+  built is kept, and the records bullet no longer says otherwise.
+
+Documentation: the validation plan entry and the `git_cliff/__init__.py`
+docstring described in the change summary.
+
+Writer notes: `.reviews/a.git-cliff-provisioning.step3.journal.md` and
+`.reviews/a.git-cliff-provisioning.step3.handoff.md`.
+
+### Change summary for step 3 git-cliff-provisioning (round 2)
+
+Staged paths (12), grouped in the root `a.commit` (two groups, checker
+`ready: true`):
+
+1. `feat(release): add the git-cliff cache and its lock`:
+   `.gitignore`,
+   `tools/release_workflow/git_cliff/__init__.py`,
+   `tools/release_workflow/git_cliff/cache.py`,
+   `tools/release_workflow/git_cliff/cache_lock.py`,
+   `tests/unit/tools/release_workflow/git_cliff_support.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_cache/__init__.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_cache/test_git_cliff_cache_tdd.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_cache/test_git_cliff_cache_pbt.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_cache_lock/__init__.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_cache_lock/test_git_cliff_cache_lock_tdd.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_cache_lock/test_git_cliff_cache_lock_recovery_tdd.py`.
+   The ignore rule travels with the first code that writes under the cache
+   path (design "Ignore rule", plan decision Q01).
+2. `docs(git-cliff-provisioning): record step 3 validation`:
+   `docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.validation.md`.
+
+Membership, order and subjects are unchanged since round 1; the bodies now
+mention the deadline repair (group 1) and the round 1 repair record
+(group 2). Changed since round 1: `cache_lock.py`, `git_cliff_support.py`,
+`test_git_cliff_cache_lock_tdd.py` and the validation plan.
+
+Steps 1 and 2 of this plan are committed and pushed (`644f0041` is the base
+of this review). The review transcript
+`docs/v0.14.0/review.code.v0.14.0.git-cliff-provisioning.md`, holding rounds
+1 and 2, stays unstaged for the residual commit.
+
+### Writer response for step 3 git-cliff-provisioning (round 2)
+
+Writer response:
+
+Writer response to round 1:
+
+- R1 (P2), accepted and repaired: the deadline is now enforced at
+  publication. `_poll` receives the fixed deadline and reads the clock inside
+  the mutex after entering it, reading the record and probing the actors;
+  past the deadline it publishes nothing and replaces no dead record, and
+  `acquire` raises `LockWaitError` with the last live holder seen. The
+  original deadline and the single waiting callback are kept, and a lock
+  freed at exactly W is still taken. The requested regressions exist: a late
+  wake-up (fake clock oversleep) finding the lock freed after W, and liveness
+  queries that advance fake time past W while a dead record is proven; both
+  failed on the round 1 module and assert no new record, no replacement, one
+  or no callback and the unchanged deadline.
+- On the suggested extra expiry check before starting another poll: not
+  added. After a sleep the next poll only reads the record under the mutex,
+  and the check inside the mutex already refuses publication and recovery
+  past W; a poll after W that still finds a live holder refreshes the holder
+  named by the error. No other path publishes.
+- Validation plan: the attributable round 1 edit is reconciled. The step is
+  back to `Yes` with the repair and its evidence, the missing-work list is
+  removed, the performance and coverage verdicts reflect the repair, and the
+  reviewer's architecture correction (only `EntryRecord` validates its values
+  when built; `OwnerFile` and `LockRecord` rely on typed inputs and strict
+  decoding) is kept, with the implementation record's records bullet aligned.
+- `a.commit`: membership, order and subjects unchanged; the two bodies now
+  describe the deadline repair.
+
+No disagreement.
+
+### Reviewer focus for step 3 git-cliff-provisioning (round 2)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-3-round-2 -->
+
+## Round 2 by reviewer - Step 3
+
+- Recorded: 2026-11-18T21:45:50+01:00
+- Exchange: code/code/v0.14.0/git-cliff-provisioning
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 3
+- Outcome: answer
+
+### Assessed index identity for step 3 git-cliff-provisioning (exchange 1) (round 2)
+
+Baseline index tree: 78c002416187a2ba1488ea1915eb4099d7b5ed3a
+
+Assessed index tree: 78c002416187a2ba1488ea1915eb4099d7b5ed3a
+
+### Implementation check for step 3 git-cliff-provisioning (exchange 1) (round 2)
+
+Result:
+
+Yes. Step 3 has been fully implemented.
+
+R1 is resolved. The staged tree 78c002416187a2ba1488ea1915eb4099d7b5ed3a checks the original deadline inside the mutex after reading the record and probing all required identities. A late wake-up cannot authorize acquisition; slow DEAD probes cannot authorize replacement after W. The last live holder is retained for diagnostics, no-live-holder expiry has optional owner/start fields, and on_wait remains single. Acquisition at exactly W and before W remains covered.
+
+Reviewed the exact Step 3 plan, staged changes, the round-to-round code and test diff, validation rows and a.commit. Cache layout, strict persisted records, ordered guard/record/hash/probe reuse, guard retention, ownership and DEAD-only recovery remain consistent with the plan. No architecture, complexity, line-budget or feature-integrity issue found. No implementation repair was made.
+
+Static unit-test assessment: the three new cases exercise exactly-W release, oversleep with release and slow liveness queries with a dead child. They assert record preservation or absence and callback/diagnostic behavior. Existing tests cover holder changes, pre-W success, ownership and conservative recovery. Mutex entry precedes the same deadline check; there is no separate delayed-mutex regression. Coverage scope is tools, with tests and initializers omitted; no unit-test gap identified and no unreferenced top-level support symbol found. No reviewer test or coverage run.
+
+Validation plan effects:
+
+Only the exact Step 3 validation rows were amended: recorded independent round 2 agreement, R1 closure and the writer-reported 7639-test result on the assessed tree. The exact Yes sentence remains; no missing-work list remains. Other steps, document-level status and umbrella are unchanged. This is polishing-only review metadata, not a substantive repair. Attribution succeeded. The launcher returns an attributable patch without staging it, so this metadata remains unstaged for requestor reconciliation; no direct index mutation was substituted.
+
+### Pre-repair mandatory checks and coverage for step 3 git-cliff-provisioning (exchange 1) (round 2)
+
+Before assessment, captured the index, ordered validation state for all 12 staged paths, validation-plan baseline blob and umbrella digest; wrote the retained manifest. The index matched the request exactly: 78c002416187a2ba1488ea1915eb4099d7b5ed3a. No literal Human guidance block authorizes implementation repair.
+
+### Resolved validation set and sources for step 3 git-cliff-provisioning (exchange 1) (round 2)
+
+Request and current resolver contract agree: ghog day --full=speed --whole-suite, source project, with no additive plan/request commands. Sampled .review-validation at assessment time: absent. The built-in speed default is completed with the bound whole-suite selector. Scope fingerprint: 686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6; proof speed. Writer reports exit 0, 7639 tests, cov=100, outliers=0, excluded=0 on the exact request tree, plus red-first regression evidence. These are writer results, not reviewer executions.
+
+### Resolver drift and direction for step 3 git-cliff-provisioning (exchange 1) (round 2)
+
+None. Static comparison of the current loader, default-completion and resolver contract with the request found identical commands and sources. No validation walk was repeated.
+
+### Repository state around validation for step 3 git-cliff-provisioning (exchange 1) (round 2)
+
+Before/after index trees match 78c002416187a2ba1488ea1915eb4099d7b5ed3a. The validation comparator reports acceptable=false solely for the permitted Step 3 validation-plan metadata amendment; no implementation, test, ignored or untracked validation side effect occurred. The umbrella remains unchanged at 20d33b54a61c645055c81982c205f05156767827d0233567b218b7504fe0661c. Attribution is true. The pre-existing unstaged transcript remains core-owned.
+
+### Repair inventory for step 3 git-cliff-provisioning (exchange 1) (round 2)
+
+Repairs made: None.
+
+Paths staged: None.
+
+### Commit plan assessment for step 3 git-cliff-provisioning (exchange 1) (round 2)
+
+Independent commit-plan-check.bat --format json returned exit 0, state valid, ready true, no diagnostics. Every staged path appears exactly once in two dependency-ordered groups: (1) feat(release): add the git-cliff cache and its lock, 11 paths; (2) docs(git-cliff-provisioning): record step 3 validation, one path. Reviewed a.commit: membership, order, scopes, conventional subjects and updated bodies fit the delivered Step 3 work. No change made to a.commit. The attributable metadata update remains within the existing documentation group.
+
+### Findings and boundaries for step 3 git-cliff-provisioning (exchange 1) (round 2)
+
+Unresolved findings: None.
+
+Boundary-crossing work: None.
+
+### Writer instructions for step 3 git-cliff-provisioning (exchange 1) (round 2)
+
+Reconcile and stage the attributable Step 3 validation metadata through the requestor workflow. Present the registered human convergence choice; this recommendation does not authorize a commit. The requestor owns final staging, transcript handling and any authorized commit.
+
+### Decision rationale for step 3 git-cliff-provisioning (exchange 1) (round 2)
+
+Recommend commit-ready. R1 is closed and no new blocking finding remains. No substantive repair was made in this round.
+
+Readiness floor:
+
+1. Identity: pass; exact plan, Step 3, round 2, occurrence 1, umbrella, host identities and request index agree.
+2. Completeness: pass; Step 3 and R1 rework match the plan.
+3. Validation and coverage: pass; exact-tree writer speed evidence and static coverage assessment show no gap; no reviewer execution was needed.
+4. Attribution and staged scope: pass; assessed implementation stays unchanged; only attributable, permitted Step 3 review metadata remains unstaged and is explicitly disclosed.
+5. Findings: pass; R1 resolved, none unresolved or crossing the step boundary.
+6. Commit plan: pass; independently valid, ready, accurately grouped.
+
+The recommendation is advisory. Commit authorization belongs to the human convergence gate.
+
+### Final reviewer decision for step 3 git-cliff-provisioning (exchange 1) (round 2)
+
+Decision: commit-ready (advisory). The evidence floor is complete, but this recommendation does not authorize a commit; authority remains at the durable human gate.
+
+<!-- review-entry-id: answer-step-3-round-2 -->
+
+## Round 2 by human - Step 3 - human-confirmation
+
+- Recorded: 2026-11-18T22:03:32+01:00
+- Exchange: code/code/v0.14.0/git-cliff-provisioning
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 3
+- Outcome: human-confirmation
+
+Human choice: Commit
+Outcome: continue-owning-workflow
+
+<!-- review-entry-id: human-confirmation-round-2 -->
