@@ -2,6 +2,11 @@
 
 Step 1 of v0.14.0 version-sources: the engine's status 3 passes through the
 final process boundary like 0, 1 and 2; 4 and 23 still become 1.
+
+Step 4 of v0.14.0 git-cliff-provisioning: the internal `git-cliff-worker`
+entry kind passes the same readiness gate, loads the download worker instead
+of the command dispatcher and returns its status (0, 75 or 65) unchanged; the
+release kinds still turn 65 and 75 into 1.
 """
 
 from __future__ import annotations
@@ -173,9 +178,9 @@ def test_engine_failure(outcome: int | BaseException, expected: str, monkeypatch
     assert expected in diagnostic
 
 
-@pytest.mark.parametrize(("status", "public"), [(0, 0), (1, 1), (2, 2), (3, 3), (4, 1), (23, 1)])
+@pytest.mark.parametrize(("status", "public"), [(0, 0), (1, 1), (2, 2), (3, 3), (4, 1), (23, 1), (65, 1), (75, 1)])
 def test_engine_status_boundary(status: int, public: int, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
-    """Public statuses pass through; any other value is diagnosed as 1."""
+    """Public statuses pass through; any other value, the worker's 65 and 75 included, is diagnosed as 1."""
     def passed(_root: Path) -> bootstrap.Identity:
         return RuntimeIdentity(_root, "venvs/prepared")
 
@@ -190,6 +195,50 @@ def test_engine_status_boundary(status: int, public: int, monkeypatch: pytest.Mo
     assert bootstrap.main(["--entry-kind", "explicit-native", "--"]) == public
     diagnostic = capsys.readouterr().err
     assert (f"native status {status}; returning 1" in diagnostic) == (status != public)
+
+
+@pytest.mark.parametrize("kind", ["explicit-batch", "alias-batch", "explicit-native", "git-cliff-worker"])
+def test_each_entry_kind_imports_its_own_module(kind: str, monkeypatch: pytest.MonkeyPatch) -> None:
+    """The release kinds load the command dispatcher; the worker kind loads the download worker."""
+    imported: list[str] = []
+
+    def passed(_root: Path) -> bootstrap.Identity:
+        return RuntimeIdentity(_root, "venvs/prepared")
+
+    def succeeded(*_arguments: object, **_facts: object) -> int:
+        return 0
+
+    def imported_module(name: str) -> SimpleNamespace:
+        imported.append(name)
+        return SimpleNamespace(main=succeeded)
+
+    monkeypatch.setattr(bootstrap, "check", passed)
+    monkeypatch.setattr(bootstrap.importlib, "import_module", imported_module)
+    assert bootstrap.main(["--entry-kind", kind, "--"]) == 0
+    worker = kind == "git-cliff-worker"
+    assert imported == ["tools.release_workflow.git_cliff.download_worker" if worker else "tools.release_workflow.cli"]
+
+
+@pytest.mark.parametrize("status", [0, 2, 65, 75])
+def test_the_worker_kind_returns_its_status_unchanged(status: int, monkeypatch: pytest.MonkeyPatch,
+                                                      capsys: pytest.CaptureFixture[str]) -> None:
+    """Step 4 of git-cliff-provisioning: after readiness, the worker gets only its arguments and its status is kept."""
+    received: list[list[str]] = []
+
+    def passed(_root: Path) -> bootstrap.Identity:
+        return RuntimeIdentity(_root, "venvs/prepared")
+
+    def worker_main(arguments: list[str]) -> int:
+        received.append(arguments)
+        return status
+
+    def imported_worker(_name: str) -> SimpleNamespace:
+        return SimpleNamespace(main=worker_main)
+
+    monkeypatch.setattr(bootstrap, "check", passed)
+    monkeypatch.setattr(bootstrap.importlib, "import_module", imported_worker)
+    assert bootstrap.main(["--entry-kind", "git-cliff-worker", "--", "--mode", "metadata"]) == status
+    assert (received, capsys.readouterr().err) == ([["--mode", "metadata"]], "")
 
 
 def test_early_diagnostic_encoding(monkeypatch: pytest.MonkeyPatch) -> None:

@@ -6,6 +6,13 @@ Only a successful gate exposes the selected checkout to the release engine.
 Early diagnostics use UTF-8/LF; interruption remains an execution failure.
 The engine's public statuses are 0, 1, 2 and 3 (an incomplete restoration,
 since Step 1 of v0.14.0 version-sources); any other value becomes 1.
+
+Step 4 of v0.14.0 git-cliff-provisioning adds the internal `git-cliff-worker`
+entry kind (plan decision Q15). It passes the same readiness gate, then
+`_ENGINES` loads the download worker instead of the command dispatcher, and
+`_UNNORMALIZED_KINDS` returns the worker's own status (0, 75 or 65)
+unchanged. Both tables are module level, so `main` keeps its single status
+set, which the release kinds still apply.
 """
 
 from __future__ import annotations
@@ -27,6 +34,13 @@ if TYPE_CHECKING:
 
 _X64_POINTER_BYTES = 8
 _ENTRY_PREFIX_LENGTH = 3
+_ENGINES = {
+    "explicit-batch": "tools.release_workflow.cli",
+    "alias-batch": "tools.release_workflow.cli",
+    "explicit-native": "tools.release_workflow.cli",
+    "git-cliff-worker": "tools.release_workflow.git_cliff.download_worker",
+}
+_UNNORMALIZED_KINDS = frozenset(("git-cliff-worker",))
 
 
 class InvocationError(ValueError):
@@ -95,6 +109,14 @@ class Engine(Protocol):
         ...
 
 
+class Worker(Protocol):
+    """An internal worker receives only its own arguments and returns its own status."""
+
+    def main(self, arguments: list[str]) -> int:
+        """Run one worker attempt."""
+        ...
+
+
 def helper(name: str) -> ModuleType:
     """Load one exact sibling without changing the import search path."""
     sys.dont_write_bytecode = True
@@ -144,8 +166,7 @@ def check(root: Path) -> Identity:
 def entry(arguments: list[str]) -> tuple[str, list[str]]:
     """Require exactly one trusted prefix, outside the original user arguments."""
     if (len(arguments) < _ENTRY_PREFIX_LENGTH or arguments[0] != "--entry-kind"
-            or arguments[1] not in {"explicit-batch", "alias-batch", "explicit-native"}
-            or arguments[2] != "--"):
+            or arguments[1] not in _ENGINES or arguments[2] != "--"):
         msg = "Expected --entry-kind explicit-batch|alias-batch|explicit-native -- <arguments>"
         raise InvocationError(msg)
     supplied = arguments[3:]
@@ -171,7 +192,7 @@ def main(argv: list[str] | None = None) -> int:
         root = Path(__file__).resolve().parents[2]
         identity = check(root)
         sys.path.insert(0, str(root))
-        engine = cast("Engine", importlib.import_module("tools.release_workflow.cli"))
+        module = importlib.import_module(_ENGINES[kind])
     except InvocationError as exc:
         sys.stderr.write(f"Release invocation failed: {exc}\n")
         return 2
@@ -183,15 +204,20 @@ def main(argv: list[str] | None = None) -> int:
         sys.stderr.write(f"Release execution failed: {detail}\n")
         return 1
     try:
-        status = engine.main(arguments, entry_kind=kind, original_cwd=original_cwd, tooling_root=root, runtime=identity)
+        if kind in _UNNORMALIZED_KINDS:
+            return cast("Worker", module).main(arguments)
+        status = cast("Engine", module).main(arguments, entry_kind=kind, original_cwd=original_cwd, tooling_root=root, runtime=identity)
     except (Exception, KeyboardInterrupt) as exc:  # noqa: BLE001 - final process boundary
         detail = "interrupted" if isinstance(exc, KeyboardInterrupt) else str(exc)
         sys.stderr.write(f"Release execution failed: {detail}\n")
         return 1
-    if status not in {0, 1, 2, 3}:
-        sys.stderr.write(f"Release operation exited with native status {status}; returning 1.\n")
-        return 1
-    return status
+    return status if status in {0, 1, 2, 3} else _normalized(status)
+
+
+def _normalized(status: int) -> int:
+    """Diagnose a release status outside the public set and return 1."""
+    sys.stderr.write(f"Release operation exited with native status {status}; returning 1.\n")
+    return 1
 
 
 if __name__ == "__main__":  # pragma: no cover - thin launcher boundary

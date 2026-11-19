@@ -15,9 +15,18 @@ Step 3 adds the cache:
 - `cache_lock`: the provisioning lock of one version and platform, with its
   bounded wait and owner-aware recovery.
 
-Later steps add the download, the provisioning service, the invocation object
-and the compatibility evidence harness. This initializer imports nothing, so
-loading the manifest loads no other module of the package.
+Step 4 adds the download:
+
+- `network`: the opener from the standard proxies and the system
+  certificates, archive streaming under an exact size cap, the release
+  metadata fetch and the retry classification;
+- `download_worker`: one archive attempt or metadata lookup in a worker
+  process started through the bootstrap's internal `git-cliff-worker` kind;
+- `archive`: the staged digest check and the single-member extraction.
+
+Later steps add the provisioning service, the invocation object and the
+compatibility evidence harness. This initializer imports nothing, so loading
+the manifest loads no other module of the package.
 """
 
 

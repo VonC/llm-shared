@@ -24,7 +24,11 @@ plan decision Q12). The builders are declared state, never real resources:
   `rmdir`, write-mode `open` and writing `os.open` raises `PermissionError`
   and is recorded.
 
-Step 4 extends this module with a fake opener with canned bodies.
+Step 4 adds `CannedWeb`: canned HTTPS answers by URL (a status and body, a
+redirect, a body whose read stalls like a silent socket, or an exception) and
+a real `urllib` opener that serves them without any socket, through the
+standard redirect and error handlers, recording every open with its timeout
+and every read size.
 """
 
 from __future__ import annotations
@@ -32,8 +36,12 @@ from __future__ import annotations
 import builtins
 import errno
 import hashlib
+import http.client
 import io
 import os
+import ssl
+import urllib.request
+import urllib.response
 import zipfile
 from contextlib import contextmanager
 from dataclasses import dataclass, field
@@ -322,6 +330,72 @@ def deny_writes(monkeypatch: pytest.MonkeyPatch) -> WriteDenial:
     monkeypatch.setattr(builtins, "open", guarded_open)
     monkeypatch.setattr(os, "open", guarded_os_open)
     return denial
+
+
+@dataclass(frozen=True)
+class Canned:
+    """One canned HTTPS answer: a status with its body, a redirect, or a body whose first read stalls."""
+
+    status: int = 200
+    body: bytes = b""
+    location: str | None = None
+    stall: bool = False
+
+
+class _Body(io.BytesIO):
+    """A response body that records the size of every read and can stall like a silent socket."""
+
+    def __init__(self, content: bytes, reads: list[int], *, stall: bool) -> None:
+        """Serve these bytes, recording each read into the shared list."""
+        super().__init__(content)
+        self._reads = reads
+        self._stall = stall
+
+    def read(self, size: int | None = -1, /) -> bytes:
+        """Return the next bytes, or raise the socket timeout of a stalled read."""
+        if self._stall:
+            msg = "The read operation timed out"
+            raise TimeoutError(msg)
+        chunk = super().read(size)
+        self._reads.append(len(chunk))
+        return chunk
+
+
+@dataclass
+class CannedWeb:
+    """Canned HTTPS answers by URL and a socket-free opener serving them, recording each open and read."""
+
+    answers: dict[str, Canned | Exception]
+    opened: list[tuple[str, float | None]] = field(default_factory=list[tuple[str, float | None]])
+    reads: list[int] = field(default_factory=list[int])
+
+    def opener(self) -> urllib.request.OpenerDirector:
+        """Build a real opener that serves the canned answers first, with no proxy and no certificate loading."""
+        quiet = urllib.request.HTTPSHandler(context=ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT))
+        return urllib.request.build_opener(urllib.request.ProxyHandler({}), quiet, _CannedHandler(self))
+
+
+class _CannedHandler(urllib.request.BaseHandler):
+    """Answer HTTPS requests from a `CannedWeb` before the real handler; redirects and errors go through the standard ones."""
+
+    handler_order = 100
+
+    def __init__(self, web: CannedWeb) -> None:
+        """Serve one canned web."""
+        self._web = web
+
+    def https_open(self, req: urllib.request.Request) -> urllib.response.addinfourl:
+        """Record the open and play its canned answer."""
+        self._web.opened.append((req.full_url, req.timeout))
+        answer = self._web.answers[req.full_url]
+        if isinstance(answer, Exception):
+            raise answer
+        headers = http.client.HTTPMessage()
+        if answer.location is not None:
+            headers["Location"] = answer.location
+        response = urllib.response.addinfourl(_Body(answer.body, self._web.reads, stall=answer.stall), headers, req.full_url, answer.status)
+        setattr(response, "msg", "canned")  # the error processor reads the reason phrase
+        return response
 
 
 # eof
