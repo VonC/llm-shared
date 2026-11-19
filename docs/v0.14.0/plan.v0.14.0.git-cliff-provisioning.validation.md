@@ -4,13 +4,13 @@ No, it is not implemented.
 
 This document tracks the eight steps of the
 [implementation plan](plan.v0.14.0.git-cliff-provisioning.md) for item 3 of
-the sibling release tooling umbrella. Steps 1 to 3 are implemented: the pin
+the sibling release tooling umbrella. Steps 1 to 4 are implemented: the pin
 manifest, the `[git-cliff]` domain, the download budget policy, the shared
 record decoder, the contained Windows children with the use guard and their
-first committed native check record, and the cache with its reuse check and
-its lock. The download worker, the provisioning service, the evidence
-harness, the reviewed admission of 2.14.2 and the `gcliff` launcher are still
-to be written.
+native check record, the cache with its reuse check and its lock, and the
+download worker with archive verification and extraction. The provisioning
+service, the evidence harness, the reviewed admission of 2.14.2 and the
+`gcliff` launcher are still to be written.
 
 > Initial-skeleton note: this first version was written by the `write-plans`
 > skill, before any implementation check. It fills `Goal for Step N` and
@@ -1062,9 +1062,26 @@ impaired.
 
 ### Analysis of Step 4 implementation state
 
-Not started. Step 4 is not implemented because no implementation work has
-begun: no code downloads a release asset, no worker entry kind exists in the
-bootstrap and nothing extracts a single member.
+Yes. Step 4 has been fully implemented.
+
+`git_cliff/network.py` builds its opener from the standard proxies and the
+default certificate context without touching verification. It streams an
+archive with its SHA-256, reading at most one byte past the expected size,
+reads release metadata within a limit, and classifies each failure as
+retryable or fatal without reading any response header.
+`git_cliff/download_worker.py` runs one archive attempt or metadata lookup,
+started through the new internal `git-cliff-worker` entry kind of
+`bootstrap.py`, and writes one JSON outcome line with its internal status 0,
+75 or 65, which the bootstrap returns unchanged. `git_cliff/archive.py`
+recomputes the staged digest and extracts only the manifest member as
+`git-cliff.exe`. Before adding the Step 4 check, the native check recorder
+was split, as the Step 2 validation planned: its check bodies and helper
+parents moved to the new `git_cliff_native_probes.py`. The recorder then
+recorded milestone `step-4`: the Step 2 set and a real worker, started
+through the bootstrap and recorded in a disposable staging directory, ended
+job-wide at its deadline while a local endpoint never answered; its validator
+accepts the record for the current sources. The command printed by
+`pw scope day` reports `exit=0`, and the three `rg` checks find no match.
 
 ### Goal for Step 4
 
@@ -1091,27 +1108,234 @@ metadata fetch and the retry classification), `git_cliff/download_worker.py`
 
 ### What was implemented for Step 4
 
-_(empty — no check has taken place yet.)_.
+The current diff delivers the Step 4 file list of the plan, a docstring
+update in `tools/release_workflow/git_cliff/__init__.py`, and one file outside
+that list, `tests/unit/tools/release_workflow/git_cliff_native_probes.py`,
+from the recorder split described below.
+
+- **Network client**: `build_opener(*, proxies=None, context=None)` passes
+  `urllib.request.getproxies()` (or the declared proxies) to a
+  `ProxyHandler` and `ssl.create_default_context()` (or the declared context)
+  to an `HTTPSHandler`, unchanged, so certificate and host name verification
+  stay on; the standard redirect handler follows GitHub's 302 to
+  `release-assets.githubusercontent.com`. `stream_archive(opener, url,
+  target, *, expected_size, socket_timeout) -> Received` opens the URL with
+  the socket timeout, creates the target only once the response arrived,
+  and reads chunks of at most `expected_size - size + 1` bytes. A chunk that
+  would pass the expected size raises `SizeOverflowError` before it is
+  written, so exactly one extra byte is read and none is written. A shorter
+  body is returned with its size and SHA-256 for the parent's check.
+  `fetch_metadata` reads the body whole within `METADATA_LIMIT` (4 MiB),
+  beyond which it is a size overflow. `classify` returns `retryable` for HTTP
+  429 and 500 to 599, for a URL error (connection refused, name resolution),
+  a reset, a timeout, an `http.client` protocol error and a TLS error, and
+  `fatal` for every other HTTP status, a certificate verification failure, a
+  size overflow and any local error. No response header is read.
+- **Download worker**: `WorkerRequest` (frozen, keyword-only: `mode`, `url`,
+  `target`, `expected_size`, `remaining`) refuses an unknown mode, a URL
+  other than HTTPS, a remaining time that is not finite and positive, an
+  archive request without target and size or a metadata request with them,
+  and a size below 1. `worker_arguments` and `parse_request` are inverse;
+  `parse_request` refuses a missing value, an unknown or repeated option, a
+  missing required option and a size that is not ASCII digits.
+  `worker_command(runtime, tooling_root, request)` returns the runtime and
+  `-I -X utf8 <tooling_root>\tools\release_workflow\bootstrap.py --entry-kind
+  git-cliff-worker -- <arguments>`. `main(arguments, *, opener=None)` uses a
+  socket timeout of `min(30, remaining)`, writes exactly one JSON line on
+  standard output (`ok` with `size` and `sha256`, `ok` with `metadata`, or the
+  failure class with its error) and nothing on standard error, and returns
+  `STATUSES` 0, 75 or 65. Invalid arguments are a fatal outcome; any failure
+  of the attempt is reported with its class, never raised.
+- **Bootstrap entry kind**: `bootstrap.py` gains the module-level `_ENGINES`
+  mapping (the three release kinds to `tools.release_workflow.cli`,
+  `git-cliff-worker` to `tools.release_workflow.git_cliff.download_worker`)
+  and `_UNNORMALIZED_KINDS`. `entry` accepts the kinds of `_ENGINES`, its
+  message still naming only the public ones. After the unchanged readiness
+  gate, `main` imports the module of the kind; for the worker it calls
+  `main(arguments)` and returns that status unchanged, for the release kinds
+  it keeps the single set literal `{0, 1, 2, 3}`, and `_normalized` diagnoses
+  any other status as 1. The `Worker` protocol types the worker call.
+- **Archive**: `verify_archive(path, pin)` hashes the staged file in 1 MiB
+  chunks and raises `VerificationError` naming the size or the SHA-256 that
+  differs. `extract_member(path, pin, target_dir)` opens the archive with
+  `zipfile`, reads only `getinfo(pin.member)`, writes it exclusively as
+  `git-cliff.exe`, and returns the SHA-256 and size of the written bytes. A
+  missing member, a file that is not a readable ZIP archive, a failed CRC or
+  a written size other than the directory entry raises `ExtractionError`. A
+  pin is any value with `size`, `sha256` and `member` (the `ArchivePin`
+  protocol), so the Step 6 candidates fit too.
+- **Test support**: `git_cliff_support.py` gains `Canned` and `CannedWeb`:
+  canned HTTPS answers by URL (status and body, redirect, stalled read or an
+  exception), served by a real `urllib` opener through its redirect and error
+  handlers with no socket and no certificate loading, recording each open
+  with its timeout and each read size.
+- **Recorder split and Step 4 check**: the recorder had reached 598 lines,
+  in the 550 to 650 band, and the Step 2 validation recorded that Step 4 would
+  split it before adding its check. Its kernel helpers, check bodies and
+  helper parents moved unchanged to `git_cliff_native_probes.py`; the
+  recorder keeps the catalog, the bounded runner, the record and the command
+  line, and dispatches `--helper` to the probes module. Every check's sources
+  now include the probes module. The new `worker-ends-at-deadline` check
+  records the real worker in the owner file of a staging directory under a
+  temporary tooling root. The worker is started through `worker_command` and
+  the bootstrap, with `NO_PROXY=127.0.0.1` so that a declared proxy is
+  bypassed. It connects to a loopback endpoint that accepts and never answers
+  (the TLS handshake stalls), and is ended job-wide at its 10 s deadline. It
+  wrote no outcome and is gone afterwards. Milestone `step-4` is the Step 2
+  set plus this check.
+- **Evidence validator**: `test_git_cliff_native_evidence_tdd.py` knows
+  milestone `step-4`, the worker check with its sources (bootstrap, worker,
+  network and cache modules beside the Step 2 ones), the probes module in
+  every check's sources, and refuses a `step-4` record without the worker
+  check. The committed record holds milestone `step-4`.
+- **Validation evidence**:
+  - Red first: `ghog single` on the four new test files and the bootstrap
+    test failed at collection on the missing `network`, `download_worker` and
+    `archive` modules (exit 4); the bootstrap test alone then failed its five
+    worker-kind cases (exit 2).
+  - Targeted: `ghog single` on the Step 4 test files, the bootstrap test,
+    `test_codepage_tdd.py` and the evidence test, exit 0.
+  - A by-hand run of the real worker through the bootstrap against a closed
+    loopback port printed one `retryable` line and exited 75.
+  - Native record: the recorder with `--milestone step-4`, after the last
+    source change, passed 9 of 9 checks (0.50 s to 1.23 s, the worker check
+    10.57 s for its 10 s deadline); the stalled runner timed out at its 3 s
+    bound in 3.08 s with its helper tree ended.
+  - Gate: `ghog day --whole-suite`, the command printed by `pw scope day` at
+    the default level, exit 0 at 2026-11-18T22:45:10+01:00. Two earlier walks
+    failed: the first at check (typing of the canned handler and of test
+    helpers, a function with seven returns in `bootstrap.main`, a grade C
+    argument parser now split), the second only on the record's digests,
+    stale after those edits, before the rerun above.
+  - `rg -n 'CERT_NONE|check_hostname|_create_unverified_context|Retry-After'
+    tools/release_workflow/git_cliff`, `rg -n 'extractall|extract\('
+    tools/release_workflow/git_cliff/archive.py` and `rg -n 'api.github.com'`
+    on `network.py` and `download_worker.py`: no match.
+- **Line counts**: `network.py` 120 (advisory 190), `download_worker.py` 155
+  (advisory 150), `archive.py` 100 (advisory 80), `bootstrap.py` 227 (+26,
+  advisory +25), `git_cliff/__init__.py` 33; `git_cliff_support.py` 401 (+74,
+  advisory +60); new tests 175, 143, 121 and 55 (advisory 220, 170, 160 and
+  50), initializers 3 each; `test_bootstrap_tdd.py` 261 (+49, advisory +35);
+  `git_cliff_native_checks.py` 278 (598 before the split),
+  `git_cliff_native_probes.py` 470 (new), `test_git_cliff_native_evidence_tdd.py`
+  231 (+19, advisory +5), `native_checks.v1.json` 253. Every Python file stays
+  below 550; the advisory overruns are variance.
 
 ### New types or classes introduced for Step 4
 
-_(empty — no check has taken place yet.)_.
+- `tools.release_workflow.git_cliff.network`: `SizeOverflowError`,
+  `Received`, `build_opener`, `stream_archive`, `fetch_metadata`, `classify`
+  and `METADATA_LIMIT`.
+- `tools.release_workflow.git_cliff.download_worker`: `WorkerRequest`,
+  `worker_arguments`, `parse_request`, `worker_command`, `main`, `STATUSES`,
+  `SOCKET_SECONDS` and `ENTRY_KIND`.
+- `tools.release_workflow.git_cliff.archive`: `VerificationError`,
+  `ExtractionError`, the `ArchivePin` protocol, `verify_archive` and
+  `extract_member`.
+- `tools.release_workflow.bootstrap`: the `Worker` protocol, `_ENGINES`,
+  `_UNNORMALIZED_KINDS` and `_normalized`.
+- Test support: `Canned` and `CannedWeb` in `git_cliff_support.py`; in
+  `git_cliff_native_probes.py`, the moved `Kernel32`, `KERNEL`, `Observed`,
+  check functions and helper parents, plus `check_worker_deadline` with its
+  silent loopback endpoint.
 
 ### Architecture check for Step 4
 
-_(empty — no check has taken place yet.)_.
+- **Network adapter**: `network.py` is the only module that touches
+  `urllib`, `ssl` and `http.client`; it imports nothing else of the engine.
+  The opener and the context are injectable, and tests reach it through a
+  real opener over canned answers, never a monkeypatched transport.
+- **Worker boundary**: `download_worker.py` depends only on `network`; its
+  outcome line and internal statuses are a private contract with the Step 5
+  parent, kept apart from the public engine statuses by the bootstrap's
+  module-level tables, as plan decision Q15 requires. The worker is reached
+  only through the bootstrap, after the same readiness gate as every engine
+  entry.
+- **Archive and cache**: `archive.py` depends on `cache.EXECUTABLE` for the
+  fixed name and on the `ArchivePin` protocol, not on the manifest, and holds
+  no network or process code.
+- **Developer-run evidence**: the recorder and the probes module stay under
+  `tests`, are never imported by a test, and depend on the engine, never the
+  reverse.
+
+No, there is nothing that needs to be addressed: no DDD-Hexagonal violation or
+smell is visible in this step.
 
 ### Performance check for Step 4
 
-_(empty — no check has taken place yet.)_.
+- **Streaming and hashing**: linear in the archive's bytes, in 64 KiB reads,
+  with at most one extra byte read; the staged digest and the extraction are
+  linear in the archive and member bytes, in 1 MiB chunks.
+- **Metadata**: one bounded read of at most 4 MiB plus one byte.
+- **Worker and bootstrap**: one argument pass and one JSON line per attempt;
+  the bootstrap's kind lookup is one dictionary access. No sort, no pairwise
+  comparison and no directory scan.
+- **Hot-path bound**: none of this runs during configuration loading or any
+  existing command; the bootstrap's release kinds only gain a dictionary
+  lookup.
+- **Plan-bound alignment**: within "O(n) total per phase" for streaming,
+  hashing and extraction.
+
+No, there is no performance issue that needs to be addressed.
 
 ### Unit test coverage check for Step 4
 
-_(empty — no check has taken place yet.)_.
+The coverage gate measures `tools` only (`[tool.coverage.run] source`), with
+`*/tests/*` and `*/__init__.py` omitted, at `fail_under = 100`. The Step 4
+round 1 request records the writer's `ghog day --full=speed --whole-suite`
+result: 7,719 passing tests, `cov=100 outliers=0 excluded=0 proof=speed`, for
+index tree `ad2afb2d6d3ae846f798808026913665bfcc5307`. The independent reviewer
+assessed the code and tests statically and found no coverage gap; no reviewer
+test run or coverage measurement was performed. This measured result applies
+to the configured production scope, not the helpers and recorder under `tests`.
+
+- **`tools/release_workflow/git_cliff/network.py`**: `test_git_cliff_network/`
+  reaches both opener branches, streaming with a full, longer, shorter and
+  stalled body, a redirect, six HTTP error statuses, the metadata read within
+  and beyond its limit, and every branch of `classify` (HTTP statuses, URL
+  errors with a connection or a certificate cause, connection, protocol,
+  timeout, TLS, size and local errors); covered.
+- **`tools/release_workflow/git_cliff/download_worker.py`**:
+  `test_git_cliff_download_worker/` reaches both argument round trips, the
+  command, thirteen invalid argument vectors, an archive and a metadata
+  attempt, four classified failures, the status table and the production
+  opener; covered.
+- **`tools/release_workflow/git_cliff/archive.py`**: `test_git_cliff_archive/`
+  reaches a matching, truncated and altered archive, the extraction, hostile
+  member names, a missing member, a file that is not a ZIP archive and both
+  directions of a wrong directory size (a CRC failure and a short member);
+  the property test checks generated member lists; covered.
+- **`tools/release_workflow/bootstrap.py`**: `test_bootstrap/` adds the module
+  of each kind, the worker status passed unchanged (0, 2, 65 and 75) and the
+  release kinds turning 65 and 75 into 1, beside its existing cases; covered.
+- **Files outside the gate**: `git_cliff_support.py`,
+  `git_cliff_native_checks.py` and `git_cliff_native_probes.py` live under
+  `tests` and are not measured. `Canned` and `CannedWeb` are used by the
+  network and worker tests. Every top-level function and class of the probes
+  module is reached from the recorder's catalog, its runner or helper
+  dispatch, or inside the module (`_Place` and `_SilentEndpoint` by
+  `check_worker_deadline`, `_FailingTerminate` by a helper parent), and the
+  record proves the run.
+
+No, there is no unit-tested class below 100% that needs completing for Step 4.
+No, none of the top-level symbols of the files outside the gate is
+unreferenced.
 
 ### Feature integrity for Step 4
 
-_(empty — no check has taken place yet.)_.
+- **Existing feature behavior**: the release entry kinds keep their gate,
+  their dispatcher and their public statuses; `test_codepage_tdd.py` still
+  finds one status set in `bootstrap.main`, equal to the launchers' and the
+  renderer's. No other existing module changes behavior.
+- **Reporting or diagnostics**: the worker's outcome line carries the error
+  type and text for the Step 5 diagnostics; nothing is printed on a release
+  command's output.
+- **Compatibility or rollout note**: nothing starts the worker before Step 5.
+  The recorder's command line is unchanged except for the new milestone, and
+  its record is refreshed for the moved sources.
+
+No, there is no existing feature or reporting capability that appears
+impaired.
 
 ---
 
