@@ -173,6 +173,22 @@ Do not apply Claude's return-control rule to Codex. Other hosts retain their
 supported execution and completion mechanisms; report unavailable automatic
 resumption instead of inventing a callback.
 
+### Claude requestors wait for answers in the background
+
+Every Claude requestor starts each `wait-answer` through a host background
+mechanism, on every requestor route: a first round, a replacement round, a
+resumed exchange and a marked resume. Use one recognized invocation form: the
+shared launcher by its full path with `wait-answer` and the exact context
+arguments, alone on one line, never chained, piped, wrapped in another shell
+or combined with another operation. Start it, keep its handle, end the turn,
+and resume from its completion notification to read the final JSON. A closed
+turn and a recognized background start let a later reviewer activation prove
+that the requestor holds no other waiting work.
+
+A foreground `wait-answer`, or one moved into the background after it started,
+stays in scope for reviewer activation and leaves the reviewer pending with
+that reason. Codex keeps its attached wait; this rule does not apply to it.
+
 ### Shared wait safeguards
 
 Start the watcher once and reuse its live handle instead of launching another
