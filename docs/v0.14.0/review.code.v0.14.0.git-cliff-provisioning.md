@@ -3246,3 +3246,509 @@ Human choice: Commit
 Outcome: continue-owning-workflow
 
 <!-- review-entry-id: human-confirmation-round-2 -->
+
+## Round 1 by requestor - Step 4
+
+- Recorded: 2026-11-19T00:36:45+01:00
+- Exchange: code/code/v0.14.0/git-cliff-provisioning
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: unrecorded
+- Implementation step: 4
+- Outcome: request
+
+### Review identity for step 4 git-cliff-provisioning (round 1)
+
+Umbrella draft: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+Implementation plan: docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.md
+Implementation step: 4
+Review round: 1
+
+### Code review evidence for step 4 git-cliff-provisioning (round 1)
+
+request_index_tree: ad2afb2d6d3ae846f798808026913665bfcc5307
+resolved_validation_set:
+
+- `ghog day --full=speed --whole-suite` (sources: project)
+
+test_scope:
+{"fingerprint": "686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6", "group": null, "proof": "speed", "requirement": "docs/v0.14.0/feature-request.v0.14.0.git-cliff-provisioning.md", "scope": "whole"}
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: feat(release): extract the git-cliff archive member
+group 1 path: tools/release_workflow/git_cliff/archive.py
+group 1 path: tests/unit/tools/release_workflow/test_git_cliff_archive/__init__.py
+group 1 path: tests/unit/tools/release_workflow/test_git_cliff_archive/test_git_cliff_archive_tdd.py
+group 1 path: tests/unit/tools/release_workflow/test_git_cliff_archive/test_git_cliff_archive_pbt.py
+group 2: feat(release): download git-cliff in a worker
+group 2 path: tools/release_workflow/git_cliff/network.py
+group 2 path: tools/release_workflow/git_cliff/download_worker.py
+group 2 path: tools/release_workflow/bootstrap.py
+group 2 path: tools/release_workflow/git_cliff/__init__.py
+group 2 path: tests/unit/tools/release_workflow/git_cliff_support.py
+group 2 path: tests/unit/tools/release_workflow/test_git_cliff_network/__init__.py
+group 2 path: tests/unit/tools/release_workflow/test_git_cliff_network/test_git_cliff_network_tdd.py
+group 2 path: tests/unit/tools/release_workflow/test_git_cliff_download_worker/__init__.py
+group 2 path: tests/unit/tools/release_workflow/test_git_cliff_download_worker/test_git_cliff_download_worker_tdd.py
+group 2 path: tests/unit/tools/release_workflow/test_bootstrap/test_bootstrap_tdd.py
+group 3: test(release): record step 4 native checks
+group 3 path: tests/unit/tools/release_workflow/git_cliff_native_checks.py
+group 3 path: tests/unit/tools/release_workflow/git_cliff_native_probes.py
+group 3 path: tests/unit/tools/release_workflow/test_git_cliff_native_evidence/test_git_cliff_native_evidence_tdd.py
+group 3 path: tests/unit/tools/release_workflow/test_git_cliff_native_evidence/native_checks.v1.json
+group 4: docs(git-cliff-provisioning): record step 4 validation
+group 4 path: docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.validation.md
+group 4 path: .vscode/settings.json
+staged path: .vscode/settings.json
+staged path: docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.validation.md
+staged path: tests/unit/tools/release_workflow/git_cliff_native_checks.py
+staged path: tests/unit/tools/release_workflow/git_cliff_native_probes.py
+staged path: tests/unit/tools/release_workflow/git_cliff_support.py
+staged path: tests/unit/tools/release_workflow/test_bootstrap/test_bootstrap_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_archive/__init__.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_archive/test_git_cliff_archive_pbt.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_archive/test_git_cliff_archive_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_download_worker/__init__.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_download_worker/test_git_cliff_download_worker_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_native_evidence/native_checks.v1.json
+staged path: tests/unit/tools/release_workflow/test_git_cliff_native_evidence/test_git_cliff_native_evidence_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_network/__init__.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_network/test_git_cliff_network_tdd.py
+staged path: tools/release_workflow/bootstrap.py
+staged path: tools/release_workflow/git_cliff/__init__.py
+staged path: tools/release_workflow/git_cliff/archive.py
+staged path: tools/release_workflow/git_cliff/download_worker.py
+staged path: tools/release_workflow/git_cliff/network.py
+```
+
+### Validation scope for step 4 git-cliff-provisioning (round 1)
+
+Validation scope: the whole suite.
+
+### Requestor assessment for step 4 git-cliff-provisioning (round 1)
+
+Writer assessment for Step 4 of the git-cliff-provisioning plan, round 1: the
+step is fully implemented, and its implementation check records
+`Yes. Step 4 has been fully implemented.` in the staged validation plan,
+whose document status stays `No, it is not implemented.` while Steps 5 to 8
+are not started.
+
+Evidence, all on the staged tree:
+
+- Tests first: `ghog single` on the four new test files and the bootstrap
+  test failed at collection on the missing `network`, `download_worker` and
+  `archive` modules (exit 4); the bootstrap test alone then failed its five
+  worker-kind cases (exit 2). With the modules and the entry kind they pass,
+  with `test_codepage_tdd.py` and the evidence test.
+- By hand, the real worker started through the bootstrap against a closed
+  loopback port printed one `retryable` JSON line and exited 75.
+- Native record: the recorder with `--milestone step-4`, after the last
+  source change, passed 9 of 9 checks (0.50 s to 1.23 s; the worker check
+  10.57 s for its 10 s deadline) and the stalled-runner timeout (3.08 s);
+  the validator accepts `native_checks.v1.json` for the current sources.
+- `ghog day --whole-suite`, the command printed by `pw scope day`, exit 0
+  after two walks that failed: the first at check (typing of the canned
+  handler and test helpers, `PLR0911` in `bootstrap.main`, radon C on the
+  worker's argument parser, `RUF043`), the second only on the record's
+  digests, stale after those edits, before the recorder rerun.
+- Review validation, `ghog day --full=speed --whole-suite` (the built-in
+  default; no `.review-validation`): exit 0 with
+  `cov=100 outliers=0 excluded=0 proof=speed` (7719 tests, slowest call
+  0.83 s, outside this step), on index tree
+  `ad2afb2d6d3ae846f798808026913665bfcc5307`. No budget was changed and no
+  exclusion is accepted (`ghog exclude --list`: `exclusions=0`). The archive
+  property test was trimmed to 10 examples after a default-level walk
+  measured 0.203 s of lifecycle CPU (inside the band, over the 0.100 s
+  ceiling); it is no longer reported.
+- `rg -n 'CERT_NONE|check_hostname|_create_unverified_context|Retry-After'
+  tools/release_workflow/git_cliff`, `rg -n 'extractall|extract\('
+  tools/release_workflow/git_cliff/archive.py` and `rg -n 'api.github.com'`
+  on `network.py` and `download_worker.py`: no match.
+- Line counts: `network.py` 120, `download_worker.py` 155, `archive.py` 100,
+  `bootstrap.py` 227, `git_cliff_support.py` 401, recorder 278 (598 before
+  the split), probes 470; every Python file stays below 550.
+- Markdown check and cSpell on the validation plan: clean, after the user
+  added `getinfo` to the project dictionary.
+
+Architecture: `network` is the only module touching `urllib`, `ssl` and
+`http.client`; `download_worker` depends only on it; the bootstrap reaches
+the worker only after its readiness gate, and its tables keep the worker's
+internal statuses apart from the public ones (plan decision Q15). `archive`
+depends on `cache.EXECUTABLE` and a pin protocol, not the manifest.
+Performance: streaming, hashing and extraction are linear in bytes with at
+most one extra byte read; metadata is one bounded read. Feature integrity:
+the release kinds keep their gate, dispatcher and statuses, and the
+cross-site status contract still holds.
+
+Please check in particular: that no path disables certificate verification
+or reads a response header; the size cap (at most one extra byte read,
+nothing beyond the size written) and that an HTTP error creates no file;
+the retry classification, including certificate, TLS, protocol and local
+errors; the worker's argument contract, its single outcome line and the
+`min(30, remaining)` socket timeout; the bootstrap's worker branch and the
+unchanged release statuses; the extraction's refusal of a wrong directory
+size in both directions; and the recorder split and the worker deadline
+check, including its proxy bypass and its observations.
+
+### Implementation report for step 4 git-cliff-provisioning (round 1)
+
+Step 4, "Network client, download worker, verification and extraction", is
+the fourth of eight steps of the git-cliff-provisioning plan. It adds the
+download path the Step 5 service will call; nothing calls it yet.
+
+Network client, `tools/release_workflow/git_cliff/network.py` (design
+"Network path", "Archive verification", "Time budgets and retries"; design
+decisions Q06 and Q08):
+
+- `build_opener(*, proxies=None, context=None)`: `ProxyHandler` with
+  `urllib.request.getproxies()` or the declared proxies, `HTTPSHandler` with
+  `ssl.create_default_context()` or the declared context; nothing changes
+  `verify_mode` or `check_hostname`. The default redirect handler follows
+  the 302 to `release-assets.githubusercontent.com`.
+- `stream_archive(opener, url, target, *, expected_size, socket_timeout) ->
+  Received(size, sha256)`: `opener.open(url, timeout=socket_timeout)`, then
+  the target opened `wb` (so an HTTP error creates no file); chunks of
+  `min(64 KiB, expected_size - size + 1)`; a chunk that would pass the size
+  raises `SizeOverflowError` before it is written. A short body is returned.
+- `fetch_metadata(opener, url, *, socket_timeout) -> bytes`: one read of at
+  most `METADATA_LIMIT + 1` (4 MiB plus one) bytes; more is a size overflow.
+- `classify(error)`: `HTTPError` 429 or 500 to 599 retryable, any other
+  `HTTPError` fatal; a `URLError` whose reason is
+  `ssl.SSLCertVerificationError`, or that error itself, fatal; any other
+  `URLError`, `ConnectionError`, `TimeoutError`, `ssl.SSLError` or
+  `http.client.HTTPException` retryable; everything else (size overflow,
+  local `OSError` such as a denied write, `ValueError`) fatal.
+
+Worker, `tools/release_workflow/git_cliff/download_worker.py` (design
+"Deadline enforcement"; plan decisions Q10 and Q15):
+
+- `WorkerRequest` (frozen, keyword-only): `mode` (`archive` or
+  `metadata`), `url` (HTTPS only), `target` and `expected_size` (both for an
+  archive, neither for metadata; size at least 1), `remaining` (finite,
+  positive).
+- `worker_arguments(request)` writes `--mode`, `--url`, optional `--target`
+  and `--expected-size`, then `--remaining` with `repr(float)`;
+  `parse_request(arguments)` reads exactly that form (pairs only, each known
+  option once, the three required present, the size ASCII digits).
+- `worker_command(runtime, tooling_root, request)` returns `(runtime, ["-I",
+  "-X", "utf8", "<tooling_root>/tools/release_workflow/bootstrap.py",
+  "--entry-kind", "git-cliff-worker", "--", *arguments])`.
+- `main(arguments, *, opener=None) -> int`: invalid arguments give
+  `{"outcome": "fatal", "error": "invalid worker arguments: ..."}` and 65;
+  otherwise the socket timeout is `min(30, remaining)`, the archive outcome
+  is `{"outcome": "ok", "size", "sha256"}` and the metadata outcome
+  `{"outcome": "ok", "metadata": <UTF-8 text>}`; any exception of the
+  attempt becomes `{"outcome": classify(error), "error": "<type>: <text>"}`.
+  Exactly one JSON line goes to stdout, nothing to stderr; the status is
+  `STATUSES[outcome]` (0, 75, 65).
+
+Bootstrap, `tools/release_workflow/bootstrap.py` (plan decision Q15):
+
+- Module-level `_ENGINES` (three release kinds to `tools.release_workflow.cli`,
+  `git-cliff-worker` to the worker module) and `_UNNORMALIZED_KINDS`
+  (`git-cliff-worker`). `entry` accepts the kinds of `_ENGINES`. `main`
+  imports `_ENGINES[kind]` after the unchanged readiness gate; for an
+  unnormalized kind it returns `Worker.main(arguments)` unchanged, otherwise
+  it calls the engine as before and returns `status if status in {0, 1, 2,
+  3} else _normalized(status)` (diagnostic, 1). `main` still holds exactly
+  one set literal, which `test_codepage_tdd.py` evaluates.
+
+Archive, `tools/release_workflow/git_cliff/archive.py` (design "Archive
+verification" and "Single-member extraction"; plan decision Q10):
+
+- `verify_archive(path, pin)`: size, then SHA-256, of the staged file, in
+  1 MiB reads; `VerificationError` names which differs.
+- `extract_member(path, pin, target_dir) -> (sha256, size)`:
+  `ZipFile(path).getinfo(pin.member)`, `archive.open(info)` copied to
+  `target_dir / "git-cliff.exe"` opened `xb`, hashed; `KeyError` (missing
+  member), `BadZipFile` (not an archive, CRC), `EOFError` and `zlib.error`
+  become `ExtractionError`, and so does a written size other than
+  `info.file_size`. No other member is read; no member name becomes a path.
+
+Native evidence:
+
+- The recorder `git_cliff_native_checks.py` (598 lines, in the 550 to 650
+  band) was split as the Step 2 validation recorded: the kernel helpers,
+  check bodies and helper parents moved unchanged to the new
+  `git_cliff_native_probes.py` (outside the plan's file list); the recorder
+  keeps the catalog, the runner, the record and the command line, and
+  dispatches `--helper` to the probes module. Every check's sources now list
+  the probes module.
+- New `worker-ends-at-deadline` (milestone `step-4`, bound 60 s): a
+  temporary tooling root with a `.staging-<recorder pid>-<created>-<token>`
+  directory and its `owner.json`; a loopback TCP listener that accepts one
+  connection and never answers; the real worker started with
+  `worker_command(sys.executable, repository root, archive request to
+  <https://127.0.0.1>:<port>/git-cliff.zip)` through `run_contained` with
+  `NO_PROXY=127.0.0.1` in its environment, a 10 s deadline and a recording
+  callback adding the child to `owner.json`. Observation: timed out, the
+  endpoint saw the connection, the owner file lists exactly the outcome's
+  identity, the worker is `DEAD` afterwards, and its stdout is empty.
+  Sources: the Step 2 set, the probes module, `bootstrap.py`,
+  `download_worker.py`, `network.py` and `cache.py`.
+- `native_checks.v1.json`: milestone `step-4`, commit `d55d6b94` (the base;
+  the uncommitted sources bind through their digests), 9 passed checks
+  (0.50 s to 1.23 s; the worker check 10.57 s) and the stalled-runner
+  timeout (3.08 s).
+- `test_git_cliff_native_evidence_tdd.py`: milestones `step-2` and `step-4`,
+  the worker check in the catalog with its sources, digests over the union of
+  sources, the committed record at `step-4`, and a `step-4` record without
+  the worker check refused.
+
+Tests:
+
+- `git_cliff_support.py`: `Canned` (status and body, redirect location,
+  stalled read) and `CannedWeb` (answers by URL or an exception, an opener of
+  `ProxyHandler({})`, a certificate-free `HTTPSHandler` and a `BaseHandler`
+  with `handler_order` 100 that answers first, recording `(url, timeout)` and
+  every read size).
+- `test_git_cliff_network_tdd.py`, `test_git_cliff_download_worker_tdd.py`,
+  `test_git_cliff_archive_tdd.py`, `test_git_cliff_archive_pbt.py` and the
+  bootstrap additions cover the plan's test list.
+
+Documentation: the validation plan entry, the `git_cliff/__init__.py`
+docstring and the cSpell word `getinfo` in `.vscode/settings.json`, which the
+user approved.
+
+Writer notes: `.reviews/a.git-cliff-provisioning.step4.journal.md` and
+`.reviews/a.git-cliff-provisioning.step4.handoff.md`.
+
+### Change summary for step 4 git-cliff-provisioning (round 1)
+
+Staged paths (20), grouped in the root `a.commit` (four groups, checker
+`ready: true`):
+
+1. `feat(release): extract the git-cliff archive member`:
+   `tools/release_workflow/git_cliff/archive.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_archive/__init__.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_archive/test_git_cliff_archive_tdd.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_archive/test_git_cliff_archive_pbt.py`.
+2. `feat(release): download git-cliff in a worker`:
+   `tools/release_workflow/git_cliff/network.py`,
+   `tools/release_workflow/git_cliff/download_worker.py`,
+   `tools/release_workflow/bootstrap.py`,
+   `tools/release_workflow/git_cliff/__init__.py`,
+   `tests/unit/tools/release_workflow/git_cliff_support.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_network/__init__.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_network/test_git_cliff_network_tdd.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_download_worker/__init__.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_download_worker/test_git_cliff_download_worker_tdd.py`,
+   `tests/unit/tools/release_workflow/test_bootstrap/test_bootstrap_tdd.py`.
+3. `test(release): record step 4 native checks`:
+   `tests/unit/tools/release_workflow/git_cliff_native_checks.py`,
+   `tests/unit/tools/release_workflow/git_cliff_native_probes.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_native_evidence/test_git_cliff_native_evidence_tdd.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_native_evidence/native_checks.v1.json`.
+4. `docs(git-cliff-provisioning): record step 4 validation`:
+   `docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.validation.md`,
+   `.vscode/settings.json` (cSpell word `getinfo`).
+
+Steps 1 to 3 of this plan are committed and pushed (`d55d6b94` is the base
+of this review). This round's transcript entry is appended to
+`docs/v0.14.0/review.code.v0.14.0.git-cliff-provisioning.md` and stays
+unstaged for the residual commit.
+
+### Writer response for step 4 git-cliff-provisioning (round 1)
+
+Writer response:
+
+Writer response:
+
+This is the first round of the Step 4 code review; there is no earlier
+reviewer feedback to answer.
+
+Choices worth checking, all recorded in the step notes and in the staged
+validation plan:
+
+- The native check recorder was split before the Step 4 check was added:
+  the Step 2 validation recorded that the 598-line recorder would meet the
+  split guidance in Step 4. The new `git_cliff_native_probes.py` is outside
+  the plan's file list; the code moved unchanged, apart from names made
+  public for the cross-module use and the new check.
+- The worker check uses an HTTPS URL to a loopback listener that accepts and
+  never answers, so the worker stalls in the TLS handshake under its 30 s
+  socket timeout while the 10 s deadline ends it. Its environment sets
+  `NO_PROXY=127.0.0.1` (other variables inherited), so a proxy declared by
+  the environment cannot answer in its place.
+- `classify`: a certificate verification failure is fatal (a retry from the
+  same source would not change it); other TLS errors and `http.client`
+  protocol errors are retryable, as connection-level failures; a local
+  `OSError` such as a denied write into staging is fatal, not a connection
+  error.
+- `fetch_metadata` caps the body at 4 MiB (`METADATA_LIMIT`), which the
+  design does not size; the GitHub release metadata of a tag is far smaller.
+- The worker accepts HTTPS URLs only, takes an injectable `opener` in
+  `main`, and reports every failure of its attempt as an outcome line rather
+  than raising, so the parent always reads one line or sees a non-internal
+  status (a bootstrap readiness or crash status).
+- `stream_archive` opens the target with `wb` only after the response
+  arrived, so an HTTP error creates no file and a second attempt overwrites
+  the first's partial file.
+- One test-environment adjustment: the in-memory scenario filesystem raises
+  `ValueError` on a seek before the start of a file, where a real file
+  raises `OSError`, which `zipfile` handles; the not-a-ZIP test content is
+  therefore longer than the 22-byte end record.
+
+### Reviewer focus for step 4 git-cliff-provisioning (round 1)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-4-round-1 -->
+
+## Round 1 by human - Step 4 - escalation
+
+- Recorded: 2026-11-19T11:30:04+01:00
+- Exchange: code/code/v0.14.0/git-cliff-provisioning
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 4
+- Outcome: escalation
+
+exchange was abandoned while waiting for reviewer
+
+<!-- review-entry-id: escalation-round-1 -->
+
+## Round 1 by human - Step 4 - human-reclaim
+
+- Recorded: 2026-11-19T19:03:48+01:00
+- Exchange: code/code/v0.14.0/git-cliff-provisioning
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 4
+- Outcome: human-reclaim
+
+Human decision to resume code review round 1 for step 4 in place.
+
+The recorded escalation was a stopped handoff rather than a failure. The
+requestor published round 1 for implementation step 4 and entered its bounded
+wait. No reviewer session was active while that wait ran, so the exchange
+reached its timeout with the answer still absent, and the protocol escalated it
+with the reason that the exchange was abandoned while waiting for the reviewer.
+
+No review work was lost and no artifact was damaged. At this decision the
+request is present at 22399 bytes, the answer is absent because no reviewer
+answer was ever published, and the staged index tree still matches the round 1
+`request_index_tree`. The round 1 request and its immutable evidence remain
+authoritative, and the artifact shape names the reviewer as the actor to
+resume.
+
+The human chose to reclaim the same request rather than archive it and publish
+a fresh round. The requestor waits again for the round 1 answer once the
+reviewer session is running.
+
+<!-- review-entry-id: human-reclaim-round-1 -->
+
+## Round 1 by reviewer - Step 4
+
+- Recorded: 2026-11-19T08:33:55+01:00
+- Exchange: code/code/v0.14.0/git-cliff-provisioning
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 4
+- Outcome: answer
+
+### Assessed index identity for step 4 git-cliff-provisioning (exchange 1) (round 1)
+
+Baseline index tree: ad2afb2d6d3ae846f798808026913665bfcc5307
+
+Assessed index tree: ad2afb2d6d3ae846f798808026913665bfcc5307
+
+### Implementation check for step 4 git-cliff-provisioning (exchange 1) (round 1)
+
+Result:
+
+Yes. Step 4 has been fully implemented.
+
+The staged archive, network and worker modules satisfy the Step 4 plan: verified archive size and SHA-256 before extraction, exact member selection to a fixed exclusive output, ZIP error and size checks, proxy-aware TLS-verified urllib access, bounded reads, required retry classification, strict worker arguments, one JSON result and worker statuses 0/75/65. Bootstrap dispatch preserves these worker statuses after readiness while keeping the release entry kinds' public status normalization.
+
+The tests exercise these contracts with in-memory HTTP routing and ZIP fixtures. The native evidence includes the real worker's deadline termination and owner identity, plus all eight existing checks. The recorder split preserves catalog dispatch and the bounded runner; the refreshed evidence binds both recorder modules. The Step 5 integration is correctly deferred. No missing implementation, architecture, performance or feature-integrity issue was found.
+
+Validation plan effects:
+
+Updated only the Step 4 coverage paragraph in `docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.validation.md` to record the writer's full-speed evidence and the independent static assessment. The exact Yes result is retained. No other step or umbrella row was edited.
+
+The patch is attributable to the recorded pre-edit blob `b0ac14f43c52167dc98bb17ba7744bdfca37800a`. It remains unstaged review metadata; the index is unchanged. There were no implementation or test repairs.
+
+### Pre-repair mandatory checks and coverage for step 4 git-cliff-provisioning (exchange 1) (round 1)
+
+Writer evidence for request index `ad2afb2d6d3ae846f798808026913665bfcc5307`: 7,719 passing tests, `cov=100 outliers=0 excluded=0 proof=speed`, from `ghog day --full=speed --whole-suite`. The native record reports nine passing checks, including worker deadline termination (10.571 s), and the stalled-recorder timeout demonstration (3.084 s).
+
+The reviewer assessed production coverage statically against the tests and found no gap. The configured gate measures production `tools` with its configured omissions; no measured coverage claim is made for test helpers or native recorder modules. No reviewer test, native check or coverage measurement was run.
+
+### Resolved validation set and sources for step 4 git-cliff-provisioning (exchange 1) (round 1)
+
+The request and current resolver agree on `ghog day --full=speed --whole-suite`, source `project`. Bound scope: whole; proof: speed; fingerprint `686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6`. The `.review-validation` marker was sampled and is absent; there are no extra request commands. The requestor owns execution of this set.
+
+### Resolver drift and direction for step 4 git-cliff-provisioning (exchange 1) (round 1)
+
+None. The command, source and whole-suite selector agree with the current resolver.
+
+### Repository state around validation for step 4 git-cliff-provisioning (exchange 1) (round 1)
+
+Request, baseline and assessed index trees are all `ad2afb2d6d3ae846f798808026913665bfcc5307`. The umbrella digest remains `20d33b54a61c645055c81982c205f05156767827d0233567b218b7504fe0661c`.
+
+The ordered validation-state comparison reports only the validation plan as changed (`acceptable: false` for that tracked path). This is the intentional Step 4 review-metadata edit, independently attributed to its recorded blob, not a validation command side effect; no validation command ran. No other tracked, untracked or ignored validation path changed. The pre-existing unstaged review transcript was left untouched. No writer work was staged or reverted.
+
+### Repair inventory for step 4 git-cliff-provisioning (exchange 1) (round 1)
+
+Repairs made: None.
+
+Paths staged: None.
+
+### Commit plan assessment for step 4 git-cliff-provisioning (exchange 1) (round 1)
+
+Independent `commit-plan-check.bat --format json`: exit 0, `state: valid`, `ready: true`, no diagnostics. All 20 received staged paths appear exactly once. Ordered groups:
+
+1. `feat(release): extract the git-cliff archive member` (4 paths).
+2. `feat(release): download git-cliff in a worker` (10 paths).
+3. `test(release): record step 4 native checks` (4 paths).
+4. `docs(git-cliff-provisioning): record step 4 validation` (2 paths).
+
+Grouping, dependency order and subjects accurately describe the received scope. The native probe split is justified by the recorder's size and retains its responsibility boundary; the disclosed spelling-setting change belongs with documentation. No `a.commit` amendment was necessary. The complete ordered groups and staged-path inventory are retained in the evidence manifest.
+
+### Findings and boundaries for step 4 git-cliff-provisioning (exchange 1) (round 1)
+
+Unresolved findings: None.
+
+Boundary-crossing work: None.
+
+### Writer instructions for step 4 git-cliff-provisioning (exchange 1) (round 1)
+
+No implementation rework is requested. Reconcile the attributable, unstaged Step 4 validation-note update through the owning workflow before committing. The commit decision remains with the human; this assessment neither authorizes nor performs a commit.
+
+### Decision rationale for step 4 git-cliff-provisioning (exchange 1) (round 1)
+
+All six readiness results pass: exact identity and index, complete Step 4 implementation, writer validation plus static coverage assessment, attributable staged scope, no unresolved current or carried findings, and mechanically valid and accurately grouped `a.commit`. No substantive repair was made. Recommend `commit-ready` as an advisory assessment.
+
+### Final reviewer decision for step 4 git-cliff-provisioning (exchange 1) (round 1)
+
+Decision: commit-ready (advisory). The evidence floor is complete, but this recommendation does not authorize a commit; authority remains at the durable human gate.
+
+<!-- review-entry-id: answer-step-4-round-1 -->
+
+## Round 1 by human - Step 4 - human-confirmation
+
+- Recorded: 2026-11-19T20:05:54+01:00
+- Exchange: code/code/v0.14.0/git-cliff-provisioning
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 4
+- Outcome: human-confirmation
+
+Human choice: Commit
+Outcome: continue-owning-workflow
+
+<!-- review-entry-id: human-confirmation-round-1 -->
