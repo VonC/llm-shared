@@ -16,7 +16,8 @@ resumed session is recorded yet.
 ## Sessions waiting to be resumed
 
 1. `{absolute checkout path}`: resume with `{agent id}` ({host product}),
-   paused at {timestamp} on `{branch}` at `{short SHA}`; {disk check result}.
+   paused at {timestamp} on `{branch}` at `{short SHA}`;
+   {disk check result, naming the receiving pane of a schema 3 receipt}.
    {Journal summary.}
 
 {Newest pause first. Write `None.` when no session is waiting.}
