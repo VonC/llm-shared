@@ -98,6 +98,8 @@ _SCENARIOS = (
     "tests/unit/tools/shared_lifecycle/test_gate_contract/test_gate_contract_tdd.py::test_invalid_declaration_never_falls_back",
     "tests/unit/tools/test_resume_paused_artifacts/",
     "tests/unit/tools/test_resume_paused_review/",
+    "tests/unit/tools/test_resume_paused_claims/",
+    "tests/unit/tools/test_resume_paused_validation/",
 )
 _active_scenario = False
 _COPY_FUNCTION_POSITION = 3

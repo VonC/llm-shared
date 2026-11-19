@@ -5,6 +5,10 @@ from the risk-band exchange store. Claims are calculated by the pure ownership
 service and exposed only after their complete coordination replacement is
 durable. Read-only discovery uses the same lock without creating files or
 waiting behind an in-progress publication.
+
+Fix (v0.14.0 resume-paused, Step 4): a claim forwards optional marked resume
+evidence to the ownership service, so the binding is persisted in the same
+coordination replacement as the generation it was issued with.
 """
 
 # ruff: noqa: EM101, EM102, TRY003
@@ -38,6 +42,7 @@ if TYPE_CHECKING:
     from typing import BinaryIO
 
     from tools.review_exchange_models import Actor
+    from tools.review_exchange_models_coordination import MarkedClaimEvidence
     from tools.review_exchange_ownership import (
         OwnershipCapability,
         OwnershipClaim,
@@ -132,7 +137,7 @@ class ReviewExchangeOwnershipStore:
                 finally:
                     self._unlock_stream(stream)
 
-    def claim(
+    def claim(  # noqa: PLR0913 - record, service, actor and the three claim options
         self,
         record: CoordinationRecord,
         service: OwnershipService,
@@ -140,8 +145,9 @@ class ReviewExchangeOwnershipStore:
         *,
         presented: OwnershipCapability | None = None,
         force: bool = False,
+        marked: MarkedClaimEvidence | None = None,
     ) -> OwnershipClaim:
-        """Calculate and persist one ordinary claim or forced pickup."""
+        """Calculate and persist one ordinary claim, forced pickup or marked claim."""
         with self._local_transition_lock:
             stored = self.read_coordination(required=True)
             if stored != record:
@@ -155,7 +161,7 @@ class ReviewExchangeOwnershipStore:
                         service.already_claimed_failure(stored),
                     )
                 raise ReviewExchangeError("stale coordination record for ownership claim")
-            claim = service.claim(record, actor, presented=presented, force=force)
+            claim = service.claim(record, actor, presented=presented, force=force, marked=marked)
             self.write_coordination(claim.record)
             return claim
 

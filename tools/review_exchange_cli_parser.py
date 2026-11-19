@@ -8,6 +8,10 @@ diagnostics retain the complete grammar, using the same argument declarations.
 Fix: ``amend-request`` is a protocol operation with the ``publish-request``
 arguments (content, summary and optional scope capture), so the per-command
 grammar keeps the pending-request correction command.
+
+Fix (v0.14.0 resume-paused, Step 4): ``claim`` accepts the raw
+``--resume-paused-marker`` of a marked resume and the Codex identity carried
+from its first validation, ``--carried-session`` and ``--carried-launch-id``.
 """
 
 # ruff: noqa: EM101, TRY003
@@ -148,6 +152,9 @@ def _add_resume_arguments(command: JsonArgumentParser, name: str) -> None:
         command.add_argument("--round", dest="round_number", type=positive_int, required=True)
         command.add_argument("--occurrence", type=positive_int, required=True)
         command.add_argument("--override", action="store_true")
+        command.add_argument("--resume-paused-marker")
+        command.add_argument("--carried-session")
+        command.add_argument("--carried-launch-id")
         add_ownership_arguments(command)
     elif name == "wait-any-request":
         command.add_argument("--poll-interval", type=positive_float, default=1.0)
