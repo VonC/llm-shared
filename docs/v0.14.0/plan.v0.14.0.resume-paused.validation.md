@@ -250,7 +250,9 @@ No existing feature or reporting capability appears impaired.
 
 ### Analysis of Step 3 implementation state
 
-Not started. Step 3 is not implemented because its planned code, contract changes and focused validation have not been delivered or checked.
+Yes. Step 3 has been fully implemented.
+
+The routing capture, JSON/table contract, replacement guard, receipt template and status/list readers are implemented. After code review round 1, pause's own check of the existing prompt's receipt also accepts schemas 1 to 3, as status-session does, instead of relying only on the schema 1/2 resume state table. The contract tests pin that reader with used, new-since-use and malformed schema 3 receipts. The resume command's own schema 3 reader and writer remain assigned to Step 4.
 
 ### Goal for Step 3
 
@@ -264,27 +266,57 @@ Make newly paused sessions carry complete machine-readable assignments while ret
 
 ### What was implemented for Step 3
 
-_(empty — no check has taken place yet.)_.
+The step changes seven canonical session documents and adds one contract-test leaf; no production Python module changed.
+
+- **Routing capture**: `instructions/pause-session.md` takes pane identities from the `tuios list-agents --all-sessions --json` records: the full 36-character `window_id`, the `session` string, the `name` label and a non-empty `agent_session_id`. It keeps historical authorship and the saved role apart from intended assignments, and has a session holding a live exchange role save `requestor` or `reviewer`. Missing evidence becomes `{"unknown": "<reason>"}`, a single-agent pause writes `{"not_applicable": "<reason>"}` for both pair slots and the exchange, and the instruction forbids a routing question, contacting the counterpart and launching `resume_paused`.
+- **JSON block and table**: the new subsections specify the exact fence line, every key of schema `resume-paused-routing` version 1, the pairing, checkout-spelling and single-line rules, and the thirteen table rows, with one code span per accepted cell form and the `none` and `not applicable` substitutions. A worked paired code-review example is embedded verbatim from the Step 2 renderer. A second block or table, or a cell that differs from the rendering, is documented as a bulk routing error that leaves manual resume intact.
+- **Replacement guard**: a decision table asks before replacing an unused or new prompt when its agent id differs or is missing, or when its known pausing pane (full UUID and session string, never the label) or saved role differs, even with the same agent id. The old prompt's pane and role come from its routing block, or for a legacy prompt from a `Session role` line holding exactly one role token. Unknown values alone are no difference, legacy prompts keep the agent-id comparison, declining preserves the old checkpoint, and the guard applies at pause time only.
+- **Pause receipt reader** (code review round 1): before the guard, pause accepts the existing prompt's receipt in schema 1, 2 or 3, as status-session does, and classifies it by its `Prompt`, `SHA-256` and `Project root` lines, never by its schema; a receipt that misses a line of its schema, carries another one or names another schema is malformed and stops the pause without replacing the prompt.
+- **Publishing**: the `- Session role:` line holds the routing's `pause.session_role` token alone, and the read-back checks that the block parses as strict JSON and that each cell equals its rendering.
+- **Template**: `templates/pause-session.template.md` replaces the prose routing bullets and the six-column table with the JSON skeleton naming every schema key and the thirteen-row table skeleton; its `Session role` placeholder asks for one token.
+- **Receipt template**: `templates/resume-session.template.md` keeps every schema 2 line, writes `Schema` as 2 for a manual resume or 3 for a marked resume, and adds `Launch id`, `Receiving pane` and `Assignment binding` as marked-resume-only lines that a manual resume omits. Its meaning section states that schema 3 only adds non-secret bindings.
+- **Status and list readers**: `instructions/status-session.md` accepts receipt schemas 1, 2 and 3 with exactly their own lines and classifies each by `Prompt`, `SHA-256` and `Project root`; it also names an unprocessed prompt's saved routing state (resolved, unresolved, error, table only or none) without deriving routing from a table or checking live panes. `instructions/list-session.md` accepts the same schemas, adds the receiving pane of a schema 3 receipt to its disk check result, and reports an invalid receipt as `cannot check`. The two response templates carry these values.
+- **Contract tests**: `tests/unit/tools/test_resume_paused_pause_contract/test_resume_paused_pause_contract_tdd.py` checks the example against the renderer, every rendered cell of five routing variants (paired, single agent, unknowns, bare values, specification) against the documented row forms, the template skeleton's keys and rows, prompts filled from the template (resolved, unresolved and single-agent routing parse under Step 2, a header role contradicting the JSON is an error, prose-table and routing-free legacy prompts stay readable), receipts of schemas 1, 2 and 3 filled from the template, pause's reading of a schema 3 receipt (same bytes used, other bytes new since previous use, a missing or extra line or an unknown schema malformed), the launcher's heading, `Session role`, `Prompt`, `SHA-256` and `Project root` readers, the capture, guard and reader rules, and the six adapters of each session command as canonical redirects.
+- **Validation evidence**: the new leaf failed first as expected (50 failures before the documents changed), then `ghog single` on it with the Step 2 artifact and routing leaves and the interactive-menu pointer test passed 347 tests. Grep inspection of the seven documents found `resume_paused` only as a prohibition or the future invocation and no capability, token, real pane id or private path. `ghog day --whole-suite`, the command printed by `pw scope day`, exited 0 after a typing fix in two test helpers. For the round 1 repair, the four new pause receipt rules failed against the earlier instruction and pass after it; the requestor's speed walk validates the repaired tree before round 2.
+- **Deviation from the planned file list**: none; every planned file changed and no other tracked file did.
 
 ### New types or classes introduced for Step 3
 
-_(empty — no check has taken place yet.)_.
+- None. The step adds documentation contracts and test helpers only; it reuses the Step 2 types (`SavedRouting`, `RoutingTarget`, `SavedExchange`, `RoutingState`, `PromptState`) and functions (`parse_prompt`, `parse_receipt`, `parse_routing_json`, `render_routing_section`, `render_routing_table`, `classify_usage`).
 
 ### Architecture check for Step 3
 
-_(empty — no check has taken place yet.)_.
+- **Workflow policy in root instructions**: the routing, guard and reader rules live in the canonical `instructions` and `templates` files; the provider adapters stay one-line redirects, and a test pins them.
+- **Schema in Step 2 modules**: no schema rule is duplicated in code; the tests derive keys, rows and cells from the Step 2 renderer and parsers, so a schema change there fails the documentation contract rather than drifting silently.
+- **Test dependencies**: the leaf imports the Step 2 test leaves' launcher replay and routing builders and the production readers; it imports no senv code, no TUIOS client and no process API.
+
+No DDD-Hexagonal violation or adapter smell is visible. No, there is nothing that needs to be addressed.
 
 ### Performance check for Step 3
 
-_(empty — no check has taken place yet.)_.
+- **No new `O(n^2)` or `O(n log n)` path**: no production code changed. The test helpers scan each shipped file once per call, fold text linearly and match each rendered cell against its row's few documented forms.
+- **Read cost**: each shipped document is read once per test session through a cached reader of immutable files; parsing works on in-memory bytes, with no scratch files.
+- **Plan-bound alignment**: the documented capture adds one read-only TUIOS listing per pause, already required before this step.
+
+No, there is no performance issue that needs to be addressed.
 
 ### Unit test coverage check for Step 3
 
-_(empty — no check has taken place yet.)_.
+The coverage gate measures `tools` (`pyproject.toml`, `[tool.coverage.run]`). Step 3 changes no file under `tools`, so no class file's coverage moves; the Step 2 modules it exercises keep their own 100% leaves. The staged test module sits outside the gate as test code: every top-level helper, fixture builder and constant it defines is referenced by its tests, and the vulture step of `check.bat` passed.
+
+A green coverage percentage over `tools` cannot establish this Markdown behavior, so the contract leaf pins it directly. Reviewer round 1 found that pause's receipt check was not covered; the guard rules now pin pause's schema 1 to 3 reader, and executable cases check a marked receipt's used, new-since-use and malformed outcomes.
+
+No, there is no unit-tested class below 100% that needs completing for Step 3. No, none of the staged files' top-level symbols is unreferenced.
 
 ### Feature integrity for Step 3
 
-_(empty — no check has taken place yet.)_.
+- **Existing feature behavior**: manual pause, status, list and resume keep working: legacy prompts with a prose table or no routing still parse, schema 1 and 2 receipts still classify, and a manual resume still writes schema 2. The worktree's `resume-session.md` is unchanged until Step 4, so a schema 3 receipt stops it, which is the documented fail-closed mixed-install behavior.
+- **Installed launcher**: the prompt keeps its first-line heading and `- Session role:` line, and every receipt schema keeps the `Prompt`, `SHA-256` and `Project root` lines; the local replay of the launcher's readers proves both.
+- **Reporting or diagnostics**: status gains the saved routing state and list the receiving pane of a schema 3 receipt; existing outputs are unchanged otherwise.
+
+A valid schema 3 receipt no longer stops a later pause: its existing-prompt check accepts schemas 1 to 3 independently of Step 4's deferred resume command.
+
+No existing feature or reporting capability appears impaired.
 
 ## Step 4. Validate marked receivers and fence every protected mutation
 
