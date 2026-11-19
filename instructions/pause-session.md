@@ -77,18 +77,42 @@ copy the id from an earlier prompt.
 
 Before replacing an existing prompt, check its first line and receipt with the
 [resume state table](resume-session.md#locate-and-check-the-saved-prompt).
-If that prompt is unused or new since previous use, ask before replacing it
-when its agent id differs from yours or is missing, or when its recorded
-pausing pane or saved session role differs from the current pausing pane or
-session role, even with the same agent id. Name the existing checkpoint's
-agent, pausing pane and saved role, marking unavailable values as unknown:
-replacing it discards a checkpoint that was never resumed. Compare historical
-pausing identities, not intended future role assignments. For legacy prompts
-without pane or role fields, retain the agent-id comparison. A pane or role
-recorded as unknown, for the existing checkpoint or the current pause, is not
-by itself a difference; compare the remaining recorded fields. Ask it as a choice
-under [interactive_menu.md](../rules/interactive_menu.md). If the user
-declines, preserve the existing prompt and stop without writing a new one. This guard
+Accept a receipt of schema 1, 2 or 3 as
+[status-session](status-session.md#determine-whether-the-latest-prompt-is-unprocessed)
+does, and classify it by its `Prompt`, `SHA-256` and `Project root` lines,
+never by its schema. A valid receipt for the prompt's exact bytes makes the
+prompt used, and one for other bytes makes it new since previous use. Another
+schema, or a receipt that misses a line of its schema or carries another one,
+is malformed: report the diagnostic and stop without replacing the prompt.
+If that prompt is unused or new since previous use, compare it with this
+pause, after gathering this pause's pausing pane and saved role as
+[Record automatic resume routing](#record-automatic-resume-routing-in-the-handoff)
+describes:
+
+| Existing unused or new prompt compared with this pause | Before replacing it |
+| --- | --- |
+| Its agent id differs from yours or is missing | Ask |
+| Its pausing pane differs from this pause's pausing pane, even with the same agent id | Ask |
+| Its saved session role differs from this pause's saved role, even with the same agent id | Ask |
+| Same agent id, and every pane or role known on both sides is equal | Replace without asking |
+
+Read the existing prompt's pausing pane from its routing block's `pause.pane`
+and its saved role from that block's `pause.session_role`. Without a routing
+block that parses, its pane is unknown and its role is its `- Session role:`
+value when that value is exactly one of the five role tokens, otherwise
+unknown. Compare panes by full pane UUID and TUIOS session string, never by
+label. A pane or role recorded as unknown, or missing from a legacy prompt,
+for the existing checkpoint or the current pause, is not by itself a
+difference; compare the remaining recorded fields. A legacy prompt without
+pane or role fields therefore keeps the agent-id comparison. Compare
+historical pausing identities, not intended future role assignments or a
+recorded role switch.
+
+Name the existing checkpoint's agent, pausing pane and saved role, marking
+unavailable values as unknown: replacing it discards a checkpoint that was
+never resumed. Ask it as a choice under
+[interactive_menu.md](../rules/interactive_menu.md). If the user declines,
+preserve the existing prompt and stop without writing a new one. This guard
 applies at pause time only; it adds no confirmation to bulk resume. Keep one
 latest checkpoint per checkout.
 
@@ -201,34 +225,32 @@ evidence agrees, such as that pane's screen or agent log showing this pause
 request. Otherwise
 record it as unknown with that reason.
 
+Take identities from that JSON listing, never from its table view. A pane's
+full UUID is its record's `window_id`, 36 characters long; the table view
+prints only its first 8 characters. Its TUIOS session identity is the
+record's `session` string, the session name the selector uses, not a numeric
+id. Its label is the record's `name`, a supplementary label only, and its
+agent session id is the record's `agent_session_id` when that is not empty.
+
 Use the exact exchange's read-only role state and existing task notes to
 establish assignments. Exchange role state names agent host natures, not
 panes. For a same-host counterpart, record the independent evidence linking
 the role to that pane, such as its agent log or screen showing its latest
 `review-resume` role. A listing of two panes with
 the same host does not establish which one owns a role; record the identity
-evidence rather than selecting by listing order.
+evidence rather than selecting by listing order. A host name or a label alone
+cannot distinguish multiple panes running the same LLM.
 
-Record the resolved checkout root, snapshot time, pausing host, saved session
-role, and the observed TUIOS session and pane identities. For the intended
-resumed agent and, when applicable, each requestor/reviewer target, record its
-agent host, intended role, session identity, pane id and name, checkout, and
-the evidence identifying that pane. A host name alone cannot distinguish
-multiple panes running the same LLM. Names are descriptive labels; preserve
-the observed identifiers and their scope as well.
-
-Separate historical authorship and observed current roles from intended
-resume assignments. Preserve the user's latest explicit role-switch direction
-and its source; otherwise retain the verified current assignment. Do not infer
-requestor status from a pause author whose saved role was not requestor. For a
-paired review, record the exchange family, reviewed document or implementation
-plan, umbrella path or none, implementation step for code review, exchange
-occurrence, and both intended targets. These fields identify the exchange for
-`resume-inspect` and `claim`. For a single-agent pause, record that counterpart
-activation is not applicable.
-Record identity and evidence only, never review ownership capabilities.
-Saving an intended assignment does not itself change ownership or prove that
-a later takeover has succeeded.
+Separate historical authorship and the saved session role from intended
+resume assignments. The pause author and saved role describe this pause only:
+historical authorship never implies an intended requestor role. A session
+holding the requestor role of a live exchange saves the role `requestor`, and
+one holding its reviewer role saves `reviewer`. Preserve the user's latest
+explicit role-switch direction and its source as the assignment source;
+otherwise retain the verified current assignment. Record identity and evidence
+only, never review ownership capabilities, tokens or credentials. Saving an
+intended assignment does not itself change ownership or prove that a later
+takeover has succeeded.
 
 If TUIOS is unavailable, a pane cannot be identified, or an assignment is
 unresolved, write an explicit unknown and its reason. Do not ask a routing
@@ -238,9 +260,169 @@ missing, stale or conflicting routing and send no input to unresolved targets,
 without asking the person to choose a pane or supply routing arguments.
 Routing is evidence to validate against live checkout, host, session and pane
 identity before input, not permission to reuse an id blindly or choose the
-first matching pane. Old prompts without routing remain readable by the
-ordinary session workflow; bulk resume must report their routing limitation
+first matching pane. Old prompts without a routing block, including those
+with only an earlier prose routing table, remain readable by the ordinary
+session workflow; bulk resume skips them and reports their routing limitation
 without an interactive migration question.
+
+### Write the routing JSON block
+
+Write the routing as exactly one fenced block whose opening line is exactly
+`` ```json resume-paused-routing `` and which holds one JSON object of schema
+`resume-paused-routing`, version `1`. That block is the only routing source a
+bulk resume reads. Write each part with exactly the keys below.
+
+| JSON part | Value to record |
+| --- | --- |
+| `schema`, `version` | `"resume-paused-routing"` and the integer `1` |
+| `pause.checkout` | The resolved absolute checkout root, as the prompt's `Project root` |
+| `pause.snapshot` | The prompt's `Snapshot` timestamp |
+| `pause.author` | Your agent id, as on the prompt's first line |
+| `pause.session_role` | `implementation`, `requestor`, `reviewer`, `documentation` or `other` |
+| `pause.pane` | The pausing pane: `host` (your agent id), `session`, `pane_id` and `label` |
+| `observation` | `observed_at` (timestamp with numeric UTC offset), `assignment_source` (the recorded user role-switch direction with its date, or `verified current assignment`) and `evidence` (the read-only sources used) |
+| `targets.resumed` | The target that receives the resume: a single agent, or the requestor or reviewer of a pair |
+| `targets.requestor`, `targets.reviewer` | The intended requestor and reviewer of a paired review |
+| `exchange` | `family` (`code` or `specification`), `document` (checkout-relative POSIX path of the reviewed document or implementation plan), `implementation_step` (the plan step of a code review, otherwise `null`), `umbrella` (checkout-relative umbrella draft path, or `null`), `occurrence` (a positive integer) and `round` (the round at pause, or `null`) |
+
+A target object holds `role` (its intended role), `host` (`claude` or
+`codex`), `session`, `pane_id`, `label`, `checkout` (the pause checkout),
+`agent_session_id` (a string, or `null`) and `evidence` (what ties that pane
+to that role). The exchange identifies the exact review exchange for
+`resume-inspect` and `claim`; its `round` records the round at pause only; a
+resume selects the current round from live protocol state.
+
+- Unknown: replace the pausing pane, a target or the exchange with
+  `{"unknown": "<reason>"}` when its evidence is unavailable, stale or
+  contradictory. Keep the rest of the pause.
+- Single-agent pause: `targets.requestor`, `targets.reviewer` and `exchange`
+  are each `{"not_applicable": "<reason>"}`, all three or none. The resumed
+  target is never not applicable.
+- Paired pause: the requestor slot's role is `requestor` and the reviewer
+  slot's role is `reviewer`. When the resumed target is one of them, write the
+  identical object in both places.
+- Every target's `checkout` is the pause checkout, and one pane UUID never
+  appears in two different target objects.
+- Write each checkout as an absolute Windows path with an upper-case drive
+  letter, backslash separators and no trailing separator, with the same
+  spelling everywhere; JSON escapes each backslash as `\\`.
+- Strings are single lines without control characters. Write no other key,
+  no duplicate key and no comment.
+
+### Render the readable routing table
+
+After the block and one empty line, write the readable table rendered from
+that JSON. Its header line is exactly `| Routing item | Value |`, then
+`| --- | --- |`, then these thirteen rows in this order. Each code span below
+is one accepted cell, where `<...>` stands for the JSON value. Write `none`
+for an empty label and for a `null` agent session id, umbrella or round, and
+`not applicable` for a `null` implementation step. Escape a `|` inside a
+value as `\|`.
+
+| Row | Cell rendered from the JSON |
+| --- | --- |
+| Routing schema | `resume-paused-routing version 1` |
+| Pause checkout | `<pause.checkout>` |
+| Pause snapshot | `<pause.snapshot>` |
+| Pause author | `<pause.author>` |
+| Saved session role | `<pause.session_role>` |
+| Pausing pane | `<host> in TUIOS session <session>, pane <pane_id>, label <label>` or `unknown: <reason>` |
+| Observed at | `<observation.observed_at>` |
+| Assignment source | `<observation.assignment_source>` |
+| Observation evidence | `<observation.evidence>` |
+| Resumed agent | `<role> on <host> in TUIOS session <session>, pane <pane_id>, label <label>, checkout <checkout>, agent session <agent_session_id>; evidence: <evidence>` or `unknown: <reason>` |
+| Requestor | `<role> on <host> in TUIOS session <session>, pane <pane_id>, label <label>, checkout <checkout>, agent session <agent_session_id>; evidence: <evidence>`, `not applicable: <reason>` or `unknown: <reason>` |
+| Reviewer | `<role> on <host> in TUIOS session <session>, pane <pane_id>, label <label>, checkout <checkout>, agent session <agent_session_id>; evidence: <evidence>`, `not applicable: <reason>` or `unknown: <reason>` |
+| Review exchange | `<family> review of <document>, implementation step <implementation_step>, umbrella <umbrella>, occurrence <occurrence>, round at pause <round>`, `not applicable: <reason>` or `unknown: <reason>` |
+
+Write no other routing table. A second routing block or table, or a cell that
+differs from this rendering, makes a bulk resume refuse this routing as an
+error; ordinary `resume-session` still reads the prompt.
+
+For example, a code-review requestor pausing beside its reviewer writes this
+block and table, the exact rendering of its JSON:
+
+````markdown
+```json resume-paused-routing
+{
+  "schema": "resume-paused-routing",
+  "version": 1,
+  "pause": {
+    "checkout": "C:\\work\\example",
+    "snapshot": "2026-11-19T00:31:00+01:00",
+    "author": "claude",
+    "session_role": "requestor",
+    "pane": {
+      "host": "claude",
+      "session": "example",
+      "pane_id": "5f0e6c1a-2b3d-4e5f-8a9b-0c1d2e3f4a5b",
+      "label": "Claude impl"
+    }
+  },
+  "observation": {
+    "observed_at": "2026-11-19T00:30:12+01:00",
+    "assignment_source": "verified current assignment",
+    "evidence": "tuios list-agents --all-sessions --json; review-exchange role state"
+  },
+  "targets": {
+    "resumed": {
+      "role": "requestor",
+      "host": "claude",
+      "session": "example",
+      "pane_id": "5f0e6c1a-2b3d-4e5f-8a9b-0c1d2e3f4a5b",
+      "label": "Claude impl",
+      "checkout": "C:\\work\\example",
+      "agent_session_id": "9a8b7c6d-5e4f-4a3b-9c2d-1e0f9a8b7c6d",
+      "evidence": "own pane in list-agents; requestor of the exchange role state"
+    },
+    "requestor": {
+      "role": "requestor",
+      "host": "claude",
+      "session": "example",
+      "pane_id": "5f0e6c1a-2b3d-4e5f-8a9b-0c1d2e3f4a5b",
+      "label": "Claude impl",
+      "checkout": "C:\\work\\example",
+      "agent_session_id": "9a8b7c6d-5e4f-4a3b-9c2d-1e0f9a8b7c6d",
+      "evidence": "own pane in list-agents; requestor of the exchange role state"
+    },
+    "reviewer": {
+      "role": "reviewer",
+      "host": "codex",
+      "session": "example",
+      "pane_id": "c3d4e5f6-a7b8-4c9d-8e0f-1a2b3c4d5e6f",
+      "label": "Codex review",
+      "checkout": "C:\\work\\example",
+      "agent_session_id": null,
+      "evidence": "its screen shows its latest review-resume as reviewer"
+    }
+  },
+  "exchange": {
+    "family": "code",
+    "document": "docs/v1.2.0/plan.v1.2.0.example.md",
+    "implementation_step": "3",
+    "umbrella": null,
+    "occurrence": 1,
+    "round": 2
+  }
+}
+```
+
+| Routing item | Value |
+| --- | --- |
+| Routing schema | resume-paused-routing version 1 |
+| Pause checkout | C:\work\example |
+| Pause snapshot | 2026-11-19T00:31:00+01:00 |
+| Pause author | claude |
+| Saved session role | requestor |
+| Pausing pane | claude in TUIOS session example, pane 5f0e6c1a-2b3d-4e5f-8a9b-0c1d2e3f4a5b, label Claude impl |
+| Observed at | 2026-11-19T00:30:12+01:00 |
+| Assignment source | verified current assignment |
+| Observation evidence | tuios list-agents --all-sessions --json; review-exchange role state |
+| Resumed agent | requestor on claude in TUIOS session example, pane 5f0e6c1a-2b3d-4e5f-8a9b-0c1d2e3f4a5b, label Claude impl, checkout C:\work\example, agent session 9a8b7c6d-5e4f-4a3b-9c2d-1e0f9a8b7c6d; evidence: own pane in list-agents; requestor of the exchange role state |
+| Requestor | requestor on claude in TUIOS session example, pane 5f0e6c1a-2b3d-4e5f-8a9b-0c1d2e3f4a5b, label Claude impl, checkout C:\work\example, agent session 9a8b7c6d-5e4f-4a3b-9c2d-1e0f9a8b7c6d; evidence: own pane in list-agents; requestor of the exchange role state |
+| Reviewer | reviewer on codex in TUIOS session example, pane c3d4e5f6-a7b8-4c9d-8e0f-1a2b3c4d5e6f, label Codex review, checkout C:\work\example, agent session none; evidence: its screen shows its latest review-resume as reviewer |
+| Review exchange | code review of docs/v1.2.0/plan.v1.2.0.example.md, implementation step 3, umbrella none, occurrence 1, round at pause 2 |
+````
 
 ## Publish the latest prompt and finish pausing
 
@@ -248,7 +430,11 @@ without an interactive migration question.
    as a prompt addressed to the next session. Start its first line with your
    agent id. Use actual paths and observed facts; replace every placeholder
    with a value, `none`, `not applicable`, or an explicit unknown. Include a
-   fresh timestamp with numeric UTC offset.
+   fresh timestamp with numeric UTC offset. Write the `- Session role:` line
+   as the routing's `pause.session_role` token alone, and the routing block
+   and its table as
+   [Record automatic resume routing](#record-automatic-resume-routing-in-the-handoff)
+   describes.
 2. Write the complete UTF-8 draft to a temporary file in the artifact home.
    Read it back, check its referenced prerequisites, and correct obsolete
    next actions. Keep essential context inline and link detailed evidence.
@@ -260,7 +446,9 @@ without an interactive migration question.
    `a.session-resume.used.local.md` flag if it exists. A failure to remove it
    must be reported; its old digest cannot consume a different new prompt.
 5. Read back the final prompt and verify that its first line carries your
-   agent id and that it is ignored by Git and not tracked. If it or the flag
+   agent id and that it is ignored by Git and not tracked. Also check that
+   the routing block parses as one strict JSON object and that each table
+   cell equals its rendering from the JSON. If it or the flag
    is tracked, report the problem without changing the user's index. Do not
    claim a private checkpoint was saved safely.
 6. Add a pause entry for this checkout to the
