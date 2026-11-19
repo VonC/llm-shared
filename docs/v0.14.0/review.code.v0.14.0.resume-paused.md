@@ -2618,3 +2618,450 @@ Human choice: Commit
 Outcome: continue-owning-workflow
 
 <!-- review-entry-id: human-confirmation-round-4 -->
+
+## Round 1 by requestor - Step 3
+
+- Recorded: 2026-11-19T09:10:12+01:00
+- Exchange: code/code/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.resume-paused.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: unrecorded
+- Implementation step: 3
+- Outcome: request
+
+### Review identity for step 3 resume-paused (round 1)
+
+Umbrella draft: none
+Implementation plan: docs/v0.14.0/plan.v0.14.0.resume-paused.md
+Implementation step: 3
+Review round: 1
+
+### Code review evidence for step 3 resume-paused (round 1)
+
+request_index_tree: 23f75e4aabf2eb923115c6e56a6d765eb06e85f0
+resolved_validation_set:
+
+- `ghog day --full=speed --whole-suite` (sources: project)
+
+test_scope:
+{"fingerprint": "686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6", "group": null, "proof": "speed", "requirement": "docs/v0.14.0/feature-request.v0.14.0.resume-paused.md", "scope": "whole"}
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: feat(pause): write saved routing as one JSON block
+group 1 path: instructions/pause-session.md
+group 1 path: templates/pause-session.template.md
+group 2: feat(session): accept schema 3 resume receipts
+group 2 path: templates/resume-session.template.md
+group 2 path: instructions/status-session.md
+group 2 path: templates/status-session.template.md
+group 2 path: instructions/list-session.md
+group 2 path: templates/list-session.template.md
+group 3: test(resume-paused): check the pause routing contract
+group 3 path: tests/unit/tools/test_resume_paused_pause_contract/__init__.py
+group 3 path: tests/unit/tools/test_resume_paused_pause_contract/test_resume_paused_pause_contract_tdd.py
+group 4: docs(resume-paused): record step 3 validation
+group 4 path: docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md
+staged path: docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md
+staged path: instructions/list-session.md
+staged path: instructions/pause-session.md
+staged path: instructions/status-session.md
+staged path: templates/list-session.template.md
+staged path: templates/pause-session.template.md
+staged path: templates/resume-session.template.md
+staged path: templates/status-session.template.md
+staged path: tests/unit/tools/test_resume_paused_pause_contract/__init__.py
+staged path: tests/unit/tools/test_resume_paused_pause_contract/test_resume_paused_pause_contract_tdd.py
+```
+
+### Validation scope for step 3 resume-paused (round 1)
+
+Validation scope: the whole suite.
+
+### Requestor assessment for step 3 resume-paused (round 1)
+
+Step 3 is fully implemented: new pauses write routing as one `resume-paused-routing` JSON block followed by the table rendered from it, the replacement guard follows requirement Q29=A, and the receipt template, status-session and list-session read receipt schemas 1 to 3. The implementation check recorded `Yes. Step 3 has been fully implemented.`
+
+- Tests: `ghog day --full=speed --whole-suite` exit 0 at 2026-11-19T09:09:21+01:00, 6531 tests, no failure, no outlier, no exclusion; slowest call 0.74 s. The new contract leaf failed first (50 failures before the documents changed), then passed with the Step 2 artifact and routing leaves and the interactive-menu pointer test (347 tests in focus).
+- Static checks: the same walk's `check.bat` passes ty, pyright, ruff, radon, vulture, big files, Markdown, ShellCheck and the end-of-file check; `markdown-check.bat --root .` exits 0 and `spellcheck.bat check` reports no unknown word on the eight changed Markdown files.
+- Coverage: 100% over `tools`; no `tools` file changes in this step, and every top-level helper of the new test module is referenced.
+- Architecture: workflow policy stays in the canonical instructions and templates, provider adapters stay redirects, and no schema rule is duplicated in code: the tests derive keys, rows and cells from the Step 2 renderer and parsers.
+- Performance: no production code changes; the test helpers read each shipped document once per session and scan it linearly.
+- Feature integrity: legacy prompts with a prose table or no routing still parse, schema 1 and 2 receipts still classify, manual resumes still write schema 2, and the prompt heading, `Session role` and the three receipt lines the installed launcher reads are preserved.
+
+### Implementation report for step 3 resume-paused (round 1)
+
+Step 3 changes seven canonical session documents and adds one contract-test leaf. No production Python module changes; the Step 2 parsers and renderer are the executable contract the documents are tested against.
+
+- `instructions/pause-session.md`, routing capture: identities come from the `tuios list-agents --all-sessions --json` records. The full 36-character `window_id` is the pane UUID (the table view prints 8 characters), the `session` string is the TUIOS session, `name` is a supplementary label and a non-empty `agent_session_id` is supporting evidence. Historical authorship and the saved role stay apart from intended assignments, and a session holding a live exchange role saves `requestor` or `reviewer`. Missing evidence is an explicit `{"unknown": "<reason>"}`, and the instruction forbids a routing question, contacting the counterpart and launching `resume_paused`.
+- `instructions/pause-session.md`, new subsections "Write the routing JSON block" and "Render the readable routing table": the exact fence line, every key of schema `resume-paused-routing` version 1, the single-agent `{"not_applicable": "<reason>"}` rule (both pair slots and the exchange, all or none), the pairing rule (the resumed target written identically in its pair slot), the checkout spelling and single-line rules. The thirteen table rows follow, with one code span per accepted cell form and the `none` and `not applicable` substitutions. A worked paired code-review example, generated by the Step 2 `render_routing_section`, is embedded verbatim. A second block or table, or a differing cell, is documented as a bulk routing error that leaves manual resume intact.
+- `instructions/pause-session.md`, replacement guard (requirement Q29=A): a decision table asks before replacing an unused or new prompt when its agent id differs or is missing, or when its known pausing pane or saved role differs even with the same agent id. The old prompt's pane and role come from its routing block (`pause.pane`, `pause.session_role`), or for a legacy prompt from a `Session role` line holding exactly one role token. Panes compare by full UUID and session string, never label; unknown values alone are no difference; legacy prompts keep the agent-id comparison; declining preserves the old checkpoint; the guard is pause-time only.
+- `instructions/pause-session.md`, publishing: the `- Session role:` line holds the routing's `pause.session_role` token alone (Step 2 refuses a contradicting role token), and the read-back checks the block and every cell.
+- `templates/pause-session.template.md`: the prose routing bullets and the six-column table become the JSON skeleton (every schema key) and the thirteen-row table skeleton; the `Session role` placeholder asks for one token.
+- `templates/resume-session.template.md`: every schema 2 line stays; `Schema` reads 2 for a manual resume or 3 for a marked resume, and `Launch id`, `Receiving pane` and `Assignment binding` follow as marked-resume-only lines a manual resume omits. The meaning section states that schema 3 only adds non-secret bindings.
+- `instructions/status-session.md` and its template: receipts of schemas 1 to 3 with exactly their own lines, classified by `Prompt`, `SHA-256` and `Project root`; an unprocessed prompt's saved routing state (resolved, unresolved, error, table only or none) is reported from the JSON block only, without checking live panes; a schema 3 receipt's receiving pane is named.
+- `instructions/list-session.md` and its template: the same receipt schemas, the receiving pane of a schema 3 receipt in the disk check result, and an invalid receipt reported as `cannot check`.
+- `tests/unit/tools/test_resume_paused_pause_contract/test_resume_paused_pause_contract_tdd.py` (new, 439 lines) and its package file: the example equals the rendering of its own JSON; every rendered cell of five routing variants matches a documented row form, in order; the template skeleton names every schema key and the rendered rows; prompts filled from the template parse under Step 2 (resolved, unresolved and single-agent routing), a contradicting header role is an error, and prose-table and routing-free legacy prompts stay readable; receipts of schemas 1 to 3 filled from the template parse and consume the prompt; the launcher's heading, `Session role`, `Prompt`, `SHA-256` and `Project root` readers are replayed from local fixtures; the capture, guard and reader rules are pinned; the six adapters of each session command stay canonical redirects.
+- `docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md`: Step 3 recorded as fully implemented; the document status stays not implemented for Steps 4 to 8.
+
+Points for the reviewer's attention:
+
+- `instructions/resume-session.md` is unchanged, as the plan assigns its schema 3 reader and writer to Step 4. Until then a schema 3 receipt stops the worktree's resume-session, the documented fail-closed mixed-install behavior; manual resumes keep writing schema 2.
+- No routing rendering tool is added: the plan's file list has none and keeps schema parsing in the Step 2 modules. The pausing agent writes the table by the documented grammar, and the contract test ties that grammar to the renderer.
+- status-session reporting the saved routing state is an alignment of the manual reader beyond receipt schemas; it reads the saved record only.
+- The worktree's `pause-session.md` predates main's session-journal tool section; this step leaves that section as it is in the worktree.
+- `rg` is not available in the shell used, so the contract inspection used the equivalent Grep search over the seven documents.
+- No accepted duration exclusion exists.
+
+Writer notes: `.reviews/a.resume-paused.step3.journal.md` and `.reviews/a.resume-paused.step3.handoff.md`.
+
+### Change summary for step 3 resume-paused (round 1)
+
+Ten staged paths in four `a.commit` groups, in this order:
+
+1. `feat(pause): write saved routing as one JSON block`: `instructions/pause-session.md`, `templates/pause-session.template.md`.
+2. `feat(session): accept schema 3 resume receipts`: `templates/resume-session.template.md`, `instructions/status-session.md`, `templates/status-session.template.md`, `instructions/list-session.md`, `templates/list-session.template.md`.
+3. `test(resume-paused): check the pause routing contract`: the `tests/unit/tools/test_resume_paused_pause_contract` package (package file and tdd file).
+4. `docs(resume-paused): record step 3 validation`: `docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md`.
+
+The commit-plan checker reports the plan valid and ready. The code review transcript is not staged and stays out of `a.commit`; it goes to the residual commit.
+
+### Writer response for step 3 resume-paused (round 1)
+
+Writer response:
+
+First round of this step: no earlier feedback to answer and no disagreement.
+
+### Reviewer focus for step 3 resume-paused (round 1)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-3-round-1 -->
+
+## Round 1 by reviewer - Step 3
+
+- Recorded: 2026-11-19T09:17:27+01:00
+- Exchange: code/code/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.resume-paused.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 3
+- Outcome: answer
+
+### Assessed index identity for step 3 resume-paused (exchange 1) (round 1)
+
+Baseline index tree: 23f75e4aabf2eb923115c6e56a6d765eb06e85f0
+
+Assessed index tree: 6be37d4e37289c37913a4ddaeb5c506b7b084b09
+
+### Implementation check for step 3 resume-paused (exchange 1) (round 1)
+
+Result:
+
+No. Step 3 has NOT been fully implemented.
+
+Routing capture, JSON/table agreement, replacement guarding, additive receipts and status/list readers match the step. Pause's own schema 3 receipt check is missing. The explicit completion criterion at plan line 353 requires this in Step 3, independently of the resume command deferred to Step 4. No production code changes or DDD/Hexagonal violations were identified; no new runtime performance issue was found. Static coverage inspection finds the pause receipt contract untested.
+
+Validation plan effects:
+
+Updated only Step 3 in docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md: exact No verdict, explanation, two concrete Missing work bullets, coverage limitation and feature-integrity consequence. Other steps and document-level status are unchanged. This is review metadata, not an implementation repair. Evidence attribution reported attributable=true; the exact reviewed patch was staged.
+
+### Pre-repair mandatory checks and coverage for step 3 resume-paused (exchange 1) (round 1)
+
+Requestor evidence: ghog day --full=speed --whole-suite exited 0 at 2026-11-19T09:09:21+01:00, 6531 tests, 100% tools coverage, no duration exclusion, slowest call 0.74 seconds. The request also reports 347 focused tests, static checks, Markdown and spelling checks green. These are requestor results, not independently repeated tests. Reviewer used staged-document and test inspection; no ghog check, affected test run, full walk or coverage execution was needed. The tools coverage gate does not measure Markdown behavior or test code; the new test module's helpers are referenced, but the pause receipt contract is absent.
+
+### Resolved validation set and sources for step 3 resume-paused (exchange 1) (round 1)
+
+Current resolver contract was inspected in tools/code_review_validation.py. The exact .review-validation path is absent, so the built-in project command ghog day --full=speed is completed with the bound whole-suite selector. No plan or request additions are declared. Resolved command: ghog day --full=speed --whole-suite; sources: project. This matches the request's parsed resolved_validation_set and scope fingerprint 686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6. The reviewer did not execute the requestor validation set.
+
+### Resolver drift and direction for step 3 resume-paused (exchange 1) (round 1)
+
+None. No added, removed or changed command/source was found between the request and current resolver contract.
+
+### Repository state around validation for step 3 resume-paused (exchange 1) (round 1)
+
+Baseline index 23f75e4aabf2eb923115c6e56a6d765eb06e85f0 matched the request. Assessed index after staging review metadata: 6be37d4e37289c37913a4ddaeb5c506b7b084b09. Umbrella comparison: applicable=false, changed=false. The validation-state comparator returned acceptable=false solely because the tracked validation plan changed. Diff inspection confines that change to Step 3, the explicitly permitted metadata exception; all nine other captured paths are unchanged, with no untracked or ignored differences. Attribute-reviewer-patch returned attributable=true. No implementation/test repair or validation-command side effect occurred.
+
+### Repair inventory for step 3 resume-paused (exchange 1) (round 1)
+
+Repairs made:
+
+- Review metadata only: docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md. Classified as polishing-only for repair accounting; it records the No assessment and concrete missing work, without changing implementation, tests or commit grouping.
+- No substantive repair. No literal Human guidance block authorizes implementation repair, so the request's generic repair wording was not applied.
+
+Paths staged:
+
+- docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md
+- instructions/list-session.md
+- instructions/pause-session.md
+- instructions/status-session.md
+- templates/list-session.template.md
+- templates/pause-session.template.md
+- templates/resume-session.template.md
+- templates/status-session.template.md
+- `tests/unit/tools/test_resume_paused_pause_contract/__init__.py`
+- tests/unit/tools/test_resume_paused_pause_contract/test_resume_paused_pause_contract_tdd.py
+
+### Commit plan assessment for step 3 resume-paused (exchange 1) (round 1)
+
+Independent commit-plan-check.bat --format json exited 0: state=valid, ready=true, diagnostics=[]. All ten staged paths are covered exactly once in four ordered groups: feat(pause): write saved routing as one JSON block; feat(session): accept schema 3 resume receipts; test(resume-paused): check the pause routing contract; docs(resume-paused): record step 3 validation. The group order and conventional subjects match the staged work. The metadata update adds no path and changes no grouping. a.commit remains accurate and unchanged. Mechanical readiness does not establish step completeness or authorize a commit. Full checker JSON is retained in .reviews/a.resume-paused.step3.tmp.r1.commit-plan.json.
+
+### Findings and boundaries for step 3 resume-paused (exchange 1) (round 1)
+
+Unresolved findings:
+
+- P2: Make pause's existing-prompt receipt check schema 3 aware. instructions/pause-session.md:77-79 delegates receipt classification to resume-session.md's state table; the linked rules at instructions/resume-session.md:21-29 explicitly accept only schemas 1 and 2. With an otherwise valid schema 3 receipt from a marked resume, that route can reject the receipt and stop a subsequent pause instead of classifying the checkpoint as used or new. The plan at line 353 explicitly includes pause-session among Step 3's schema 3 readers, so Step 4's intentional resume deferral does not cover this gap. Point pause at the schema-aware status reader or state equivalent receipt validation/classification locally, preserving malformed-receipt diagnostics and the unused/new replacement guard. Extend tests/unit/tools/test_resume_paused_pause_contract/test_resume_paused_pause_contract_tdd.py:405-437: its pause entries only assert routing publication, while schema assertions cover status/list. Pin pause's schema 3 matching, different-digest and malformed-receipt behavior in a contract test that fails against the current instruction.
+
+Boundary-crossing work:
+
+- None. Keep the resume command's schema 3 reader/writer in Step 4. No umbrella change, implementation repair, counterpart contact or commit was made.
+
+### Writer instructions for step 3 resume-paused (exchange 1) (round 1)
+
+Address the pause reader and its contract test within Step 3, following Missing work for Step 3 in the validation plan. Preserve schemas 1/2, classify schema 3 by Prompt/SHA-256/Project root, reject malformed receipts and retain the existing replacement guard. Validate through the writer-owned required checks, refresh the implementation-check and request evidence, and submit a new review round. No product decision or Step 4 implementation is required.
+
+### Decision rationale for step 3 resume-paused (exchange 1) (round 1)
+
+Changes requested. Readiness floor: exact identity PASS; implementation completeness FAIL (pause reader); validation/coverage FAIL (missing behavioral contract, despite reported green suite); staged attribution PASS; unresolved findings FAIL (one); commit plan PASS. The reviewer made no substantive repair. This answer is advisory and authorizes no commit.
+
+### Final reviewer decision for step 3 resume-paused (exchange 1) (round 1)
+
+Decision: changes-requested. The writer must address the concrete instructions and publish another review round. This advisory answer does not authorize a commit.
+
+<!-- review-entry-id: answer-step-3-round-1 -->
+
+## Round 2 by requestor - Step 3
+
+- Recorded: 2026-11-19T15:29:07+01:00
+- Exchange: code/code/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.resume-paused.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 3
+- Outcome: request
+
+### Review identity for step 3 resume-paused (round 2)
+
+Umbrella draft: none
+Implementation plan: docs/v0.14.0/plan.v0.14.0.resume-paused.md
+Implementation step: 3
+Review round: 2
+
+### Code review evidence for step 3 resume-paused (round 2)
+
+request_index_tree: 229f65878584b25bd7186666c64a24abcaae8d4f
+resolved_validation_set:
+
+- `ghog day --full=speed --whole-suite` (sources: project)
+
+test_scope:
+{"fingerprint": "686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6", "group": null, "proof": "speed", "requirement": "docs/v0.14.0/feature-request.v0.14.0.resume-paused.md", "scope": "whole"}
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: feat(pause): write saved routing as one JSON block
+group 1 path: instructions/pause-session.md
+group 1 path: templates/pause-session.template.md
+group 2: feat(session): accept schema 3 resume receipts
+group 2 path: templates/resume-session.template.md
+group 2 path: instructions/status-session.md
+group 2 path: templates/status-session.template.md
+group 2 path: instructions/list-session.md
+group 2 path: templates/list-session.template.md
+group 3: test(resume-paused): check the pause routing contract
+group 3 path: tests/unit/tools/test_resume_paused_pause_contract/__init__.py
+group 3 path: tests/unit/tools/test_resume_paused_pause_contract/test_resume_paused_pause_contract_tdd.py
+group 4: docs(resume-paused): record step 3 validation
+group 4 path: docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md
+staged path: docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md
+staged path: instructions/list-session.md
+staged path: instructions/pause-session.md
+staged path: instructions/status-session.md
+staged path: templates/list-session.template.md
+staged path: templates/pause-session.template.md
+staged path: templates/resume-session.template.md
+staged path: templates/status-session.template.md
+staged path: tests/unit/tools/test_resume_paused_pause_contract/__init__.py
+staged path: tests/unit/tools/test_resume_paused_pause_contract/test_resume_paused_pause_contract_tdd.py
+```
+
+### Validation scope for step 3 resume-paused (round 2)
+
+Validation scope: the whole suite.
+
+### Requestor assessment for step 3 resume-paused (round 2)
+
+Step 3 is fully implemented after the round 1 repair: new pauses write routing as one `resume-paused-routing` JSON block followed by the table rendered from it, the replacement guard follows requirement Q29=A, and the receipt template, pause's existing-prompt receipt check, status-session and list-session all read receipt schemas 1 to 3. The implementation check again records `Yes. Step 3 has been fully implemented.`
+
+- Tests: `ghog day --full=speed --whole-suite` exit 0 at 2026-11-19T15:28:09+01:00, 6540 tests, no failure, no outlier, no exclusion; slowest call 0.31 s. The four new pause receipt guard rules failed against the earlier instruction (`ghog single` fail=4) and pass after the repair; the executable schema 3 cases (used, new since previous use, three malformed forms) pass.
+- Static checks: the same walk's `check.bat` passes ty, pyright, ruff, radon, vulture, big files, Markdown, ShellCheck and the end-of-file check. The first round 2 walk stopped on `MD050` at transcript line 2807 (the round 1 answer's bare `__init__.py` path); that single line was repaired under the user's explicit exception before the green walk. `spellcheck.bat check` reports no unknown word on the repaired files.
+- Coverage: 100% over `tools`; no `tools` file changes in this step, and every top-level helper of the test module is referenced.
+- Architecture: workflow policy stays in the canonical instructions and templates, provider adapters stay redirects, and the tests derive keys, rows, cells and receipt outcomes from the Step 2 renderer and parsers.
+- Performance: no production code changes; the test helpers read each shipped document once per session and scan it linearly.
+- Feature integrity: legacy prompts and schema 1 and 2 receipts stay readable, a schema 3 receipt no longer stops a later pause, manual resumes still write schema 2, and the launcher's prompt and receipt lines are preserved. `resume-session.md` keeps its Step 4 assignment.
+
+### Implementation report for step 3 resume-paused (round 2)
+
+Step 3 changes seven canonical session documents and adds one contract-test leaf. No production Python module changes; the Step 2 parsers and renderer are the executable contract the documents are tested against.
+
+- `instructions/pause-session.md`, routing capture: identities come from the `tuios list-agents --all-sessions --json` records. The full 36-character `window_id` is the pane UUID (the table view prints 8 characters), the `session` string is the TUIOS session, `name` is a supplementary label and a non-empty `agent_session_id` is supporting evidence. Historical authorship and the saved role stay apart from intended assignments, and a session holding a live exchange role saves `requestor` or `reviewer`. Missing evidence is an explicit `{"unknown": "<reason>"}`, and the instruction forbids a routing question, contacting the counterpart and launching `resume_paused`.
+- `instructions/pause-session.md`, new subsections "Write the routing JSON block" and "Render the readable routing table": the exact fence line, every key of schema `resume-paused-routing` version 1, the single-agent `{"not_applicable": "<reason>"}` rule (both pair slots and the exchange, all or none), the pairing rule (the resumed target written identically in its pair slot), the checkout spelling and single-line rules. The thirteen table rows follow, with one code span per accepted cell form and the `none` and `not applicable` substitutions. A worked paired code-review example, generated by the Step 2 `render_routing_section`, is embedded verbatim. A second block or table, or a differing cell, is documented as a bulk routing error that leaves manual resume intact.
+- `instructions/pause-session.md`, replacement guard (requirement Q29=A): a decision table asks before replacing an unused or new prompt when its agent id differs or is missing, or when its known pausing pane or saved role differs even with the same agent id. The old prompt's pane and role come from its routing block (`pause.pane`, `pause.session_role`), or for a legacy prompt from a `Session role` line holding exactly one role token. Panes compare by full UUID and session string, never label; unknown values alone are no difference; legacy prompts keep the agent-id comparison; declining preserves the old checkpoint; the guard is pause-time only.
+- `instructions/pause-session.md`, existing-prompt receipt check (round 1 repair): before the guard, pause accepts the old prompt's receipt in schema 1, 2 or 3, as status-session does, and classifies it by its `Prompt`, `SHA-256` and `Project root` lines, never by its schema. A valid receipt for the prompt's exact bytes makes it used, one for other bytes makes it new since previous use, and a receipt that misses a line of its schema, carries another one or names another schema is malformed: the pause reports the diagnostic and stops without replacing the prompt. The link to the resume state table stays for the other states; `resume-session.md` itself still waits for Step 4.
+- `instructions/pause-session.md`, publishing: the `- Session role:` line holds the routing's `pause.session_role` token alone (Step 2 refuses a contradicting role token), and the read-back checks the block and every cell.
+- `templates/pause-session.template.md`: the prose routing bullets and the six-column table become the JSON skeleton (every schema key) and the thirteen-row table skeleton; the `Session role` placeholder asks for one token.
+- `templates/resume-session.template.md`: every schema 2 line stays; `Schema` reads 2 for a manual resume or 3 for a marked resume, and `Launch id`, `Receiving pane` and `Assignment binding` follow as marked-resume-only lines a manual resume omits. The meaning section states that schema 3 only adds non-secret bindings.
+- `instructions/status-session.md` and its template: receipts of schemas 1 to 3 with exactly their own lines, classified by `Prompt`, `SHA-256` and `Project root`; an unprocessed prompt's saved routing state (resolved, unresolved, error, table only or none) is reported from the JSON block only, without checking live panes; a schema 3 receipt's receiving pane is named.
+- `instructions/list-session.md` and its template: the same receipt schemas, the receiving pane of a schema 3 receipt in the disk check result, and an invalid receipt reported as `cannot check`.
+- `tests/unit/tools/test_resume_paused_pause_contract/test_resume_paused_pause_contract_tdd.py` (new) and its package file: round 1 adds four guard rules pinning pause's schema 1 to 3 receipt reader (they failed against the earlier instruction) and executable cases where a schema 3 receipt filled from the template makes the old prompt used for the same bytes and new for other bytes, while a missing `Launch id`, schema 2 carrying the marked lines, and schema 4 are malformed. Earlier checks: the example equals the rendering of its own JSON; every rendered cell of five routing variants matches a documented row form, in order; the template skeleton names every schema key and the rendered rows; prompts filled from the template parse under Step 2 (resolved, unresolved and single-agent routing), a contradicting header role is an error, and prose-table and routing-free legacy prompts stay readable; receipts of schemas 1 to 3 filled from the template parse and consume the prompt; the launcher's heading, `Session role`, `Prompt`, `SHA-256` and `Project root` readers are replayed from local fixtures; the capture, guard and reader rules are pinned; the six adapters of each session command stay canonical redirects.
+- `docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md`: Step 3 recorded as fully implemented; the document status stays not implemented for Steps 4 to 8.
+
+Points for the reviewer's attention:
+
+- `instructions/resume-session.md` is unchanged, as the plan assigns its schema 3 reader and writer to Step 4. Until then a schema 3 receipt stops the worktree's resume-session, the documented fail-closed mixed-install behavior; manual resumes keep writing schema 2.
+- No routing rendering tool is added: the plan's file list has none and keeps schema parsing in the Step 2 modules. The pausing agent writes the table by the documented grammar, and the contract test ties that grammar to the renderer.
+- status-session reporting the saved routing state is an alignment of the manual reader beyond receipt schemas; it reads the saved record only.
+- The worktree's `pause-session.md` predates main's session-journal tool section; this step leaves that section as it is in the worktree.
+- `rg` is not available in the shell used, so the contract inspection used the equivalent Grep search over the seven documents.
+- No accepted duration exclusion exists.
+
+Writer notes: `.reviews/a.resume-paused.step3.journal.md` and `.reviews/a.resume-paused.step3.handoff.md`.
+
+### Change summary for step 3 resume-paused (round 2)
+
+Ten staged paths in four `a.commit` groups, in this order:
+
+1. `feat(pause): write saved routing as one JSON block`: `instructions/pause-session.md`, `templates/pause-session.template.md`.
+2. `feat(session): accept schema 3 resume receipts`: `templates/resume-session.template.md`, `instructions/status-session.md`, `templates/status-session.template.md`, `instructions/list-session.md`, `templates/list-session.template.md`.
+3. `test(resume-paused): check the pause routing contract`: the `tests/unit/tools/test_resume_paused_pause_contract` package (package file and tdd file).
+4. `docs(resume-paused): record step 3 validation`: `docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md`.
+
+The commit-plan checker reports the plan valid and ready. The code review transcript is not staged and stays out of `a.commit`; it goes to the residual commit.
+
+### Writer response for step 3 resume-paused (round 2)
+
+Writer response:
+
+Round 1 finding P2 (pause's existing-prompt receipt check followed the schema 1/2-only resume state table): accepted and repaired as the reviewer directed.
+
+- `instructions/pause-session.md`: the replacement guard's receipt check now accepts schemas 1, 2 and 3 as status-session does, classifies by `Prompt`, `SHA-256` and `Project root`, and reports a malformed receipt and stops without replacing the prompt. The resume state table link stays; the resume command's own schema 3 reader and writer remain in Step 4.
+- `tests/unit/tools/test_resume_paused_pause_contract/test_resume_paused_pause_contract_tdd.py`: four guard rules pin the new reader and failed against the earlier instruction (`ghog single` fail=4) before passing; executable cases cover a schema 3 receipt for the same bytes (used), other bytes (new since previous use) and three malformed forms.
+- `docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md`: the reviewer's staged No verdict and its two Missing work bullets are resolved; the writer's implementation check restores `Yes. Step 3 has been fully implemented.`, removes the Missing work section and keeps the reviewer's coverage and feature-integrity points as resolved statements. This follows the repair, not a disagreement.
+- `a.commit`: membership, order and subjects are unchanged; groups 1 and 3 each gain one What bullet for the repair. The checker reports valid and ready.
+
+- Transcript: the round 1 answer's "Paths staged" bullet with the bare `__init__.py` path made markdownlint report `MD050` at transcript line 2807 and failed the round 2 speed walk. Under the user's explicit exception for that one line, the path is now wrapped in a code span; no other transcript line changed, and the transcript stays out of `a.commit` for the residual commit. Please write file paths in code spans in answers, so names such as `__init__.py` cannot read as emphasis.
+
+No disagreement.
+
+### Reviewer focus for step 3 resume-paused (round 2)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-3-round-2 -->
+
+## Round 2 by reviewer - Step 3
+
+- Recorded: 2026-11-19T15:34:24+01:00
+- Exchange: code/code/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.resume-paused.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 3
+- Outcome: answer
+
+### Assessed index identity for step 3 resume-paused (exchange 1) (round 2)
+
+Baseline index tree: 229f65878584b25bd7186666c64a24abcaae8d4f
+
+Assessed index tree: 229f65878584b25bd7186666c64a24abcaae8d4f
+
+### Implementation check for step 3 resume-paused (exchange 1) (round 2)
+
+Result:
+
+Yes. Step 3 has been fully implemented.
+
+Independent review confirms the routing JSON/table contract, replacement guard, manual reader compatibility and contract tests meet the named step. The carried P2 finding is resolved: pause explicitly accepts schema 1, 2 and 3 receipts independently of the deferred resume reader, classifies by prompt identity and digest, and stops on malformed receipts. Four instruction guards and executable matching/different-digest and malformed-schema cases cover that gap. Architecture, performance, static coverage and feature-integrity checks reveal no further issue. Step 4's resume command remains outside this step.
+
+Validation plan effects:
+
+The existing Step 3 Yes verdict and removal of its missing-work section are accurate after the writer's repair. No reviewer edit was needed. No other step or umbrella row changed.
+
+### Pre-repair mandatory checks and coverage for step 3 resume-paused (exchange 1) (round 2)
+
+No reviewer repair or test command was performed in round 2. Requestor evidence reports `ghog day --full=speed --whole-suite` exit 0 at 2026-11-19T15:28:09+01:00: 6540 tests, no failures, outliers or exclusions, 100% coverage over `tools`, and green static/Markdown checks. The four receipt guards reportedly failed before the instruction repair. This is requestor execution evidence, not an independent reviewer rerun. Static review found no coverage gap; this step changes no production Python.
+
+### Resolved validation set and sources for step 3 resume-paused (exchange 1) (round 2)
+
+Request and current resolver agree on `ghog day --full=speed --whole-suite`. The project default in `tools/code_review_validation.py` supplies `ghog day --full=speed`; the captured whole-suite scope adds `--whole-suite`. The `.review-validation` marker was sampled absent. No plan or request additions apply. Bound scope fingerprint: `686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6`.
+
+### Resolver drift and direction for step 3 resume-paused (exchange 1) (round 2)
+
+None. No command, source or scope drift from the request's resolved validation set.
+
+### Repository state around validation for step 3 resume-paused (exchange 1) (round 2)
+
+Baseline and assessed index trees both equal the request-time tree `229f65878584b25bd7186666c64a24abcaae8d4f`. The evidence launcher compared before/after snapshots of all ten ordered staged paths: acceptable true; no tracked, untracked or ignored differences. Umbrella comparison is not applicable and unchanged. No staging operation or repository repair occurred.
+
+### Repair inventory for step 3 resume-paused (exchange 1) (round 2)
+
+Repairs made: None.
+
+Paths staged: None.
+
+### Commit plan assessment for step 3 resume-paused (exchange 1) (round 2)
+
+Independent `commit-plan-check.bat --format json` returned exit 0, state `valid`, ready `true`, with no diagnostics. All ten staged paths are covered exactly once. The four ordered groups remain accurate:
+
+1. `feat(pause): write saved routing as one JSON block`: `instructions/pause-session.md`, `templates/pause-session.template.md`.
+2. `feat(session): accept schema 3 resume receipts`: `templates/resume-session.template.md`, `instructions/status-session.md`, `templates/status-session.template.md`, `instructions/list-session.md`, `templates/list-session.template.md`.
+3. `test(resume-paused): check the pause routing contract`: `tests/unit/tools/test_resume_paused_pause_contract/__init__.py`, `tests/unit/tools/test_resume_paused_pause_contract/test_resume_paused_pause_contract_tdd.py`.
+4. `docs(resume-paused): record step 3 validation`: `docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md`.
+
+Ordering separates pause publication, reader alignment, contract tests and step validation metadata. No amendment to `a.commit` is needed.
+
+### Findings and boundaries for step 3 resume-paused (exchange 1) (round 2)
+
+Unresolved findings: None.
+
+Boundary-crossing work: None.
+
+### Writer instructions for step 3 resume-paused (exchange 1) (round 2)
+
+No further implementation change is requested for Step 3. The requestor may continue its owning workflow at the human convergence gate; this recommendation does not authorize a commit.
+
+### Decision rationale for step 3 resume-paused (exchange 1) (round 2)
+
+All six readiness results pass: exact identity and round; complete Step 3 implementation; requestor validation evidence and static coverage assessment; unchanged attributable staged scope; no unresolved current or carried findings; and independently checked accurate commit grouping. No substantive repair occurred in this round. Recommend `commit-ready` as advisory review feedback.
+
+### Final reviewer decision for step 3 resume-paused (exchange 1) (round 2)
+
+Decision: commit-ready (advisory). The evidence floor is complete, but this recommendation does not authorize a commit; authority remains at the durable human gate.
+
+<!-- review-entry-id: answer-step-3-round-2 -->
+
+## Round 2 by human - Step 3 - human-confirmation
+
+- Recorded: 2026-11-19T19:03:24+01:00
+- Exchange: code/code/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.resume-paused.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 3
+- Outcome: human-confirmation
+
+Human choice: Commit
+Outcome: continue-owning-workflow
+
+<!-- review-entry-id: human-confirmation-round-2 -->
