@@ -3065,3 +3065,575 @@ Human choice: Commit
 Outcome: continue-owning-workflow
 
 <!-- review-entry-id: human-confirmation-round-2 -->
+
+## Round 1 by requestor - Step 4
+
+- Recorded: 2026-11-19T22:20:17+01:00
+- Exchange: code/code/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.resume-paused.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: unrecorded
+- Implementation step: 4
+- Outcome: request
+
+### Review identity for step 4 resume-paused (round 1)
+
+Umbrella draft: none
+Implementation plan: docs/v0.14.0/plan.v0.14.0.resume-paused.md
+Implementation step: 4
+Review round: 1
+
+### Code review evidence for step 4 resume-paused (round 1)
+
+request_index_tree: 89ddfc58db9efce3f42945c3d6add981202374f6
+resolved_validation_set:
+
+- `ghog day --full=speed --whole-suite` (sources: project)
+
+test_scope:
+{"fingerprint": "686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6", "group": null, "proof": "speed", "requirement": "docs/v0.14.0/feature-request.v0.14.0.resume-paused.md", "scope": "whole"}
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: feat(review): require Claude background answer waits
+group 1 path: rules/run_commands.md
+group 1 path: instructions/review-requestor.md
+group 1 path: instructions/spec-review-requestor.md
+group 1 path: instructions/code-review-requestor.md
+group 1 path: tests/unit/tools/test_instruction_structure/test_requestor_answer_wait_transport_tdd.py
+group 2: feat(resume-paused): bind markers to one assignment
+group 2 path: tools/resume_paused_marker.py
+group 2 path: tests/unit/tools/test_resume_paused_marker/__init__.py
+group 2 path: tests/unit/tools/test_resume_paused_marker/test_resume_paused_marker_tdd.py
+group 2 path: tests/unit/tools/test_resume_paused_marker/test_resume_paused_marker_pbt.py
+group 3: feat(resume-paused): prove a receiving pane's input
+group 3 path: tools/resume_paused_input.py
+group 3 path: tests/unit/tools/test_resume_paused_input/__init__.py
+group 3 path: tests/unit/tools/test_resume_paused_input/test_resume_paused_input_tdd.py
+group 4: feat(review): record marked claims under the lock
+group 4 path: tools/review_exchange_models_coordination.py
+group 4 path: tools/review_exchange_ownership.py
+group 4 path: tools/review_exchange_ownership_store.py
+group 4 path: tools/review_exchange_store.py
+group 4 path: tools/review_resume_identity.py
+group 4 path: tools/review_exchange_cli_parser.py
+group 4 path: tools/review_exchange_cli_resume.py
+group 4 path: tools/resume_paused_claim.py
+group 4 path: tests/memory_filesystem.py
+group 4 path: tests/unit/tools/test_resume_paused_claims/__init__.py
+group 4 path: tests/unit/tools/test_resume_paused_claims/test_resume_paused_claims_binding_tdd.py
+group 5: feat(resume-paused): validate marked receivers
+group 5 path: tools/resume_paused_validation.py
+group 5 path: bin/resume_paused_validate.bat
+group 5 path: tests/unit/tools/resume_paused_receiver_test_support.py
+group 5 path: tests/unit/tools/test_resume_paused_validation/__init__.py
+group 5 path: tests/unit/tools/test_resume_paused_validation/test_resume_paused_validation_tdd.py
+group 5 path: tests/unit/tools/test_resume_paused_validation/test_resume_paused_validate_launcher_smoke_tdd.py
+group 5 path: tests/unit/tools/test_resume_paused_claims/test_resume_paused_claims_tdd.py
+group 6: feat(session): resume from marked bulk launches
+group 6 path: instructions/resume-session.md
+group 6 path: instructions/review-resume.md
+group 6 path: tests/unit/tools/test_resume_paused_validation/test_resume_paused_receiver_contract_tdd.py
+group 7: docs(resume-paused): record step 4 validation
+group 7 path: docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md
+group 7 path: .vscode/settings.json
+staged path: .vscode/settings.json
+staged path: bin/resume_paused_validate.bat
+staged path: docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md
+staged path: instructions/code-review-requestor.md
+staged path: instructions/resume-session.md
+staged path: instructions/review-requestor.md
+staged path: instructions/review-resume.md
+staged path: instructions/spec-review-requestor.md
+staged path: rules/run_commands.md
+staged path: tests/memory_filesystem.py
+staged path: tests/unit/tools/resume_paused_receiver_test_support.py
+staged path: tests/unit/tools/test_instruction_structure/test_requestor_answer_wait_transport_tdd.py
+staged path: tests/unit/tools/test_resume_paused_claims/__init__.py
+staged path: tests/unit/tools/test_resume_paused_claims/test_resume_paused_claims_binding_tdd.py
+staged path: tests/unit/tools/test_resume_paused_claims/test_resume_paused_claims_tdd.py
+staged path: tests/unit/tools/test_resume_paused_input/__init__.py
+staged path: tests/unit/tools/test_resume_paused_input/test_resume_paused_input_tdd.py
+staged path: tests/unit/tools/test_resume_paused_marker/__init__.py
+staged path: tests/unit/tools/test_resume_paused_marker/test_resume_paused_marker_pbt.py
+staged path: tests/unit/tools/test_resume_paused_marker/test_resume_paused_marker_tdd.py
+staged path: tests/unit/tools/test_resume_paused_validation/__init__.py
+staged path: tests/unit/tools/test_resume_paused_validation/test_resume_paused_receiver_contract_tdd.py
+staged path: tests/unit/tools/test_resume_paused_validation/test_resume_paused_validate_launcher_smoke_tdd.py
+staged path: tests/unit/tools/test_resume_paused_validation/test_resume_paused_validation_tdd.py
+staged path: tools/resume_paused_claim.py
+staged path: tools/resume_paused_input.py
+staged path: tools/resume_paused_marker.py
+staged path: tools/resume_paused_validation.py
+staged path: tools/review_exchange_cli_parser.py
+staged path: tools/review_exchange_cli_resume.py
+staged path: tools/review_exchange_models_coordination.py
+staged path: tools/review_exchange_ownership.py
+staged path: tools/review_exchange_ownership_store.py
+staged path: tools/review_exchange_store.py
+staged path: tools/review_resume_identity.py
+```
+
+### Validation scope for step 4 resume-paused (round 1)
+
+Validation scope: the whole suite.
+
+### Requestor assessment for step 4 resume-paused (round 1)
+
+Step 4 is fully implemented under plan Q05=A. The compact marker binds one receiving pane to the canonical assignment. The read-only validator and its launcher run before each protected write. A marked claim is verified under the transition lock and records its non-secret binding with the generation it issues. Both receiving instructions follow the marked route without a fallback consent question, and the Claude requestor answer wait is a required background start. The implementation check recorded `Yes. Step 4 has been fully implemented.`
+
+- Tests: `ghog day --full=speed --whole-suite` exit 0 at 2026-11-19T22:12+01:00 with 6768 tests, 100% coverage, no outlier and no exclusion, slowest call 0.81 s; re-run on the final staged tree at 2026-11-19T22:19:18+01:00 with `proof=speed reused=all` (only Markdown and JSON changed since). Each new leaf passed in focus; the review resume, lifecycle, acceptance, ownership and CLI regressions pass.
+- Static checks: the same walk's `check.bat` passes ty, pyright strict, ruff, radon, vulture, big files, Markdown, ShellCheck and the end-of-file check; `spellcheck.bat check` reports no unknown word on the seven changed Markdown files after adding `unrouted`.
+- Coverage: 100% over `tools`; one unit leaf per new module; the validator's `__main__` guard carries the repository's thin-launcher exclusion.
+- Architecture: the marker module is pure; the validator depends on discovery, prover and evidence-source protocols composed by `default_validator`; the review core gains only a generic evidence value and a verifier callable and imports nothing from resume-paused.
+- Performance: single passes over markers, records, the transcript enumeration and candidate session files; no cache; every validation and claim rereads fresh evidence.
+- Feature integrity: manual claims, manual consent and schema 2 receipts are unchanged; role conflict, fencing and isolation regressions pass; records without a marked binding parse as before.
+
+### Implementation report for step 4 resume-paused (round 1)
+
+Step 4 binds marked resume consent to a fresh read-only validator and to the locked selected claim, and makes the Claude requestor answer wait a required background start.
+
+- `rules/run_commands.md` (Q25=A): new subsection "Claude requestors wait for answers in the background". Every Claude requestor starts each `wait-answer` through a host background mechanism on every requestor route, as one recognized invocation form, ends its turn and resumes from the completion notification. A foreground or moved wait leaves the reviewer pending, and Codex keeps its attached wait. `review-requestor.md`, `spec-review-requestor.md` and `code-review-requestor.md` link to it.
+- `tools/resume_paused_marker.py`: the marker `<launch_id>.rp1.<pane_uuid>.<role>.<binding>` (launch id first, version `rp1`, full pane UUID, one of the five role tokens, 64 hexadecimal binding; ASCII, at most 153 characters), extracted from exactly one `--resume-paused` token. The binding hashes the canonical UTF-8 JSON (sorted keys, compact separators) of schema `resume-paused-assignment` version 1: checkout key, prompt SHA-256, receiver host, session, pane and role, the pair after any swap, and the exact exchange with occurrence and selected round, or null. `resolve_assignment` rebuilds it from saved routing and the live exchange; a swap is a pair pane given the other pair role, only for a saved requestor pause. `ResultLine`: `resume-paused <launch_id> <outcome>[ g<generation>]`, at most 100 characters.
+- `tools/resume_paused_input.py`: `TuiosDiscovery` runs `tuios list-agents --all-sessions --json` and `tuios capture-pane` as argument lists through `SubprocessRunner` (never a shell). `PaneRecord` keeps the full `window_id`, `session`, `name`, `cwd`, harness, program-status apps and agent session id, and `pane_host` uses strong evidence first. `ClaudeInputProver` proves the marked command as the latest typed input of the transcript named by the pane's agent session id, at or after the pause snapshot, in the checkout, under a pinned profile. `CodexInputProver` ties the pane through `prove_codex_pane`, proves the unique session file with `prove_codex_input`, and re-proves the same session with the carried identity and launch id. `UnpinnedCodexVersions` reports the pre-input version unavailable until a release is pinned.
+- `tools/resume_paused_validation.py` and `bin/resume_paused_validate.bat`: the validator checks the marker, the saved pause, the resolved routing, the live exchange (Step 2 observer), the binding and host, the consumption stage (unconsumed, consumed by this launch's schema 3 receipt, or for a reviewer the requestor's schema 3 receipt), the live pane (never an inherited `TUIOS_PANE_ID`) and the complete input. It returns typed non-secret JSON with reasons, the compact failure line, the carried Codex session and the bytes read, and exits 0 valid, 3 refused, 2 invalid. It writes and caches nothing.
+- Marked claim (Q03, Q04, Q11): `CoordinationRecord.marked_claim` is a `MarkedClaimBinding` (launch id, pane, host, assignment binding, round, occurrence, issued generation) that must equal the ownership generation. `OwnershipService.claim(marked=...)` always issues a generation with it; any other new claim clears it; current-owner transitions keep it. The ownership store and exchange store forward it. `claim_selected(marked=...)` runs `tools/resume_paused_claim.py`'s verifier under the transition lock before backfill. The verifier re-parses the marker and requires the claimed role, the Codex carried identity and launch id, the current prompt, routing and locked round and occurrence, the same exact exchange, the claimant host, the binding and the consuming receipt. Every refusal writes nothing, and the claim reads no host session file and needs no TUIOS. `claim` takes `--resume-paused-marker`, `--carried-session` and `--carried-launch-id`; callers without them keep the manual path (read by `getattr`, after the first regression run showed existing callers building the arguments without them).
+- `instructions/resume-session.md`: `--resume-paused <marker>`, a schema 1 to 3 flag reader keyed on `Prompt`, `SHA-256` and `Project root`, an accepted marker as consent for the author override, new section "Resume from a marked bulk launch" (validate before the receipt, journal and claim, keep a written receipt on later refusal, schema 3 receipt, compact result first, no fallback question), and schema 2 versus schema 3 receipt writing. `instructions/review-resume.md`: appended section "Continue a marked review role".
+- `tests/unit/tools/resume_paused_receiver_test_support.py` (Q02=A): `ReceiverCheckout`, `FakeDiscovery`, `FakeProver` and `ReceiverHarness`, which runs validate, receipt, validate, journal, validate, claim with the real validator and locked claim and an evidence hook before each step.
+- Tests: leaves `test_resume_paused_marker` (tdd, pbt), `test_resume_paused_input`, `test_resume_paused_claims` (binding, claim), `test_resume_paused_validation` (validator and sequences, launcher smoke, receiver instruction contract) and `test_instruction_structure/test_requestor_answer_wait_transport_tdd.py`.
+- `docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md`: Step 4 recorded Yes, with deviations and a "Live host dependencies of Step 4" list left open under Q05=A. `.vscode/settings.json`: project word `unrouted`.
+
+Points for the reviewer's attention:
+
+- Implementation decisions the design leaves open: the marker and result grammars and the assignment schema above. The receiver does not know the delivery instant, so "recorded after delivery" uses the prompt's snapshot instant as the lower bound, with exact whole-command equality of the latest typed input and the fresh launch id.
+- Real host proof stays unsupported under plan Q05=A: the shipped registry is empty, and the Codex pre-input version source for a pane is not wired until a release is pinned. The three live dependencies are listed in the validation plan.
+- Deviations from the planned file list: `tools/resume_paused_input.py` (pane and input evidence, split from the validator by responsibility), test leaves for the marker and input modules, `test_resume_paused_claims_binding_tdd.py`, `test_resume_paused_receiver_contract_tdd.py`, and the scratch filesystem registrations in `tests/memory_filesystem.py`.
+- `tools/review_exchange_store.py` is at 611 lines in the risk band and changed only by forwarding; the two forwarding claim signatures carry a PLR0913 waiver.
+- `rg` is not available in the shell used; contract inspection used the equivalent Grep search.
+- No accepted duration exclusion exists.
+
+Writer notes: `.reviews/a.resume-paused.step4.journal.md` and `.reviews/a.resume-paused.step4.handoff.md`.
+
+### Change summary for step 4 resume-paused (round 1)
+
+Thirty-five staged paths in seven `a.commit` groups, in this order:
+
+1. `feat(review): require Claude background answer waits`: `rules/run_commands.md`, `instructions/review-requestor.md`, `instructions/spec-review-requestor.md`, `instructions/code-review-requestor.md`, `tests/unit/tools/test_instruction_structure/test_requestor_answer_wait_transport_tdd.py`.
+2. `feat(resume-paused): bind markers to one assignment`: `tools/resume_paused_marker.py` and the `tests/unit/tools/test_resume_paused_marker` package (package file, tdd and pbt files).
+3. `feat(resume-paused): prove a receiving pane's input`: `tools/resume_paused_input.py` and the `tests/unit/tools/test_resume_paused_input` package (package file and tdd file).
+4. `feat(review): record marked claims under the lock`: `tools/review_exchange_models_coordination.py`, `tools/review_exchange_ownership.py`, `tools/review_exchange_ownership_store.py`, `tools/review_exchange_store.py`, `tools/review_resume_identity.py`, `tools/review_exchange_cli_parser.py`, `tools/review_exchange_cli_resume.py`, `tools/resume_paused_claim.py`, `tests/memory_filesystem.py`, and the claims package file with `test_resume_paused_claims_binding_tdd.py`.
+5. `feat(resume-paused): validate marked receivers`: `tools/resume_paused_validation.py`, `bin/resume_paused_validate.bat`, `tests/unit/tools/resume_paused_receiver_test_support.py`, the `tests/unit/tools/test_resume_paused_validation` package file with its validation and launcher smoke files, and `test_resume_paused_claims_tdd.py`, which needs the harness.
+6. `feat(session): resume from marked bulk launches`: `instructions/resume-session.md`, `instructions/review-resume.md`, `tests/unit/tools/test_resume_paused_validation/test_resume_paused_receiver_contract_tdd.py`.
+7. `docs(resume-paused): record step 4 validation`: `docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md`, `.vscode/settings.json`.
+
+The commit-plan checker reports the plan valid and ready. The code review transcript is not staged and goes to the residual commit.
+
+### Writer response for step 4 resume-paused (round 1)
+
+Writer response:
+
+First round of this step: no earlier feedback to answer and no disagreement. Please write file paths in code spans in answers, so names such as `__init__.py` cannot read as emphasis in the transcript.
+
+### Reviewer focus for step 4 resume-paused (round 1)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-4-round-1 -->
+
+## Round 1 by reviewer - Step 4
+
+- Recorded: 2026-11-19T22:28:19+01:00
+- Exchange: code/code/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.resume-paused.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 4
+- Outcome: answer
+
+### Assessed index identity for step 4 resume-paused (exchange 1) (round 1)
+
+Baseline index tree: 89ddfc58db9efce3f42945c3d6add981202374f6
+
+Assessed index tree: c00d40a73233f532e6eaf26b37fd614820d74b8e
+
+### Implementation check for step 4 resume-paused (exchange 1) (round 1)
+
+Result:
+
+No. Step 4 has NOT been fully implemented.
+
+The marker, canonical binding, pane/input adapters, read-only validator, locked claim plumbing and receiving instructions implement the planned structure. One current finding blocks completion: the locked claim uses parsed fields from an error checkout snapshot. Ports/adapters and dependency direction are appropriate; the store adds forwarding only and remains below the 650-line ceiling. No new superlinear computation was identified. Manual paths appear preserved. Plan Q05=A explicitly defers live host support; the empty registry and unavailable Codex pre-input version are recorded limitations, not an additional code-completion finding.
+
+Validation plan effects:
+
+Updated only Step 4 in `docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md`: exact No verdict, missing-work bullets, behavioral test-gap assessment and feature-integrity qualification. Preserved other steps, document status and deferred live host rows. The recorded pre-edit blob was `09aca7bbbf6b07800325c3540aa0e0681ff09a56`; the evidence launcher reported the patch attributable before staging.
+
+### Pre-repair mandatory checks and coverage for step 4 resume-paused (exchange 1) (round 1)
+
+Writer evidence: 6768 tests, 100% line coverage over `tools`, no duration outlier or exclusion, slowest call 0.81 seconds; full speed walk green at 2026-11-19T22:12+01:00 and final staged rerun at 2026-11-19T22:19:18+01:00 with `proof=speed reused=all`. Static test review found the invalid-root error-snapshot scenario missing despite reported line coverage. No reviewer test or coverage command ran; the defect follows directly from the snapshot reader and claim verifier. No implementation/test repair was made.
+
+### Resolved validation set and sources for step 4 resume-paused (exchange 1) (round 1)
+
+Fresh sample: `.review-validation` is absent. `tools/code_review_validation.py` supplies `ghog day --full=speed`; `complete_project_default` adds the bound whole-suite selector. The current set is `ghog day --full=speed --whole-suite`, source `project`, matching the request. No plan/request additions were declared. Bound scope fingerprint: `686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6`.
+
+### Resolver drift and direction for step 4 resume-paused (exchange 1) (round 1)
+
+None. The request and current resolver require the same command and source.
+
+### Repository state around validation for step 4 resume-paused (exchange 1) (round 1)
+
+Baseline/request tree: `89ddfc58db9efce3f42945c3d6add981202374f6`; assessed tree after attributable metadata staging: `c00d40a73233f532e6eaf26b37fd614820d74b8e`. The ordered 35-path validation-state comparison reports only `docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md` and the index changed, with no untracked or ignored changes in that set. These are the reviewed-step metadata update and its staging, not validation side effects. Umbrella comparison: not applicable, unchanged. No implementation or test changes by reviewer.
+
+### Repair inventory for step 4 resume-paused (exchange 1) (round 1)
+
+Repairs made:
+
+- Metadata only: `docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md` records Step 4 as incomplete and specifies the missing claim check and regression cases.
+
+Paths staged:
+
+- `docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md`
+
+### Commit plan assessment for step 4 resume-paused (exchange 1) (round 1)
+
+Independent `commit-plan-check.bat --format json` returned exit 0, `state: valid`, `ready: true`, no diagnostics, both before assessment and after metadata staging. All 35 staged paths remain assigned exactly once. Group order and conventional subjects follow the feature dependencies. Group 7's body still describes the writer's previous Yes verdict; reconcile it with the final validation result after the requested correction.
+
+Ordered groups and their complete staged inventories:
+
+1. `feat(review): require Claude background answer waits`: `rules/run_commands.md`, `instructions/review-requestor.md`, `instructions/spec-review-requestor.md`, `instructions/code-review-requestor.md`, `tests/unit/tools/test_instruction_structure/test_requestor_answer_wait_transport_tdd.py`.
+2. `feat(resume-paused): bind markers to one assignment`: `tools/resume_paused_marker.py`, `tests/unit/tools/test_resume_paused_marker/__init__.py`, `tests/unit/tools/test_resume_paused_marker/test_resume_paused_marker_tdd.py`, `tests/unit/tools/test_resume_paused_marker/test_resume_paused_marker_pbt.py`.
+3. `feat(resume-paused): prove a receiving pane's input`: `tools/resume_paused_input.py`, `tests/unit/tools/test_resume_paused_input/__init__.py`, `tests/unit/tools/test_resume_paused_input/test_resume_paused_input_tdd.py`.
+4. `feat(review): record marked claims under the lock`: `tools/review_exchange_models_coordination.py`, `tools/review_exchange_ownership.py`, `tools/review_exchange_ownership_store.py`, `tools/review_exchange_store.py`, `tools/review_resume_identity.py`, `tools/review_exchange_cli_parser.py`, `tools/review_exchange_cli_resume.py`, `tools/resume_paused_claim.py`, `tests/memory_filesystem.py`, `tests/unit/tools/test_resume_paused_claims/__init__.py`, `tests/unit/tools/test_resume_paused_claims/test_resume_paused_claims_binding_tdd.py`.
+5. `feat(resume-paused): validate marked receivers`: `tools/resume_paused_validation.py`, `bin/resume_paused_validate.bat`, `tests/unit/tools/resume_paused_receiver_test_support.py`, `tests/unit/tools/test_resume_paused_validation/__init__.py`, `tests/unit/tools/test_resume_paused_validation/test_resume_paused_validation_tdd.py`, `tests/unit/tools/test_resume_paused_validation/test_resume_paused_validate_launcher_smoke_tdd.py`, `tests/unit/tools/test_resume_paused_claims/test_resume_paused_claims_tdd.py`.
+6. `feat(session): resume from marked bulk launches`: `instructions/resume-session.md`, `instructions/review-resume.md`, `tests/unit/tools/test_resume_paused_validation/test_resume_paused_receiver_contract_tdd.py`.
+7. `docs(resume-paused): record step 4 validation`: `docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md`, `.vscode/settings.json`.
+
+### Findings and boundaries for step 4 resume-paused (exchange 1) (round 1)
+
+Unresolved findings:
+
+- [P2] Reject error snapshots in the locked marked-claim verifier (`tools/resume_paused_claim.py:75`, `tools/resume_paused_claim.py:105`). After valid pre-claim validation, change only the schema-3 receipt's `Project root` to another checkout, keeping its prompt digest, launch, pane and assignment binding intact. `classify_usage` rejects that root, but `read_checkout_snapshot` returns `PromptState.ERROR` with the parsed prompt, routing and receipt retained (`tools/resume_paused_artifacts.py:469`, `tools/resume_paused_artifacts.py:550`). `_assignment` ignores the error state and `_marked_receipt` checks only schema/digest, so both requestor and reviewer claims can still reach backfill and issue ownership. The standalone validator rejects this snapshot, which makes the missing locked recheck observable precisely when the receipt changes after that validator call. Reject the error snapshot before deriving evidence and add regression cases asserting no artifacts or generation change.
+
+Boundary-crossing work: None.
+
+### Writer instructions for step 4 resume-paused (exchange 1) (round 1)
+
+Reject an error checkout snapshot in the marked-claim path before any backfill or ownership write. Add requestor and reviewer regression cases which validate a good receipt, then change only its root before the real locked claim; require refusal and unchanged coordination, transcript, prompt, receipt and generation relative to the changed-input baseline. Also retain a validator assertion for the invalid-root receipt. Rerun the writer-owned scope-resolved validation and update Step 4 metadata and `a.commit` truthfully before publishing the next exact round. No literal `Human guidance:` block authorized reviewer implementation repairs.
+
+### Decision rationale for step 4 resume-paused (exchange 1) (round 1)
+
+Changes requested. Readiness floor: exact identity passes; implementation completeness fails on the error-snapshot claim check; writer validation evidence is present but the static behavioral test gap remains; staged attribution passes for the metadata-only patch; unresolved-findings floor fails; mechanical commit-plan validation passes, with the final body to be reconciled after correction. This advisory answer neither authorizes a commit nor changes the human convergence gate.
+
+### Final reviewer decision for step 4 resume-paused (exchange 1) (round 1)
+
+Decision: changes-requested. The writer must address the concrete instructions and publish another review round. This advisory answer does not authorize a commit.
+
+<!-- review-entry-id: answer-step-4-round-1 -->
+
+## Round 2 by requestor - Step 4
+
+- Recorded: 2026-11-19T22:42:14+01:00
+- Exchange: code/code/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.resume-paused.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 4
+- Outcome: request
+
+### Review identity for step 4 resume-paused (round 2)
+
+Umbrella draft: none
+Implementation plan: docs/v0.14.0/plan.v0.14.0.resume-paused.md
+Implementation step: 4
+Review round: 2
+
+### Code review evidence for step 4 resume-paused (round 2)
+
+request_index_tree: ac186188e8c01bd1063ca765ff1c7bfb61febb30
+resolved_validation_set:
+
+- `ghog day --full=speed --whole-suite` (sources: project)
+
+test_scope:
+{"fingerprint": "686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6", "group": null, "proof": "speed", "requirement": "docs/v0.14.0/feature-request.v0.14.0.resume-paused.md", "scope": "whole"}
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: feat(review): require Claude background answer waits
+group 1 path: rules/run_commands.md
+group 1 path: instructions/review-requestor.md
+group 1 path: instructions/spec-review-requestor.md
+group 1 path: instructions/code-review-requestor.md
+group 1 path: tests/unit/tools/test_instruction_structure/test_requestor_answer_wait_transport_tdd.py
+group 2: feat(resume-paused): bind markers to one assignment
+group 2 path: tools/resume_paused_marker.py
+group 2 path: tests/unit/tools/test_resume_paused_marker/__init__.py
+group 2 path: tests/unit/tools/test_resume_paused_marker/test_resume_paused_marker_tdd.py
+group 2 path: tests/unit/tools/test_resume_paused_marker/test_resume_paused_marker_pbt.py
+group 3: feat(resume-paused): prove a receiving pane's input
+group 3 path: tools/resume_paused_input.py
+group 3 path: tests/unit/tools/test_resume_paused_input/__init__.py
+group 3 path: tests/unit/tools/test_resume_paused_input/test_resume_paused_input_tdd.py
+group 4: feat(review): record marked claims under the lock
+group 4 path: tools/review_exchange_models_coordination.py
+group 4 path: tools/review_exchange_ownership.py
+group 4 path: tools/review_exchange_ownership_store.py
+group 4 path: tools/review_exchange_store.py
+group 4 path: tools/review_resume_identity.py
+group 4 path: tools/review_exchange_cli_parser.py
+group 4 path: tools/review_exchange_cli_resume.py
+group 4 path: tools/resume_paused_claim.py
+group 4 path: tests/memory_filesystem.py
+group 4 path: tests/unit/tools/test_resume_paused_claims/__init__.py
+group 4 path: tests/unit/tools/test_resume_paused_claims/test_resume_paused_claims_binding_tdd.py
+group 5: feat(resume-paused): validate marked receivers
+group 5 path: tools/resume_paused_validation.py
+group 5 path: bin/resume_paused_validate.bat
+group 5 path: tests/unit/tools/resume_paused_receiver_test_support.py
+group 5 path: tests/unit/tools/test_resume_paused_validation/__init__.py
+group 5 path: tests/unit/tools/test_resume_paused_validation/test_resume_paused_validation_tdd.py
+group 5 path: tests/unit/tools/test_resume_paused_validation/test_resume_paused_validate_launcher_smoke_tdd.py
+group 5 path: tests/unit/tools/test_resume_paused_claims/test_resume_paused_claims_tdd.py
+group 6: feat(session): resume from marked bulk launches
+group 6 path: instructions/resume-session.md
+group 6 path: instructions/review-resume.md
+group 6 path: tests/unit/tools/test_resume_paused_validation/test_resume_paused_receiver_contract_tdd.py
+group 7: docs(resume-paused): record step 4 validation
+group 7 path: docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md
+group 7 path: .vscode/settings.json
+staged path: .vscode/settings.json
+staged path: bin/resume_paused_validate.bat
+staged path: docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md
+staged path: instructions/code-review-requestor.md
+staged path: instructions/resume-session.md
+staged path: instructions/review-requestor.md
+staged path: instructions/review-resume.md
+staged path: instructions/spec-review-requestor.md
+staged path: rules/run_commands.md
+staged path: tests/memory_filesystem.py
+staged path: tests/unit/tools/resume_paused_receiver_test_support.py
+staged path: tests/unit/tools/test_instruction_structure/test_requestor_answer_wait_transport_tdd.py
+staged path: tests/unit/tools/test_resume_paused_claims/__init__.py
+staged path: tests/unit/tools/test_resume_paused_claims/test_resume_paused_claims_binding_tdd.py
+staged path: tests/unit/tools/test_resume_paused_claims/test_resume_paused_claims_tdd.py
+staged path: tests/unit/tools/test_resume_paused_input/__init__.py
+staged path: tests/unit/tools/test_resume_paused_input/test_resume_paused_input_tdd.py
+staged path: tests/unit/tools/test_resume_paused_marker/__init__.py
+staged path: tests/unit/tools/test_resume_paused_marker/test_resume_paused_marker_pbt.py
+staged path: tests/unit/tools/test_resume_paused_marker/test_resume_paused_marker_tdd.py
+staged path: tests/unit/tools/test_resume_paused_validation/__init__.py
+staged path: tests/unit/tools/test_resume_paused_validation/test_resume_paused_receiver_contract_tdd.py
+staged path: tests/unit/tools/test_resume_paused_validation/test_resume_paused_validate_launcher_smoke_tdd.py
+staged path: tests/unit/tools/test_resume_paused_validation/test_resume_paused_validation_tdd.py
+staged path: tools/resume_paused_claim.py
+staged path: tools/resume_paused_input.py
+staged path: tools/resume_paused_marker.py
+staged path: tools/resume_paused_validation.py
+staged path: tools/review_exchange_cli_parser.py
+staged path: tools/review_exchange_cli_resume.py
+staged path: tools/review_exchange_models_coordination.py
+staged path: tools/review_exchange_ownership.py
+staged path: tools/review_exchange_ownership_store.py
+staged path: tools/review_exchange_store.py
+staged path: tools/review_resume_identity.py
+```
+
+### Validation scope for step 4 resume-paused (round 2)
+
+Validation scope: the whole suite.
+
+### Requestor assessment for step 4 resume-paused (round 2)
+
+Step 4 is fully implemented under plan Q05=A after the round 1 repair. The locked marked-claim verifier now refuses an error checkout snapshot before using any parsed field, as the validator already did. The implementation check again records `Yes. Step 4 has been fully implemented.`
+
+- Tests: `ghog day --full=speed --whole-suite` exit 0 at 2026-11-19T22:39:58+01:00 with 6771 tests, 100% coverage, no outlier and no exclusion, slowest call 0.31 s. A rerun after re-staging two files that `check.bat`'s formatter had reordered (imports only) reused that proof (`proof=speed reused=all`) on index tree `ac186188e8c01bd1063ca765ff1c7bfb61febb30`. Both new claim regressions failed with `DID NOT RAISE` before the fix and pass after it.
+- Static checks: the walk's `check.bat` passes ty, pyright strict, ruff, radon, vulture, big files, Markdown, ShellCheck and the end-of-file check; `spellcheck.bat check` reports no unknown word on the validation plan.
+- Coverage: 100% over `tools`; the new refusal is covered by the requestor and reviewer regressions.
+- Architecture, performance and feature integrity: unchanged from round 1; the repair adds one state check in the claim adapter and one in the shared receipt helper.
+
+### Implementation report for step 4 resume-paused (round 2)
+
+Step 4 binds marked resume consent to a fresh read-only validator and to the locked selected claim, and makes the Claude requestor answer wait a required background start.
+
+- `rules/run_commands.md` (Q25=A): new subsection "Claude requestors wait for answers in the background". Every Claude requestor starts each `wait-answer` through a host background mechanism on every requestor route, as one recognized invocation form, ends its turn and resumes from the completion notification. A foreground or moved wait leaves the reviewer pending, and Codex keeps its attached wait. `review-requestor.md`, `spec-review-requestor.md` and `code-review-requestor.md` link to it.
+- `tools/resume_paused_marker.py`: the marker `<launch_id>.rp1.<pane_uuid>.<role>.<binding>` (launch id first, version `rp1`, full pane UUID, one of the five role tokens, 64 hexadecimal binding; ASCII, at most 153 characters), extracted from exactly one `--resume-paused` token. The binding hashes the canonical UTF-8 JSON (sorted keys, compact separators) of schema `resume-paused-assignment` version 1: checkout key, prompt SHA-256, receiver host, session, pane and role, the pair after any swap, and the exact exchange with occurrence and selected round, or null. `resolve_assignment` rebuilds it from saved routing and the live exchange; a swap is a pair pane given the other pair role, only for a saved requestor pause. `ResultLine`: `resume-paused <launch_id> <outcome>[ g<generation>]`, at most 100 characters.
+- `tools/resume_paused_input.py`: `TuiosDiscovery` runs `tuios list-agents --all-sessions --json` and `tuios capture-pane` as argument lists through `SubprocessRunner` (never a shell). `PaneRecord` keeps the full `window_id`, `session`, `name`, `cwd`, harness, program-status apps and agent session id, and `pane_host` uses strong evidence first. `ClaudeInputProver` proves the marked command as the latest typed input of the transcript named by the pane's agent session id, at or after the pause snapshot, in the checkout, under a pinned profile. `CodexInputProver` ties the pane through `prove_codex_pane`, proves the unique session file with `prove_codex_input`, and re-proves the same session with the carried identity and launch id. `UnpinnedCodexVersions` reports the pre-input version unavailable until a release is pinned.
+- `tools/resume_paused_validation.py` and `bin/resume_paused_validate.bat`: the validator checks the marker, the saved pause, the resolved routing, the live exchange (Step 2 observer), the binding and host, the consumption stage (unconsumed, consumed by this launch's schema 3 receipt, or for a reviewer the requestor's schema 3 receipt), the live pane (never an inherited `TUIOS_PANE_ID`) and the complete input. It returns typed non-secret JSON with reasons, the compact failure line, the carried Codex session and the bytes read, and exits 0 valid, 3 refused, 2 invalid. It writes and caches nothing.
+- Marked claim (Q03, Q04, Q11): `CoordinationRecord.marked_claim` is a `MarkedClaimBinding` (launch id, pane, host, assignment binding, round, occurrence, issued generation) that must equal the ownership generation. `OwnershipService.claim(marked=...)` always issues a generation with it; any other new claim clears it; current-owner transitions keep it. The ownership store and exchange store forward it. `claim_selected(marked=...)` runs `tools/resume_paused_claim.py`'s verifier under the transition lock before backfill. The verifier re-parses the marker and requires the claimed role, the Codex carried identity and launch id, the current prompt, routing and locked round and occurrence, the same exact exchange, the claimant host, the binding and the consuming receipt. Every refusal writes nothing, and the claim reads no host session file and needs no TUIOS. `claim` takes `--resume-paused-marker`, `--carried-session` and `--carried-launch-id`; callers without them keep the manual path (read by `getattr`, after the first regression run showed existing callers building the arguments without them).
+- Round 1 repair: `read_checkout_snapshot` keeps the prompt, routing and receipt it parsed when it rejects a receipt's `Project root`, returning an error snapshot. `_assignment` in `tools/resume_paused_claim.py` now refuses an error snapshot as `checkout-unreadable` before rebuilding the assignment. The shared `_marked_receipt` (used by `consumed_by` and `requestor_consumed`, and so by the validator) never returns a receipt from an error snapshot.
+- `instructions/resume-session.md`: `--resume-paused <marker>`, a schema 1 to 3 flag reader keyed on `Prompt`, `SHA-256` and `Project root`, an accepted marker as consent for the author override, new section "Resume from a marked bulk launch" (validate before the receipt, journal and claim, keep a written receipt on later refusal, schema 3 receipt, compact result first, no fallback question), and schema 2 versus schema 3 receipt writing. `instructions/review-resume.md`: appended section "Continue a marked review role".
+- `tests/unit/tools/resume_paused_receiver_test_support.py` (Q02=A): `ReceiverCheckout`, `FakeDiscovery`, `FakeProver` and `ReceiverHarness`, which runs validate, receipt, validate, journal, validate, claim with the real validator and locked claim and an evidence hook before each step.
+- Round 1 regressions: `test_receipt_moved_to_another_checkout_after_validation_refuses_the_claim` (requestor and reviewer) validates a good receipt with the real validator (new harness helper `receiver_validator`), changes only the receipt's root, and asserts the locked claim is refused with coordination, transcript, prompt, receipt and generation unchanged; both cases failed (`DID NOT RAISE`) before the fix. The validator's refusal table gains "receipt of another checkout" (`checkout-unreadable`).
+- Tests: leaves `test_resume_paused_marker` (tdd, pbt), `test_resume_paused_input`, `test_resume_paused_claims` (binding, claim), `test_resume_paused_validation` (validator and sequences, launcher smoke, receiver instruction contract) and `test_instruction_structure/test_requestor_answer_wait_transport_tdd.py`.
+- `docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md`: Step 4 recorded Yes, with deviations and a "Live host dependencies of Step 4" list left open under Q05=A. `.vscode/settings.json`: project word `unrouted`.
+
+Points for the reviewer's attention:
+
+- Implementation decisions the design leaves open: the marker and result grammars and the assignment schema above. The receiver does not know the delivery instant, so "recorded after delivery" uses the prompt's snapshot instant as the lower bound, with exact whole-command equality of the latest typed input and the fresh launch id.
+- Real host proof stays unsupported under plan Q05=A: the shipped registry is empty, and the Codex pre-input version source for a pane is not wired until a release is pinned. The three live dependencies are listed in the validation plan.
+- Deviations from the planned file list: `tools/resume_paused_input.py` (pane and input evidence, split from the validator by responsibility), test leaves for the marker and input modules, `test_resume_paused_claims_binding_tdd.py`, `test_resume_paused_receiver_contract_tdd.py`, and the scratch filesystem registrations in `tests/memory_filesystem.py`.
+- `tools/review_exchange_store.py` is at 611 lines in the risk band and changed only by forwarding; the two forwarding claim signatures carry a PLR0913 waiver.
+- `rg` is not available in the shell used; contract inspection used the equivalent Grep search.
+- No accepted duration exclusion exists.
+
+Writer notes: `.reviews/a.resume-paused.step4.journal.md` and `.reviews/a.resume-paused.step4.handoff.md`.
+
+### Change summary for step 4 resume-paused (round 2)
+
+Thirty-five staged paths in seven `a.commit` groups, in this order:
+
+1. `feat(review): require Claude background answer waits`: `rules/run_commands.md`, `instructions/review-requestor.md`, `instructions/spec-review-requestor.md`, `instructions/code-review-requestor.md`, `tests/unit/tools/test_instruction_structure/test_requestor_answer_wait_transport_tdd.py`.
+2. `feat(resume-paused): bind markers to one assignment`: `tools/resume_paused_marker.py` and the `tests/unit/tools/test_resume_paused_marker` package (package file, tdd and pbt files).
+3. `feat(resume-paused): prove a receiving pane's input`: `tools/resume_paused_input.py` and the `tests/unit/tools/test_resume_paused_input` package (package file and tdd file).
+4. `feat(review): record marked claims under the lock`: `tools/review_exchange_models_coordination.py`, `tools/review_exchange_ownership.py`, `tools/review_exchange_ownership_store.py`, `tools/review_exchange_store.py`, `tools/review_resume_identity.py`, `tools/review_exchange_cli_parser.py`, `tools/review_exchange_cli_resume.py`, `tools/resume_paused_claim.py`, `tests/memory_filesystem.py`, and the claims package file with `test_resume_paused_claims_binding_tdd.py`.
+5. `feat(resume-paused): validate marked receivers`: `tools/resume_paused_validation.py`, `bin/resume_paused_validate.bat`, `tests/unit/tools/resume_paused_receiver_test_support.py`, the `tests/unit/tools/test_resume_paused_validation` package file with its validation and launcher smoke files, and `test_resume_paused_claims_tdd.py`, which needs the harness.
+6. `feat(session): resume from marked bulk launches`: `instructions/resume-session.md`, `instructions/review-resume.md`, `tests/unit/tools/test_resume_paused_validation/test_resume_paused_receiver_contract_tdd.py`.
+7. `docs(resume-paused): record step 4 validation`: `docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md`, `.vscode/settings.json`.
+
+The commit-plan checker reports the plan valid and ready. The code review transcript is not staged and goes to the residual commit.
+
+### Writer response for step 4 resume-paused (round 2)
+
+Writer response:
+
+Round 1 finding P2 (the locked marked-claim verifier used parsed fields from an error checkout snapshot): accepted and repaired as the reviewer directed.
+
+- `tools/resume_paused_claim.py`: `_assignment` refuses `PromptState.ERROR` as `checkout-unreadable` before using the prompt, routing or receipt, and `_marked_receipt` never returns a receipt from an error snapshot, so the shared consumption checks used by the claim and the validator cannot read one.
+- `tests/unit/tools/test_resume_paused_claims/test_resume_paused_claims_tdd.py`: requestor and reviewer regressions validate a good receipt with the real validator, change only its `Project root`, keep its digest and marked fields, and require the real locked claim to refuse with coordination, transcript, prompt, receipt and generation unchanged relative to the changed-input baseline. Both failed with `DID NOT RAISE` before the fix.
+- `tests/unit/tools/test_resume_paused_validation/test_resume_paused_validation_tdd.py`: the refusal table keeps a validator assertion for the same receipt (`checkout-unreadable`).
+- `tests/unit/tools/resume_paused_receiver_test_support.py`: new `receiver_validator` helper used by the claims regression.
+- `docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md`: the reviewer's staged No verdict and its two Missing work bullets are resolved; the writer's implementation check restores Yes, removes the Missing work section and records the repair in the implementation, coverage and feature-integrity sections. This follows the repair, not a disagreement.
+- `a.commit`: membership, order and subjects unchanged; groups 4 and 5 each gain one What bullet for the repair and its regressions, and group 7 now describes the final Yes result truthfully. The checker reports valid and ready.
+
+No disagreement.
+
+### Reviewer focus for step 4 resume-paused (round 2)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-4-round-2 -->
+
+## Round 2 by reviewer - Step 4
+
+- Recorded: 2026-11-19T22:46:23+01:00
+- Exchange: code/code/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.resume-paused.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 4
+- Outcome: answer
+
+### Assessed index identity for step 4 resume-paused (exchange 1) (round 2)
+
+Baseline index tree: ac186188e8c01bd1063ca765ff1c7bfb61febb30
+
+Assessed index tree: ac186188e8c01bd1063ca765ff1c7bfb61febb30
+
+### Implementation check for step 4 resume-paused (exchange 1) (round 2)
+
+Result:
+
+Yes. Step 4 has been fully implemented.
+
+The round 1 P2 finding is resolved. The fresh locked verifier rejects PromptState.ERROR in _assignment before rebuilding an assignment, backfill or ownership issuance; _marked_receipt also refuses error snapshots. The requestor/reviewer regression validates a good receipt with the real validator, changes only Project root, then invokes the real locked claim and checks the unchanged coordination, transcript, prompt and receipt bytes (including the stored generation). The validator refusal table independently covers the invalid root.
+
+The unchanged marker, pane/input proof, marked ownership threading, receiving instructions and Claude background answer-wait rule retain the prior round's assessment. The narrow state guards add constant work and preserve the adapter boundaries and manual path. No architecture, performance or feature-integrity defect remains identified. Under plan Q05=A, the empty profile registry and live-host dependencies remain open for the Step 1 live matrix and Steps 6–8; this verdict covers Step 4's code deliverable.
+
+Coverage is assessed statically: the new cases close the previously missing behavioral scenario; the helper receiver_validator is called by those tests and the invalid-root fixture is referenced in REFUSALS. The measured source scope is tools, with the exclusions in pyproject.toml, not tests or Markdown. No additional unit-test gap or unreferenced added top-level symbol was identified.
+
+Validation plan effects:
+
+The writer restored the exact Step 4 Yes verdict, removed the completed Missing work section and recorded the error-snapshot repair and regression coverage. These rows agree with this assessment. No reviewer edit was needed; other steps and live-host dependencies remain unchanged.
+
+### Pre-repair mandatory checks and coverage for step 4 resume-paused (exchange 1) (round 2)
+
+The received tree ac186188e8c01bd1063ca765ff1c7bfb61febb30 matches the request. No reviewer repair or test command was run. The requestor reports ghog day --full=speed --whole-suite exit 0 at 2026-11-19T22:39:58+01:00: 6771 tests, 100% coverage over tools, no outlier/exclusion, slowest 0.31 s; the post-formatting rerun reused the speed proof on this exact index. Both new locked-claim cases reportedly failed before the fix. The reviewer inspected the code/test delta and gate scope without repeating the suite or measuring coverage.
+
+### Resolved validation set and sources for step 4 resume-paused (exchange 1) (round 2)
+
+ghog day --full=speed --whole-suite — source: project. The request binds the whole-suite speed scope with fingerprint 686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6. This is requestor validation evidence.
+
+### Resolver drift and direction for step 4 resume-paused (exchange 1) (round 2)
+
+None. A fresh Test-Path .review-validation returned False. tools/code_review_validation.py supplies ghog day --full=speed and complete_project_default appends the explicit --whole-suite selector. This matches the published command and project source.
+
+### Repository state around validation for step 4 resume-paused (exchange 1) (round 2)
+
+Baseline and assessed index are both ac186188e8c01bd1063ca765ff1c7bfb61febb30. The ordered validation path set includes all 35 staged paths and the validation plan. The evidence launcher's before/after comparison reports acceptable=true with no tracked, untracked or ignored path changes. Umbrella digest is not applicable and unchanged. No reviewer staging occurred.
+
+### Repair inventory for step 4 resume-paused (exchange 1) (round 2)
+
+Repairs made: None.
+
+Paths staged: None.
+
+### Commit plan assessment for step 4 resume-paused (exchange 1) (round 2)
+
+The independent commit-plan-check.bat --format json exited 0: state=valid, ready=true, diagnostics=[]. All 35 staged paths are covered exactly. The seven groups remain coherent in their declared order; subjects describe the staged work, and groups 4/5 now describe the repair and regressions. Group 7 accurately records the final Step 4 verdict. No amendment is needed.
+
+1. feat(review): require Claude background answer waits
+   Paths: `rules/run_commands.md`, `instructions/review-requestor.md`, `instructions/spec-review-requestor.md`, `instructions/code-review-requestor.md`, `tests/unit/tools/test_instruction_structure/test_requestor_answer_wait_transport_tdd.py`.
+
+2. feat(resume-paused): bind markers to one assignment
+   Paths: `tools/resume_paused_marker.py`, `tests/unit/tools/test_resume_paused_marker/__init__.py`, `tests/unit/tools/test_resume_paused_marker/test_resume_paused_marker_tdd.py`, `tests/unit/tools/test_resume_paused_marker/test_resume_paused_marker_pbt.py`.
+
+3. feat(resume-paused): prove a receiving pane's input
+   Paths: `tools/resume_paused_input.py`, `tests/unit/tools/test_resume_paused_input/__init__.py`, `tests/unit/tools/test_resume_paused_input/test_resume_paused_input_tdd.py`.
+
+4. feat(review): record marked claims under the lock
+   Paths: `tools/review_exchange_models_coordination.py`, `tools/review_exchange_ownership.py`, `tools/review_exchange_ownership_store.py`, `tools/review_exchange_store.py`, `tools/review_resume_identity.py`, `tools/review_exchange_cli_parser.py`, `tools/review_exchange_cli_resume.py`, `tools/resume_paused_claim.py`, `tests/memory_filesystem.py`, `tests/unit/tools/test_resume_paused_claims/__init__.py`, `tests/unit/tools/test_resume_paused_claims/test_resume_paused_claims_binding_tdd.py`.
+
+5. feat(resume-paused): validate marked receivers
+   Paths: `tools/resume_paused_validation.py`, `bin/resume_paused_validate.bat`, `tests/unit/tools/resume_paused_receiver_test_support.py`, `tests/unit/tools/test_resume_paused_validation/__init__.py`, `tests/unit/tools/test_resume_paused_validation/test_resume_paused_validation_tdd.py`, `tests/unit/tools/test_resume_paused_validation/test_resume_paused_validate_launcher_smoke_tdd.py`, `tests/unit/tools/test_resume_paused_claims/test_resume_paused_claims_tdd.py`.
+
+6. feat(session): resume from marked bulk launches
+   Paths: `instructions/resume-session.md`, `instructions/review-resume.md`, `tests/unit/tools/test_resume_paused_validation/test_resume_paused_receiver_contract_tdd.py`.
+
+7. docs(resume-paused): record step 4 validation
+   Paths: `docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md`, `.vscode/settings.json`.
+
+### Findings and boundaries for step 4 resume-paused (exchange 1) (round 2)
+
+Unresolved findings: None.
+
+Boundary-crossing work: None.
+
+### Writer instructions for step 4 resume-paused (exchange 1) (round 2)
+
+No further Step 4 repair is requested. Preserve the deferred live-host checklist. Continue through the existing convergence gate; this advisory recommendation does not authorize a commit.
+
+### Decision rationale for step 4 resume-paused (exchange 1) (round 2)
+
+Commit-ready. All six readiness-floor checks pass: exact identity/index agreement; Step 4 completeness under Q05=A; consistent requestor validation evidence plus static coverage assessment; no reviewer changes or attribution issue; no unresolved finding; and independently valid/ready a.commit. The round 1 receipt-root defect is closed by an early error-state guard and concrete regressions for both claim roles.
+
+### Final reviewer decision for step 4 resume-paused (exchange 1) (round 2)
+
+Decision: commit-ready (advisory). The evidence floor is complete, but this recommendation does not authorize a commit; authority remains at the durable human gate.
+
+<!-- review-entry-id: answer-step-4-round-2 -->
+
+## Round 2 by human - Step 4 - human-confirmation
+
+- Recorded: 2026-11-19T22:59:05+01:00
+- Exchange: code/code/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.resume-paused.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 4
+- Outcome: human-confirmation
+
+Human choice: Commit
+Outcome: continue-owning-workflow
+
+<!-- review-entry-id: human-confirmation-round-2 -->
