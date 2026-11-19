@@ -79,6 +79,8 @@ _SCENARIOS = (
     "tests/unit/tools/markdown_check/test_policy/",
     "tests/unit/tools/test_resume_paused_artifacts/",
     "tests/unit/tools/test_resume_paused_review/",
+    "tests/unit/tools/test_resume_paused_claims/",
+    "tests/unit/tools/test_resume_paused_validation/",
 )
 _active_scenario = False
 _COPY_FUNCTION_POSITION = 3

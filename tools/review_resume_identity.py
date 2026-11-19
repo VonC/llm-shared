@@ -2,6 +2,12 @@
 
 This adapter reuses the strict artifact parsers, atomic backfill service, and
 ownership store. A stale selection or unresolved role conflict cannot claim.
+
+Fix (v0.14.0 resume-paused, Step 4): ``claim_selected`` accepts an optional
+marked claim verifier. It runs under the transition lock right after the
+round and occurrence recheck, before any backfill or ownership write; a
+refusal leaves every artifact unchanged. Its evidence makes the claim issue a
+new generation recorded with the marked binding.
 """
 
 # ruff: noqa: EM101, TRY003
@@ -42,12 +48,15 @@ from tools.review_role_nature import (
 )
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping
+    from collections.abc import Callable, Mapping
     from pathlib import Path
     from typing import Any
 
     from tools.review_exchange_core import ReviewExchangeCore
+    from tools.review_exchange_models_coordination import MarkedClaimEvidence
     from tools.review_exchange_ownership import OwnershipCapability
+
+type MarkedClaimVerifier = Callable[[CoordinationRecord, int], MarkedClaimEvidence]
 
 
 def _render_snapshot(
@@ -91,30 +100,36 @@ def claim_selected(  # noqa: PLR0913 - exact selected occurrence and explicit co
     round_number: int,
     occurrence: int,
     override: bool,
+    marked: MarkedClaimVerifier | None = None,
 ) -> OwnershipCapability:
-    """Recheck, backfill, and claim under the normal exact transition lock."""
+    """Recheck, verify any marked claim, backfill, and claim under the transition lock."""
     store = core.store
     with store.transition_lock():
         observation = core.classify()
         record = observation.record
         if record is None or record.round_number != round_number or current_request_occurrence(store, core.context, round_number) != occurrence:
             raise ReviewExchangeError("resume selection changed; inspect again")
+        evidence = None if marked is None else marked(record, occurrence)
         decision = ReviewResumeService().decide(
             nature, (ResumeExchange(observation.state, None, None),), forced_role=role,
         )
         if decision.outcome is not ResumeDecisionOutcome.READY:
             raise ReviewExchangeError("resume state no longer permits continuation")
         service = OwnershipService()
-        presented = core.ownership_capability
-        if service.failure_for(record, presented) is not None:
-            presented = None
-        if presented is not None and record.owner.value != role.value:
-            presented = None
+        presented = None if evidence is not None else _presented(core, record, role, service)
         updated = _backfill_selected(core, record, role, nature, occurrence=occurrence, override=override)
         claim = store.claim_ownership(
-            updated, service, Actor(role.value), presented=presented, force=presented is None,
+            updated, service, Actor(role.value), presented=presented, force=presented is None, marked=evidence,
         )
         return claim.capability
+
+
+def _presented(core: ReviewExchangeCore, record: CoordinationRecord, role: ReviewRole, service: OwnershipService) -> OwnershipCapability | None:
+    """Keep the session's capability only when it is valid for the role it already owns."""
+    presented = core.ownership_capability
+    if service.failure_for(record, presented) is not None or (presented is not None and record.owner.value != role.value):
+        return None
+    return presented
 
 
 def _backfill_selected(  # noqa: PLR0913 - explicit selected identity transaction inputs

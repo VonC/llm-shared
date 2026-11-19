@@ -8,6 +8,10 @@ abandonment remains resumable without weakening migration or damage gates.
 Fix: with a running native observer, the global wait spaces quiet rescans up
 to about 30 seconds instead of rescanning the artifact home every poll
 interval; without one it keeps polling every interval.
+
+Fix (v0.14.0 resume-paused, Step 4): a ``claim`` carrying a resume-paused
+marker passes its verifier to the locked selected claim, which records the
+marked binding with the issued generation or refuses before any write.
 """
 
 
@@ -19,6 +23,7 @@ from datetime import datetime
 from typing import TYPE_CHECKING, Any, Final
 
 from tools.llm_nature import LlmNature, LlmNatureDetector
+from tools.resume_paused_claim import verifier_from_arguments
 from tools.review_artifact_configuration import ReviewArtifactConfiguration
 from tools.review_artifact_migration import (
     MigrationCheckResult,
@@ -227,10 +232,11 @@ def _resume_claim(args: Namespace, root: Path) -> tuple[dict[str, Any], int]:
     core.present_ownership(capability_from_args(args))
 
     def acquire(role: ReviewRole) -> OwnershipCapability:
-        """Keep backfill, claim and the secret inside the selected invocation."""
+        """Keep marked verification, backfill, claim and the secret inside the selected invocation."""
         return claim_selected(
             core, role, nature, round_number=entry.round_number,
             occurrence=entry.occurrence, override=args.override,
+            marked=verifier_from_arguments(args, root, role, nature),
         )
 
     resolution = ReviewResumeService().resume(

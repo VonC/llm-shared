@@ -2,7 +2,8 @@
 
 Transcript initialization reads its family template through
 `template_text.read_template`, the template-reading function shared with the
-request and answer renderers.
+request and answer renderers. Ownership claims forward optional marked resume
+evidence (v0.14.0 resume-paused, Step 4) to the ownership store unchanged.
 """
 
 # ruff: noqa: EM101, EM102, TRY003
@@ -43,6 +44,7 @@ if TYPE_CHECKING:
 
     from tools.llm_nature import LlmNature
     from tools.review_exchange_models import Actor
+    from tools.review_exchange_models_coordination import MarkedClaimEvidence
     from tools.review_exchange_ownership import (
         OwnershipCapability,
         OwnershipClaim,
@@ -119,7 +121,7 @@ class ReviewExchangeStore:
         """Delegate the identity-specific lock to focused ownership storage."""
         return self.ownership_store.transition_lock()
 
-    def claim_ownership(
+    def claim_ownership(  # noqa: PLR0913 - forwards the ownership store's claim inputs unchanged
         self,
         record: CoordinationRecord,
         service: OwnershipService,
@@ -127,6 +129,7 @@ class ReviewExchangeStore:
         *,
         presented: OwnershipCapability | None = None,
         force: bool = False,
+        marked: MarkedClaimEvidence | None = None,
     ) -> OwnershipClaim:
         """Delegate one locked compare-and-swap ownership claim."""
         return self.ownership_store.claim(
@@ -135,6 +138,7 @@ class ReviewExchangeStore:
             actor,
             presented=presented,
             force=force,
+            marked=marked,
         )
 
     def publish_atomic(self, path: Path, content: str) -> None:

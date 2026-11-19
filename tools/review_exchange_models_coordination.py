@@ -3,9 +3,16 @@
 Step 3 adds a monotonic ownership generation and token digest while retaining
 legacy parsing for records that predate role-nature or ownership evidence. A
 plaintext ownership token is never represented by this durable model.
+
+Fix (v0.14.0 resume-paused, Step 4): an optional ``marked_claim`` records the
+non-secret evidence of a marked resume claim, launch id, receiving pane, host,
+assignment binding, round and occurrence, with the generation it was issued
+with. It must equal the record's ownership generation, so it rides through
+current-owner transitions and a newly issued claim clears or replaces it.
+Records without the key parse as before.
 """
 
-# ruff: noqa: EM101, TRY003
+# ruff: noqa: EM101, EM102, TRY003
 
 from __future__ import annotations
 
@@ -120,9 +127,94 @@ def _ownership_from_mapping(
     )
 
 
+_LAUNCH_ID_RE = re.compile(r"^[0-9a-f]{32}$")
+_PANE_ID_RE = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$")
+_HOST_RE = re.compile(r"^[a-z][a-z0-9-]*$")
+_MARKED_CLAIM_KEYS = frozenset({
+    "launch_id", "pane_id", "host", "assignment_binding", "round", "occurrence", "issued_generation",
+})
+
+
+def _spelled(pattern: re.Pattern[str], value: object) -> bool:
+    """Return whether one parsed value is a string in its strict spelling."""
+    return isinstance(value, str) and pattern.fullmatch(value) is not None
+
+
+def _marked_positive(value: object, label: str) -> int:
+    """Return one positive JSON integer of a marked claim, excluding booleans."""
+    if isinstance(value, bool) or not isinstance(value, int) or value < 1:
+        raise ReviewExchangeError(f"invalid marked claim {label}")
+    return value
+
+
+@dataclass(frozen=True)
+class MarkedClaimEvidence:
+    """Non-secret evidence of one marked resume claim, before its generation is issued."""
+
+    launch_id: str
+    pane_id: str
+    host: str
+    assignment_binding: str
+    round_number: int
+    occurrence: int
+
+    def __post_init__(self) -> None:
+        """Refuse any field outside its strict spelling."""
+        checks = (
+            (_LAUNCH_ID_RE, self.launch_id, "launch id"),
+            (_PANE_ID_RE, self.pane_id, "receiving pane"),
+            (_HOST_RE, self.host, "host"),
+            (_OWNERSHIP_DIGEST_RE, self.assignment_binding, "assignment binding"),
+        )
+        for pattern, value, label in checks:
+            if not _spelled(pattern, value):
+                raise ReviewExchangeError(f"invalid marked claim {label}")
+        _marked_positive(self.round_number, "round")
+        _marked_positive(self.occurrence, "occurrence")
+
+    def issued(self, generation: int) -> MarkedClaimBinding:
+        """Bind this evidence to the ownership generation just issued for it."""
+        return MarkedClaimBinding(self, generation)
+
+
+@dataclass(frozen=True)
+class MarkedClaimBinding:
+    """Marked claim evidence together with the ownership generation it was issued with."""
+
+    evidence: MarkedClaimEvidence
+    issued_generation: int
+
+    def __post_init__(self) -> None:
+        """Refuse a binding without a positive issued generation."""
+        _marked_positive(self.issued_generation, "generation")
+
+    def to_dict(self) -> dict[str, Any]:
+        """Return the strict JSON-compatible binding."""
+        evidence = self.evidence
+        return {
+            "launch_id": evidence.launch_id,
+            "pane_id": evidence.pane_id,
+            "host": evidence.host,
+            "assignment_binding": evidence.assignment_binding,
+            "round": evidence.round_number,
+            "occurrence": evidence.occurrence,
+            "issued_generation": self.issued_generation,
+        }
+
+    @classmethod
+    def from_dict(cls, data: Mapping[str, Any]) -> MarkedClaimBinding:
+        """Parse one strict binding mapping."""
+        strict_fields(data, set(_MARKED_CLAIM_KEYS), "marked claim")
+        evidence = MarkedClaimEvidence(
+            data["launch_id"], data["pane_id"], data["host"], data["assignment_binding"],
+            data["round"], data["occurrence"],
+        )
+        return cls(evidence, data["issued_generation"])
+
+
 @dataclass(frozen=True)
 class CoordinationRecord:
-    """Durable state with digest-only ownership and an optional bound scope."""
+    """Durable state with digest-only ownership, an optional bound scope and marked claim."""
 
     context: ReviewContext
     policy: FamilyPolicy
@@ -147,9 +239,10 @@ class CoordinationRecord:
     ownership_generation: int = 0
     ownership_token_digest: str | None = None
     bound_scope_fingerprint: str | None = None
+    marked_claim: MarkedClaimBinding | None = None
 
     def __post_init__(self) -> None:
-        """Validate status, marker, confirmation, and ownership invariants."""
+        """Validate status, marker, confirmation, ownership and marked claim invariants."""
         positive_integer(self.round_number, "coordination round")
         non_negative_integer(self.no_progress_streak, "no-progress streak")
         if self.lease_renewed_at is not None:
@@ -162,6 +255,8 @@ class CoordinationRecord:
             _OWNERSHIP_DIGEST_RE.fullmatch(self.bound_scope_fingerprint) is None
         ):
             raise ReviewExchangeError("invalid bound scope fingerprint")
+        if self.marked_claim is not None and self.marked_claim.issued_generation != self.ownership_generation:
+            raise ReviewExchangeError("marked claim generation must equal the ownership generation")
 
     def to_dict(self) -> dict[str, Any]:
         """Return strict JSON-compatible coordination data."""
@@ -198,6 +293,8 @@ class CoordinationRecord:
         if self.ownership_generation > 0:
             result["ownership_generation"] = self.ownership_generation
             result["ownership_token_digest"] = self.ownership_token_digest
+        if self.marked_claim is not None:
+            result["marked_claim"] = self.marked_claim.to_dict()
         return result
 
     @classmethod
@@ -220,6 +317,10 @@ class CoordinationRecord:
         )
         if "bound_scope_fingerprint" in data:
             expected.add("bound_scope_fingerprint")
+        marked = None
+        if "marked_claim" in data:
+            expected.add("marked_claim")
+            marked = MarkedClaimBinding.from_dict(mapping_value(data["marked_claim"], "marked claim"))
         strict_fields(data, expected, "coordination record")
         marker_value = data["incomplete_transition"]
         outcome_value = data["confirmed_outcome"]
@@ -305,6 +406,7 @@ class CoordinationRecord:
             ownership_generation=ownership_generation,
             ownership_token_digest=ownership_digest,
             bound_scope_fingerprint=optional_string(data.get("bound_scope_fingerprint"), "bound scope fingerprint"),
+            marked_claim=marked,
         )
 
 
