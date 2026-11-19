@@ -101,7 +101,9 @@ Only then pass the complete paired artifacts to `publish-request`.
    Declared project commands and plan/request additions remain unchanged.
 5. Do not start, spawn, delegate, invoke, or message a reviewer. Run
    `wait-answer` immediately in this same requestor session using the complete
-   marker timeout. Read only the exact `paths.answer` file returned for this
+   marker timeout. A Claude requestor starts it as the
+   [Claude background answer wait](../rules/run_commands.md#claude-requestors-wait-for-answers-in-the-background)
+   requires. Read only the exact `paths.answer` file returned for this
    identity.
 6. For an intermediate answer, assess accepted repairs, make writer-owned
    corrections, and call `consume-answer` with truthful `reviewed-work-changed`
