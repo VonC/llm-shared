@@ -4,7 +4,7 @@
     {
       "bound_seconds": 30,
       "details": {},
-      "duration_seconds": 0.766,
+      "duration_seconds": 0.646,
       "expected": {
         "in_job_before_resume": true,
         "status": 0,
@@ -18,7 +18,8 @@
       },
       "outcome": "passed",
       "sources": {
-        "tests/unit/tools/release_workflow/git_cliff_native_checks.py": "9c73f838fcc0b9aaffdfb266bc02bab3ad1a579c90df7b134c0539373243a6e6",
+        "tests/unit/tools/release_workflow/git_cliff_native_checks.py": "a9a50cdc0ad642a93e572e9d086fcd123a1753af5bea8a1aee6e1041ad6b93d8",
+        "tests/unit/tools/release_workflow/git_cliff_native_probes.py": "fd8ccebe485c4bbb29243b4116333810fe76687566c2de993db5faf5b11cb0ec",
         "tools/release_workflow/windows_child.py": "599152298397a98ef7bdb0b1952d2fed9427575f6472715424ee7494c0abe8eb",
         "tools/release_workflow/windows_native.py": "df8fced8f16e0ee642aa1b057e9c864c650fbfaccbc2225228a804097e1fcf37",
         "tools/release_workflow/windows_process.py": "7108c18c5dbb546f19e47e2c3ed5d744410795c9b9945f4e735ddc449a3afca8"
@@ -27,7 +28,7 @@
     {
       "bound_seconds": 60,
       "details": {},
-      "duration_seconds": 1.029,
+      "duration_seconds": 1.01,
       "expected": {
         "child_ended": true,
         "child_ran": false
@@ -39,7 +40,8 @@
       },
       "outcome": "passed",
       "sources": {
-        "tests/unit/tools/release_workflow/git_cliff_native_checks.py": "9c73f838fcc0b9aaffdfb266bc02bab3ad1a579c90df7b134c0539373243a6e6",
+        "tests/unit/tools/release_workflow/git_cliff_native_checks.py": "a9a50cdc0ad642a93e572e9d086fcd123a1753af5bea8a1aee6e1041ad6b93d8",
+        "tests/unit/tools/release_workflow/git_cliff_native_probes.py": "fd8ccebe485c4bbb29243b4116333810fe76687566c2de993db5faf5b11cb0ec",
         "tools/release_workflow/windows_child.py": "599152298397a98ef7bdb0b1952d2fed9427575f6472715424ee7494c0abe8eb",
         "tools/release_workflow/windows_native.py": "df8fced8f16e0ee642aa1b057e9c864c650fbfaccbc2225228a804097e1fcf37",
         "tools/release_workflow/windows_process.py": "7108c18c5dbb546f19e47e2c3ed5d744410795c9b9945f4e735ddc449a3afca8"
@@ -48,7 +50,7 @@
     {
       "bound_seconds": 60,
       "details": {},
-      "duration_seconds": 0.917,
+      "duration_seconds": 0.931,
       "expected": {
         "call": "CreateProcessW",
         "child_ran": false,
@@ -64,7 +66,8 @@
       },
       "outcome": "passed",
       "sources": {
-        "tests/unit/tools/release_workflow/git_cliff_native_checks.py": "9c73f838fcc0b9aaffdfb266bc02bab3ad1a579c90df7b134c0539373243a6e6",
+        "tests/unit/tools/release_workflow/git_cliff_native_checks.py": "a9a50cdc0ad642a93e572e9d086fcd123a1753af5bea8a1aee6e1041ad6b93d8",
+        "tests/unit/tools/release_workflow/git_cliff_native_probes.py": "fd8ccebe485c4bbb29243b4116333810fe76687566c2de993db5faf5b11cb0ec",
         "tools/release_workflow/windows_child.py": "599152298397a98ef7bdb0b1952d2fed9427575f6472715424ee7494c0abe8eb",
         "tools/release_workflow/windows_native.py": "df8fced8f16e0ee642aa1b057e9c864c650fbfaccbc2225228a804097e1fcf37",
         "tools/release_workflow/windows_process.py": "7108c18c5dbb546f19e47e2c3ed5d744410795c9b9945f4e735ddc449a3afca8"
@@ -73,7 +76,7 @@
     {
       "bound_seconds": 60,
       "details": {},
-      "duration_seconds": 0.999,
+      "duration_seconds": 1.231,
       "expected": {
         "child_ended": true,
         "child_ran": true
@@ -85,7 +88,8 @@
       },
       "outcome": "passed",
       "sources": {
-        "tests/unit/tools/release_workflow/git_cliff_native_checks.py": "9c73f838fcc0b9aaffdfb266bc02bab3ad1a579c90df7b134c0539373243a6e6",
+        "tests/unit/tools/release_workflow/git_cliff_native_checks.py": "a9a50cdc0ad642a93e572e9d086fcd123a1753af5bea8a1aee6e1041ad6b93d8",
+        "tests/unit/tools/release_workflow/git_cliff_native_probes.py": "fd8ccebe485c4bbb29243b4116333810fe76687566c2de993db5faf5b11cb0ec",
         "tools/release_workflow/windows_child.py": "599152298397a98ef7bdb0b1952d2fed9427575f6472715424ee7494c0abe8eb",
         "tools/release_workflow/windows_native.py": "df8fced8f16e0ee642aa1b057e9c864c650fbfaccbc2225228a804097e1fcf37",
         "tools/release_workflow/windows_process.py": "7108c18c5dbb546f19e47e2c3ed5d744410795c9b9945f4e735ddc449a3afca8"
@@ -94,7 +98,7 @@
     {
       "bound_seconds": 20,
       "details": {},
-      "duration_seconds": 0.604,
+      "duration_seconds": 0.747,
       "expected": {
         "descendant_alive_at_teardown": true,
         "descendant_ended": true,
@@ -110,7 +114,8 @@
       },
       "outcome": "passed",
       "sources": {
-        "tests/unit/tools/release_workflow/git_cliff_native_checks.py": "9c73f838fcc0b9aaffdfb266bc02bab3ad1a579c90df7b134c0539373243a6e6",
+        "tests/unit/tools/release_workflow/git_cliff_native_checks.py": "a9a50cdc0ad642a93e572e9d086fcd123a1753af5bea8a1aee6e1041ad6b93d8",
+        "tests/unit/tools/release_workflow/git_cliff_native_probes.py": "fd8ccebe485c4bbb29243b4116333810fe76687566c2de993db5faf5b11cb0ec",
         "tools/release_workflow/windows_child.py": "599152298397a98ef7bdb0b1952d2fed9427575f6472715424ee7494c0abe8eb",
         "tools/release_workflow/windows_native.py": "df8fced8f16e0ee642aa1b057e9c864c650fbfaccbc2225228a804097e1fcf37",
         "tools/release_workflow/windows_process.py": "7108c18c5dbb546f19e47e2c3ed5d744410795c9b9945f4e735ddc449a3afca8"
@@ -119,7 +124,7 @@
     {
       "bound_seconds": 60,
       "details": {},
-      "duration_seconds": 0.912,
+      "duration_seconds": 1.167,
       "expected": {
         "descendant_alive_after_error": true,
         "descendant_ended": true,
@@ -139,7 +144,8 @@
       },
       "outcome": "passed",
       "sources": {
-        "tests/unit/tools/release_workflow/git_cliff_native_checks.py": "9c73f838fcc0b9aaffdfb266bc02bab3ad1a579c90df7b134c0539373243a6e6",
+        "tests/unit/tools/release_workflow/git_cliff_native_checks.py": "a9a50cdc0ad642a93e572e9d086fcd123a1753af5bea8a1aee6e1041ad6b93d8",
+        "tests/unit/tools/release_workflow/git_cliff_native_probes.py": "fd8ccebe485c4bbb29243b4116333810fe76687566c2de993db5faf5b11cb0ec",
         "tools/release_workflow/windows_child.py": "599152298397a98ef7bdb0b1952d2fed9427575f6472715424ee7494c0abe8eb",
         "tools/release_workflow/windows_native.py": "df8fced8f16e0ee642aa1b057e9c864c650fbfaccbc2225228a804097e1fcf37",
         "tools/release_workflow/windows_process.py": "7108c18c5dbb546f19e47e2c3ed5d744410795c9b9945f4e735ddc449a3afca8"
@@ -148,7 +154,7 @@
     {
       "bound_seconds": 30,
       "details": {},
-      "duration_seconds": 0.378,
+      "duration_seconds": 0.495,
       "expected": {
         "after_close": "renamed",
         "while_held": "refused"
@@ -160,7 +166,8 @@
       },
       "outcome": "passed",
       "sources": {
-        "tests/unit/tools/release_workflow/git_cliff_native_checks.py": "9c73f838fcc0b9aaffdfb266bc02bab3ad1a579c90df7b134c0539373243a6e6",
+        "tests/unit/tools/release_workflow/git_cliff_native_checks.py": "a9a50cdc0ad642a93e572e9d086fcd123a1753af5bea8a1aee6e1041ad6b93d8",
+        "tests/unit/tools/release_workflow/git_cliff_native_probes.py": "fd8ccebe485c4bbb29243b4116333810fe76687566c2de993db5faf5b11cb0ec",
         "tools/release_workflow/windows_child.py": "599152298397a98ef7bdb0b1952d2fed9427575f6472715424ee7494c0abe8eb",
         "tools/release_workflow/windows_guard.py": "f8f4a209a0672bc8f64e36fba6a1521b033bc9461524d5d643751e311b6fe508",
         "tools/release_workflow/windows_native.py": "df8fced8f16e0ee642aa1b057e9c864c650fbfaccbc2225228a804097e1fcf37",
@@ -170,7 +177,7 @@
     {
       "bound_seconds": 60,
       "details": {},
-      "duration_seconds": 0.785,
+      "duration_seconds": 0.894,
       "expected": {
         "after_child": "renamed",
         "during_child": "refused",
@@ -186,21 +193,54 @@
       },
       "outcome": "passed",
       "sources": {
-        "tests/unit/tools/release_workflow/git_cliff_native_checks.py": "9c73f838fcc0b9aaffdfb266bc02bab3ad1a579c90df7b134c0539373243a6e6",
+        "tests/unit/tools/release_workflow/git_cliff_native_checks.py": "a9a50cdc0ad642a93e572e9d086fcd123a1753af5bea8a1aee6e1041ad6b93d8",
+        "tests/unit/tools/release_workflow/git_cliff_native_probes.py": "fd8ccebe485c4bbb29243b4116333810fe76687566c2de993db5faf5b11cb0ec",
         "tools/release_workflow/windows_child.py": "599152298397a98ef7bdb0b1952d2fed9427575f6472715424ee7494c0abe8eb",
         "tools/release_workflow/windows_guard.py": "f8f4a209a0672bc8f64e36fba6a1521b033bc9461524d5d643751e311b6fe508",
         "tools/release_workflow/windows_native.py": "df8fced8f16e0ee642aa1b057e9c864c650fbfaccbc2225228a804097e1fcf37",
         "tools/release_workflow/windows_process.py": "7108c18c5dbb546f19e47e2c3ed5d744410795c9b9945f4e735ddc449a3afca8"
       }
+    },
+    {
+      "bound_seconds": 60,
+      "details": {},
+      "duration_seconds": 10.571,
+      "expected": {
+        "endpoint_connected": true,
+        "stdout_empty": true,
+        "timed_out": true,
+        "worker_ended": true,
+        "worker_recorded": true
+      },
+      "id": "worker-ends-at-deadline",
+      "observed": {
+        "endpoint_connected": true,
+        "stdout_empty": true,
+        "timed_out": true,
+        "worker_ended": true,
+        "worker_recorded": true
+      },
+      "outcome": "passed",
+      "sources": {
+        "tests/unit/tools/release_workflow/git_cliff_native_checks.py": "a9a50cdc0ad642a93e572e9d086fcd123a1753af5bea8a1aee6e1041ad6b93d8",
+        "tests/unit/tools/release_workflow/git_cliff_native_probes.py": "fd8ccebe485c4bbb29243b4116333810fe76687566c2de993db5faf5b11cb0ec",
+        "tools/release_workflow/bootstrap.py": "dfe28fb343d2d24600e01fd3cade5fa3cc4269deecc6d1b0ca22983d31b91c74",
+        "tools/release_workflow/git_cliff/cache.py": "eefa314552a0be4a6956db1f4be4dabd959f3348e4bd01e4a30f574df79bb84a",
+        "tools/release_workflow/git_cliff/download_worker.py": "dbe2f1f5dd0145e3809d9a98c0d1cc2d166cdd75678f449646360f424276a86e",
+        "tools/release_workflow/git_cliff/network.py": "eb89befb8865dcc0065f1b6a38badb17944fabcbeab77293788fe9889eadbdb3",
+        "tools/release_workflow/windows_child.py": "599152298397a98ef7bdb0b1952d2fed9427575f6472715424ee7494c0abe8eb",
+        "tools/release_workflow/windows_native.py": "df8fced8f16e0ee642aa1b057e9c864c650fbfaccbc2225228a804097e1fcf37",
+        "tools/release_workflow/windows_process.py": "7108c18c5dbb546f19e47e2c3ed5d744410795c9b9945f4e735ddc449a3afca8"
+      }
     }
   ],
-  "commit": "f11c37ff37c896a6a979388fc5a796e1a1a92cdb",
+  "commit": "d55d6b9460f3fc19289b445e43d785ec6b57290d",
   "format": 1,
   "host": {
     "architecture": "AMD64",
     "windows_build": "10.0.26200"
   },
-  "milestone": "step-2",
+  "milestone": "step-4",
   "recorder_timeout": {
     "bound_seconds": 3,
     "duration_seconds": 3.084,

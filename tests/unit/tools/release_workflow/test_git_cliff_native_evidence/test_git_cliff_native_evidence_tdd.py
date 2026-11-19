@@ -20,6 +20,12 @@ Code review round 1 of Step 2 bounded every check in its own contained runner
 process. The record's `recorder_timeout` entry must show that bound working: a
 deliberately stalled runner timed out at its 3 s bound, its helper child alive
 at the bound and the whole tree ended after it, within 15 s overall.
+
+Step 4 adds milestone `step-4`: the Step 2 set plus `worker-ends-at-deadline`,
+a download worker started through the bootstrap, recorded in a disposable
+staging directory and ended job-wide at its deadline while a local endpoint
+never answers. The recorder's checks moved to `git_cliff_native_probes.py`,
+so every check also binds that file's digest.
 """
 
 from __future__ import annotations
@@ -40,17 +46,19 @@ if TYPE_CHECKING:
 
 _ROOT = Path(__file__).resolve().parents[5]
 _RECORD = Path(__file__).with_name("native_checks.v1.json")
-_MILESTONES = ("step-2",)
+_MILESTONES = ("step-2", "step-4")
 _HOST_PATH = re.compile(r"[A-Za-z]:[\\/]|[\\/](?:Users|home)[\\/]")
 _COMMIT = re.compile(r"[0-9a-f]{40}")
 _NAME_LENGTH = 3
 _TIMEOUT_BOUND = 3
 _TIMEOUT_LIMIT = 15
 _TIMEOUT_EXPECTED = {"timed_out": True, "helper_alive_at_bound": True, "helper_tree_ended": True}
-_RECORDER = "tests/unit/tools/release_workflow/git_cliff_native_checks.py"
-_CHILD = ("tools/release_workflow/windows_native.py", "tools/release_workflow/windows_child.py",
-          "tools/release_workflow/windows_process.py", _RECORDER)
-_GUARD = (*_CHILD, "tools/release_workflow/windows_guard.py")
+_RELEASE = "tools/release_workflow"
+_CHILD = (f"{_RELEASE}/windows_native.py", f"{_RELEASE}/windows_child.py", f"{_RELEASE}/windows_process.py",
+          "tests/unit/tools/release_workflow/git_cliff_native_checks.py", "tests/unit/tools/release_workflow/git_cliff_native_probes.py")
+_GUARD = (*_CHILD, f"{_RELEASE}/windows_guard.py")
+_WORKER = (*_CHILD, f"{_RELEASE}/bootstrap.py", f"{_RELEASE}/git_cliff/download_worker.py", f"{_RELEASE}/git_cliff/network.py",
+           f"{_RELEASE}/git_cliff/cache.py")
 
 
 @dataclass(frozen=True)
@@ -77,6 +85,8 @@ _CHECKS = {
     "guard-held-before-start": _Due("step-2", {"while_held": "refused", "after_close": "renamed"}, 30, _GUARD),
     "inherited-guard-during-child": _Due("step-2", {"parent_guard_closed": True, "during_child": "refused",
                                                     "after_child": "renamed", "status": 0}, 60, _GUARD),
+    "worker-ends-at-deadline": _Due("step-4", {"timed_out": True, "endpoint_connected": True, "worker_recorded": True,
+                                             "worker_ended": True, "stdout_empty": True}, 60, _WORKER),
 }
 
 type Record = dict[str, Any]
@@ -134,7 +144,7 @@ def _timeout_refusals(timeout: Mapping[str, Any]) -> list[str]:
 @pytest.fixture(scope="session")
 def digests() -> dict[str, str]:
     """Hash every source a check exercises, once per session."""
-    return {path: digest(_ROOT / path) for path in _GUARD}
+    return {path: digest(_ROOT / path) for path in dict.fromkeys((*_GUARD, *_WORKER))}
 
 
 @pytest.fixture(scope="session")
@@ -154,7 +164,7 @@ def _valid(digests: Mapping[str, str]) -> Record:
 
 def test_the_committed_record_passes_its_milestone(record: Record, digests: dict[str, str]) -> None:
     """Every due check passed, as expected, within its bound, against the current sources."""
-    assert (record["format"], record["milestone"]) == (1, "step-2")
+    assert (record["format"], record["milestone"]) == (1, "step-4")
     assert refusals(record, digests) == []
 
 
@@ -182,6 +192,15 @@ def _drop_first(record: Record) -> None:
 
 
 _FIRST = "job-membership-before-resume"
+
+
+def test_a_step_4_record_needs_the_worker_check(digests: dict[str, str]) -> None:
+    """The Step 4 milestone adds the stalled-endpoint worker check to the Step 2 set."""
+    record = _valid(digests)
+    record["milestone"] = "step-4"
+    assert refusals(record, digests) == []
+    record["checks"] = [check for check in record["checks"] if check["id"] != "worker-ends-at-deadline"]
+    assert refusals(record, digests) == ["missing worker-ends-at-deadline"]
 
 
 @pytest.mark.parametrize(("mutate", "reason"), [
