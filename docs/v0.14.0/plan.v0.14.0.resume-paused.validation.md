@@ -322,7 +322,9 @@ No existing feature or reporting capability appears impaired.
 
 ### Analysis of Step 4 implementation state
 
-Not started. Step 4 is not implemented because its planned code, contract changes and focused validation have not been delivered or checked.
+Yes. Step 4 has been fully implemented.
+
+The marker, validator, marked claim, receiving instructions and Claude background answer-wait rule are present. After code review round 1, the locked claim verifier also refuses an error checkout snapshot, such as one whose receipt names another checkout, before it uses any parsed field. Regression cases cover the requestor, the reviewer and the validator. Under plan Q05=A the pinned profile registry stays empty and the live-host dependencies remain open with the Step 1 live matrix.
 
 ### Goal for Step 4
 
@@ -355,27 +357,70 @@ tests must still pass.
 
 ### What was implemented for Step 4
 
-_(empty — no check has taken place yet.)_.
+- **Answer-wait transport (Q25=A)**: `rules/run_commands.md` gains "Claude requestors wait for answers in the background": every Claude requestor starts each `wait-answer` through a host background mechanism on every requestor route, as one recognized invocation form, ends its turn and resumes from the completion notification; a foreground or moved wait leaves the reviewer pending; Codex keeps its attached wait. The three requestor instructions link to that rule.
+- **Marker and binding** (`tools/resume_paused_marker.py`): the marker `<launch_id>.rp1.<pane_uuid>.<role>.<binding>` puts the random launch id first, then the version, the full pane UUID, one of the five role tokens and the SHA-256 binding. It is ASCII, at most 153 characters, and appears once after `--resume-paused`. The binding hashes the canonical UTF-8 JSON (sorted keys, compact separators) of schema `resume-paused-assignment` version 1, holding the checkout key, the prompt SHA-256, the receiver host, session, pane and role, the pair after any swap, and the exact exchange with its occurrence and selected round. `resolve_assignment` rebuilds it from saved routing: a swap is a pair pane given the other pair role, allowed only for a saved requestor pause, and unknown routing, an unrouted pane or a wrong role never resolves. `ResultLine` renders `resume-paused <launch_id> <outcome>[ g<generation>]` in at most 100 characters.
+- **Pane and input evidence** (`tools/resume_paused_input.py`): TUIOS discovery and capture run as argument lists; records keep the full `window_id`, the `session` string, `cwd`, harness, program-status apps and agent session id, and host identification uses strong evidence first. `ClaudeInputProver` requires the marked command as the latest typed input of the transcript named by the pane's agent session id, at or after the pause snapshot, in the checkout, under a pinned profile. `CodexInputProver` ties the pane through the pinned screen signatures, then proves the unique session file; later calls re-prove it with the carried session identity and launch id (Q14, Q15).
+- **Validator** (`tools/resume_paused_validation.py`, `bin/resume_paused_validate.bat`): marker, saved pause, resolved routing, live exchange observation, binding and host, consumption stage (unconsumed, consumed by this launch's schema 3 receipt, or for a reviewer the requestor's receipt), live pane identity (never an inherited `TUIOS_PANE_ID`) and complete input. It returns typed non-secret JSON with the reasons, the compact failure line and the bytes read, and exits 0 valid, 3 refused, 2 invalid. It writes nothing and caches nothing.
+- **Marked claim** (Q03, Q04): `CoordinationRecord.marked_claim` holds the launch id, pane, host, assignment binding, round, occurrence and issued generation, which must equal the record's ownership generation. `OwnershipService.claim(marked=...)` always issues a generation with the binding, any other new claim clears it, and current-owner transitions keep it. The ownership store and exchange store forward it. `claim_selected(marked=...)` runs `tools/resume_paused_claim.py`'s verifier under the transition lock before any backfill: it re-parses the marker, requires the claimed role, the Codex carried identity and launch id, the current prompt, routing and locked round and occurrence, the same exact exchange, the claimant host, the binding and the consuming receipt. Any refusal leaves every artifact unchanged. The claim reads no host session file and needs no TUIOS. `claim` accepts `--resume-paused-marker`, `--carried-session` and `--carried-launch-id`; callers without them keep the manual path.
+- **Receiving instructions**: `resume-session.md` accepts `--resume-paused <marker>`, reads receipt schemas 1 to 3 by their `Prompt`, `SHA-256` and `Project root` lines, treats an accepted marker as consent for the author override, validates before the receipt, journal and claim, writes schema 3 only on a marked resume, keeps a written receipt on later refusal and emits the compact result first. `review-resume.md` gains "Continue a marked review role": validator before claim, claim with the marker, no role or consent question, `--override` only for the marker's role conflict.
+- **Receiver harness (Q02=A)**: `tests/unit/tools/resume_paused_receiver_test_support.py` declares a checkout with a prepared exchange and routed prompt and runs validate, receipt, validate, journal, validate, claim with the real validator and locked claim, changing evidence before each protected step.
+- **Tests**: leaves `test_resume_paused_marker` (tdd and pbt), `test_resume_paused_input`, `test_resume_paused_claims` (binding and claim files), `test_resume_paused_validation` (validator and sequences, launcher smoke, receiver instruction contract) and `test_instruction_structure/test_requestor_answer_wait_transport_tdd.py`.
+- **Validation evidence**: each leaf passed in focus; the first regression run caught existing claim callers without the new arguments, fixed by default reads; `ghog day --whole-suite` exited 0 after strict-typing and lint fixes; `ghog day --full=speed --whole-suite` exited 0 with 6768 tests, 100% coverage, no outlier and no exclusion. Grep inspection of the four new modules found no shell command, bulk launcher, token or digest, inherited pane variable, input sending, write, preparation or migration.
+- **Deviations from the planned file list**: `tools/resume_paused_input.py` holds the pane and input evidence, separated from the validator by responsibility. Test leaves `test_resume_paused_marker` and `test_resume_paused_input` follow the one-leaf-per-module rule. The claims leaf adds `test_resume_paused_claims_binding_tdd.py` and the validation leaf adds `test_resume_paused_receiver_contract_tdd.py`. `tests/memory_filesystem.py` registers the claims and validation leaves.
+- **Error snapshots** (code review round 1): `read_checkout_snapshot` keeps the prompt, routing and receipt it parsed when it rejects a receipt's `Project root`. The marked claim verifier now refuses such an error snapshot as `checkout-unreadable` before rebuilding the assignment, and the shared receipt-consumption checks never read one. Requestor and reviewer regressions validate a good receipt, change only its root, and see the locked claim refused with coordination, transcript, prompt, receipt and generation unchanged. The validator refuses the same receipt.
+
+### Live host dependencies of Step 4
+
+These rows belong to the Step 1 live matrix and stay open under plan Q05=A; they gate Steps 6 to 8, not this code.
+
+- [ ] Codex: the pane-tied pre-input version and pinned screen profile of a receiving pane; until a release is pinned, `UnpinnedCodexVersions` reports them unavailable and the validator refuses.
+- [ ] Claude: the logged form of the marked slash command in the transcript of each pinned version, which the input proof compares exactly.
+- [ ] Claude: the transcript root that holds a pane's agent session (`%USERPROFILE%\.claude\projects` by default) under each launcher configuration.
 
 ### New types or classes introduced for Step 4
 
-_(empty — no check has taken place yet.)_.
+- `Marker`, `AssignedPane`, `LiveExchange`, `AssignedExchange`, `Assignment`, `ResultLine`: marker and binding values.
+- `PaneRecord`, `CarriedIdentity`, `InputEvidence`, `PaneDiscovery`, `PaneCapture`, `InputProver`, `CodexVersions`, `SubprocessRunner`, `TuiosDiscovery`, `ClaudeInputProver`, `UnpinnedCodexVersions`, `CodexInputProver`: pane and input evidence.
+- `ValidationRequest`, `ValidationResult`, `ReceiverValidator`, `Validator`, `BuildReader`: receiver validation.
+- `MarkedClaimEvidence`, `MarkedClaimBinding`: durable marked claim evidence; `MarkedClaimVerifier`: the verifier type `claim_selected` accepts.
+- Test-only: `ReceiverCheckout`, `FakeDiscovery`, `FakeProver`, `ReceiverHarness`, `Step`, `SequenceOutcome`.
 
 ### Architecture check for Step 4
 
-_(empty — no check has taken place yet.)_.
+- **Pure values**: the marker module performs no IO and depends only on the shared values and routing schema.
+- **Ports and adapters**: the validator depends on the `PaneDiscovery`, `InputProver` and evidence-source protocols; TUIOS, subprocess, the filesystem and the Windows build reader stay in adapters composed by `default_validator`.
+- **Review core boundary**: the review exchange modules gain only the generic `MarkedClaimEvidence` value and a verifier callable; they import nothing from resume-paused. The CLI adapter wires `tools/resume_paused_claim.py` in, and the claim adapter reaches the core only through `claim_selected`.
+- **Import direction**: marker, then input, then claim, then validation; the claim and validator share the receipt-consumption helpers in the claim module. No cycle.
+- **File size**: every file is below 650 lines; `tools/review_exchange_store.py` is at 611 in the risk band and changed only by forwarding, as the plan's split guidance asks.
+
+No DDD-Hexagonal violation or adapter smell is visible. No, there is nothing that needs to be addressed.
 
 ### Performance check for Step 4
 
-_(empty — no check has taken place yet.)_.
+- **No new `O(n^2)` or `O(n log n)` path**: marker and result parsing are single regular-expression matches; discovery is one pass over the agent records; the Claude transcript lookup is one pass over the enumeration and one read; the Codex proof reuses Step 1's single pass over candidate files; the assignment digest hashes a small canonical object.
+- **Read cost**: one validation reads the declaration, ignore file, prompt and receipt, the exact exchange paths, one TUIOS listing and the receiving pane's input evidence, and reports the bytes read; a marked claim adds one checkout snapshot read under the lock.
+- **No cache**: every validation and claim rereads fresh evidence.
+
+No, there is no performance issue that needs to be addressed.
 
 ### Unit test coverage check for Step 4
 
-_(empty — no check has taken place yet.)_.
+The coverage gate measures `tools` (`pyproject.toml`, `[tool.coverage.run]`), line coverage; the `ghog day --full=speed --whole-suite` walk measured 100%. Each new module has its own leaf: `test_resume_paused_marker`, `test_resume_paused_input`, `test_resume_paused_claims` (also covering the coordination binding and ownership threading) and `test_resume_paused_validation`. The validator's `__main__` guard carries the repository's thin-launcher coverage exclusion. Existing review leaves keep covering the changed review modules.
+
+Line coverage alone missed the error snapshot that retains valid parsed fields; reviewer round 1 found it, and the claims leaf now covers it for both roles, beside the missing prompt, changed digest or routing and another launch.
+
+No, there is no unit-tested class below 100% that needs completing for Step 4. No, none of the staged test files' top-level symbols is unreferenced.
 
 ### Feature integrity for Step 4
 
-_(empty — no check has taken place yet.)_.
+- **Manual claims and consent**: claims without a marker keep their path, including callers that predate the new arguments; manual resume keeps its author consent and writes schema 2.
+- **Review protocol**: role conflicts, fencing, isolation and the existing resume, lifecycle, ownership and CLI regressions pass; records without a marked binding parse as before.
+- **Reporting**: claim results and status outputs are unchanged; the validator is a new read-only command.
+- **Mixed installs**: an older `resume-session` stops on a schema 3 receipt and older review readers reject the new coordination field, the documented fail-closed behavior until all readers ship together.
+
+The marked claim now refuses every receipt the existing checkout and root rules reject, so its fresh evidence boundary matches the validator's.
+
+No existing feature or reporting capability appears impaired.
 
 ## Step 5. Build the read-only checkout planner and duplicate protections
 
