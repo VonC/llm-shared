@@ -42,7 +42,12 @@ one for certain.
 For each listed checkout, check read-only that the checkout and its artifact
 home exist, as [status-session](status-session.md#inspect-the-artifact-home-without-changing-it)
 does, then hash the exact bytes of its `a.session-resume.local.md` with SHA-256
-and read its `a.session-resume.used.local.md` receipt if present.
+and read its `a.session-resume.used.local.md` receipt if present. Accept
+receipt schemas 1, 2 and 3 as
+[status-session](status-session.md#determine-whether-the-latest-prompt-is-unprocessed)
+does: a receipt matches on its `Prompt`, `SHA-256` and `Project root` lines
+whatever its schema, and its result adds
+`through a marked resume in pane {Receiving pane}` for a schema 3 receipt.
 
 | Waiting session observed on disk | Disk check result |
 | --- | --- |
@@ -50,13 +55,13 @@ and read its `a.session-resume.used.local.md` receipt if present.
 | A valid receipt matches the entry's SHA-256 | `resumed outside the journal at {Used at}` |
 | Prompt SHA-256 differs from the entry's | `prompt replaced since this entry; run status-session there` |
 | Prompt missing | `prompt missing; resume-session there would use the latest notes` |
-| Checkout or artifact home missing, unreadable or invalid | `cannot check: {diagnostic}` |
+| Checkout or artifact home missing, unreadable or invalid, or receipt invalid | `cannot check: {diagnostic}` |
 
 | In-progress session observed on disk | Disk check result |
 | --- | --- |
 | No prompt, or a prompt matched by a valid receipt | `no newer prompt` |
 | A prompt without a matching receipt | `paused outside the journal; run status-session there` |
-| Checkout or artifact home missing, unreadable or invalid | `cannot check: {diagnostic}` |
+| Checkout or artifact home missing, unreadable or invalid, or receipt invalid | `cannot check: {diagnostic}` |
 
 A check result never changes which agent the entry names: the user decides
 whether another agent overrides it when invoking resume-session.

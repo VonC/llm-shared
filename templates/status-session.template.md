@@ -6,14 +6,17 @@ This is a response template, not a file to create in the artifact home.
 ## Opening when an unprocessed prompt exists
 
 status-session: unprocessed resume prompt found at `{relative-prompt-path}`
-({unused or new since previous use}), paused by `{agent id or unknown}`.
-Summary of the saved prompt; no work resumed.
+({unused or new since previous use}), paused by `{agent id or unknown}`;
+saved routing {resolved, unresolved: reasons, error: diagnostic, table only,
+or none}. Summary of the saved prompt; no work resumed.
 
 ## Opening when no unprocessed prompt exists
 
 status-session: no unprocessed resume prompt at `{relative-prompt-path}`
-({no saved prompt found or latest prompt already used}). Summary of the latest
-notes, handoffs and journals in `{relative-artifact-home}`.
+({no saved prompt found, or latest prompt already used, adding
+through a marked resume in pane `{receiving pane}` for a schema 3 receipt}).
+Summary of the latest notes, handoffs and journals in
+`{relative-artifact-home}`.
 
 ## Opening when the state cannot be determined
 
