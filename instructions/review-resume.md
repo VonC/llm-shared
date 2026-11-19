@@ -145,3 +145,40 @@ or `Consolidate`: make sure the working tree is empty, proposing a
 apply [`push-before-next-step.md`](../rules/push-before-next-step.md), then print
 the `pw progress` report with its next step and stop, as the requestor instruction
 describes.
+
+## Continue a marked review role
+
+A human-launched bulk resume types `review-resume --resume-paused <marker>`
+into a routed reviewer pane, and a marked `resume-session` routes its
+requestor here with its own marker. The marker selects the exchange and the
+role: ask no role, exchange or consent question. When inspection reports a
+role conflict for that role, the valid marker authorizes `--override` for
+this attempt only; pass it to both `resume-inspect` and `claim`.
+
+Run the migration check and `resume-inspect` as above with the marker's role.
+Immediately before `claim`, run the read-only validator from the checkout root
+with the complete command exactly as typed:
+
+```powershell
+& "<LLM_SHARED_DIR>\bin\resume_paused_validate.bat" --command "<complete typed command>" --host <claude or codex>
+```
+
+On exit 0, claim with the marker and, for Codex, the identity carried from the
+first validation:
+
+```powershell
+& "<LLM_SHARED_DIR>\bin\review_exchange.bat" claim --document <document> --role <role> --round <round> --occurrence <occurrence> --resume-paused-marker <marker> --carried-session <session_id> --carried-launch-id <launch_id>
+```
+
+Under the transition lock, the claim rebuilds the assignment from the current
+prompt, routing and locked exchange, requires the receipt that consumed the
+prompt, and records the marked binding with the generation it issues. A
+reviewer claims only after the requestor's receipt exists. Any change refuses
+before a write. On a refusal of either command, print
+`resume-paused <launch_id> failed` first, then the reasons, and stop without a
+fallback consent question. On success, keep the capability in the session,
+begin the final response of a stopping turn with
+`resume-paused <launch_id> claimed g<generation>`, and dispatch the claimed
+action as [the selected review role](#continue-the-selected-review-role)
+describes. The marker grants no capability, commit or convergence choice, and
+never waives damaged evidence.
