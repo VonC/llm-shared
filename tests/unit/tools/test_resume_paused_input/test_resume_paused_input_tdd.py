@@ -8,6 +8,9 @@ agent session id, late enough, in the checkout, under a pinned profile. The
 Codex prover ties the pane on its first call and re-proves the same session
 file with the carried identity afterwards. No process starts and no real host
 file is read: commands, captures, transcripts and session files are declared.
+Step 6 adds the runner's process bound, which the delivery sets per call to
+the remaining budget of a send, and checks that the caller environment is
+inherited unchanged.
 """
 
 from __future__ import annotations
@@ -66,6 +69,7 @@ CLAUDE_REGISTRY = ProfileRegistry((HostProfile(Host.CLAUDE, CLAUDE_VERSION, froz
 PANE_PROFILE = CodexPaneProfile("\N{SINGLE RIGHT-POINTING ANGLE QUOTATION MARK} ", r"\N{BULLET} Working.*")
 CLAUDE_PANE = PaneRecord(PANE, "work", "Claude impl", CHECKOUT, "claude-code", (), SESSION_ID)
 CODEX_PANE = PaneRecord(PANE, "work", "Codex rp", CHECKOUT, "", ("codex",), None)
+ASK_BOUND = 100
 
 
 def agent(**changes: Any) -> dict[str, Any]:  # noqa: ANN401
@@ -178,7 +182,21 @@ def test_subprocess_runner_never_uses_a_shell() -> None:
         return subprocess.CompletedProcess(arguments, 0, stdout="out")
 
     assert SubprocessRunner(run).run(("tuios", "x")) == CommandResult(0, "out")
-    assert (seen["arguments"], seen["shell"], seen["encoding"]) == (["tuios", "x"], False, "utf-8")
+    assert (seen["arguments"], seen["shell"], seen["encoding"], seen["timeout"]) == (["tuios", "x"], False, "utf-8", 30)
+    assert "env" not in seen
+
+
+def test_subprocess_runner_takes_a_longer_process_bound_for_the_delivery_ask() -> None:
+    """Step 6: the delivery bounds a call by the remaining budget of its send, here above the default."""
+    seen: dict[str, Any] = {}
+
+    def run(arguments: list[str], **options: Any) -> subprocess.CompletedProcess[str]:  # noqa: ANN401
+        """Record the process bound and return a declared completion."""
+        seen.update(options)
+        return subprocess.CompletedProcess(arguments, 1, stdout="")
+
+    assert SubprocessRunner(run, timeout=ASK_BOUND).run(("tuios", "ask-agent")) == CommandResult(1, "")
+    assert seen["timeout"] == ASK_BOUND
 
 
 def test_subprocess_runner_reports_a_failed_start() -> None:

@@ -199,18 +199,26 @@ def pane_host(record: PaneRecord) -> Host | None:
 
 
 class SubprocessRunner:
-    """``CommandRunner`` over an argument list, never through a shell."""
+    """``CommandRunner`` over an argument list, never through a shell.
 
-    def __init__(self, run: Callable[..., subprocess.CompletedProcess[str]] = subprocess.run) -> None:
-        """Keep the injectable process function."""
+    Step 6 adds the process bound as a parameter: the bulk delivery builds one
+    runner per call, bounded by the remaining budget of the send in progress
+    (up to the ask's 100 seconds) instead of the 30-second default.
+    """
+
+    def __init__(
+        self, run: Callable[..., subprocess.CompletedProcess[str]] = subprocess.run, timeout: float = _COMMAND_TIMEOUT_SECONDS,
+    ) -> None:
+        """Keep the injectable process function and the process bound in seconds."""
         self._run = run
+        self._timeout = timeout
 
     def run(self, arguments: Sequence[str]) -> CommandResult:
         """Run one command and return its exit code and standard output."""
         try:
             completed = self._run(
                 list(arguments), shell=False, capture_output=True, text=True, encoding="utf-8",
-                errors="strict", timeout=_COMMAND_TIMEOUT_SECONDS, check=False,
+                errors="strict", timeout=self._timeout, check=False,
             )
         except (OSError, subprocess.SubprocessError, UnicodeError):
             return CommandResult(-1, "")
