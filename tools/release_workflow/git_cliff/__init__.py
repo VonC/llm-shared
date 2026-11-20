@@ -35,9 +35,23 @@ Step 5 adds the provisioning service:
 - `provisioning`: the seams, the target flow, `configured_pin` and the
   budget-setting stage.
 
-A later step adds the compatibility evidence harness. This initializer
-imports nothing, so loading the manifest loads no other module of the
-package.
+Step 6 adds the compatibility evidence harness, run by hand:
+
+- `candidates`: candidate identities from release metadata or a first
+  authorized download, trust records written once, candidate provisioning in
+  the evidence namespace;
+- `fixture_history`: the snapshot-tag fixture history from one deterministic
+  `git fast-import` stream;
+- `comparison`: the frozen inputs, the ranges, the temporary worktree and the
+  controlled runs of both versions, with digests, statuses and hunks;
+- `bundle`: the compact evidence bundle, its strict reader and writer and the
+  binding of the user's review;
+- `bundle_checks`: the completeness of a bundle's evidence and the user's
+  current approval that admit its pin (split from `bundle` in code review);
+- `harness`: the developer entry point, which also records the review.
+
+This initializer imports nothing, so loading the manifest loads no other
+module of the package.
 """
 
 
