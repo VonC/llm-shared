@@ -9,17 +9,27 @@ nothing on standard error when it succeeds: the outcome with the received
 size and SHA-256 for an archive, or the metadata text, which writes no file.
 Its socket timeout is `min(30, remaining)`, and its internal statuses 0, 75
 and 65 stand for `ok`, `retryable` and `fatal`; they never reach a caller.
+
+Step 5 (code review round 1): a target the worker cannot write is a fatal
+outcome that names its `path`, while an HTTP error, whose `filename` is its
+URL, names none. Round 2: so does a write failure whose error named no file.
 """
 
 from __future__ import annotations
 
+import errno
 import hashlib
 import json
 from pathlib import Path
+from typing import Any
 
 import pytest
 
-from tests.unit.tools.release_workflow.git_cliff_support import Canned, CannedWeb
+from tests.unit.tools.release_workflow.git_cliff_support import (
+    Canned,
+    CannedWeb,
+    deny_writes,
+)
 from tools.release_workflow.git_cliff import download_worker
 from tools.release_workflow.git_cliff.download_worker import (
     STATUSES,
@@ -123,6 +133,44 @@ def test_failures_report_their_class_and_status(tmp_path: Path, capsys: pytest.C
     assert main(worker_arguments(request), opener=web.opener()) == STATUSES[outcome]
     reported, _ = _outcome(capsys)
     assert (reported["outcome"], sorted(reported)) == (outcome, ["error", "outcome"])
+
+
+def test_a_target_the_worker_cannot_write_reports_its_path(tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+                                                           capsys: pytest.CaptureFixture[str]) -> None:
+    """A local write failure is fatal and names its file, so the parent reports permission, not the network."""
+    web, target = CannedWeb({_ASSET: Canned(body=_BODY)}), tmp_path / "archive.zip"
+    deny_writes(monkeypatch)
+    request = WorkerRequest(mode="archive", url=_ASSET, target=target, expected_size=len(_BODY), remaining=30.0)
+    assert main(worker_arguments(request), opener=web.opener()) == STATUSES["fatal"]
+    reported, _ = _outcome(capsys)
+    assert (reported["outcome"], reported["path"], str(reported["error"]).startswith("PermissionError")) == ("fatal", str(target), True)
+
+
+class _FullDisk:
+    """A staging file that opens, then fails its first write with an error that names no file."""
+
+    def write(self, data: bytes) -> int:
+        """Fail like a full disk."""
+        raise OSError(errno.ENOSPC, f"No space left on device ({len(data)} bytes)")
+
+    def close(self) -> None:
+        """Close quietly."""
+
+
+def test_a_write_failure_naming_no_file_still_reports_the_target(tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+                                                                 capsys: pytest.CaptureFixture[str]) -> None:
+    """The network client names the target, so the parent reports a local failure, not a proxy one."""
+    web, target = CannedWeb({_ASSET: Canned(body=_BODY)}), tmp_path / "archive.zip"
+    original = Path.open
+
+    def open_target(self: Path, mode: str = "r", *arguments: Any, **keywords: Any) -> object:
+        return _FullDisk() if self == target else original(self, mode, *arguments, **keywords)
+
+    monkeypatch.setattr(Path, "open", open_target)
+    request = WorkerRequest(mode="archive", url=_ASSET, target=target, expected_size=len(_BODY), remaining=30.0)
+    assert main(worker_arguments(request), opener=web.opener()) == STATUSES["fatal"]
+    reported, _ = _outcome(capsys)
+    assert (reported["outcome"], reported["path"]) == ("fatal", str(target))
 
 
 def test_the_internal_statuses_stand_for_the_outcomes() -> None:

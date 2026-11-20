@@ -24,6 +24,11 @@ and recomputes the archive digest from the staged file.
   error. The internal statuses 0, 75 and 65 stand for `ok`, `retryable` and
   `fatal`; the bootstrap passes them through unchanged and they never reach a
   caller of provisioning.
+
+Since Step 5 (code review round 1), a local file failure, an `OSError` naming
+a file that is not a URL error, such as a staging file the worker cannot
+write, also reports that `path`, so the parent names the permission stage and
+its directory instead of a network failure.
 """
 
 from __future__ import annotations
@@ -34,6 +39,7 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
+from urllib.error import URLError
 
 from tools.release_workflow.git_cliff import network
 
@@ -149,6 +155,8 @@ def main(arguments: Sequence[str], *, opener: urllib.request.OpenerDirector | No
         payload = _attempt(request, network.build_opener() if opener is None else opener)
     except Exception as error:  # noqa: BLE001 - every failure of the attempt is reported with its class, never raised
         payload = {"outcome": network.classify(error), "error": f"{type(error).__name__}: {error}"}
+        if isinstance(error, OSError) and not isinstance(error, URLError) and error.filename is not None:
+            payload["path"] = str(error.filename)
     return _emit(payload)
 
 

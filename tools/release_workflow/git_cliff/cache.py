@@ -27,6 +27,9 @@ and Q12).
 
 A pin is anything with a `version` and a `triple`: an admitted pin, or an
 evidence candidate in the evidence namespace.
+
+Step 5 makes `probe_problem` public: the installation's staging probe applies
+the same first-line rule as the reuse probe.
 """
 
 from __future__ import annotations
@@ -338,8 +341,8 @@ def _bytes_problem(guard: Guard, record: EntryRecord) -> str | None:
     return None
 
 
-def _probe_problem(outcome: ChildOutcome, pin: CachePin) -> str | None:
-    """The probe must end in time, exit 0 and report `git-cliff <pin>` as its first line."""
+def probe_problem(outcome: ChildOutcome, pin: CachePin) -> str | None:
+    """The probe must end in time, exit 0 and report `git-cliff <pin>` as its first line; the staging probe shares it."""
     if outcome.timed_out:
         return "the version probe did not end within its budget"
     reported, expected = _first_line(outcome.stdout), f"git-cliff {pin.version}"
@@ -355,7 +358,7 @@ def _validate(layout: CacheLayout, pin: CachePin, guard: Guard, probe: Callable[
         return _invalid(record)
     problem = _bytes_problem(guard, record)
     if problem is None:
-        problem = _probe_problem(probe(guard), pin)
+        problem = probe_problem(probe(guard), pin)
     return ValidEntry(guard, record) if problem is None else _invalid(problem)
 
 

@@ -24,9 +24,20 @@ Step 4 adds the download:
   process started through the bootstrap's internal `git-cliff-worker` kind;
 - `archive`: the staged digest check and the single-member extraction.
 
-Later steps add the provisioning service, the invocation object and the
-compatibility evidence harness. This initializer imports nothing, so loading
-the manifest loads no other module of the package.
+Step 5 adds the provisioning service:
+
+- `messages`: the failure stages and their remedies, `ProvisioningError`
+  (status 2 for engine callers) and the three standard-error lines;
+- `invocation`: `GitCliffInvocation`, the only way to start git-cliff, under
+  the engine or the passthrough environment policy, contained and guarded;
+- `installation`: the lock-held installation, with the retirement of an
+  invalid entry and the publication;
+- `provisioning`: the seams, the target flow, `configured_pin` and the
+  budget-setting stage.
+
+A later step adds the compatibility evidence harness. This initializer
+imports nothing, so loading the manifest loads no other module of the
+package.
 """
 
 

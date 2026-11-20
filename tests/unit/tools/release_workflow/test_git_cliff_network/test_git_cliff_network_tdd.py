@@ -10,17 +10,23 @@ raises the socket timeout. Metadata is read whole within its limit. A
 connection error, a reset, a timeout, HTTP 429 or 5xx is retryable; another
 HTTP 4xx, a certificate failure or a size overflow is fatal. Every case runs
 through a real `urllib` opener over canned answers, with no socket.
+
+Step 5 (code review round 2): a failure to open, write or close the target
+names it, even when the original error named no file, and the target is
+closed; a failed response read keeps its network error, which names no file.
 """
 
 from __future__ import annotations
 
+import errno
 import hashlib
 import http.client
 import socket
 import ssl
 import urllib.error
 import urllib.request
-from typing import TYPE_CHECKING
+from pathlib import Path
+from typing import Any
 
 import pytest
 
@@ -34,9 +40,6 @@ from tools.release_workflow.git_cliff.network import (
     fetch_metadata,
     stream_archive,
 )
-
-if TYPE_CHECKING:
-    from pathlib import Path
 
 _ASSET = "https://github.com/orhun/git-cliff/releases/download/v2.14.2/git-cliff-2.14.2-x86_64-pc-windows-msvc.zip"
 _STORED = "https://release-assets.githubusercontent.com/github-production-release-asset/2149-asset"
@@ -113,11 +116,58 @@ def test_a_short_body_is_returned_for_the_digest_check(tmp_path: Path) -> None:
 
 
 def test_a_stalled_read_raises_the_socket_timeout(tmp_path: Path) -> None:
-    """A read that never gets data ends with the socket timeout, which is retryable."""
+    """A read that never gets data ends with the socket timeout, which is retryable and names no file."""
     web = CannedWeb({_ASSET: Canned(stall=True)})
     with pytest.raises(TimeoutError) as caught:
         stream_archive(web.opener(), _ASSET, tmp_path / "archive.zip", expected_size=len(_BODY), socket_timeout=30)
-    assert classify(caught.value) == "retryable"
+    assert (classify(caught.value), caught.value.filename) == ("retryable", None)
+
+
+class _FailingStream:
+    """A staging file that opens, then fails a write or its close with an error that names no file."""
+
+    def __init__(self, fail: str) -> None:
+        """Choose the failing operation."""
+        self._fail = fail
+        self.closed = False
+
+    def write(self, data: bytes) -> int:
+        """Accept the bytes, or fail like a full disk."""
+        if self._fail == "write":
+            raise OSError(errno.ENOSPC, "No space left on device")
+        return len(data)
+
+    def close(self) -> None:
+        """Close, or fail like a flush that cannot reach the disk."""
+        self.closed = True
+        if self._fail == "close":
+            raise OSError(errno.EIO, "Input/output error")
+
+
+@pytest.mark.parametrize(("fail", "reason"), [("write", "No space left on device"), ("close", "Input/output error")])
+def test_a_target_write_or_close_failure_names_the_target(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, fail: str,
+                                                          reason: str) -> None:
+    """The error is raised again naming the staging file, from its cause, and the file is closed."""
+    target, stream = tmp_path / "archive.zip", _FailingStream(fail)
+    original = Path.open
+
+    def open_target(self: Path, mode: str = "r", *arguments: Any, **keywords: Any) -> object:
+        return stream if self == target else original(self, mode, *arguments, **keywords)
+
+    monkeypatch.setattr(Path, "open", open_target)
+    web = CannedWeb({_ASSET: Canned(body=_BODY)})
+    with pytest.raises(OSError, match=reason) as caught:
+        stream_archive(web.opener(), _ASSET, target, expected_size=len(_BODY), socket_timeout=30)
+    assert (caught.value.filename, isinstance(caught.value.__cause__, OSError), stream.closed) == (str(target), True, True)
+
+
+def test_a_target_that_cannot_be_opened_names_it(tmp_path: Path) -> None:
+    """Opening the staging file in a missing folder fails naming that file."""
+    target = tmp_path / "missing" / "archive.zip"
+    web = CannedWeb({_ASSET: Canned(body=_BODY)})
+    with pytest.raises(FileNotFoundError) as caught:
+        stream_archive(web.opener(), _ASSET, target, expected_size=len(_BODY), socket_timeout=30)
+    assert caught.value.filename == str(target)
 
 
 @pytest.mark.parametrize("status", [403, 404, 410, 429, 500, 503])

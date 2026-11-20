@@ -14,7 +14,11 @@ inside its own process, so that its parent can end a call that never returns.
 - `stream_archive` writes the body into its target while hashing it. It never
   reads more than one byte past the expected size, and that byte raises
   `SizeOverflowError` before anything beyond the size is written. A shorter
-  body is returned as received: the parent compares size and digest.
+  body is returned as received: the parent compares size and digest. Since
+  code review round 2 of Step 5, a failure to open, write or close the target
+  is raised again as an `OSError` naming the target, even when the original
+  error named no file, so the worker reports it as a local write failure; a
+  failed response read is left as it is, a network error.
 - `fetch_metadata` reads a release metadata body whole, within
   `METADATA_LIMIT`.
 - `classify` sorts a failure: a connection error, a reset, a timeout, a TLS
@@ -29,6 +33,8 @@ retry delay extends no budget.
 
 from __future__ import annotations
 
+import contextlib
+import functools
 import hashlib
 import http.client
 import ssl
@@ -38,7 +44,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Literal
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping
+    from collections.abc import Callable, Mapping
     from pathlib import Path
 
 METADATA_LIMIT = 1 << 22
@@ -82,17 +88,39 @@ def stream_archive(opener: urllib.request.OpenerDirector, url: str, target: Path
 
     Raises:
         SizeOverflowError: The body holds more bytes than expected.
+        OSError: Opening, writing or closing the target failed; it names the target, so the parent reports a
+            local write failure, while a failed response read keeps its own network error.
     """
     digest, size = hashlib.sha256(), 0
-    with opener.open(url, timeout=socket_timeout) as response, target.open("wb") as stream:
-        while chunk := response.read(min(_CHUNK, expected_size - size + 1)):
-            if size + len(chunk) > expected_size:
-                msg = f"{url}: more than the expected {expected_size} bytes"
-                raise SizeOverflowError(msg)
-            stream.write(chunk)
-            digest.update(chunk)
-            size += len(chunk)
+    with opener.open(url, timeout=socket_timeout) as response:
+        stream = _on_target(target, functools.partial(target.open, "wb"))
+        try:
+            while chunk := response.read(min(_CHUNK, expected_size - size + 1)):
+                _within(url, size + len(chunk), expected_size)
+                _on_target(target, functools.partial(stream.write, chunk))
+                digest.update(chunk)
+                size += len(chunk)
+        except BaseException:
+            with contextlib.suppress(OSError):
+                stream.close()
+            raise
+        _on_target(target, stream.close)
     return Received(size, digest.hexdigest())
+
+
+def _within(url: str, size: int, expected_size: int) -> None:
+    """Refuse a body that would pass the expected size, before its extra bytes are written."""
+    if size > expected_size:
+        msg = f"{url}: more than the expected {expected_size} bytes"
+        raise SizeOverflowError(msg)
+
+
+def _on_target[T](target: Path, operation: Callable[[], T]) -> T:
+    """Run one operation on the staging file; an `OSError` it raises is raised again naming that file."""
+    try:
+        return operation()
+    except OSError as error:
+        raise OSError(error.errno, error.strerror or str(error), str(target)) from error
 
 
 def fetch_metadata(opener: urllib.request.OpenerDirector, url: str, *, socket_timeout: float) -> bytes:
