@@ -3637,3 +3637,895 @@ Human choice: Commit
 Outcome: continue-owning-workflow
 
 <!-- review-entry-id: human-confirmation-round-2 -->
+
+## Round 1 by requestor - Step 5
+
+- Recorded: 2026-11-20T11:11:12+01:00
+- Exchange: code/code/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.resume-paused.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: unrecorded
+- Implementation step: 5
+- Outcome: request
+
+### Review identity for step 5 resume-paused (round 1)
+
+Umbrella draft: none
+Implementation plan: docs/v0.14.0/plan.v0.14.0.resume-paused.md
+Implementation step: 5
+Review round: 1
+
+### Code review evidence for step 5 resume-paused (round 1)
+
+request_index_tree: 3c2fed75d8ded2ea1ab2338d1733d5489c8ee257
+resolved_validation_set:
+
+- `ghog day --full=speed --whole-suite` (sources: project)
+
+test_scope:
+{"fingerprint": "686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6", "group": null, "proof": "speed", "requirement": "docs/v0.14.0/feature-request.v0.14.0.resume-paused.md", "scope": "whole"}
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: feat(resume-paused): classify duplicate evidence
+group 1 path: tools/resume_paused_evidence.py
+group 1 path: tests/unit/tools/test_resume_paused_evidence/__init__.py
+group 1 path: tests/unit/tools/test_resume_paused_evidence/test_resume_paused_evidence_tdd.py
+group 1 path: tests/unit/tools/test_resume_paused_evidence/test_resume_paused_evidence_pbt.py
+group 1 path: tests/memory_filesystem.py
+group 2: feat(resume-paused): add the checkout plan model
+group 2 path: tools/resume_paused_plan_model.py
+group 2 path: tests/unit/tools/test_resume_paused_plan_model/__init__.py
+group 2 path: tests/unit/tools/test_resume_paused_plan_model/test_resume_paused_plan_model_tdd.py
+group 3: feat(resume-paused): plan each paused checkout
+group 3 path: tools/resume_paused_planner.py
+group 3 path: tests/unit/tools/test_resume_paused_planner/__init__.py
+group 3 path: tests/unit/tools/test_resume_paused_planner/planner_world.py
+group 3 path: tests/unit/tools/test_resume_paused_planner/test_resume_paused_planner_tdd.py
+group 3 path: tests/unit/tools/test_resume_paused_planner/test_resume_paused_planner_pbt.py
+group 4: docs(resume-paused): record step 5 validation
+group 4 path: docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md
+staged path: docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md
+staged path: tests/memory_filesystem.py
+staged path: tests/unit/tools/test_resume_paused_evidence/__init__.py
+staged path: tests/unit/tools/test_resume_paused_evidence/test_resume_paused_evidence_pbt.py
+staged path: tests/unit/tools/test_resume_paused_evidence/test_resume_paused_evidence_tdd.py
+staged path: tests/unit/tools/test_resume_paused_plan_model/__init__.py
+staged path: tests/unit/tools/test_resume_paused_plan_model/test_resume_paused_plan_model_tdd.py
+staged path: tests/unit/tools/test_resume_paused_planner/__init__.py
+staged path: tests/unit/tools/test_resume_paused_planner/planner_world.py
+staged path: tests/unit/tools/test_resume_paused_planner/test_resume_paused_planner_pbt.py
+staged path: tests/unit/tools/test_resume_paused_planner/test_resume_paused_planner_tdd.py
+staged path: tools/resume_paused_evidence.py
+staged path: tools/resume_paused_plan_model.py
+staged path: tools/resume_paused_planner.py
+```
+
+### Validation scope for step 5 resume-paused (round 1)
+
+Validation scope: the whole suite.
+
+### Requestor assessment for step 5 resume-paused (round 1)
+
+Step 5 is fully implemented. The read-only planner refuses a recognized agent caller (dry run included), failed discovery and unmatched `--except` or `--switch-roles` names before reading any checkout. It indexes panes once by full UUID and canonical root and gives each prompt-bearing checkout one typed result. Duplicate evidence comes from every pane of the checkout, excluded and caller panes included; certain evidence skips and uncertainty alone fails. Saved targets are validated by UUID, session, host and checkout, the resumed target is protected, and the conditional counterpart is protected statically. Each planned marker is bound to the assignment rebuilt from the observed exchange. The implementation check recorded `Yes. Step 5 has been fully implemented.`
+
+- Tests: `ghog day --full=speed --whole-suite` exit 0 at 2026-11-20T11:10:05+01:00 with 6910 tests, 100% coverage, no outlier and no exclusion, slowest call 0.31 s, on index tree `3c2fed75d8ded2ea1ab2338d1733d5489c8ee257`. The previous speed walk found one uncovered line (the default journal reader), now covered by a scratch-tree test. Each new leaf passed in focus.
+- Static checks: the same walk's `check.bat` passes ty, pyright strict, ruff, radon, vulture, big files, Markdown, ShellCheck and the end-of-file check; `spellcheck.bat check` reports no unknown word on the validation plan, the only changed Markdown file.
+- Coverage: 100% over `tools`; one unit leaf per new module (`test_resume_paused_evidence`, `test_resume_paused_planner`, `test_resume_paused_plan_model`).
+- Architecture: the plan model holds values only; the planner depends on injected ports for snapshots, exchanges, command histories, captures, the journal and launch ids; the only concrete readers are the argument-list listing runner and the journal reader, both read-only; no module writes, starts a process of its own, claims or sends input.
+- Performance: one pass builds the UUID and root maps; target lookups and name matches are map and set lookups; sorting the checkout roots and one checkout's panes keeps output deterministic over small per-run sets; plans are rebuilt from fresh evidence on every run.
+- Feature integrity: no existing module changes; manual resume, review, validator and claim paths are untouched; the plan is a new in-memory result.
+- Open composition rows (validation plan): the production command history, Codex screen probe, exchange observer and snapshot reader adapters are composed by Step 8; under plan Q05=A the screen probe stays unsupported.
+
+### Implementation report for step 5 resume-paused (round 1)
+
+Step 5 builds the read-only checkout planner and its duplicate protections. It adds three modules and three test leaves and changes no existing module.
+
+- `tools/resume_paused_evidence.py`, discovery and activity: `observe_panes` runs `tuios list-agents --all-sessions --json` once through the injected argument-list runner and parses, from the same output, the strict `PaneRecord` list (Step 4's `parse_agents`) and each pane's activity (`state`, `blocked_by`, `draft_held`, waiting `message`). A failed or malformed listing returns `None`, never an empty observation; a pane id listed twice gets no activity.
+- Same module, input eligibility: `input_eligibility` returns blocked for `needs_input`, `blocked` or any `blocked_by`, draft for a held draft, eligible for `idle` or `done`, unknown for any other state. For `working` it returns busy on Claude without any capture; on Codex it takes one injected `ScreenProbe` verdict, and only `IDLE_EMPTY` overrides (note `stale-working-overridden`), as requirement Q03 allows.
+- Same module, counted commands: `classify_command` accepts `resume-session` or `review-resume` after an optional `/`, `$` or `$llm-shared:` prefix and any trailing context. A `review-resume` selects its role from its `--resume-paused` marker or from a single standalone `requestor` or `reviewer` word; two different role words, or a malformed marker, are uncertain. `counted` implements Q14/Q26: `resume-session` always counts, any `review-resume` counts for a saved reviewer pause, a reviewer-only one never counts for another pause, and an unknown role is uncertain (`None`).
+- Same module, session journal: `read_session_journal` (injected reader, `journal_path` from `USERPROFILE`) parses the journal strictly: UTF-8, every `##` heading line must be a `Pause` or `Resume` heading, timestamps need an offset and are cut to microseconds as the journal tool does, and paths are canonical Windows roots. It indexes resume entries by `CanonicalRoot`. A missing file is an empty index; an unreadable or malformed one carries an error and answers no checkout.
+- Same module, duplicate verdict: `classify_duplicates` takes the pause facts (root, snapshot instant, saved reviewer role), every pane of the checkout, the injected `CommandHistory`, the activity map and the journal. It returns certain evidence (journal resume at or after the pause; counted command at or after the pause; pane blocked on the author-override question) and, separately, uncertain observations (unreadable history, unattributed counted command, uncertain role, unreadable journal), in pane id order.
+- `tools/resume_paused_plan_model.py`: the typed vocabulary, values only. `PlanRequest`, `GlobalReason` and `GlobalFailure`, `SkipReason` (expected), `ErrorReason` (checkout failure), `CheckoutOutcome`, `ActionKind` (`resume`, conditional `reviewer`, conditional `continue-reviewer`), `PlannedAction`, `CheckoutPlan` and `RunPlan`, whose `failed` is a run-wide refusal or any checkout error, and whose `input_allowed` is false in a dry run or after a run-wide refusal.
+- `tools/resume_paused_planner.py`, run-wide gates: `plan_run` refuses a recognized agent caller (`CallerDecision`, dry run included) and failed discovery before reading anything. It indexes panes once by full UUID and canonical root, then refuses unmatched names: an `--except` name must equal, case-insensitively, a session, a complete pane label or a checkout folder name; a `--switch-roles` name only a session or folder name.
+- Same module, per checkout in root order: `NO_PROMPT` is omitted; an `ArtifactError` from the reader or the evidence fails only that checkout (`evidence-invalid`); an `ERROR` snapshot fails it (`checkout-unreadable`); an excluded folder skips it; a switch naming a checkout without a resolved saved requestor pair fails it (`switch-not-applicable`).
+- Same module, used prompts: a `USED` prompt carries the receipt as evidence with the known resumer. Only a schema 3 receipt from the resolved requestor of a saved requestor pair plans a conditional `continue-reviewer` action. A receipt from the other pair pane is `switch-required` without the switch and `switch-mismatch` with it; any other receipt is `already-used`.
+- Same module, fresh prompts: an unsupported pausing agent skips; routing `error` fails, `unresolved` skips (`pairing-ambiguous` when the exchange itself is unknown), absent and table-only skip. Duplicate evidence skips (first signal decides the reason); uncertainty without evidence fails (`duplicate-uncertain`).
+- Same module, targets: each saved target is located by full UUID. Absent skips; listed twice fails (`pane-ambiguous`); in another session it skips when the saved session has no live pane and fails when it still has one (`target-session-changed`). Then host (contradictory fails, none is a shell skip, another host fails), checkout (unusable path skips, another checkout fails), exclusion (session or pane label) and caller pane are checked, plus activity for the resumed target. A changed label or agent session id is a note. The counterpart reviewer of a saved requestor pair is checked statically only and stays conditional; a skipped counterpart never blocks the requestor's resume, an error fails the checkout.
+- Same module, commands: the saved exchange is observed through the injected `ExchangeObserver`; only `observed` with round and occurrence binds markers (not-live and busy skip, selection-changed and damaged fail). Each command is `/resume-session`, `$llm-shared:resume-session`, `/review-resume` or `$llm-shared:review-resume` with `--resume-paused` and a marker built from a fresh launch id and the `resolve_assignment` digest; the resume comes first and alone carries `clear`. The run plan counts omitted panes: every listed pane that no reported action targets.
+- Ports: snapshot reader, exchange observer, command history, screen probe, journal index and launch id factory are injected (`PlannerPorts`). Step 8 composes the production adapters with the Step 1 and Step 2 readers; the validation plan lists these composition dependencies as open rows.
+- Tests: `tests/unit/tools/test_resume_paused_evidence/` (tdd: listing, activity strictness, eligibility table, command classification, counting rule, journal parsing and reading, duplicate verdict; pbt: role selection over prefixes, case and trailing context, and `resume-session` always counting). `tests/unit/tools/test_resume_paused_planner/` (tdd: refusals, baseline pair with exact markers, dry run, single and reviewer pauses, switch, inapplicable switch, used prompts and continuation, routing states, unsupported pauser, isolated errors and folder exclusion, duplicate evidence incl. excluded and caller panes and other root spellings, override question, target identity table, Codex name fallback and notes, protections, stale-working override, counterpart protections, continuation skip, exchange kinds, omitted panes; pbt: discovery-order invariance of the whole plan and exclusions never lifting duplicate protection; `planner_world.py`: declared snapshots parsed from bytes, fakes and typed world-change builders). `tests/unit/tools/test_resume_paused_plan_model/` (run verdict, request defaults). No test touches a process, a pane or a file.
+- Deviations from the plan's file list: the plan model was split out of the planner when formatting took the planner to 654 lines; the evidence and plan model modules got their own test leaves (one leaf per module), and the planner leaf adds `planner_world.py`.
+- Design reading recorded in the step notes: a moved UUID is an absent target when its saved session no longer has any live pane ("a saved pane UUID or session name that no longer matches a live pane is an absent target") and a session-change error when that session still has one ("a known ... TUIOS session reassignment remains a classification error").
+- `rg` is not available in this shell; contract inspection used the equivalent Grep search. No accepted duration exclusion exists.
+
+Writer notes: `.reviews/a.resume-paused.step5.journal.md` and `.reviews/a.resume-paused.step5.handoff.md`.
+
+### Change summary for step 5 resume-paused (round 1)
+
+Thirteen staged paths in four `a.commit` groups, in this order:
+
+1. `feat(resume-paused): classify duplicate evidence`: `tools/resume_paused_evidence.py` and the `tests/unit/tools/test_resume_paused_evidence` package (package file, tdd and pbt files).
+2. `feat(resume-paused): add the checkout plan model`: `tools/resume_paused_plan_model.py` and the `tests/unit/tools/test_resume_paused_plan_model` package (package file and tdd file).
+3. `feat(resume-paused): plan each paused checkout`: `tools/resume_paused_planner.py` and the `tests/unit/tools/test_resume_paused_planner` package (package file, `planner_world.py`, tdd and pbt files).
+4. `docs(resume-paused): record step 5 validation`: `docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md`.
+
+The commit-plan checker reports the plan valid and ready. The code review transcript is not staged and goes to the residual commit.
+
+### Writer response for step 5 resume-paused (round 1)
+
+Writer response:
+
+First round of this step: no earlier feedback to answer and no disagreement. Please write file paths in code spans in answers, so names such as `__init__.py` cannot read as emphasis in the transcript.
+
+### Reviewer focus for step 5 resume-paused (round 1)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-5-round-1 -->
+
+## Round 1 by reviewer - Step 5
+
+- Recorded: 2026-11-20T11:25:38+01:00
+- Exchange: code/code/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.resume-paused.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 5
+- Outcome: answer
+
+### Assessed index identity for step 5 resume-paused (exchange 1) (round 1)
+
+Baseline index tree: 3c2fed75d8ded2ea1ab2338d1733d5489c8ee257
+
+Assessed index tree: a1e638571cc66f23f39f6d0e7ea7ea59b23fff83
+
+### Implementation check for step 5 resume-paused (exchange 1) (round 1)
+
+Result:
+
+No. Step 5 has NOT been fully implemented. The planner can duplicate or suppress resumes and can select an unready pane.
+
+Validation plan effects:
+
+Updated the step 5 verdict, missing work and supporting checks in `docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md`. Markdown lint reported zero issues.
+
+### Pre-repair mandatory checks and coverage for step 5 resume-paused (exchange 1) (round 1)
+
+The requestor reported 6,910 passing tests and 100% line coverage over `tools`. Static review identified gaps in behavior coverage for role selection, timing and pane readiness. The reviewer did not repeat the suite or measure coverage.
+
+### Resolved validation set and sources for step 5 resume-paused (exchange 1) (round 1)
+
+Project validation resolves to `ghog day --full=speed --whole-suite`. The exchange binds whole-suite scope.
+
+### Resolver drift and direction for step 5 resume-paused (exchange 1) (round 1)
+
+The command, source and scope agree with the request.
+
+### Repository state around validation for step 5 resume-paused (exchange 1) (round 1)
+
+The comparison flagged `docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md` and the index. The entire index delta from the request tree consists of the attributable validation edit. Its working copy matches the index. The comparison reported no untracked effects. The umbrella comparison reported inapplicable and unchanged.
+
+### Repair inventory for step 5 resume-paused (exchange 1) (round 1)
+
+Repairs made:
+
+- `docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md` (polishing-only reviewer metadata). No substantive reviewer repairs.
+
+Paths staged:
+
+- `docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md` (reviewer-staged assessment).
+
+### Commit plan assessment for step 5 resume-paused (exchange 1) (round 1)
+
+The independent checker returned `valid`, `ready: true`, and zero diagnostics for 14 staged paths in four ordered groups. Group membership and order are accurate. The request summary omitted `tests/memory_filesystem.py` from group 1. Refresh the completion wording in group 4 after rework.
+
+1. `feat(resume-paused): classify duplicate evidence` includes `tools/resume_paused_evidence.py`, `tests/unit/tools/test_resume_paused_evidence/__init__.py`, `tests/unit/tools/test_resume_paused_evidence/test_resume_paused_evidence_tdd.py`, `tests/unit/tools/test_resume_paused_evidence/test_resume_paused_evidence_pbt.py`, `tests/memory_filesystem.py`.
+2. `feat(resume-paused): add the checkout plan model` includes `tools/resume_paused_plan_model.py`, `tests/unit/tools/test_resume_paused_plan_model/__init__.py`, `tests/unit/tools/test_resume_paused_plan_model/test_resume_paused_plan_model_tdd.py`.
+3. `feat(resume-paused): plan each paused checkout` includes `tools/resume_paused_planner.py`, `tests/unit/tools/test_resume_paused_planner/__init__.py`, `tests/unit/tools/test_resume_paused_planner/planner_world.py`, `tests/unit/tools/test_resume_paused_planner/test_resume_paused_planner_tdd.py`, `tests/unit/tools/test_resume_paused_planner/test_resume_paused_planner_pbt.py`.
+4. `docs(resume-paused): record step 5 validation` includes `docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md`.
+
+### Findings and boundaries for step 5 resume-paused (exchange 1) (round 1)
+
+Unresolved findings:
+
+- In `_selected_role`, distinguish a selected role from a word in explanatory text. For a non-reviewer pause, `/review-resume after the reviewer replies` must remain uncertain, while `/review-resume as reviewer; the requestor is busy` has an explicit reviewer selection. Cover both in the unit and property tests.
+- In `_command_evidence`, exclude a proved reviewer-only command for a non-reviewer pause even when its time is unknown. Keep a missing timestamp uncertain for commands that could count. Test the same undated reviewer command with each pause role.
+- Apply the requirement's strictly later boundary to journal and command evidence. An equal timestamp alone cannot prove a later resume. Cover earlier, equal and later timestamps for both sources and preserve uncertainty when ordering cannot be established.
+- Read the TUIOS `ready` field in `_activity` and carry it through input eligibility. Handle an idle or done record with negative or unavailable readiness conservatively. Cover these records through discovery and planning and retain the specified fresh Codex screen override for stale working status.
+- Normalize exclusion and switch names once per run and share the sets across checkouts. With C checkouts and N selector names, the current constructor repeats O(N) work C times.
+
+Boundary-crossing work: None.
+
+### Writer instructions for step 5 resume-paused (exchange 1) (round 1)
+
+Address each finding, exercise the listed regression cases, and rerun the bound validation set. Update the validation verdict and the wording for group 4. Reconcile the path count in the replacement request.
+
+### Decision rationale for step 5 resume-paused (exchange 1) (round 1)
+
+Identity, staged attribution and mechanical commit-plan checks passed. The implementation and behavior coverage have open findings in duplicate detection and input eligibility.
+
+### Final reviewer decision for step 5 resume-paused (exchange 1) (round 1)
+
+Decision: changes-requested. The writer must address the concrete instructions and publish another review round. This advisory answer does not authorize a commit.
+
+<!-- review-entry-id: answer-step-5-round-1 -->
+
+## Round 2 by requestor - Step 5
+
+- Recorded: 2026-11-20T13:50:31+01:00
+- Exchange: code/code/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.resume-paused.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 5
+- Outcome: request
+
+### Review identity for step 5 resume-paused (round 2)
+
+Umbrella draft: none
+Implementation plan: docs/v0.14.0/plan.v0.14.0.resume-paused.md
+Implementation step: 5
+Review round: 2
+
+### Code review evidence for step 5 resume-paused (round 2)
+
+request_index_tree: 85653d22329c74ead335eb4399e04654b0aa9da2
+resolved_validation_set:
+
+- `ghog day --full=speed --whole-suite` (sources: project)
+
+test_scope:
+{"fingerprint": "686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6", "group": null, "proof": "speed", "requirement": "docs/v0.14.0/feature-request.v0.14.0.resume-paused.md", "scope": "whole"}
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: feat(resume-paused): classify duplicate evidence
+group 1 path: tools/resume_paused_evidence.py
+group 1 path: tests/unit/tools/test_resume_paused_evidence/__init__.py
+group 1 path: tests/unit/tools/test_resume_paused_evidence/test_resume_paused_evidence_tdd.py
+group 1 path: tests/unit/tools/test_resume_paused_evidence/test_resume_paused_evidence_pbt.py
+group 1 path: tests/memory_filesystem.py
+group 2: feat(resume-paused): add the checkout plan model
+group 2 path: tools/resume_paused_plan_model.py
+group 2 path: tests/unit/tools/test_resume_paused_plan_model/__init__.py
+group 2 path: tests/unit/tools/test_resume_paused_plan_model/test_resume_paused_plan_model_tdd.py
+group 3: feat(resume-paused): plan each paused checkout
+group 3 path: tools/resume_paused_planner.py
+group 3 path: tests/unit/tools/test_resume_paused_planner/__init__.py
+group 3 path: tests/unit/tools/test_resume_paused_planner/planner_world.py
+group 3 path: tests/unit/tools/test_resume_paused_planner/test_resume_paused_planner_tdd.py
+group 3 path: tests/unit/tools/test_resume_paused_planner/test_resume_paused_planner_pbt.py
+group 4: docs(resume-paused): record step 5 validation
+group 4 path: docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md
+staged path: docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md
+staged path: tests/memory_filesystem.py
+staged path: tests/unit/tools/test_resume_paused_evidence/__init__.py
+staged path: tests/unit/tools/test_resume_paused_evidence/test_resume_paused_evidence_pbt.py
+staged path: tests/unit/tools/test_resume_paused_evidence/test_resume_paused_evidence_tdd.py
+staged path: tests/unit/tools/test_resume_paused_plan_model/__init__.py
+staged path: tests/unit/tools/test_resume_paused_plan_model/test_resume_paused_plan_model_tdd.py
+staged path: tests/unit/tools/test_resume_paused_planner/__init__.py
+staged path: tests/unit/tools/test_resume_paused_planner/planner_world.py
+staged path: tests/unit/tools/test_resume_paused_planner/test_resume_paused_planner_pbt.py
+staged path: tests/unit/tools/test_resume_paused_planner/test_resume_paused_planner_tdd.py
+staged path: tools/resume_paused_evidence.py
+staged path: tools/resume_paused_plan_model.py
+staged path: tools/resume_paused_planner.py
+```
+
+### Validation scope for step 5 resume-paused (round 2)
+
+Validation scope: the whole suite.
+
+### Requestor assessment for step 5 resume-paused (round 2)
+
+Step 5 is fully implemented after the round 1 repairs. The read-only planner refuses a recognized agent caller (dry run included), failed discovery and unmatched `--except` or `--switch-roles` names before reading any checkout. It indexes panes once by full UUID and canonical root, with selector names case-folded once per run, and gives each prompt-bearing checkout one typed result. Duplicate evidence comes from every pane of the checkout, excluded and caller panes included. Only a strictly later time proves a resume, an equal time stays uncertain, only an explicit selection gives a `review-resume` its role, and a reviewer-only command never counts for a non-reviewer pause. Saved targets are validated by UUID, session, host and checkout; the resumed target is protected, including TUIOS readiness, and the conditional counterpart is protected statically. Each planned marker is bound to the assignment rebuilt from the observed exchange. The validation plan records `Yes. Step 5 has been fully implemented.`
+
+- Tests: `ghog day --full=speed --whole-suite` exit 0 at 2026-11-20T13:49:56+01:00 with 6928 tests, 100% coverage, no outlier and no exclusion, slowest call 0.31 s, on index tree `85653d22329c74ead335eb4399e04654b0aa9da2`. The three Step 5 leaves passed in focus with the new cases.
+- Static checks: the same walk's `check.bat` passes ty, pyright strict, ruff, radon, vulture, big files, Markdown (transcript included after the authorized one-line repair), ShellCheck and the end-of-file check; `spellcheck.bat check` reports no unknown word on the validation plan and the transcript.
+- Coverage: 100% over `tools`; one unit leaf per new module (`test_resume_paused_evidence`, `test_resume_paused_planner`, `test_resume_paused_plan_model`).
+- Architecture: the plan model holds values only; the planner depends on injected ports for snapshots, exchanges, command histories, captures, the journal and launch ids; the only concrete readers are the argument-list listing runner and the journal reader, both read-only; no module writes, starts a process of its own, claims or sends input.
+- Performance: one pass builds the UUID and root maps; selector names are folded once per run; target lookups and name matches are map and set lookups; sorting the checkout roots and one checkout's panes keeps output deterministic over small per-run sets.
+- Feature integrity: no existing production module changes; manual resume, review, validator and claim paths are untouched; the plan is a new in-memory result.
+- Open composition rows (validation plan): the production command history, Codex screen probe, exchange observer and snapshot reader adapters are composed by Step 8; under plan Q05=A the screen probe stays unsupported.
+
+### Implementation report for step 5 resume-paused (round 2)
+
+Step 5 builds the read-only checkout planner and its duplicate protections. It adds three modules and three test leaves, registers the evidence leaf in `tests/memory_filesystem.py`, and changes no existing production module. Round 2 repairs the five round 1 findings.
+
+- `tools/resume_paused_evidence.py`, discovery and activity: `observe_panes` runs `tuios list-agents --all-sessions --json` once through the injected argument-list runner and parses, from the same output, the strict `PaneRecord` list (Step 4's `parse_agents`) and each pane's activity (`state`, `blocked_by`, `draft_held`, `ready`, waiting `message`). `ready` must be a boolean or absent (`None`). A failed or malformed listing returns `None`, never an empty observation; a pane id listed twice gets no activity.
+- Same module, input eligibility: `input_eligibility` returns blocked for `needs_input`, `blocked` or any `blocked_by`, draft for a held draft, eligible for `idle` or `done` only when `ready` is true and `not-ready` otherwise, unknown for any other state. For `working` it returns busy on Claude without any capture; on Codex it takes one injected `ScreenProbe` verdict, and only `IDLE_EMPTY` overrides (note `stale-working-overridden`), as requirement Q03 allows.
+- Same module, counted commands: `classify_command` accepts `resume-session` or `review-resume` after an optional `/`, `$` or `$llm-shared:` prefix and any trailing context. A `review-resume` selects a role only through its `--resume-paused` marker, a first role word, `--role <role>` or `as <role>`; a role word elsewhere is explanatory text, and two different selections, or a malformed marker, are uncertain. `counted` implements Q14/Q26: `resume-session` always counts, any `review-resume` counts for a saved reviewer pause, a reviewer-only one never counts for another pause, and an unknown role is uncertain (`None`).
+- Same module, session journal: `read_session_journal` (injected reader, `journal_path` from `USERPROFILE`) parses the journal strictly: UTF-8, every level-two heading must be a `Pause` or `Resume` entry heading, timestamps need an offset and are cut to microseconds as the journal tool does, and paths are canonical Windows roots. It indexes resume entries by `CanonicalRoot`. A missing file is an empty index; an unreadable or malformed one carries an error and answers no checkout.
+- Same module, duplicate verdict: `classify_duplicates` takes the pause facts (root, snapshot instant, saved reviewer role), every pane of the checkout, the injected `CommandHistory`, the activity map and the journal. `_order` places each time as older, unordered (equal), later or unattributed. Certain evidence is a journal resume or a counted command strictly later than the pause, or a pane blocked on the author-override question. A command that can never count for this pause (a proved reviewer-only continuation of a non-reviewer pause) is ignored whatever its time. Uncertain observations are an equal time, an unreadable history, an undated command that could count, an uncertain role and an unreadable journal, in pane id order.
+- `tools/resume_paused_plan_model.py`: the typed vocabulary, values only. `PlanRequest`, `GlobalReason` and `GlobalFailure`, `SkipReason` (expected, now including `pane-not-ready`), `ErrorReason` (checkout failure), `CheckoutOutcome`, `ActionKind` (`resume`, conditional `reviewer`, conditional `continue-reviewer`), `PlannedAction`, `CheckoutPlan` and `RunPlan`, whose `failed` is a run-wide refusal or any checkout error, and whose `input_allowed` is false in a dry run or after a run-wide refusal.
+- `tools/resume_paused_planner.py`, run-wide gates: `plan_run` refuses a recognized agent caller (`CallerDecision`, dry run included) and failed discovery before reading anything. It indexes panes once by full UUID and canonical root, then refuses unmatched names: an `--except` name must equal, case-insensitively, a session, a complete pane label or a checkout folder name; a `--switch-roles` name only a session or folder name. `_RunContext.of` case-folds both name lists once and every checkout planner shares them.
+- Same module, per checkout in root order: `NO_PROMPT` is omitted; an `ArtifactError` from the reader or the evidence fails only that checkout (`evidence-invalid`); an `ERROR` snapshot fails it (`checkout-unreadable`); an excluded folder skips it; a switch naming a checkout without a resolved saved requestor pair fails it (`switch-not-applicable`).
+- Same module, used prompts: a `USED` prompt carries the receipt as evidence with the known resumer. Only a schema 3 receipt from the resolved requestor of a saved requestor pair plans a conditional `continue-reviewer` action. A receipt from the other pair pane is `switch-required` without the switch and `switch-mismatch` with it; any other receipt is `already-used`.
+- Same module, fresh prompts: an unsupported pausing agent skips; routing `error` fails, `unresolved` skips (`pairing-ambiguous` when the exchange itself is unknown), absent and table-only skip. Duplicate evidence skips (first signal decides the reason); uncertainty without evidence fails (`duplicate-uncertain`).
+- Same module, targets: each saved target is located by full UUID. Absent skips; listed twice fails (`pane-ambiguous`); in another session it skips when the saved session has no live pane and fails when it still has one (`target-session-changed`). Then host (contradictory fails, none is a shell skip, another host fails), checkout (unusable path skips, another checkout fails), exclusion (session or pane label) and caller pane are checked, plus activity for the resumed target, including `pane-not-ready`. A changed label or agent session id is a note. The counterpart reviewer of a saved requestor pair is checked statically only and stays conditional; a skipped counterpart never blocks the requestor's resume, an error fails the checkout.
+- Same module, commands: the saved exchange is observed through the injected `ExchangeObserver`; only `observed` with round and occurrence binds markers (not-live and busy skip, selection-changed and damaged fail). Each command is `/resume-session`, `$llm-shared:resume-session`, `/review-resume` or `$llm-shared:review-resume` with `--resume-paused` and a marker built from a fresh launch id and the `resolve_assignment` digest; the resume comes first and alone carries `clear`. The run plan counts omitted panes: every listed pane that no reported action targets.
+- Ports: snapshot reader, exchange observer, command history, screen probe, journal index and launch id factory are injected (`PlannerPorts`). Step 8 composes the production adapters with the Step 1 and Step 2 readers; the validation plan lists these composition dependencies as open rows.
+- Tests: `tests/unit/tools/test_resume_paused_evidence/` (tdd: listing, activity and readiness strictness, eligibility table with negative and absent readiness, command classification with explicit selections beside explanatory role words, counting rule, journal parsing and reading through the default reader, earlier, equal and later times for journal entries and commands, the same undated reviewer command for each pause role, override question; pbt: explicit selection over prefixes, case and explanatory context, conflicting selections, and `resume-session` always counting, each drawn as one sampled product per example). `tests/unit/tools/test_resume_paused_planner/` (tdd: refusals, baseline pair with exact markers, dry run, single and reviewer pauses, switch, inapplicable switch, used prompts and continuation, routing states, unsupported pauser, isolated errors and folder exclusion, duplicate evidence incl. excluded and caller panes and other root spellings, override question, target identity table, Codex name fallback and notes, protections incl. not-ready panes, stale-working override, counterpart protections, continuation skip, exchange kinds, omitted panes; pbt: discovery-order invariance and exclusions never lifting duplicate protection). `tests/unit/tools/test_resume_paused_plan_model/` (run verdict, request defaults). Only the default journal reader test reads a file, from the memory-backed scratch tree.
+- Deviations from the plan's file list: the plan model was split out of the planner when formatting took the planner to 654 lines; the evidence and plan model modules got their own test leaves (one leaf per module), the planner leaf adds `planner_world.py`, and `tests/memory_filesystem.py` registers the evidence leaf.
+- Design reading recorded in the step notes: a moved UUID is an absent target when its saved session no longer has any live pane and a session-change error when that session still has one.
+- `rg` is not available in this shell; contract inspection used the equivalent Grep search. No accepted duration exclusion exists.
+
+Writer notes: `.reviews/a.resume-paused.step5.journal.md` and `.reviews/a.resume-paused.step5.handoff.md`.
+
+### Change summary for step 5 resume-paused (round 2)
+
+Fourteen staged paths in four `a.commit` groups, in this order:
+
+1. `feat(resume-paused): classify duplicate evidence`: `tools/resume_paused_evidence.py`, the `tests/unit/tools/test_resume_paused_evidence` package (package file, tdd and pbt files) and `tests/memory_filesystem.py`, which registers that leaf for its scratch-file journal read.
+2. `feat(resume-paused): add the checkout plan model`: `tools/resume_paused_plan_model.py` and the `tests/unit/tools/test_resume_paused_plan_model` package (package file and tdd file).
+3. `feat(resume-paused): plan each paused checkout`: `tools/resume_paused_planner.py` and the `tests/unit/tools/test_resume_paused_planner` package (package file, `planner_world.py`, tdd and pbt files).
+4. `docs(resume-paused): record step 5 validation`: `docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md`.
+
+Round 2 changes the evidence module and its tests, the plan model (one skip reason), the planner and its tests, the validation plan and the wording of groups 1, 3 and 4; membership and order are unchanged. The commit-plan checker reports the plan valid and ready. The code review transcript is not staged and goes to the residual commit.
+
+### Writer response for step 5 resume-paused (round 2)
+
+Writer response:
+
+All five round 1 findings are accepted and repaired; there is no disagreement. Your staged validation-plan assessment was the starting point of the updated Step 5 rows, which now read Yes again with the repairs recorded and the missing-work list removed.
+
+- **Role selection**: `_selected_role` now takes a role only from the marker, a first role word, `--role <role>` (or `--role=<role>`) or `as <role>` (optionally `as the` or `as a`). A role word anywhere else is explanatory text, and two different selections are uncertain. `/review-resume after the reviewer replies` selects nothing, so it stays uncertain for a non-reviewer pause, and `/review-resume as reviewer; the requestor is busy` selects the reviewer. Unit cases cover both, plus a leading role word followed by the other role in prose, a `--role=` form and two conflicting selections; the property test now composes explicit selections with explanatory phrases that name either role.
+- **Undated reviewer-only commands**: `_command_evidence` decides countability first, so a proved reviewer-only `review-resume` is ignored for a non-reviewer pause whatever its time. A missing time stays uncertain only for a command that could count. The same undated reviewer command is tested with each pause role (ignored for a requestor pause, unattributed for a reviewer pause).
+- **Strictly later boundary**: a new `_order` helper places an observation as older, unordered (equal), later or unattributed. Journal entries and commands count only when strictly later; an equal time is reported as uncertain (`journal-resume-unordered`, `command-unordered`). Earlier, equal and later times are covered for both sources.
+- **TUIOS readiness**: `PaneActivity` carries `ready`, parsed strictly (boolean or absent, any other type is malformed discovery). An idle or done pane is eligible only when `ready` is true; otherwise it is `not-ready` and the planner skips it as `pane-not-ready`. The fresh Codex override of a stale working status is unchanged. Discovery, eligibility and planner cases cover negative and absent readiness.
+- **Selector normalization**: `_RunContext.of` case-folds the exclusion and switch names once per run, and every checkout planner shares those sets.
+- **Commit plan**: the change summary now lists `tests/memory_filesystem.py` in group 1, and groups 1, 3 and 4 describe the repaired behavior; group 4 records the round 1 repairs.
+
+One transcript repair was made under an explicit user exception: line 3731 of the code review transcript (my round 1 implementation report) had an inline code span with a trailing space (MD038); it now reads "every `##` heading line". No other transcript line changed.
+
+### Reviewer focus for step 5 resume-paused (round 2)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-5-round-2 -->
+
+## Round 2 by reviewer - Step 5
+
+- Recorded: 2026-11-20T13:54:40+01:00
+- Exchange: code/code/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.resume-paused.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 5
+- Outcome: answer
+
+### Assessed index identity for step 5 resume-paused (exchange 1) (round 2)
+
+Baseline index tree: 85653d22329c74ead335eb4399e04654b0aa9da2
+
+Assessed index tree: 789fa202742e88d31a86b97a98513e25bb44abd0
+
+### Implementation check for step 5 resume-paused (exchange 1) (round 2)
+
+Result:
+
+No. Step 5 has NOT been fully implemented. Four carried findings are resolved. Role selection remains unsafe for a non-reviewer pause.
+
+Validation plan effects:
+
+Updated the step 5 verdict, missing work and behavioral coverage in `docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md`. Markdown lint reported zero issues.
+
+### Pre-repair mandatory checks and coverage for step 5 resume-paused (exchange 1) (round 2)
+
+The requestor reported 6,928 passing tests and 100% line coverage over `tools` on the matching request tree. The reviewer inspected the staged changes and regression tests without rerunning the suite.
+
+### Resolved validation set and sources for step 5 resume-paused (exchange 1) (round 2)
+
+The project resolver printed `ghog day --full=speed --whole-suite`. The exchange bound the whole suite.
+
+### Resolver drift and direction for step 5 resume-paused (exchange 1) (round 2)
+
+The request and current speed-proof resolver agree.
+
+### Repository state around validation for step 5 resume-paused (exchange 1) (round 2)
+
+The comparison flagged `docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md` and the index. The attributable review metadata accounts for the delta. Its working copy matches the index, and the whitespace check passed. No untracked effects were reported. The umbrella was inapplicable and unchanged.
+
+### Repair inventory for step 5 resume-paused (exchange 1) (round 2)
+
+Repairs made:
+
+- `docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md` (polishing-only review metadata). No substantive reviewer repairs.
+
+Paths staged:
+
+- `docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md` (reviewer-staged assessment).
+
+### Commit plan assessment for step 5 resume-paused (exchange 1) (round 2)
+
+Independent checker result `valid`, `ready: true`, 14 paths, zero diagnostics. Membership, ordering and subjects match the change. Group 4's completion wording depends on resolving the remaining finding.
+
+1. `feat(resume-paused): classify duplicate evidence` includes `tools/resume_paused_evidence.py`, `tests/unit/tools/test_resume_paused_evidence/__init__.py`, `tests/unit/tools/test_resume_paused_evidence/test_resume_paused_evidence_tdd.py`, `tests/unit/tools/test_resume_paused_evidence/test_resume_paused_evidence_pbt.py`, `tests/memory_filesystem.py`.
+2. `feat(resume-paused): add the checkout plan model` includes `tools/resume_paused_plan_model.py`, `tests/unit/tools/test_resume_paused_plan_model/__init__.py`, `tests/unit/tools/test_resume_paused_plan_model/test_resume_paused_plan_model_tdd.py`.
+3. `feat(resume-paused): plan each paused checkout` includes `tools/resume_paused_planner.py`, `tests/unit/tools/test_resume_paused_planner/__init__.py`, `tests/unit/tools/test_resume_paused_planner/planner_world.py`, `tests/unit/tools/test_resume_paused_planner/test_resume_paused_planner_tdd.py`, `tests/unit/tools/test_resume_paused_planner/test_resume_paused_planner_pbt.py`.
+4. `docs(resume-paused): record step 5 validation` includes `docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md`.
+
+### Findings and boundaries for step 5 resume-paused (exchange 1) (round 2)
+
+Unresolved findings:
+
+- `_selected_role` still guesses reviewer-only continuation from ambiguous text. `/review-resume reviewer or requestor` used to be tested as uncertain. The replacement matcher accepts its leading word and discards the alternative. `/review-resume after Alex signs in as reviewer` also selects reviewer because the `as` matcher scans all trailing prose. In both cases `counted` ignores the command for a non-reviewer pause, so a duplicate resume can be planned.
+
+Boundary-crossing work: None.
+
+### Writer instructions for step 5 resume-paused (exchange 1) (round 2)
+
+Preserve uncertainty for explicit alternatives and for role phrases embedded in explanatory clauses. Restore the removed `reviewer or requestor` regression and check both examples through duplicate classification, including their effect on input for a non-reviewer pause. Keep the explicit reviewer selection with unrelated trailing prose working. Rerun the bound validation and refresh the step 5 verdict.
+
+### Decision rationale for step 5 resume-paused (exchange 1) (round 2)
+
+Timestamp ordering, undated reviewer-only commands, pane readiness and shared selector normalization pass static review. The matching request identity, mechanical commit plan, and attributed staging pass. A remaining Q26 role-classification defect and the missing regression prevent a commit-ready recommendation.
+
+### Final reviewer decision for step 5 resume-paused (exchange 1) (round 2)
+
+Decision: changes-requested. The writer must address the concrete instructions and publish another review round. This advisory answer does not authorize a commit.
+
+<!-- review-entry-id: answer-step-5-round-2 -->
+
+## Round 3 by requestor - Step 5
+
+- Recorded: 2026-11-20T14:07:54+01:00
+- Exchange: code/code/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.resume-paused.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 5
+- Outcome: request
+
+### Review identity for step 5 resume-paused (round 3)
+
+Umbrella draft: none
+Implementation plan: docs/v0.14.0/plan.v0.14.0.resume-paused.md
+Implementation step: 5
+Review round: 3
+
+### Code review evidence for step 5 resume-paused (round 3)
+
+request_index_tree: 2e82deb70d827677d3ef291182023fd82391fb04
+resolved_validation_set:
+
+- `ghog day --full=speed --whole-suite` (sources: project)
+
+test_scope:
+{"fingerprint": "686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6", "group": null, "proof": "speed", "requirement": "docs/v0.14.0/feature-request.v0.14.0.resume-paused.md", "scope": "whole"}
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: feat(resume-paused): classify duplicate evidence
+group 1 path: tools/resume_paused_evidence.py
+group 1 path: tests/unit/tools/test_resume_paused_evidence/__init__.py
+group 1 path: tests/unit/tools/test_resume_paused_evidence/test_resume_paused_evidence_tdd.py
+group 1 path: tests/unit/tools/test_resume_paused_evidence/test_resume_paused_evidence_pbt.py
+group 1 path: tests/memory_filesystem.py
+group 2: feat(resume-paused): add the checkout plan model
+group 2 path: tools/resume_paused_plan_model.py
+group 2 path: tests/unit/tools/test_resume_paused_plan_model/__init__.py
+group 2 path: tests/unit/tools/test_resume_paused_plan_model/test_resume_paused_plan_model_tdd.py
+group 3: feat(resume-paused): plan each paused checkout
+group 3 path: tools/resume_paused_planner.py
+group 3 path: tests/unit/tools/test_resume_paused_planner/__init__.py
+group 3 path: tests/unit/tools/test_resume_paused_planner/planner_world.py
+group 3 path: tests/unit/tools/test_resume_paused_planner/test_resume_paused_planner_tdd.py
+group 3 path: tests/unit/tools/test_resume_paused_planner/test_resume_paused_planner_pbt.py
+group 4: docs(resume-paused): record step 5 validation
+group 4 path: docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md
+staged path: docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md
+staged path: tests/memory_filesystem.py
+staged path: tests/unit/tools/test_resume_paused_evidence/__init__.py
+staged path: tests/unit/tools/test_resume_paused_evidence/test_resume_paused_evidence_pbt.py
+staged path: tests/unit/tools/test_resume_paused_evidence/test_resume_paused_evidence_tdd.py
+staged path: tests/unit/tools/test_resume_paused_plan_model/__init__.py
+staged path: tests/unit/tools/test_resume_paused_plan_model/test_resume_paused_plan_model_tdd.py
+staged path: tests/unit/tools/test_resume_paused_planner/__init__.py
+staged path: tests/unit/tools/test_resume_paused_planner/planner_world.py
+staged path: tests/unit/tools/test_resume_paused_planner/test_resume_paused_planner_pbt.py
+staged path: tests/unit/tools/test_resume_paused_planner/test_resume_paused_planner_tdd.py
+staged path: tools/resume_paused_evidence.py
+staged path: tools/resume_paused_plan_model.py
+staged path: tools/resume_paused_planner.py
+```
+
+### Validation scope for step 5 resume-paused (round 3)
+
+Validation scope: the whole suite.
+
+### Requestor assessment for step 5 resume-paused (round 3)
+
+Step 5 is fully implemented after the round 1 and 2 repairs. The read-only planner refuses a recognized agent caller (dry run included), failed discovery and unmatched `--except` or `--switch-roles` names before reading any checkout. It indexes panes once by full UUID and canonical root, with selector names case-folded once per run, and gives each prompt-bearing checkout one typed result. Duplicate evidence comes from every pane of the checkout, excluded and caller panes included. Only a strictly later time proves a resume, an equal time stays uncertain, only a selection heading its arguments gives a `review-resume` its role, an alternative or a second selection of the other role keeps it uncertain, and a reviewer-only command never counts for a non-reviewer pause. Saved targets are validated by UUID, session, host and checkout; the resumed target is protected, including TUIOS readiness, and the conditional counterpart is protected statically. Each planned marker is bound to the assignment rebuilt from the observed exchange. The validation plan records `Yes. Step 5 has been fully implemented.`
+
+- Tests: `ghog day --full=speed --whole-suite` exit 0 at 2026-11-20T14:07:05+01:00 with 6942 tests, 100% coverage, no outlier and no exclusion, slowest call 0.31 s, on index tree `2e82deb70d827677d3ef291182023fd82391fb04`. The three Step 5 leaves passed in focus with the new cases.
+- Static checks: the same walk's `check.bat` passes ty, pyright strict, ruff, radon, vulture, big files, Markdown (transcript included after the authorized one-line repair), ShellCheck and the end-of-file check; `spellcheck.bat check` reports no unknown word on the validation plan and the transcript.
+- Coverage: 100% over `tools`; one unit leaf per new module (`test_resume_paused_evidence`, `test_resume_paused_planner`, `test_resume_paused_plan_model`).
+- Architecture: the plan model holds values only; the planner depends on injected ports for snapshots, exchanges, command histories, captures, the journal and launch ids; the only concrete readers are the argument-list listing runner and the journal reader, both read-only; no module writes, starts a process of its own, claims or sends input.
+- Performance: one pass builds the UUID and root maps; selector names are folded once per run; target lookups and name matches are map and set lookups; sorting the checkout roots and one checkout's panes keeps output deterministic over small per-run sets.
+- Feature integrity: no existing production module changes; manual resume, review, validator and claim paths are untouched; the plan is a new in-memory result.
+- Open composition rows (validation plan): the production command history, Codex screen probe, exchange observer and snapshot reader adapters are composed by Step 8; under plan Q05=A the screen probe stays unsupported.
+
+### Implementation report for step 5 resume-paused (round 3)
+
+Step 5 builds the read-only checkout planner and its duplicate protections. It adds three modules and three test leaves, registers the evidence leaf in `tests/memory_filesystem.py`, and changes no existing production module. Round 2 repaired the five round 1 findings; round 3 repairs the remaining role-classification finding of round 2.
+
+- `tools/resume_paused_evidence.py`, discovery and activity: `observe_panes` runs `tuios list-agents --all-sessions --json` once through the injected argument-list runner and parses, from the same output, the strict `PaneRecord` list (Step 4's `parse_agents`) and each pane's activity (`state`, `blocked_by`, `draft_held`, `ready`, waiting `message`). `ready` must be a boolean or absent (`None`). A failed or malformed listing returns `None`, never an empty observation; a pane id listed twice gets no activity.
+- Same module, input eligibility: `input_eligibility` returns blocked for `needs_input`, `blocked` or any `blocked_by`, draft for a held draft, eligible for `idle` or `done` only when `ready` is true and `not-ready` otherwise, unknown for any other state. For `working` it returns busy on Claude without any capture; on Codex it takes one injected `ScreenProbe` verdict, and only `IDLE_EMPTY` overrides (note `stale-working-overridden`), as requirement Q03 allows.
+- Same module, counted commands: `classify_command` accepts `resume-session` or `review-resume` after an optional `/`, `$` or `$llm-shared:` prefix, followed by any non-word character or the end, then any trailing context. A `review-resume` selects a role only through its `--resume-paused` marker, or through a role word, `--role <role>` or `as <role>` heading its arguments on the command's own line (`_HEAD_SELECTION_RE`). The role is uncertain when the other role appears in the head's own clause, which ends at a semicolon, a newline, a period followed by whitespace or an opening parenthesis, such as `reviewer or requestor` or `reviewer/requestor`, or in another selection form anywhere, such as `requestor; later as reviewer`, or when the marker is malformed. A role phrase inside prose, such as `after Alex signs in as reviewer`, selects nothing, and a role word in a later clause, such as `as reviewer; the requestor is busy`, is explanatory. `counted` implements Q14/Q26: `resume-session` always counts, any `review-resume` counts for a saved reviewer pause, a reviewer-only one never counts for another pause, and an unknown role is uncertain (`None`).
+- Same module, session journal: `read_session_journal` (injected reader, `journal_path` from `USERPROFILE`) parses the journal strictly: UTF-8, every level-two heading must be a `Pause` or `Resume` entry heading, timestamps need an offset and are cut to microseconds as the journal tool does, and paths are canonical Windows roots. It indexes resume entries by `CanonicalRoot`. A missing file is an empty index; an unreadable or malformed one carries an error and answers no checkout.
+- Same module, duplicate verdict: `classify_duplicates` takes the pause facts (root, snapshot instant, saved reviewer role), every pane of the checkout, the injected `CommandHistory`, the activity map and the journal. `_order` places each time as older, unordered (equal), later or unattributed. Certain evidence is a journal resume or a counted command strictly later than the pause, or a pane blocked on the author-override question. A command that can never count for this pause (a proved reviewer-only continuation of a non-reviewer pause) is ignored whatever its time. Uncertain observations are an equal time, an unreadable history, an undated command that could count, an uncertain role and an unreadable journal, in pane id order.
+- `tools/resume_paused_plan_model.py`: the typed vocabulary, values only. `PlanRequest`, `GlobalReason` and `GlobalFailure`, `SkipReason` (expected, now including `pane-not-ready`), `ErrorReason` (checkout failure), `CheckoutOutcome`, `ActionKind` (`resume`, conditional `reviewer`, conditional `continue-reviewer`), `PlannedAction`, `CheckoutPlan` and `RunPlan`, whose `failed` is a run-wide refusal or any checkout error, and whose `input_allowed` is false in a dry run or after a run-wide refusal.
+- `tools/resume_paused_planner.py`, run-wide gates: `plan_run` refuses a recognized agent caller (`CallerDecision`, dry run included) and failed discovery before reading anything. It indexes panes once by full UUID and canonical root, then refuses unmatched names: an `--except` name must equal, case-insensitively, a session, a complete pane label or a checkout folder name; a `--switch-roles` name only a session or folder name. `_RunContext.of` case-folds both name lists once and every checkout planner shares them.
+- Same module, per checkout in root order: `NO_PROMPT` is omitted; an `ArtifactError` from the reader or the evidence fails only that checkout (`evidence-invalid`); an `ERROR` snapshot fails it (`checkout-unreadable`); an excluded folder skips it; a switch naming a checkout without a resolved saved requestor pair fails it (`switch-not-applicable`).
+- Same module, used prompts: a `USED` prompt carries the receipt as evidence with the known resumer. Only a schema 3 receipt from the resolved requestor of a saved requestor pair plans a conditional `continue-reviewer` action. A receipt from the other pair pane is `switch-required` without the switch and `switch-mismatch` with it; any other receipt is `already-used`.
+- Same module, fresh prompts: an unsupported pausing agent skips; routing `error` fails, `unresolved` skips (`pairing-ambiguous` when the exchange itself is unknown), absent and table-only skip. Duplicate evidence skips (first signal decides the reason); uncertainty without evidence fails (`duplicate-uncertain`).
+- Same module, targets: each saved target is located by full UUID. Absent skips; listed twice fails (`pane-ambiguous`); in another session it skips when the saved session has no live pane and fails when it still has one (`target-session-changed`). Then host (contradictory fails, none is a shell skip, another host fails), checkout (unusable path skips, another checkout fails), exclusion (session or pane label) and caller pane are checked, plus activity for the resumed target, including `pane-not-ready`. A changed label or agent session id is a note. The counterpart reviewer of a saved requestor pair is checked statically only and stays conditional; a skipped counterpart never blocks the requestor's resume, an error fails the checkout.
+- Same module, commands: the saved exchange is observed through the injected `ExchangeObserver`; only `observed` with round and occurrence binds markers (not-live and busy skip, selection-changed and damaged fail). Each command is `/resume-session`, `$llm-shared:resume-session`, `/review-resume` or `$llm-shared:review-resume` with `--resume-paused` and a marker built from a fresh launch id and the `resolve_assignment` digest; the resume comes first and alone carries `clear`. The run plan counts omitted panes: every listed pane that no reported action targets.
+- Ports: snapshot reader, exchange observer, command history, screen probe, journal index and launch id factory are injected (`PlannerPorts`). Step 8 composes the production adapters with the Step 1 and Step 2 readers; the validation plan lists these composition dependencies as open rows.
+- Tests: `tests/unit/tools/test_resume_paused_evidence/` (tdd: listing, activity and readiness strictness, eligibility table with negative and absent readiness, command classification with head selections beside explanatory later clauses, the restored `reviewer or requestor` regression with its slash variant, an embedded `after Alex signs in as reviewer`, a second selection of the other role and punctuation after the command name, counting rule, the two ambiguous texts through the duplicate verdict, journal parsing and reading through the default reader, earlier, equal and later times for journal entries and commands, the same undated reviewer command for each pause role, override question; pbt: the head selection decides whatever later clauses say, any same-clause alternative of the other role is uncertain, a second selection form of the other role is uncertain, and `resume-session` always counts, each drawn as one sampled product per example). `tests/unit/tools/test_resume_paused_planner/` (tdd: refusals, baseline pair with exact markers, dry run, single and reviewer pauses, switch, inapplicable switch, used prompts and continuation, routing states, unsupported pauser, isolated errors and folder exclusion, duplicate evidence incl. excluded and caller panes and other root spellings, ambiguous reviewer continuation on a requestor pause (both texts fail the checkout without any command, an explicit reviewer selection with ordinary prose stays planned), override question, target identity table, Codex name fallback and notes, protections incl. not-ready panes, stale-working override, counterpart protections, continuation skip, exchange kinds, omitted panes; pbt: discovery-order invariance and exclusions never lifting duplicate protection). `tests/unit/tools/test_resume_paused_plan_model/` (run verdict, request defaults). Only the default journal reader test reads a file, from the memory-backed scratch tree.
+- Deviations from the plan's file list: the plan model was split out of the planner when formatting took the planner to 654 lines; the evidence and plan model modules got their own test leaves (one leaf per module), the planner leaf adds `planner_world.py`, and `tests/memory_filesystem.py` registers the evidence leaf.
+- Design reading recorded in the step notes: a moved UUID is an absent target when its saved session no longer has any live pane and a session-change error when that session still has one.
+- `rg` is not available in this shell; contract inspection used the equivalent Grep search. No accepted duration exclusion exists.
+
+Writer notes: `.reviews/a.resume-paused.step5.journal.md` and `.reviews/a.resume-paused.step5.handoff.md`.
+
+### Change summary for step 5 resume-paused (round 3)
+
+Fourteen staged paths in four `a.commit` groups, in this order:
+
+1. `feat(resume-paused): classify duplicate evidence`: `tools/resume_paused_evidence.py`, the `tests/unit/tools/test_resume_paused_evidence` package (package file, tdd and pbt files) and `tests/memory_filesystem.py`, which registers that leaf for its scratch-file journal read.
+2. `feat(resume-paused): add the checkout plan model`: `tools/resume_paused_plan_model.py` and the `tests/unit/tools/test_resume_paused_plan_model` package (package file and tdd file).
+3. `feat(resume-paused): plan each paused checkout`: `tools/resume_paused_planner.py` and the `tests/unit/tools/test_resume_paused_planner` package (package file, `planner_world.py`, tdd and pbt files).
+4. `docs(resume-paused): record step 5 validation`: `docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md`.
+
+Round 3 changes the evidence module and its tests, the planner tests, the validation plan and the wording of groups 1 and 4; membership and order are unchanged. The commit-plan checker reports the plan valid and ready. The code review transcript is not staged and goes to the residual commit.
+
+### Writer response for step 5 resume-paused (round 3)
+
+Writer response:
+
+The round 2 finding is accepted and repaired; there is no disagreement. Your staged Step 5 assessment was the starting point of the updated rows, which read Yes again with the round 2 repair recorded and the missing-work list removed.
+
+- **Head-only selection**: `_selected_role` now takes a role only from the marker or from a role word, `--role <role>` or `as <role>` heading the arguments on the command's own line. An `as <role>` phrase inside prose no longer selects, so `/review-resume after Alex signs in as reviewer` has no selected role and stays uncertain for a non-reviewer pause.
+- **Alternatives and second selections**: after a head selection, the other role inside the head's own clause (up to a semicolon, a newline, a period followed by whitespace or an opening parenthesis) or in another selection form anywhere makes the role uncertain. `/review-resume reviewer or requestor` and `reviewer/requestor` are uncertain again, as is `requestor; later as reviewer`. An explicit selection followed by ordinary explanatory text, such as `as reviewer; the requestor is busy` or `as reviewer, then continue the review`, keeps its role.
+- **Regressions through duplicate classification and planning**: the restored `reviewer or requestor` case and the embedded `as reviewer` case are classified, counted (`None` for a non-reviewer pause), reported as `review-role-uncertain` by `classify_duplicates`, and fail a requestor pause's checkout as `duplicate-uncertain` with no planned command; the explicit reviewer selection with ordinary prose leaves the checkout planned.
+- **Property tests**: rebuilt on the head rule: the head selection decides whatever later clauses say, a same-clause alternative of the other role is uncertain, and a second selection form of the other role is uncertain.
+- **Command name boundary**: building those properties showed that `review-resume;` was not recognized as a command at all; a resume command name may now be followed by any non-word character, the safer reading for duplicate protection, while longer names such as `resume-sessions` stay excluded.
+- **Commit plan**: groups 1 and 4 describe the head-only selection; membership and order are unchanged.
+
+### Reviewer focus for step 5 resume-paused (round 3)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-5-round-3 -->
+
+## Round 3 by reviewer - Step 5
+
+- Recorded: 2026-11-20T14:13:51+01:00
+- Exchange: code/code/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.resume-paused.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 5
+- Outcome: answer
+
+### Assessed index identity for step 5 resume-paused (exchange 1) (round 3)
+
+Baseline index tree: 2e82deb70d827677d3ef291182023fd82391fb04
+
+Assessed index tree: 5093b2d0e6d1a26abbeb9e621f64a571be8f07d2
+
+### Implementation check for step 5 resume-paused (exchange 1) (round 3)
+
+Result:
+
+No. Step 5 has NOT been fully implemented. The two round 2 examples now pass through the planner, but clause punctuation still changes the meaning of alternative roles.
+
+Validation plan effects:
+
+Updated the verdict, remaining work and behavioral coverage in `docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md`. Markdown lint passed.
+
+### Pre-repair mandatory checks and coverage for step 5 resume-paused (exchange 1) (round 3)
+
+The requestor reported 6,942 passing tests and 100% coverage over `tools` on the matching request tree. The reviewer checked the staged classifier, duplicate transformation and planner regression tests statically.
+
+### Resolved validation set and sources for step 5 resume-paused (exchange 1) (round 3)
+
+The project resolver printed `ghog day --full=speed --whole-suite` for the bound whole-suite scope.
+
+### Resolver drift and direction for step 5 resume-paused (exchange 1) (round 3)
+
+The request and current resolver match.
+
+### Repository state around validation for step 5 resume-paused (exchange 1) (round 3)
+
+The validation-state comparison flagged only `docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md` and the index. The attributable reviewer edit accounts for both. No untracked effects were reported. The umbrella comparison reported inapplicable and unchanged.
+
+### Repair inventory for step 5 resume-paused (exchange 1) (round 3)
+
+Repairs made:
+
+- `docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md` (polishing-only review metadata). No substantive reviewer repair.
+
+Paths staged:
+
+- `docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md` (reviewer-staged assessment).
+
+### Commit plan assessment for step 5 resume-paused (exchange 1) (round 3)
+
+Independent checker returned `valid`, `ready: true` with 14 paths, four ordered groups and no diagnostics. The group 4 completion claim needs refreshing after rework.
+
+1. `feat(resume-paused): classify duplicate evidence` includes `tools/resume_paused_evidence.py`, `tests/unit/tools/test_resume_paused_evidence/__init__.py`, `tests/unit/tools/test_resume_paused_evidence/test_resume_paused_evidence_tdd.py`, `tests/unit/tools/test_resume_paused_evidence/test_resume_paused_evidence_pbt.py`, `tests/memory_filesystem.py`.
+2. `feat(resume-paused): add the checkout plan model` includes `tools/resume_paused_plan_model.py`, `tests/unit/tools/test_resume_paused_plan_model/__init__.py`, `tests/unit/tools/test_resume_paused_plan_model/test_resume_paused_plan_model_tdd.py`.
+3. `feat(resume-paused): plan each paused checkout` includes `tools/resume_paused_planner.py`, `tests/unit/tools/test_resume_paused_planner/__init__.py`, `tests/unit/tools/test_resume_paused_planner/planner_world.py`, `tests/unit/tools/test_resume_paused_planner/test_resume_paused_planner_tdd.py`, `tests/unit/tools/test_resume_paused_planner/test_resume_paused_planner_pbt.py`.
+4. `docs(resume-paused): record step 5 validation` includes `docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md`.
+
+### Findings and boundaries for step 5 resume-paused (exchange 1) (round 3)
+
+Unresolved findings:
+
+- `_selected_role` uses punctuation as proof that the other role is merely explanatory. `/review-resume reviewer (or requestor)` loses the alternative at `(`, so `counted` returns false and a requestor checkout can be resumed twice. In the opposite direction, `/review-resume as reviewer while the requestor is busy` has an explicit role, but the other role word makes it uncertain and suppresses a legitimate resume. The same words split by a semicolon work. Preserve the meaning of the role choice across these punctuation variants.
+
+Boundary-crossing work: None.
+
+### Writer instructions for step 5 resume-paused (exchange 1) (round 3)
+
+Keep an explicit alternative uncertain even when parenthesized. Retain an explicit reviewer selection when a trailing explanatory clause mentions the requestor. Exercise these contrasting cases through the requestor checkout, rerun the bound validation, and update the verdict.
+
+### Decision rationale for step 5 resume-paused (exchange 1) (round 3)
+
+Identity, attribution, mechanical grouping and the previously repaired readiness and timestamp cases pass. The remaining Q26 behavior permits a duplicate resume and lacks regression coverage.
+
+### Final reviewer decision for step 5 resume-paused (exchange 1) (round 3)
+
+Decision: changes-requested. The writer must address the concrete instructions and publish another review round. This advisory answer does not authorize a commit.
+
+<!-- review-entry-id: answer-step-5-round-3 -->
+
+## Round 4 by requestor - Step 5
+
+- Recorded: 2026-11-20T14:22:44+01:00
+- Exchange: code/code/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.resume-paused.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 5
+- Outcome: request
+
+### Review identity for step 5 resume-paused (round 4)
+
+Umbrella draft: none
+Implementation plan: docs/v0.14.0/plan.v0.14.0.resume-paused.md
+Implementation step: 5
+Review round: 4
+
+### Code review evidence for step 5 resume-paused (round 4)
+
+request_index_tree: 0d5deac0e39c709bba252000bb04b92d0ba85cb3
+resolved_validation_set:
+
+- `ghog day --full=speed --whole-suite` (sources: project)
+
+test_scope:
+{"fingerprint": "686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6", "group": null, "proof": "speed", "requirement": "docs/v0.14.0/feature-request.v0.14.0.resume-paused.md", "scope": "whole"}
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: feat(resume-paused): classify duplicate evidence
+group 1 path: tools/resume_paused_evidence.py
+group 1 path: tests/unit/tools/test_resume_paused_evidence/__init__.py
+group 1 path: tests/unit/tools/test_resume_paused_evidence/test_resume_paused_evidence_tdd.py
+group 1 path: tests/unit/tools/test_resume_paused_evidence/test_resume_paused_evidence_pbt.py
+group 1 path: tests/memory_filesystem.py
+group 2: feat(resume-paused): add the checkout plan model
+group 2 path: tools/resume_paused_plan_model.py
+group 2 path: tests/unit/tools/test_resume_paused_plan_model/__init__.py
+group 2 path: tests/unit/tools/test_resume_paused_plan_model/test_resume_paused_plan_model_tdd.py
+group 3: feat(resume-paused): plan each paused checkout
+group 3 path: tools/resume_paused_planner.py
+group 3 path: tests/unit/tools/test_resume_paused_planner/__init__.py
+group 3 path: tests/unit/tools/test_resume_paused_planner/planner_world.py
+group 3 path: tests/unit/tools/test_resume_paused_planner/test_resume_paused_planner_tdd.py
+group 3 path: tests/unit/tools/test_resume_paused_planner/test_resume_paused_planner_pbt.py
+group 4: docs(resume-paused): record step 5 validation
+group 4 path: docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md
+staged path: docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md
+staged path: tests/memory_filesystem.py
+staged path: tests/unit/tools/test_resume_paused_evidence/__init__.py
+staged path: tests/unit/tools/test_resume_paused_evidence/test_resume_paused_evidence_pbt.py
+staged path: tests/unit/tools/test_resume_paused_evidence/test_resume_paused_evidence_tdd.py
+staged path: tests/unit/tools/test_resume_paused_plan_model/__init__.py
+staged path: tests/unit/tools/test_resume_paused_plan_model/test_resume_paused_plan_model_tdd.py
+staged path: tests/unit/tools/test_resume_paused_planner/__init__.py
+staged path: tests/unit/tools/test_resume_paused_planner/planner_world.py
+staged path: tests/unit/tools/test_resume_paused_planner/test_resume_paused_planner_pbt.py
+staged path: tests/unit/tools/test_resume_paused_planner/test_resume_paused_planner_tdd.py
+staged path: tools/resume_paused_evidence.py
+staged path: tools/resume_paused_plan_model.py
+staged path: tools/resume_paused_planner.py
+```
+
+### Validation scope for step 5 resume-paused (round 4)
+
+Validation scope: the whole suite.
+
+### Requestor assessment for step 5 resume-paused (round 4)
+
+Step 5 is fully implemented after the round 1 to 3 repairs. The read-only planner refuses a recognized agent caller (dry run included), failed discovery and unmatched `--except` or `--switch-roles` names before reading any checkout. It indexes panes once by full UUID and canonical root, with selector names case-folded once per run, and gives each prompt-bearing checkout one typed result. Duplicate evidence comes from every pane of the checkout, excluded and caller panes included. Only a strictly later time proves a resume, an equal time stays uncertain, only a selection heading its arguments gives a `review-resume` its role, the other role offered as an alternative keeps it uncertain whatever the punctuation while an explanatory mention does not, and a reviewer-only command never counts for a non-reviewer pause. Saved targets are validated by UUID, session, host and checkout; the resumed target is protected, including TUIOS readiness, and the conditional counterpart is protected statically. Each planned marker is bound to the assignment rebuilt from the observed exchange. The validation plan records `Yes. Step 5 has been fully implemented.`
+
+- Tests: `ghog day --full=speed --whole-suite` exit 0 at 2026-11-20T14:22:10+01:00 with 6952 tests, 100% coverage, no outlier and no exclusion, slowest call 0.31 s, on index tree `0d5deac0e39c709bba252000bb04b92d0ba85cb3`. The three Step 5 leaves passed in focus with the new cases.
+- Static checks: the same walk's `check.bat` passes ty, pyright strict, ruff, radon, vulture, big files, Markdown (transcript included after the authorized one-line repair), ShellCheck and the end-of-file check; `spellcheck.bat check` reports no unknown word on the validation plan and the transcript.
+- Coverage: 100% over `tools`; one unit leaf per new module (`test_resume_paused_evidence`, `test_resume_paused_planner`, `test_resume_paused_plan_model`).
+- Architecture: the plan model holds values only; the planner depends on injected ports for snapshots, exchanges, command histories, captures, the journal and launch ids; the only concrete readers are the argument-list listing runner and the journal reader, both read-only; no module writes, starts a process of its own, claims or sends input.
+- Performance: one pass builds the UUID and root maps; selector names are folded once per run; target lookups and name matches are map and set lookups; sorting the checkout roots and one checkout's panes keeps output deterministic over small per-run sets.
+- Feature integrity: no existing production module changes; manual resume, review, validator and claim paths are untouched; the plan is a new in-memory result.
+- Open composition rows (validation plan): the production command history, Codex screen probe, exchange observer and snapshot reader adapters are composed by Step 8; under plan Q05=A the screen probe stays unsupported.
+
+### Implementation report for step 5 resume-paused (round 4)
+
+Step 5 builds the read-only checkout planner and its duplicate protections. It adds three modules and three test leaves, registers the evidence leaf in `tests/memory_filesystem.py`, and changes no existing production module. Round 2 repaired the five round 1 findings, round 3 the role-classification finding of round 2, and round 4 the punctuation finding of round 3.
+
+- `tools/resume_paused_evidence.py`, discovery and activity: `observe_panes` runs `tuios list-agents --all-sessions --json` once through the injected argument-list runner and parses, from the same output, the strict `PaneRecord` list (Step 4's `parse_agents`) and each pane's activity (`state`, `blocked_by`, `draft_held`, `ready`, waiting `message`). `ready` must be a boolean or absent (`None`). A failed or malformed listing returns `None`, never an empty observation; a pane id listed twice gets no activity.
+- Same module, input eligibility: `input_eligibility` returns blocked for `needs_input`, `blocked` or any `blocked_by`, draft for a held draft, eligible for `idle` or `done` only when `ready` is true and `not-ready` otherwise, unknown for any other state. For `working` it returns busy on Claude without any capture; on Codex it takes one injected `ScreenProbe` verdict, and only `IDLE_EMPTY` overrides (note `stale-working-overridden`), as requirement Q03 allows.
+- Same module, counted commands: `classify_command` accepts `resume-session` or `review-resume` after an optional `/`, `$` or `$llm-shared:` prefix, followed by any non-word character or the end, then any trailing context. A `review-resume` selects a role only through its `--resume-paused` marker, or through a role word, `--role <role>` or `as <role>` heading its arguments on the command's own line (`_HEAD_SELECTION_RE`). The role is uncertain when the other role is offered as an alternative, whatever the punctuation: in another selection form anywhere (`requestor; later as reviewer`), joined by `or`, `nor`, a slash or a vertical bar on either side through brackets, quotes and an article (`reviewer or requestor`, `reviewer/requestor`, `reviewer (or requestor)`), or listed bare right after the head with only punctuation, brackets or `and` between (`reviewer and requestor`); a malformed marker is uncertain too. A role phrase inside prose, such as `after Alex signs in as reviewer`, selects nothing, and any other mention of the other role, such as `as reviewer while the requestor is busy` or `as reviewer; the requestor is busy`, is explanatory. `counted` implements Q14/Q26: `resume-session` always counts, any `review-resume` counts for a saved reviewer pause, a reviewer-only one never counts for another pause, and an unknown role is uncertain (`None`).
+- Same module, session journal: `read_session_journal` (injected reader, `journal_path` from `USERPROFILE`) parses the journal strictly: UTF-8, every level-two heading must be a `Pause` or `Resume` entry heading, timestamps need an offset and are cut to microseconds as the journal tool does, and paths are canonical Windows roots. It indexes resume entries by `CanonicalRoot`. A missing file is an empty index; an unreadable or malformed one carries an error and answers no checkout.
+- Same module, duplicate verdict: `classify_duplicates` takes the pause facts (root, snapshot instant, saved reviewer role), every pane of the checkout, the injected `CommandHistory`, the activity map and the journal. `_order` places each time as older, unordered (equal), later or unattributed. Certain evidence is a journal resume or a counted command strictly later than the pause, or a pane blocked on the author-override question. A command that can never count for this pause (a proved reviewer-only continuation of a non-reviewer pause) is ignored whatever its time. Uncertain observations are an equal time, an unreadable history, an undated command that could count, an uncertain role and an unreadable journal, in pane id order.
+- `tools/resume_paused_plan_model.py`: the typed vocabulary, values only. `PlanRequest`, `GlobalReason` and `GlobalFailure`, `SkipReason` (expected, now including `pane-not-ready`), `ErrorReason` (checkout failure), `CheckoutOutcome`, `ActionKind` (`resume`, conditional `reviewer`, conditional `continue-reviewer`), `PlannedAction`, `CheckoutPlan` and `RunPlan`, whose `failed` is a run-wide refusal or any checkout error, and whose `input_allowed` is false in a dry run or after a run-wide refusal.
+- `tools/resume_paused_planner.py`, run-wide gates: `plan_run` refuses a recognized agent caller (`CallerDecision`, dry run included) and failed discovery before reading anything. It indexes panes once by full UUID and canonical root, then refuses unmatched names: an `--except` name must equal, case-insensitively, a session, a complete pane label or a checkout folder name; a `--switch-roles` name only a session or folder name. `_RunContext.of` case-folds both name lists once and every checkout planner shares them.
+- Same module, per checkout in root order: `NO_PROMPT` is omitted; an `ArtifactError` from the reader or the evidence fails only that checkout (`evidence-invalid`); an `ERROR` snapshot fails it (`checkout-unreadable`); an excluded folder skips it; a switch naming a checkout without a resolved saved requestor pair fails it (`switch-not-applicable`).
+- Same module, used prompts: a `USED` prompt carries the receipt as evidence with the known resumer. Only a schema 3 receipt from the resolved requestor of a saved requestor pair plans a conditional `continue-reviewer` action. A receipt from the other pair pane is `switch-required` without the switch and `switch-mismatch` with it; any other receipt is `already-used`.
+- Same module, fresh prompts: an unsupported pausing agent skips; routing `error` fails, `unresolved` skips (`pairing-ambiguous` when the exchange itself is unknown), absent and table-only skip. Duplicate evidence skips (first signal decides the reason); uncertainty without evidence fails (`duplicate-uncertain`).
+- Same module, targets: each saved target is located by full UUID. Absent skips; listed twice fails (`pane-ambiguous`); in another session it skips when the saved session has no live pane and fails when it still has one (`target-session-changed`). Then host (contradictory fails, none is a shell skip, another host fails), checkout (unusable path skips, another checkout fails), exclusion (session or pane label) and caller pane are checked, plus activity for the resumed target, including `pane-not-ready`. A changed label or agent session id is a note. The counterpart reviewer of a saved requestor pair is checked statically only and stays conditional; a skipped counterpart never blocks the requestor's resume, an error fails the checkout.
+- Same module, commands: the saved exchange is observed through the injected `ExchangeObserver`; only `observed` with round and occurrence binds markers (not-live and busy skip, selection-changed and damaged fail). Each command is `/resume-session`, `$llm-shared:resume-session`, `/review-resume` or `$llm-shared:review-resume` with `--resume-paused` and a marker built from a fresh launch id and the `resolve_assignment` digest; the resume comes first and alone carries `clear`. The run plan counts omitted panes: every listed pane that no reported action targets.
+- Ports: snapshot reader, exchange observer, command history, screen probe, journal index and launch id factory are injected (`PlannerPorts`). Step 8 composes the production adapters with the Step 1 and Step 2 readers; the validation plan lists these composition dependencies as open rows.
+- Tests: `tests/unit/tools/test_resume_paused_evidence/` (tdd: listing, activity and readiness strictness, eligibility table with negative and absent readiness, command classification with head selections beside explanatory later clauses, the restored `reviewer or requestor` regression with its slash, parenthesized and `and` variants, `as reviewer while the requestor is busy` and `reviewer, the requestor is Claude` keeping the reviewer, an embedded `after Alex signs in as reviewer`, a second selection of the other role and punctuation after the command name, counting rule, the two ambiguous texts through the duplicate verdict, journal parsing and reading through the default reader, earlier, equal and later times for journal entries and commands, the same undated reviewer command for each pause role, override question; pbt: the head selection decides whatever punctuation-varied explanations follow, any punctuation-varied alternative of the other role is uncertain, a second selection form of the other role is uncertain, and `resume-session` always counts, each drawn as one sampled product per example). `tests/unit/tools/test_resume_paused_planner/` (tdd: refusals, baseline pair with exact markers, dry run, single and reviewer pauses, switch, inapplicable switch, used prompts and continuation, routing states, unsupported pauser, isolated errors and folder exclusion, duplicate evidence incl. excluded and caller panes and other root spellings, ambiguous reviewer continuation on a requestor pause (`reviewer or requestor`, the embedded `as reviewer` and the parenthesized alternative fail the checkout without any command; an explicit reviewer selection followed by ordinary prose, a `while` clause or a semicolon clause naming the requestor stays planned), override question, target identity table, Codex name fallback and notes, protections incl. not-ready panes, stale-working override, counterpart protections, continuation skip, exchange kinds, omitted panes; pbt: discovery-order invariance and exclusions never lifting duplicate protection). `tests/unit/tools/test_resume_paused_plan_model/` (run verdict, request defaults). Only the default journal reader test reads a file, from the memory-backed scratch tree.
+- Deviations from the plan's file list: the plan model was split out of the planner when formatting took the planner to 654 lines; the evidence and plan model modules got their own test leaves (one leaf per module), the planner leaf adds `planner_world.py`, and `tests/memory_filesystem.py` registers the evidence leaf.
+- Design reading recorded in the step notes: a moved UUID is an absent target when its saved session no longer has any live pane and a session-change error when that session still has one.
+- `rg` is not available in this shell; contract inspection used the equivalent Grep search. No accepted duration exclusion exists.
+
+Writer notes: `.reviews/a.resume-paused.step5.journal.md` and `.reviews/a.resume-paused.step5.handoff.md`.
+
+### Change summary for step 5 resume-paused (round 4)
+
+Fourteen staged paths in four `a.commit` groups, in this order:
+
+1. `feat(resume-paused): classify duplicate evidence`: `tools/resume_paused_evidence.py`, the `tests/unit/tools/test_resume_paused_evidence` package (package file, tdd and pbt files) and `tests/memory_filesystem.py`, which registers that leaf for its scratch-file journal read.
+2. `feat(resume-paused): add the checkout plan model`: `tools/resume_paused_plan_model.py` and the `tests/unit/tools/test_resume_paused_plan_model` package (package file and tdd file).
+3. `feat(resume-paused): plan each paused checkout`: `tools/resume_paused_planner.py` and the `tests/unit/tools/test_resume_paused_planner` package (package file, `planner_world.py`, tdd and pbt files).
+4. `docs(resume-paused): record step 5 validation`: `docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md`.
+
+Round 4 changes the evidence module and its tests, the planner tests, the validation plan and the wording of group 4; membership and order are unchanged. The commit-plan checker reports the plan valid and ready. The code review transcript is not staged and goes to the residual commit.
+
+### Writer response for step 5 resume-paused (round 4)
+
+Writer response:
+
+The round 3 finding is accepted and repaired; there is no disagreement. Your staged Step 5 assessment was the starting point of the updated rows, which read Yes again with the round 3 repair recorded and the missing-work list removed.
+
+- **Punctuation no longer decides**: the clause split is gone. After a head selection, the other role makes it uncertain only when it is offered as an alternative: in another selection form anywhere (`as <role>`, `--role <role>`), joined by `or`, `nor`, a slash or a vertical bar on either side, through brackets, quotes and an article (`reviewer (or requestor)`, `the requestor or the reviewer`), or listed bare right after the head with only punctuation, brackets or `and` between (`reviewer and requestor`, `reviewer, requestor`, `reviewer (requestor)`). Any other mention of the other role is explanatory, whatever its punctuation: `as reviewer while the requestor is busy`, `as reviewer; the requestor is busy` and `reviewer, the requestor is Claude` all keep the reviewer selection.
+- **Contrasting cases through the requestor checkout**: `/review-resume reviewer (or requestor)` is classified uncertain, counted as `None` for a non-reviewer pause, reported as `review-role-uncertain` by `classify_duplicates`, and fails the requestor pause's checkout as `duplicate-uncertain` with no planned command; `/review-resume as reviewer while the requestor is busy` and the semicolon form leave the checkout planned.
+- **Property tests**: the explanatory phrases now vary their punctuation (semicolon, comma, plain clause, parenthesis) and must never select or unsettle the head role; the alternatives vary theirs (`or`, `nor`, slash, bar, parenthesized `or`, `and`, comma, semicolon, bare parenthesis) and must be uncertain exactly when they name the other role.
+- **Commit plan**: group 4 records the round 3 repair; membership and order are unchanged.
+- **File size**: the evidence module is 580 lines, in the 550 to 650 band and below the ceiling; the validation plan states it.
+
+### Reviewer focus for step 5 resume-paused (round 4)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-5-round-4 -->
+
+## Round 4 by reviewer - Step 5
+
+- Recorded: 2026-11-20T14:25:20+01:00
+- Exchange: code/code/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.resume-paused.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 5
+- Outcome: answer
+
+### Assessed index identity for step 5 resume-paused (exchange 1) (round 4)
+
+Baseline index tree: 0d5deac0e39c709bba252000bb04b92d0ba85cb3
+
+Assessed index tree: 0d5deac0e39c709bba252000bb04b92d0ba85cb3
+
+### Implementation check for step 5 resume-paused (exchange 1) (round 4)
+
+Result:
+
+Yes. Step 5 has been fully implemented. The planner regression now shows that `reviewer (or requestor)` leaves the role uncertain and produces no command. An explicit reviewer selection with `while the requestor is busy` leaves the requestor checkout eligible. The earlier timestamp, pane readiness, selector normalization and role cases remain covered.
+
+Validation plan effects:
+
+The staged step 5 verdict and coverage rows in `docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md` already record the repairs. No reviewer edit was needed.
+
+### Pre-repair mandatory checks and coverage for step 5 resume-paused (exchange 1) (round 4)
+
+The writer reported 6,952 passing tests, 100% line coverage over `tools`, and zero duration outliers or exclusions on the exact request tree. The reviewer inspected the implementation, unit and property cases, and checkout-level assertions without repeating the suite.
+
+### Resolved validation set and sources for step 5 resume-paused (exchange 1) (round 4)
+
+The bound whole-suite project command is `ghog day --full=speed --whole-suite`.
+
+### Resolver drift and direction for step 5 resume-paused (exchange 1) (round 4)
+
+The independently resolved command and bound scope match the request.
+
+### Repository state around validation for step 5 resume-paused (exchange 1) (round 4)
+
+Request, baseline and assessed trees match. The validation-state comparison passed with no changed paths. The umbrella was inapplicable and unchanged.
+
+### Repair inventory for step 5 resume-paused (exchange 1) (round 4)
+
+Repairs made: None.
+
+Paths staged: None.
+
+### Commit plan assessment for step 5 resume-paused (exchange 1) (round 4)
+
+The independent checker returned `valid`, `ready: true`, with four ordered groups, 14 staged paths and zero diagnostics. The subjects, ordering, membership and completion wording match the staged step.
+
+1. `feat(resume-paused): classify duplicate evidence` includes `tools/resume_paused_evidence.py`, `tests/unit/tools/test_resume_paused_evidence/__init__.py`, `tests/unit/tools/test_resume_paused_evidence/test_resume_paused_evidence_tdd.py`, `tests/unit/tools/test_resume_paused_evidence/test_resume_paused_evidence_pbt.py`, `tests/memory_filesystem.py`.
+2. `feat(resume-paused): add the checkout plan model` includes `tools/resume_paused_plan_model.py`, `tests/unit/tools/test_resume_paused_plan_model/__init__.py`, `tests/unit/tools/test_resume_paused_plan_model/test_resume_paused_plan_model_tdd.py`.
+3. `feat(resume-paused): plan each paused checkout` includes `tools/resume_paused_planner.py`, `tests/unit/tools/test_resume_paused_planner/__init__.py`, `tests/unit/tools/test_resume_paused_planner/planner_world.py`, `tests/unit/tools/test_resume_paused_planner/test_resume_paused_planner_tdd.py`, `tests/unit/tools/test_resume_paused_planner/test_resume_paused_planner_pbt.py`.
+4. `docs(resume-paused): record step 5 validation` includes `docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md`.
+
+### Findings and boundaries for step 5 resume-paused (exchange 1) (round 4)
+
+Unresolved findings: None.
+
+Boundary-crossing work: None.
+
+### Writer instructions for step 5 resume-paused (exchange 1) (round 4)
+
+The requestor may present the advisory recommendation for the human commit decision.
+
+### Decision rationale for step 5 resume-paused (exchange 1) (round 4)
+
+All carried findings are resolved within step 5. Exact identity, implementation completeness, validation and coverage evidence, staged attribution, absence of outstanding findings, and commit grouping pass. The reviewer made no substantive repairs.
+
+### Final reviewer decision for step 5 resume-paused (exchange 1) (round 4)
+
+Decision: commit-ready (advisory). The evidence floor is complete, but this recommendation does not authorize a commit; authority remains at the durable human gate.
+
+<!-- review-entry-id: answer-step-5-round-4 -->
+
+## Round 4 by human - Step 5 - human-confirmation
+
+- Recorded: 2026-11-20T15:12:12+01:00
+- Exchange: code/code/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.resume-paused.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 5
+- Outcome: human-confirmation
+
+Human choice: Commit
+Outcome: continue-owning-workflow
+
+<!-- review-entry-id: human-confirmation-round-4 -->
