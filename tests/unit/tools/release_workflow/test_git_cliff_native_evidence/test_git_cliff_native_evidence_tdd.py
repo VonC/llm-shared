@@ -26,6 +26,15 @@ a download worker started through the bootstrap, recorded in a disposable
 staging directory and ended job-wide at its deadline while a local endpoint
 never answers. The recorder's checks moved to `git_cliff_native_probes.py`,
 so every check also binds that file's digest.
+
+Step 5 adds milestone `step-5`: the Step 4 set plus five checks through the
+provisioning service with killed helper callers (`git_cliff_native_service.py`):
+kill-on-close of a recorded worker and of a git-cliff run, the inherited guard
+of a reuse probe and of a git-cliff run refusing the rename after their caller
+died, and an abandoned transition mutex of a live holder keeping its record.
+Since code review round 1, the two guard checks also prove that the child's
+inherited handle names the guarded executable and that a guard-free control
+run of the same stand-in leaves the rename possible.
 """
 
 from __future__ import annotations
@@ -46,7 +55,7 @@ if TYPE_CHECKING:
 
 _ROOT = Path(__file__).resolve().parents[5]
 _RECORD = Path(__file__).with_name("native_checks.v1.json")
-_MILESTONES = ("step-2", "step-4")
+_MILESTONES = ("step-2", "step-4", "step-5")
 _HOST_PATH = re.compile(r"[A-Za-z]:[\\/]|[\\/](?:Users|home)[\\/]")
 _COMMIT = re.compile(r"[0-9a-f]{40}")
 _NAME_LENGTH = 3
@@ -54,11 +63,19 @@ _TIMEOUT_BOUND = 3
 _TIMEOUT_LIMIT = 15
 _TIMEOUT_EXPECTED = {"timed_out": True, "helper_alive_at_bound": True, "helper_tree_ended": True}
 _RELEASE = "tools/release_workflow"
+_CLIFF = f"{_RELEASE}/git_cliff"
 _CHILD = (f"{_RELEASE}/windows_native.py", f"{_RELEASE}/windows_child.py", f"{_RELEASE}/windows_process.py",
           "tests/unit/tools/release_workflow/git_cliff_native_checks.py", "tests/unit/tools/release_workflow/git_cliff_native_probes.py")
 _GUARD = (*_CHILD, f"{_RELEASE}/windows_guard.py")
-_WORKER = (*_CHILD, f"{_RELEASE}/bootstrap.py", f"{_RELEASE}/git_cliff/download_worker.py", f"{_RELEASE}/git_cliff/network.py",
-           f"{_RELEASE}/git_cliff/cache.py")
+_WORKER = (*_CHILD, f"{_RELEASE}/bootstrap.py", f"{_CLIFF}/download_worker.py", f"{_CLIFF}/network.py", f"{_CLIFF}/cache.py")
+_LOCK = (*_CHILD, "tests/unit/tools/release_workflow/git_cliff_native_service.py", f"{_CLIFF}/cache.py", f"{_CLIFF}/cache_lock.py")
+_SERVICE = (*_LOCK, f"{_RELEASE}/windows_guard.py", f"{_CLIFF}/provisioning.py", f"{_CLIFF}/installation.py", f"{_CLIFF}/invocation.py",
+            f"{_CLIFF}/messages.py")
+_SERVICE_WORKER = (*_SERVICE, f"{_RELEASE}/bootstrap.py", f"{_CLIFF}/download_worker.py", f"{_CLIFF}/network.py")
+_GUARD_AFTER_KILL: dict[str, object] = {"caller_dead": True, "child_alive": True, "inherited_handle_is_guard": True, "during_child": "refused",
+                                         "child_ended": True, "after_child": "renamed", "control_without_guard": "renamed"}
+_STEP_5 = ("worker-ends-with-killed-caller", "git-cliff-run-ends-with-killed-caller", "guard-held-by-reuse-probe-after-caller-killed",
+           "guard-held-by-git-cliff-run-after-caller-killed", "abandoned-mutex-keeps-lock-record")
 
 
 @dataclass(frozen=True)
@@ -87,6 +104,13 @@ _CHECKS = {
                                                     "after_child": "renamed", "status": 0}, 60, _GUARD),
     "worker-ends-at-deadline": _Due("step-4", {"timed_out": True, "endpoint_connected": True, "worker_recorded": True,
                                              "worker_ended": True, "stdout_empty": True}, 60, _WORKER),
+    "worker-ends-with-killed-caller": _Due("step-5", {"worker_recorded": True, "endpoint_connected": True, "worker_ended": True,
+                                                    "lock_record_kept": True, "staging_kept": True}, 60, _SERVICE_WORKER),
+    "git-cliff-run-ends-with-killed-caller": _Due("step-5", {"child_ran": True, "child_ended": True}, 60, _SERVICE),
+    "guard-held-by-reuse-probe-after-caller-killed": _Due("step-5", _GUARD_AFTER_KILL, 60, _SERVICE),
+    "guard-held-by-git-cliff-run-after-caller-killed": _Due("step-5", _GUARD_AFTER_KILL, 60, _SERVICE),
+    "abandoned-mutex-keeps-lock-record": _Due("step-5", {"mutex_abandoned": True, "holder_alive": True, "waiter_error": "LockWaitError",
+                                                       "holder_named": True, "record_kept": True}, 30, _LOCK),
 }
 
 type Record = dict[str, Any]
@@ -144,7 +168,7 @@ def _timeout_refusals(timeout: Mapping[str, Any]) -> list[str]:
 @pytest.fixture(scope="session")
 def digests() -> dict[str, str]:
     """Hash every source a check exercises, once per session."""
-    return {path: digest(_ROOT / path) for path in dict.fromkeys((*_GUARD, *_WORKER))}
+    return {path: digest(_ROOT / path) for path in dict.fromkeys((*_GUARD, *_WORKER, *_SERVICE_WORKER))}
 
 
 @pytest.fixture(scope="session")
@@ -164,7 +188,7 @@ def _valid(digests: Mapping[str, str]) -> Record:
 
 def test_the_committed_record_passes_its_milestone(record: Record, digests: dict[str, str]) -> None:
     """Every due check passed, as expected, within its bound, against the current sources."""
-    assert (record["format"], record["milestone"]) == (1, "step-4")
+    assert (record["format"], record["milestone"]) == (1, "step-5")
     assert refusals(record, digests) == []
 
 
@@ -201,6 +225,16 @@ def test_a_step_4_record_needs_the_worker_check(digests: dict[str, str]) -> None
     assert refusals(record, digests) == []
     record["checks"] = [check for check in record["checks"] if check["id"] != "worker-ends-at-deadline"]
     assert refusals(record, digests) == ["missing worker-ends-at-deadline"]
+
+
+def test_a_step_5_record_needs_the_five_service_checks(digests: dict[str, str]) -> None:
+    """The Step 5 milestone adds the service checks, which a Step 4 record does not need."""
+    record = _valid(digests)
+    record["checks"] = [check for check in record["checks"] if check["id"] not in _STEP_5]
+    record["milestone"] = "step-4"
+    assert refusals(record, digests) == []
+    record["milestone"] = "step-5"
+    assert refusals(record, digests) == [f"missing {identifier}" for identifier in _STEP_5]
 
 
 @pytest.mark.parametrize(("mutate", "reason"), [

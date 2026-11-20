@@ -3,11 +3,10 @@
 Step 2 of v0.14.0 git-cliff-provisioning (plan decisions Q06 and Q07). Started
 by hand and never imported by a test, from the project root:
 
-    python -m tests.unit.tools.release_workflow.git_cliff_native_checks --milestone step-4
+    python -m tests.unit.tools.release_workflow.git_cliff_native_checks --milestone step-5
         --output tests/unit/tools/release_workflow/test_git_cliff_native_evidence/native_checks.v1.json
 
-`--milestone` selects the cumulative due set; Steps 5 and 8 add their
-milestones and checks. Each check runs on stand-in children or the real
+`--milestone` selects the cumulative due set; Step 8 adds its own milestone. Each check runs on stand-in children or the real
 download worker, on temporary paths outside the repository and
 `.tools/git-cliff/`, and ends every process it started. Since code review
 round 1 of Step 2, each check runs in its own runner process, this module
@@ -50,6 +49,18 @@ of a disposable staging directory under a temporary tooling root, connects
 to a local endpoint that accepts and never answers; its 10 s deadline ends it
 job-wide before it writes any outcome, and it is gone afterwards.
 
+The Step 5 set, in `git_cliff_native_service.py`, goes through the
+provisioning service with helper callers that are killed, a temporary tooling
+root, the synthetic pin 9.9.9 and a stand-in executable:
+`worker-ends-with-killed-caller` and `git-cliff-run-ends-with-killed-caller`
+(kill-on-close of a recorded worker and of a git-cliff run),
+`guard-held-by-reuse-probe-after-caller-killed` and
+`guard-held-by-git-cliff-run-after-caller-killed` (the child's inherited guard
+refuses the rename once its caller is dead, until the child ends), and
+`abandoned-mutex-keeps-lock-record` (an abandoned transition mutex of a live
+holder authorizes nothing). The `--helper` mode dispatches the service helpers
+to that module.
+
 The record holds each check's outcome, expected and observed observations,
 bound, duration and the LF-normalized SHA-256 of the sources it exercises,
 plus the commit, the Windows build and the architecture. It is written with
@@ -88,6 +99,16 @@ from tests.unit.tools.release_workflow.git_cliff_native_probes import (
     check_worker_deadline,
     run_helper,
 )
+from tests.unit.tools.release_workflow.git_cliff_native_service import (
+    HELPERS,
+    check_abandoned_mutex,
+    check_guard_after_kill,
+    check_run_killed,
+    check_worker_killed,
+)
+from tests.unit.tools.release_workflow.git_cliff_native_service import (
+    run_helper as run_service_helper,
+)
 from tools.release_workflow.windows_child import (
     ChildRequest,
     ContainmentError,
@@ -97,14 +118,20 @@ from tools.release_workflow.windows_child import (
 if TYPE_CHECKING:
     from collections.abc import Callable, Sequence
 
-_MILESTONES = ("step-2", "step-4")
+_MILESTONES = ("step-2", "step-4", "step-5")
 _HOST_PATH = re.compile(r"[A-Za-z]:[\\/]\S*|[\\/](?:Users|home)[\\/]\S*")
 _RELEASE = "tools/release_workflow"
+_CLIFF = f"{_RELEASE}/git_cliff"
 _CHILD = (f"{_RELEASE}/windows_native.py", f"{_RELEASE}/windows_child.py", f"{_RELEASE}/windows_process.py",
           "tests/unit/tools/release_workflow/git_cliff_native_checks.py", "tests/unit/tools/release_workflow/git_cliff_native_probes.py")
 _GUARD = (*_CHILD, f"{_RELEASE}/windows_guard.py")
-_WORKER = (*_CHILD, f"{_RELEASE}/bootstrap.py", f"{_RELEASE}/git_cliff/download_worker.py", f"{_RELEASE}/git_cliff/network.py",
-           f"{_RELEASE}/git_cliff/cache.py")
+_WORKER = (*_CHILD, f"{_RELEASE}/bootstrap.py", f"{_CLIFF}/download_worker.py", f"{_CLIFF}/network.py", f"{_CLIFF}/cache.py")
+_LOCK = (*_CHILD, "tests/unit/tools/release_workflow/git_cliff_native_service.py", f"{_CLIFF}/cache.py", f"{_CLIFF}/cache_lock.py")
+_SERVICE = (*_LOCK, f"{_RELEASE}/windows_guard.py", f"{_CLIFF}/provisioning.py", f"{_CLIFF}/installation.py", f"{_CLIFF}/invocation.py",
+            f"{_CLIFF}/messages.py")
+_SERVICE_WORKER = (*_SERVICE, f"{_RELEASE}/bootstrap.py", f"{_CLIFF}/download_worker.py", f"{_CLIFF}/network.py")
+_GUARD_AFTER_KILL: dict[str, object] = {"caller_dead": True, "child_alive": True, "inherited_handle_is_guard": True, "during_child": "refused",
+                                         "child_ended": True, "after_child": "renamed", "control_without_guard": "renamed"}
 _STALLED = "stalled-runner"
 _STALL_BOUND = 3
 _STALL_SECONDS = 120
@@ -151,6 +178,17 @@ _CHECKS = (
     _Check("worker-ends-at-deadline", "step-4",
            {"timed_out": True, "endpoint_connected": True, "worker_recorded": True, "worker_ended": True, "stdout_empty": True}, 60,
            _WORKER, check_worker_deadline),
+    _Check("worker-ends-with-killed-caller", "step-5",
+           {"worker_recorded": True, "endpoint_connected": True, "worker_ended": True, "lock_record_kept": True, "staging_kept": True}, 60,
+           _SERVICE_WORKER, check_worker_killed),
+    _Check("git-cliff-run-ends-with-killed-caller", "step-5", {"child_ran": True, "child_ended": True}, 60, _SERVICE, check_run_killed),
+    _Check("guard-held-by-reuse-probe-after-caller-killed", "step-5", _GUARD_AFTER_KILL, 60, _SERVICE,
+           lambda bound, scratch: check_guard_after_kill("probe", bound, scratch)),
+    _Check("guard-held-by-git-cliff-run-after-caller-killed", "step-5", _GUARD_AFTER_KILL, 60, _SERVICE,
+           lambda bound, scratch: check_guard_after_kill("run", bound, scratch)),
+    _Check("abandoned-mutex-keeps-lock-record", "step-5",
+           {"mutex_abandoned": True, "holder_alive": True, "waiter_error": "LockWaitError", "holder_named": True, "record_kept": True}, 30,
+           _LOCK, check_abandoned_mutex),
 )
 
 
@@ -243,7 +281,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("helper_arguments", nargs="*", help=argparse.SUPPRESS)
     arguments = parser.parse_args(argv)
     if arguments.helper:
-        return run_helper(arguments.helper, arguments.helper_arguments)
+        dispatch = run_service_helper if arguments.helper in HELPERS else run_helper
+        return dispatch(arguments.helper, arguments.helper_arguments)
     if arguments.run_check:
         return _run_check(arguments.run_check, Path(arguments.helper_arguments[0]), Path(arguments.helper_arguments[1]))
     if arguments.milestone is None or arguments.output is None:
