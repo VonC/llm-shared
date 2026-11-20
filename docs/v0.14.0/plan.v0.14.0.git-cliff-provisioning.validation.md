@@ -1343,9 +1343,31 @@ impaired.
 
 ### Analysis of Step 5 implementation state
 
-Not started. Step 5 is not implemented because no implementation work has
-begun: the primitives are not composed into the target flow, and no
-invocation object, message, diagnostic or engine entry point exists.
+Yes. Step 5 has been fully implemented.
+
+Code review rounds 1 and 2 found eight gaps, now repaired: staging ownership
+on a name collision, D's absolute expiry carried into the contained run (a
+child never resumed past it), local write failures reported by the worker
+with their path even when the original error names none, a ready line that
+cannot be written (its guard released, a typed reporting failure), and native
+evidence that identifies the inherited guard.
+
+`git_cliff/messages.py` names the stages and their remedies, and its
+`ProvisioningError` (status 2) is the diagnostic that names the pin, path,
+stage and remedy; it also formats the three standard-error lines.
+`git_cliff/invocation.py` holds the only removal rule of the `GIT_CLIFF_*`
+variables and `GitCliffInvocation`. That object starts one contained git-cliff
+run under the engine or passthrough policy, passes the use guard to the child
+and closes it only once the child has ended (it retains the guard on an
+unconfirmed end). `git_cliff/installation.py` installs a pin under its lock,
+retires an invalid entry from whatever state it finds and publishes by one
+directory rename. `git_cliff/provisioning.py` composes the target flow behind
+injected seams and adds `configured_pin` and the budget-setting stage. The
+fake child launcher plays every lifecycle boundary and parent death with no
+process. The recorder recorded milestone `step-5` with its five service checks
+passing on a real kernel, and the validator accepts the record. The command
+printed by `pw scope day` reports `exit=0`, and both `rg` checks show only the
+expected lines.
 
 ### Goal for Step 5
 
@@ -1391,27 +1413,356 @@ flow and `configured_pin`).
 
 ### What was implemented for Step 5
 
-_(empty — no check has taken place yet.)_.
+The diff delivers the Step 5 file list of the plan and four changes outside
+it. `git_cliff/__init__.py` lists the new modules. `budget.py` keeps the
+refused text on `BudgetSettingError.value`, and its test asserts it.
+`cache.py` makes `probe_problem` public for the staging probe. A new
+`git_cliff_native_service.py` holds the Step 5 native checks, because the
+probes module had already reached 470 lines.
+
+- **Messages**: `Stage` (`platform`, `containment`, `budget-setting`,
+  `configuration`, `permission`, `lock-wait`, `download`, `verification`,
+  `extraction`, `probe`, `in-use`) and the read-only `REMEDIES` with the
+  design's remedies; the lock-wait remedy is the lock's own
+  `LOCK_WAIT_REMEDY`. `ProvisioningError(ValueError)` has `exit_code = 2`,
+  `stage`, `version` (None before any pin exists), `path` and `detail`; its
+  text is `diagnostic()`: `git-cliff <pin> unavailable at <path> (<stage>
+  stage): <detail>. <remedy>`. `permission_failure` builds the permission
+  stage from a refused write, naming the nearest existing directory above the
+  refused path. `downloading_line` gives the size in MiB with one decimal,
+  `ready_line` the entry path, and `waiting_line` the holder's PID, its start
+  as local time with offset and the caller's own W.
+- **Invocation**: `Policy` (`ENGINE`, `PASSTHROUGH`), and
+  `engine_environment`, which copies the given environment, or the process
+  one, without any `GIT_CLIFF_*` name in any case: the only place of that
+  rule. `probe_request` builds `--version` in the executable's directory under
+  the engine policy, with the probe budget, the inherited guards and the
+  recorder given. `GitCliffInvocation(executable, version, guard, *, launch)`
+  is single-use. `run(arguments, *, policy, cwd, environment=None,
+  output="capture", deadline=None)` starts one child through the launcher,
+  with the guard handle in its inherited list. The engine policy closes
+  standard input. The passthrough policy keeps the environment and inherits
+  the streams, so a capture request is refused. The guard is closed once the
+  child has ended, or at once when no child was created. On
+  `UnconfirmedEndError` it is retained, and a refused or unconfirmed start
+  raises `ProvisioningError` with the containment stage. `close()` and the
+  block form release an unused invocation.
+- **Installation**: `install(layout, pin, budget, seams, lock)` creates
+  `.staging-<pid>-<created>-<token>/` and its `owner.json`. It runs at most
+  two worker attempts, through `worker_command` and the launcher, inside a D
+  whose deadline is fixed before the first attempt. Each worker is recorded in
+  the lock record, then in the owner file, before it resumes. Only a
+  retryable outcome is retried, after the 5 s delay drawn from D, and only
+  when time remains after that delay. It then recomputes the archive digest,
+  extracts the member, deletes the archive and runs the recorded staging probe
+  within 15 s. Last, it writes `entry.json`, removes `owner.json`, retires the
+  old entry and publishes staging by one directory rename. A failure whose
+  children all ended removes staging. An `UnconfirmedEndError` calls
+  `lock.retain_record()`, keeps staging and fails with the containment stage.
+  A file operation refused in staging, the publication included, is the
+  permission stage naming the directory. A recording failure caused by a
+  `PermissionError` is the permission stage, any other the containment stage.
+  `retire_entry(layout, pin, attempt)` renames `git-cliff.exe` to
+  `.retired-<pid>-<created>-<token>.exe` when it exists, then the entry
+  directory to `<pin>/.retired-...`; a refusal of either is the in-use stage,
+  and a missing entry is a no-op. The seams it needs are the `InstallSeams`
+  protocol.
+- **Provisioning**: `ProvisioningSeams` (frozen: `launch`, `open_guard`,
+  `process_state`, `current_identity`, `mutex`, `clock`, `sleep`, `stderr`,
+  `runtime`, `platform_check`, plus `now` for record stamps) and
+  `production_seams(runtime)` binding `run_contained`, `open_guard`,
+  `process_state`, `current_identity`, `transition_mutex`, `time.monotonic`,
+  `time.sleep`, a whole-line standard-error writer and
+  `require_supported_platform`. `provision(tooling_root, pin, budget, *,
+  seams, caller)` runs the flow in order:
+  - a missing pin is the configuration stage;
+  - the platform check comes next;
+  - the reuse check (`check_entry` with a record-free probe that inherits the
+    guard) returns a valid entry silently;
+  - otherwise the cache lock is taken within W, with one waiting line;
+  - under the lock come the recheck, the recovery of dead attempts and
+    `install`;
+  - the lock is then released and the new entry guarded, then the ready line
+    is printed.
+
+  Lock failures map to the lock-wait stage, naming the last live holder, or
+  no holder when a dead one was proven only past W. A refused creation maps
+  to the permission stage. A reuse-check probe that cannot be contained maps
+  to containment. An unreadable entry, or a new entry that cannot be guarded
+  (plan Q18), maps to extraction. A lock record that cannot be removed fails
+  the call, or becomes a note on the failure already raised.
+  `provisioning_budget(environment, *, tooling_root, pin)` maps a refused
+  value to the budget-setting stage. `configured_pin(configuration)` returns
+  the validated `[git-cliff] version` or None.
+- **Fake child launcher**: `git_cliff_children_fake.py` holds `Child`,
+  `failed`, `FakeChildren`, `ParentDied` and `ProvisionWorld`. The launcher
+  sorts requests by role (worker, probe or run) and plays scripted or default
+  children with creation as one step, recording before resume, guard copies
+  held for the child's lifetime, a reap snapshot for a child that never
+  finishes and unconfirmed ends. The world binds the seams. Its guard table
+  refuses renames of guarded files and of the directories holding them, and
+  of busy directories. A simulated parent death snapshots the cache tree,
+  closes the dying caller's guards and raises `ParentDied`; `dies()` restores
+  exactly that state for a second caller.
+- **Tests**: `test_git_cliff_messages`, `test_git_cliff_invocation`,
+  `test_git_cliff_installation` and `test_git_cliff_provisioning` (reuse and
+  entry point, contention, budget flow and lifecycle) cover the plan's
+  tests-first list: one boundary per lifecycle case, each followed by a second
+  caller against what the dead caller left. Long waits use a clock that
+  wakes 30 s late, so a 360 s wait costs a dozen polls.
+- **Native checks**: milestone `step-5` adds five checks through the service,
+  each with helper callers that are killed:
+  - `worker-ends-with-killed-caller`: the proxy variables point at a silent
+    local endpoint, and the worker runs through this checkout's bootstrap,
+    since the temporary root holds no checkout;
+  - `git-cliff-run-ends-with-killed-caller`;
+  - `guard-held-by-reuse-probe-after-caller-killed` and
+    `guard-held-by-git-cliff-run-after-caller-killed`: the recorder keeps a
+    duplicate of the helper's job handle, so the child outlives its killed
+    caller until the recorder closes that handle;
+  - `abandoned-mutex-keeps-lock-record`.
+
+  They use a temporary tooling root, the synthetic pin 9.9.9 and a stand-in
+  executable: pip's distlib console launcher, a shebang naming the
+  interpreter and a ZIP `__main__.py`, which prints `git-cliff 9.9.9` and
+  waits when asked. The recorder dispatches the service helpers, and the
+  validator knows the milestone, the checks and their sources.
+- **Code review round 1 repairs**:
+  - Staging ownership: a staging directory that `mkdir()` could not create,
+    a name collision included, is never removed; only a directory this call
+    created is removed when its owner file cannot be written.
+  - One absolute download deadline: the download loop fails the download
+    stage when D is spent before an attempt, so no worker is built with a
+    nonpositive budget. `run_contained` now counts its deadline from its own
+    call, so the time spent creating and recording a child is taken from the
+    wait instead of extending D; it gains an injectable `clock`.
+  - Local write denial: the worker adds the `path` of a local `OSError` that
+    is not a URL error to its fatal outcome, and the installation reports the
+    permission stage naming that directory (`messages.denied_write`), without
+    a retry.
+  - Ready line: a ready line that cannot be written closes the guard of the
+    invocation no caller owns yet, so the published entry stays replaceable.
+  - Native guard evidence: both guard checks name the file behind the handle
+    value the child inherited (it must be the guarded executable), end the
+    job until it counts no active process before the rename after the child
+    (the stand-in's interpreter, a member too, holds a copy as well), and
+    run a control of the stand-in without any guard, whose rename succeeds
+    while it runs.
+- **Code review round 2 repairs**:
+  - Absolute download expiry: `ChildRequest` gains `expires`, an absolute
+    instant on the launcher's monotonic clock; each worker request carries
+    D's expiry itself, so no duration sampled before the launch can restart
+    it. `run_contained` bounds the wait by the earlier of `expires` and its
+    deadline counted from the call, and never resumes a child whose bound
+    passed while it was created or recorded: the teardown ends it suspended
+    and the outcome is timed out, the download stage.
+  - Target failures: `network.stream_archive` raises a failure to open, write
+    or close the target again as an `OSError` naming the target, even when
+    the original error named no file, and closes the target; a failed
+    response read keeps its network error. The worker then reports the path
+    and the installation the permission stage.
+  - Reporting failures: `messages.announce` writes every standard-error line
+    (download, waiting, ready); a stream that cannot take one is a twelfth
+    stage, `reporting`, a `ProvisioningError` (status 2) with its error as
+    cause. The ready line keeps releasing the new guard first.
+- **Validation evidence**:
+  - Red first: `ghog single` on the four new test leaves and the budget test
+    failed at collection on the missing modules (exit 4, 7 errors).
+  - Targeted: `ghog single` on the new leaves, the budget test and the cache
+    test, 220 passed; later the installation and provisioning leaves again,
+    exit 0.
+  - Native record: the recorder with `--milestone step-5`, after the last
+    covered source change of the round 2 repairs, passed 14 of 14 checks; the
+    five service checks took 2.1 s to 5.6 s, and the stalled runner timed out
+    at its 3 s bound in 3.04 s with its helper tree ended. During round 1, a
+    first rerun failed only the run variant of the guard check, whose rename
+    after the child was still refused by the stand-in's interpreter, before
+    the job was ended until empty.
+  - Round 1 repairs: `ghog single` on the `windows_child`, worker, messages,
+    invocation, installation and provisioning leaves, 235 passed; a speed
+    walk then stopped at `cov=99` on the new owner-file branch, now tested.
+  - Round 2 repairs: `ghog single` on the same leaves and the network leaf,
+    288 passed (one earlier case, a negative deadline, moved to the
+    never-resumed test, since such a child now never runs).
+  - Gate: `ghog day --whole-suite`, the command printed by `pw scope day` at
+    the default level, exit 0 at 2026-11-20T10:56:55+01:00. Two earlier walks
+    failed: the first at check (exception messages, a single-item membership
+    test, an untyped outcome payload, typed expectations, the return type of
+    a context manager and a grade C test, now split), the second
+    only on the committed record, still at `step-4` before the recorder run.
+  - `rg -n 'sys\.stdout|print\(' tools/release_workflow/git_cliff` finds only
+    the worker's outcome line; `rg -n 'GIT_CLIFF_'
+    tools/release_workflow/git_cliff` shows the removal rule only in
+    `invocation.py`, the `budget.py` matches being the override's own name
+    `LLM_SHARED_GIT_CLIFF_DOWNLOAD_TIMEOUT_SECONDS`.
+- **Line counts**: `messages.py` 165 (advisory 160), `invocation.py` 158
+  (advisory 140), `installation.py` 356 (advisory 320), `provisioning.py`
+  301 (advisory 240), `budget.py` 99, `cache.py` 398, `download_worker.py`
+  163, `network.py` 148, `windows_child.py` 619 (596 before, in the 550 to
+  650 band since Step 2), `git_cliff/__init__.py` 44;
+  `git_cliff_children_fake.py` 485 (advisory 150, the world and guard table
+  it also holds), `git_cliff_native_checks.py` 317 (+39, advisory +110),
+  `git_cliff_native_service.py` 412 (new),
+  `test_git_cliff_native_evidence_tdd.py` 265 (+34, advisory +5),
+  `native_checks.v1.json` 433; new tests 171 (messages), 181 (invocation),
+  414 (installation), 281, 180, 133 and 281 (provisioning, contention, budget
+  and lifecycle), against advisories of 130, 170, 300, 200, 260, 230 and 320.
+  Every new Python file stays below 550; `windows_child.py` stays below the
+  650 ceiling; the advisory overruns are variance.
 
 ### New types or classes introduced for Step 5
 
-_(empty — no check has taken place yet.)_.
+- `tools.release_workflow.git_cliff.messages`: `Stage` (with `REPORTING`
+  since code review round 2), `REMEDIES`, `ProvisioningError`,
+  `permission_failure`, `denied_write`, `announce`, `downloading_line`,
+  `ready_line` and `waiting_line`.
+- `tools.release_workflow.windows_child.run_contained`: the `clock`
+  parameter; the deadline counts from the call (code review round 1).
+  `ChildRequest.expires`: an absolute expiry; a child past its bound before
+  its resume never runs (round 2).
+- `tools.release_workflow.git_cliff.download_worker`: the `path` field of a
+  local failure outcome (code review round 1).
+- `tools.release_workflow.git_cliff.invocation`: `Policy`,
+  `engine_environment`, `probe_request` and `GitCliffInvocation`.
+- `tools.release_workflow.git_cliff.installation`: the `InstallSeams`
+  protocol, `install` and `retire_entry`.
+- `tools.release_workflow.git_cliff.provisioning`: `ProvisioningSeams`,
+  `production_seams`, `provision`, `provisioning_budget` and
+  `configured_pin`.
+- `tools.release_workflow.git_cliff.budget`: `BudgetSettingError.value`;
+  `tools.release_workflow.git_cliff.cache`: `probe_problem`, now public.
+- Test support: `Child`, `failed`, `outcome_line`, `Launched`,
+  `FakeChildren`, `ParentDied`, `ProvisionWorld`, `SECOND` and `RUNTIME` in
+  `git_cliff_children_fake.py`; the five check functions, `install_stand_in`,
+  the helper callers and their dispatch in `git_cliff_native_service.py`.
 
 ### Architecture check for Step 5
 
-_(empty — no check has taken place yet.)_.
+- **Ports and adapters**: the service reaches the Windows layer, time,
+  standard error and the worker runtime only through `ProvisioningSeams`;
+  `production_seams` is the single place that binds the real adapters, and
+  tests replace every seam. `installation` depends on its own `InstallSeams`
+  protocol, not on `provisioning`, so the dependency runs one way: the
+  provisioning module calls the installation module, never the reverse.
+- **One start path**: only `invocation` builds the child request of
+  git-cliff and holds the `GIT_CLIFF_*` rule; the reuse probe, the staging
+  probe and every run go through it, so no caller can forget the environment
+  rule, start an uncontained child or drop the guard.
+- **Failure contract**: every failure leaves through `ProvisioningError`,
+  built in `messages`; the lower modules keep their own errors (`LockWaitError`,
+  `VerificationError`, `ContainmentError`), and the service maps them once at
+  its boundary. No module writes to standard output.
+- **Domain modules untouched**: the manifest, cache layout, lock and archive
+  keep their Step 1 to 4 responsibilities; only `probe_problem` became public
+  and `BudgetSettingError` gained `value`.
+- **Developer-run evidence**: the recorder and its probe modules stay under
+  `tests`, are never imported by a test and depend on the engine, never the
+  reverse.
+
+No, there is nothing that needs to be addressed: no DDD-Hexagonal violation or
+smell is visible in this step.
 
 ### Performance check for Step 5
 
-_(empty — no check has taken place yet.)_.
+- **Reuse**: one guard, one record read, one hash of the executable and one
+  probe; no lock, no directory scan, no write.
+- **Provisioning**: at most two worker attempts and one staging probe; the
+  archive is hashed and extracted once each; recovery lists the version
+  directory once; the owner file and lock record are rewritten once per
+  recorded child (at most three).
+- **Waiting**: one lock poll per 250 ms within W, each poll reading one record
+  and probing its owner and children once.
+- **Messages and policies**: constant work per line or diagnostic; the engine
+  environment is one pass over the variables.
+- **Plan-bound alignment**: linear in the archive bytes, the version
+  directory entries and the environment size; no sort, no pairwise comparison.
+
+No, there is no performance issue that needs to be addressed.
 
 ### Unit test coverage check for Step 5
 
-_(empty — no check has taken place yet.)_.
+The coverage gate measures `tools` only (`[tool.coverage.run] source`), with
+`*/tests/*` and `*/__init__.py` omitted, at `fail_under = 100`. The default
+walk skips the full stage, so this check reasons statically; the measured
+`--full=speed` proof follows before the review request.
+
+- **`tools/release_workflow/git_cliff/messages.py`**: `test_git_cliff_messages/`
+  reaches the three lines, every stage diagnostic with and without a pin, the
+  remedy table and the three branches of `permission_failure`; covered.
+- **`tools/release_workflow/git_cliff/invocation.py`**:
+  `test_git_cliff_invocation/` reaches both policies with and without an
+  environment, the refused passthrough capture, a refused and an unconfirmed
+  creation, a second run, `close` and the block form, and `probe_request`;
+  covered.
+- **`tools/release_workflow/git_cliff/installation.py`**:
+  `test_git_cliff_installation/` reaches the first download with its
+  recordings, the digest mismatch, the retry, two retryable, fatal and missing
+  outcomes, a retry without time before and after its delay, the refused
+  checkout, staging and recording, the missing member, a wrong probe output,
+  a refused, never-ending or unconfirmed worker, a never-ending probe, the
+  five retirement and publication faults and a missing entry; covered.
+- **`tools/release_workflow/git_cliff/provisioning.py`**:
+  `test_git_cliff_provisioning/` reaches the silent and read-only reuse, both
+  invalid entries online and offline, a missing pin, a refused reuse probe, an
+  unreadable entry, a new entry that cannot be guarded, the three lock-release
+  failures, a refused recovery listing, the contention cases (recheck, dead
+  holder, live and unknown actors, a holder proven dead past W, a guarded
+  repair, an unverifiable record, an unavailable mutex, a refused creation),
+  the budget flow, the lifecycle boundaries, `configured_pin` and
+  `production_seams`; covered.
+- **`tools/release_workflow/git_cliff/budget.py`** and **`cache.py`**: their
+  leaves keep reaching every branch; the new `value` is asserted for every
+  refused form, and `probe_problem` is the renamed private helper.
+- **Round 1 repairs**: `test_windows_child/` runs on a frozen clock and adds
+  recording time taken from the wait, down to zero; `test_git_cliff_download_worker/`
+  adds a target the worker cannot write, reported with its path while an HTTP
+  error names none; the installation leaf adds a budget spent before the
+  first attempt, a worker-reported write denial, a staging name collision and
+  an owner file that cannot be written (its staging directory removed);
+  the provisioning leaf adds a ready line that cannot be written; the
+  messages leaf adds `denied_write`.
+- **Round 2 repairs**: `test_windows_child/` adds the earlier of `expires`
+  and the deadline bounding the wait, and a child recorded past its bound
+  never resumed; `test_git_cliff_network/` adds a target whose write or close
+  fails without a file name and one that cannot be opened, all naming the
+  target, while a stalled read names none; the worker leaf adds a write
+  failure naming no file; the installation leaf adds a worker reaching its
+  resume past D after a delay at launcher entry or during its recording, and
+  a download line that cannot be written; the contention leaf a waiting line
+  that cannot be written; the provisioning leaf expects the reporting stage
+  for the ready line; the messages leaf adds `announce`.
+- **Files outside the gate**: `git_cliff_children_fake.py`,
+  `git_cliff_native_checks.py` and `git_cliff_native_service.py` live under
+  `tests` and are not measured. Every top-level symbol of the fake is used by
+  the new leaves. Every check function, helper and builder of the service
+  module is reached from the recorder's catalog or its helper dispatch, or
+  inside the module, and the record proves the run.
+
+No, there is no unit-tested class below 100% that needs completing for Step 5.
+No, none of the top-level symbols of the files outside the gate is
+unreferenced.
 
 ### Feature integrity for Step 5
 
-_(empty — no check has taken place yet.)_.
+- **Existing feature behavior**: no existing command imports the new modules,
+  and no engine operation calls provisioning before item 4; the cache, lock
+  and archive keep their behavior, and the recorder keeps its command line
+  with one more milestone. `run_contained` now counts its deadline from its
+  call, which only shortens the wait of a child whose creation or recording
+  took time, and a child already past its bound at its resume never runs
+  (only a caller that gave an already spent bound sees that); `expires` is
+  optional. The worker adds a `path` to a local failure outcome only, and
+  `stream_archive` changes only the error raised for a target failure.
+- **Reporting or diagnostics**: `BudgetSettingError` keeps its message and
+  status and only gains `value`; the provisioning diagnostics are new and
+  written to standard error only. Beside the design's eleven stages, a
+  `reporting` stage names a standard-error line that could not be written
+  (code review round 2), so that failure keeps status 2.
+- **Compatibility or rollout note**: no pin is admitted before Step 7, so the
+  service runs only in tests and in the native checks on the synthetic pin.
+
+No, there is no existing feature or reporting capability that appears
+impaired.
 
 ---
 
