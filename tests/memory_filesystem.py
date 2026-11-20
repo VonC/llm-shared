@@ -6,6 +6,7 @@ measured fixture, and production pathlib, parsing and publication code run
 unchanged. No real directories, processes or waits implement scenarios.
 The resume-paused artifact and review leaves join the scenarios: their
 read-only proofs compare whole checkout trees before and after each read.
+The resume-paused evidence leaf joins them for its session journal file read.
 """
 
 from __future__ import annotations
@@ -81,6 +82,7 @@ _SCENARIOS = (
     "tests/unit/tools/test_resume_paused_review/",
     "tests/unit/tools/test_resume_paused_claims/",
     "tests/unit/tools/test_resume_paused_validation/",
+    "tests/unit/tools/test_resume_paused_evidence/",
 )
 _active_scenario = False
 _COPY_FUNCTION_POSITION = 3
