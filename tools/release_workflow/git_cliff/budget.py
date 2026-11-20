@@ -10,7 +10,8 @@ metadata and retry delay budgets are engine constants.
 Step 1 of v0.14.0 git-cliff-provisioning ships the policy. Provisioning and
 the evidence harness call `resolve_budget` once, before any reuse probe,
 child, network access or cache change, and hand the policy to workers and the
-lock wait; no other module reads the variable.
+lock wait; no other module reads the variable. Step 5 keeps the refused text
+on `BudgetSettingError.value` for the budget-setting diagnostic.
 """
 
 from __future__ import annotations
@@ -29,9 +30,18 @@ _MAXIMUM_DIGITS = len(str(MAXIMUM_DOWNLOAD_SECONDS))
 
 
 class BudgetSettingError(ValueError):
-    """The budget variable holds a refused form: a setup failure, status 2."""
+    """The budget variable holds a refused form: a setup failure, status 2.
+
+    `value` keeps the refused text (Step 5), so the provisioning diagnostic
+    names it once and leaves the remedy to its budget-setting stage.
+    """
 
     exit_code = 2
+
+    def __init__(self, message: str, *, value: str) -> None:
+        """Keep the message and the refused text."""
+        super().__init__(message)
+        self.value = value
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -82,7 +92,7 @@ def resolve_budget(environment: Mapping[str, str]) -> BudgetPolicy:
             f"{DOWNLOAD_BUDGET_VARIABLE}={raw!r}: expected a whole number of seconds"
             f" from {DEFAULT_DOWNLOAD_SECONDS} through {MAXIMUM_DOWNLOAD_SECONDS}, or unset it"
         )
-        raise BudgetSettingError(msg)
+        raise BudgetSettingError(msg, value=raw)
     return BudgetPolicy(download=seconds, wait=seconds + WAIT_MARGIN_SECONDS, source=f"{DOWNLOAD_BUDGET_VARIABLE}={raw}")
 
 

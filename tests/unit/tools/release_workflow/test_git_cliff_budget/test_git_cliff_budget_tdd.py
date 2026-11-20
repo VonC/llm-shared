@@ -5,6 +5,10 @@ budget D is 300 s and the caller's wait W is D + 60 s; a set value is an ASCII
 decimal integer from 300 through 3600, never clamped nor replaced by the
 default; the socket, probe, metadata and retry delay budgets stay fixed. The
 lookup ignores case, as Windows variable names do.
+
+Step 5 of v0.14.0 git-cliff-provisioning: a refusal keeps the raw text it
+refused as `value`, so the provisioning diagnostic names it once and leaves
+the remedy to the budget-setting stage.
 """
 
 from __future__ import annotations
@@ -42,12 +46,12 @@ def test_a_value_in_range_sets_the_exact_download_and_wait(raw: str, download: i
 
 @pytest.mark.parametrize("raw", ["", "-1", "+600", "300.5", "600s", " 600", "600 ", "299", "3601", "\u0663\u0660\u0660", "\u00b3\u2070\u2070", "0" * 5000 + "1"])
 def test_every_other_form_is_refused_without_clamping(raw: str) -> None:
-    """Empty, signed, fractional, unit, padded, out-of-range and non-ASCII digits are refused."""
+    """Empty, signed, fractional, unit, padded, out-of-range and non-ASCII digits are refused; the error keeps the raw text."""
     with pytest.raises(BudgetSettingError) as caught:
         resolve_budget({DOWNLOAD_BUDGET_VARIABLE: raw})
     assert DOWNLOAD_BUDGET_VARIABLE in str(caught.value)
     assert "from 300 through 3600" in str(caught.value)
-    assert caught.value.exit_code == INVALID_INPUT
+    assert (caught.value.exit_code, caught.value.value) == (INVALID_INPUT, raw)
 
 
 @pytest.mark.parametrize("name", [DOWNLOAD_BUDGET_VARIABLE.lower(), "Llm_Shared_Git_Cliff_Download_Timeout_Seconds"])
