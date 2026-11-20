@@ -14,7 +14,14 @@ Q05, Q06 and Q14). `run_contained` follows seven phases on every path:
 3. Pre-resume: the identity is read and handed to the recording callback, then
    the thread is resumed.
 4. Wait: daemon readers drain the native pipe handles into private buffers
-   while the parent waits on the root within the deadline.
+   while the parent waits on the root within the deadline. Since Step 5, the
+   deadline counts from the `run_contained` call, and a request may also
+   carry `expires`, an absolute instant on the run's clock (`time.monotonic`
+   by default), such as a stage deadline fixed earlier by the caller; the
+   earlier of the two bounds the run. The time spent creating and recording
+   the child is taken from it, and a child whose expiry passed before its
+   resume is never resumed: the teardown ends it suspended and the outcome is
+   timed out.
 5. Teardown: `TerminateJobObject` (once), the root reaped, `ActiveProcesses`
    polled to 0; no budget of its own once the termination has succeeded.
 6. Drain: only then are the readers joined and the handles closed, so a
@@ -168,6 +175,7 @@ class ChildRequest:
     inherited: tuple[int, ...] = ()
     deadline: float | None = None
     record: Callable[[ProcessIdentity], None] | None = None
+    expires: float | None = None
 
     def __post_init__(self) -> None:
         """Refuse stream modes and environment entries Windows cannot carry, before any native call."""
@@ -247,11 +255,16 @@ def _value(handle: wintypes.HANDLE) -> int:
 class _Run:
     """The handles and phases of one contained child."""
 
-    def __init__(self, api: Kernel, request: ChildRequest, sleep: Callable[[float], None]) -> None:
-        """Hold no handle yet; the request was validated when it was built."""
+    def __init__(self, api: Kernel, request: ChildRequest, sleep: Callable[[float], None], clock: Callable[[], float]) -> None:
+        """Hold no handle yet, and start the deadline now; the request was validated when it was built."""
         self._api = api
         self._request = request
         self._sleep = sleep
+        self._clock = clock
+        started = clock()
+        bounds = [bound for bound in (None if request.deadline is None else started + request.deadline, request.expires) if bound is not None]
+        self._expires = min(bounds) if bounds else None
+        self._resumed = False
         self._environment = request.environment_block()
         self._job = 0
         self._owned: dict[int, None] = {}
@@ -307,7 +320,7 @@ class _Run:
             self._release_creation_inputs()
             self._raise_failed_release()
             identity = self._pre_resume()
-            timed_out = self._wait()
+            timed_out = self._wait() if self._resumed else True
             self._interrupt_point()
         except BaseException as error:
             self._settle()
@@ -426,7 +439,7 @@ class _Run:
             raise self._failures[0]
 
     def _pre_resume(self) -> ProcessIdentity:
-        """Phase 3: read the identity, record it, then let the child run."""
+        """Phase 3: read the identity, record it, then let the child run, unless its expiry has already passed."""
         self._step = "GetProcessTimes"
         created, exited, kernel_time, user_time = (wintypes.FILETIME() for _ in range(4))
         self._api.GetProcessTimes(self._info.hProcess, created, exited, kernel_time, user_time)
@@ -436,17 +449,22 @@ class _Run:
             self._step = "record"
             self._request.record(identity)
         self._interrupt_point()
+        if self._expires is not None and self._clock() >= self._expires:
+            # Expired while it was created or recorded: it never runs; the teardown ends it suspended.
+            return identity
         self._api.ResumeThread(self._info.hThread)
+        self._resumed = True
         return identity
 
     def _wait(self) -> bool:
-        """Phase 4: start the readers and wait on the root within the deadline; return whether it expired."""
+        """Phase 4: start the readers and wait on the root until its expiry; return whether it expired."""
         self._step = "reader"
         for name, handle in self._reads.items():
             reader = _Reader(self._api, handle, f"contained-{self._info.dwProcessId}-{name}")
             reader.thread.start()
             self._readers.append(reader)
-        result = self._api.WaitForSingleObject(self._info.hProcess, _milliseconds(self._request.deadline))
+        remaining = None if self._expires is None else self._expires - self._clock()
+        result = self._api.WaitForSingleObject(self._info.hProcess, _milliseconds(remaining))
         return result == native.WAIT_TIMEOUT
 
     def _teardown(self) -> None:
@@ -562,9 +580,14 @@ def _sigint_deferred(run: _Run) -> Generator[None]:
         signal.signal(signal.SIGINT, signal.default_int_handler)
 
 
-def run_contained(request: ChildRequest, *, api: Kernel | None = None, sleep: Callable[[float], None] = time.sleep) -> ChildOutcome:
-    """Run a child created suspended inside its own kill-on-close job and return once every member has ended."""
-    run = _Run(native.kernel() if api is None else api, request, sleep)
+def run_contained(request: ChildRequest, *, api: Kernel | None = None, sleep: Callable[[float], None] = time.sleep,
+                  clock: Callable[[], float] = time.monotonic) -> ChildOutcome:
+    """Run a child created suspended inside its own kill-on-close job and return once every member has ended.
+
+    The request's deadline, in seconds, counts from this call, creation and recording included; its `expires`, an
+    absolute instant on `clock`, bounds the run too. A child whose bound passed before its resume never runs.
+    """
+    run = _Run(native.kernel() if api is None else api, request, sleep, clock)
     with _sigint_deferred(run):
         return run.execute()
 

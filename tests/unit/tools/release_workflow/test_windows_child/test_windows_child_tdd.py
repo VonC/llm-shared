@@ -12,6 +12,13 @@ is closed. A normal exit keeps the root's status, expiry returns a timed-out
 outcome, and a descendant holding the stdout write end cannot block the call.
 The platform baseline is Windows 10 or Windows Server 2016 on x64; the console
 filter is a handler routine registered for the guarded block only.
+
+Step 5 (code review rounds 1 and 2): the deadline counts from the
+`run_contained` call and `expires` is an absolute instant on the run's clock;
+the earlier bounds the wait, the time spent creating and recording the child
+is taken from it, and a child whose bound passed before its resume is never
+resumed but ended suspended, timed out. The tests run on a frozen clock unless
+they advance it.
 """
 
 from __future__ import annotations
@@ -75,9 +82,14 @@ def _recorded(kernel: FakeKernel) -> ChildRequest:
     return _request(record=record)
 
 
+def _frozen() -> float:
+    """A clock that never moves, so the whole deadline reaches the wait."""
+    return 0.0
+
+
 def _run(kernel: FakeKernel, request: ChildRequest | None = None, sleeps: list[float] | None = None) -> ChildOutcome:
-    """Run a request through the fake kernel, recording each poll sleep."""
-    return run_contained(request or _request(), api=kernel, sleep=(sleeps if sleeps is not None else []).append)
+    """Run a request through the fake kernel on a frozen clock, recording each poll sleep."""
+    return run_contained(request or _request(), api=kernel, sleep=(sleeps if sleeps is not None else []).append, clock=_frozen)
 
 
 def _kernel_calls(kernel: FakeKernel) -> list[str]:
@@ -176,13 +188,48 @@ def test_the_poll_continues_until_no_member_is_active() -> None:
     assert (kernel.names().count("QueryInformationJobObject"), sleeps) == (3, [windows_child._POLL_SECONDS] * 2)
 
 
-@pytest.mark.parametrize(("deadline", "milliseconds"), [(None, native.INFINITE), (2.5, 2500), (0.0001, 1), (-1.0, 0)])
+@pytest.mark.parametrize(("deadline", "milliseconds"), [(None, native.INFINITE), (2.5, 2500), (0.0001, 1)])
 def test_the_deadline_bounds_only_the_wait(deadline: float | None, milliseconds: int) -> None:
     """The root wait receives the deadline in milliseconds, rounded up; the reap wait is unbounded."""
     kernel = FakeKernel()
     _run(kernel, _request(deadline=deadline))
     process = kernel.arguments("GetProcessTimes")[0]
     assert [kernel.arguments("WaitForSingleObject", number) for number in (1, 2)] == [(process, milliseconds), (process, native.INFINITE)]
+
+
+def _bounded(kernel: FakeKernel, spent: float, **bounds: float | None) -> ChildOutcome:
+    """Run from fake second 10, the recording spending some fake seconds before the resume."""
+    now = [10.0]
+
+    def record(identity: ProcessIdentity) -> None:
+        del identity
+        now[0] += spent
+
+    return run_contained(_request(record=record, **bounds), api=kernel, sleep=list[float]().append, clock=lambda: now[0])
+
+
+@pytest.mark.parametrize(("deadline", "expires", "spent", "milliseconds"), [
+    (2.5, None, 0.75, 1750), (None, 13.0, 0.75, 2250), (2.5, 11.0, 0.25, 750), (2.5, 20.0, 0.0, 2500),
+])
+def test_the_wait_receives_what_remains_of_the_earlier_bound(deadline: float | None, expires: float | None, spent: float,
+                                                             milliseconds: int) -> None:
+    """The deadline counts from the call and `expires` is absolute; creation and recording are taken from them."""
+    kernel = FakeKernel()
+    _bounded(kernel, spent, deadline=deadline, expires=expires)
+    process = kernel.arguments("GetProcessTimes")[0]
+    assert kernel.arguments("WaitForSingleObject", 1) == (process, milliseconds)
+
+
+@pytest.mark.parametrize(("deadline", "expires", "spent"), [(2.5, None, 2.5), (2.5, None, 4.0), (None, 10.5, 0.75), (-1.0, None, 0.0)])
+def test_a_child_whose_bound_passed_while_it_was_recorded_never_runs(deadline: float | None, expires: float | None,
+                                                                     spent: float) -> None:
+    """It is never resumed: the teardown ends it suspended, nothing is read, and the outcome is timed out."""
+    kernel = FakeKernel(FakeChild(stdout=b"never written"))
+    outcome = _bounded(kernel, spent, deadline=deadline, expires=expires)
+    assert "ResumeThread" not in kernel.names()
+    assert (outcome.timed_out, outcome.stdout, outcome.status) == (True, b"", windows_child._TERMINATED_STATUS)
+    assert kernel.index("TerminateJobObject") < kernel.index("GetExitCodeProcess")
+    assert kernel.open_handles() == set()
 
 
 def test_expiry_returns_a_timed_out_outcome() -> None:
