@@ -38,7 +38,8 @@ requestor pause; it never selects another pane. A dry run plans exactly the
 same checkouts and allows no input. The typed result lives in
 ``tools.resume_paused_plan_model``. Nothing here sends input, clears a pane,
 writes a file or parses command-line arguments (Step 8); Step 6 revalidates
-every action immediately before its send.
+every action immediately before its send through ``plan_checkout``, which
+replans one checkout from a fresh observation with the same checkout gates.
 """
 
 from __future__ import annotations
@@ -520,6 +521,19 @@ def plan_run(request: PlanRequest, observation: PaneObservation | None, ports: P
     return RunPlan(request.dry_run, (), checkouts, _omitted(observation, checkouts))
 
 
+def plan_checkout(request: PlanRequest, observation: PaneObservation, ports: PlannerPorts, root: CanonicalRoot) -> CheckoutPlan | None:
+    """Replan one checkout from a fresh observation, as Step 6 does immediately before each send.
+
+    The run's global gates already passed; the checkout's own gates, duplicate
+    evidence, targets and exchange are read again. ``None`` when the checkout
+    has no live pane or no saved prompt any more.
+    """
+    index = _PaneIndex.build(observation)
+    if root not in index.by_root:
+        return None
+    return _CheckoutPlanner(_RunContext.of(request, index, ports), root).plan()
+
+
 def _plan_checkouts(request: PlanRequest, index: _PaneIndex, ports: PlannerPorts) -> tuple[CheckoutPlan, ...]:
     """Plan every discovered checkout in canonical root order; prompt-less ones are omitted."""
     run = _RunContext.of(request, index, ports)
@@ -536,6 +550,7 @@ def _omitted(observation: PaneObservation, checkouts: tuple[CheckoutPlan, ...]) 
 __all__ = [
     "ExchangeObserver",
     "PlannerPorts",
+    "plan_checkout",
     "plan_run",
 ]
 
