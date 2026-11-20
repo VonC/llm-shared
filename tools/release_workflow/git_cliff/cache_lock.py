@@ -40,6 +40,9 @@ Q04; requirement clarifications Q06 and Q14; plan decision Q02).
 `CacheLock` takes its seams as one `LockSeams` value (clock, sleep, liveness
 probe, current identity, mutex and local time), within the five-argument
 limit. Recovery never reads a modification time: liveness is its only test.
+
+Step 6 makes `publish_file` public: an evidence candidate's trust record is
+published the same way, complete and flushed, by a non-replacing rename.
 """
 
 from __future__ import annotations
@@ -179,7 +182,7 @@ class LockSeams:
     now: Callable[[], datetime] = _local_now
 
 
-def _publish(target: Path, content: bytes, *, replace: bool) -> None:
+def publish_file(target: Path, content: bytes, *, replace: bool) -> None:
     """Write complete flushed bytes beside the target, then rename them into place; never keep the temporary."""
     descriptor, name = tempfile.mkstemp(prefix=f".{target.name}-", suffix=".tmp", dir=target.parent)
     temporary = Path(name)
@@ -274,7 +277,7 @@ class CacheLock:
             if self._seams.clock() > deadline:
                 return None, False
             mine = LockRecord(self._seams.current(), self._seams.now().isoformat(timespec="seconds"), self._caller)
-            _publish(self._path, mine.encode(), replace=found is not None)
+            publish_file(self._path, mine.encode(), replace=found is not None)
             self._held = mine
         return None, True
 
@@ -328,7 +331,7 @@ class CacheLock:
         with self._transition():
             self._require_current(held)
             updated = held.with_child(child)
-            _publish(self._path, updated.encode(), replace=True)
+            publish_file(self._path, updated.encode(), replace=True)
             self._held = updated
 
     def release(self) -> None:

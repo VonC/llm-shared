@@ -15,6 +15,11 @@ Step 4 of v0.14.0 git-cliff-provisioning (design "Archive verification" and
 
 The caller removes the staging directory on any failure; nothing here
 deletes a file.
+
+Step 6: `archive_identity` gives the SHA-256 and size of a staged file, which
+`verify_archive` compares and an evidence candidate without a published
+digest records; extraction needs only the member path (`ArchiveMember`), so
+a candidate whose digest is not known before its download can be extracted.
 """
 
 from __future__ import annotations
@@ -40,7 +45,16 @@ class ExtractionError(ValueError):
     """The manifest member cannot be extracted whole from the staged archive."""
 
 
-class ArchivePin(Protocol):
+class ArchiveMember(Protocol):
+    """What extraction needs: the archive member holding `git-cliff.exe`."""
+
+    @property
+    def member(self) -> str:
+        """Return the archive member holding `git-cliff.exe`."""
+        ...
+
+
+class ArchivePin(ArchiveMember, Protocol):
     """What identifies an asset: its size in bytes, its SHA-256 and the member to extract."""
 
     @property
@@ -53,28 +67,29 @@ class ArchivePin(Protocol):
         """Return the archive's lowercase hexadecimal SHA-256."""
         ...
 
-    @property
-    def member(self) -> str:
-        """Return the archive member holding `git-cliff.exe`."""
-        ...
 
-
-def verify_archive(path: Path, pin: ArchivePin) -> None:
-    """Recompute the staged archive's size and SHA-256 and require the pin's."""
+def archive_identity(path: Path) -> tuple[str, int]:
+    """Read a staged file once and return its lowercase hexadecimal SHA-256 and its size in bytes."""
     digest, size = hashlib.sha256(), 0
     with path.open("rb") as stream:
         while chunk := stream.read(_CHUNK):
             digest.update(chunk)
             size += len(chunk)
+    return digest.hexdigest(), size
+
+
+def verify_archive(path: Path, pin: ArchivePin) -> None:
+    """Recompute the staged archive's size and SHA-256 and require the pin's."""
+    sha256, size = archive_identity(path)
     if size != pin.size:
         msg = f"{path.name}: {size} bytes, expected {pin.size}"
         raise VerificationError(msg)
-    if digest.hexdigest() != pin.sha256:
-        msg = f"{path.name}: SHA-256 {digest.hexdigest()}, expected {pin.sha256}"
+    if sha256 != pin.sha256:
+        msg = f"{path.name}: SHA-256 {sha256}, expected {pin.sha256}"
         raise VerificationError(msg)
 
 
-def extract_member(path: Path, pin: ArchivePin, target_dir: Path) -> tuple[str, int]:
+def extract_member(path: Path, pin: ArchiveMember, target_dir: Path) -> tuple[str, int]:
     """Write the manifest member as `git-cliff.exe` and return the SHA-256 and size of the written bytes."""
     digest, size = hashlib.sha256(), 0
     try:

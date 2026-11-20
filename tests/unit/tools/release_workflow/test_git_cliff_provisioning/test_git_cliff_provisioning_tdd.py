@@ -13,11 +13,14 @@ be guarded after its publication and a lock record that cannot be removed,
 reads `[git-cliff] version` and builds the production seams. A version
 directory that recovery cannot list is the permission stage. A ready line that
 cannot be written releases the new entry's guard (code review round 1) and is
-the reporting stage, its error kept as cause (round 2).
+the reporting stage, its error kept as cause (round 2). Step 6: a target whose
+reuse function allows none, as an evidence candidate without its trust
+record, skips both reuse checks and replaces a valid entry.
 """
 
 from __future__ import annotations
 
+import dataclasses
 import errno
 import os
 from pathlib import Path
@@ -39,6 +42,7 @@ from tools.release_workflow import windows_guard
 from tools.release_workflow.configuration import Configuration
 from tools.release_workflow.git_cliff import provisioning
 from tools.release_workflow.git_cliff.budget import resolve_budget
+from tools.release_workflow.git_cliff.installation import manifest_target
 from tools.release_workflow.git_cliff.messages import (
     ProvisioningError,
     Stage,
@@ -276,6 +280,23 @@ def test_production_seams_bind_the_windows_layer_without_calling_it(capsys: pyte
     assert seams.now().utcoffset() is not None
     seams.stderr("git-cliff 2.14.2: ready at C:/x")
     assert capsys.readouterr() == ("", "git-cliff 2.14.2: ready at C:/x\n")
+
+
+def _no_reuse() -> str | None:
+    """Allow no reuse at any check, as an evidence candidate without its trust record."""
+    return None
+
+
+def test_a_target_that_allows_no_reuse_is_installed_again_over_a_valid_entry(world: ProvisionWorld) -> None:
+    """Step 6: `provision_target` runs the same flow for any target; one whose reuse function allows none skips both reuse checks."""
+    world.install()
+    target = dataclasses.replace(manifest_target(world.pin), reuse=_no_reuse)
+    invocation = provisioning.provision_target(world.layout, target, resolve_budget({}), seams=world.seams(), caller="harness")
+    assert [launch.role for launch in world.children.launched] == ["worker", "probe"]
+    assert world.opener.opened[0].path == world.executable
+    assert len(world.opener.opened) == 1
+    assert world.attempts("retired") != []
+    invocation.close()
 
 
 # eof

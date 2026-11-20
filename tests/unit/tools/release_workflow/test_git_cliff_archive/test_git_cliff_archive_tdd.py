@@ -8,6 +8,9 @@ manifest member and writes it as `git-cliff.exe`, hashing the written bytes;
 a missing member, a file that is not a ZIP archive or an uncompressed size
 other than the directory entry is an extraction error, and traversal,
 absolute or drive-letter member names beside the member never become paths.
+
+Step 6: `archive_identity` gives the size and SHA-256 of a staged file, for
+an evidence candidate whose digest the parent computes.
 """
 
 from __future__ import annotations
@@ -28,6 +31,7 @@ from tests.unit.tools.release_workflow.git_cliff_support import (
 from tools.release_workflow.git_cliff.archive import (
     ExtractionError,
     VerificationError,
+    archive_identity,
     extract_member,
     verify_archive,
 )
@@ -116,6 +120,13 @@ def test_an_uncompressed_size_other_than_the_directory_entry_is_an_extraction_er
     archive, staging = _staged(tmp_path, bytes(content))
     with pytest.raises(ExtractionError, match=r"git-cliff-2\.14\.2/git-cliff\.exe"):
         extract_member(archive, PIN, staging)
+
+
+def test_archive_identity_is_the_digest_and_size_of_the_staged_bytes(tmp_path: Path) -> None:
+    """The parent's own reading of a staged archive, chunk by chunk."""
+    staged = tmp_path / "archive.zip"
+    staged.write_bytes(synthetic_archive())
+    assert archive_identity(staged) == (hashlib.sha256(synthetic_archive()).hexdigest(), len(synthetic_archive()))
 
 
 # eof

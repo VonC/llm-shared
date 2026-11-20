@@ -29,6 +29,10 @@ Since Step 5 (code review round 1), a local file failure, an `OSError` naming
 a file that is not a URL error, such as a staging file the worker cannot
 write, also reports that `path`, so the parent names the permission stage and
 its directory instead of a network failure.
+
+Step 6 adds `outcome_fields`, the parent's reading of that line (the last
+line's JSON object, or no field), shared by the installation's archive
+attempts and the evidence candidates' metadata lookups.
 """
 
 from __future__ import annotations
@@ -38,7 +42,7 @@ import math
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 from urllib.error import URLError
 
 from tools.release_workflow.git_cliff import network
@@ -142,6 +146,16 @@ def _emit(payload: dict[str, object]) -> int:
     sys.stdout.write(json.dumps(payload, ensure_ascii=True) + "\n")
     sys.stdout.flush()
     return STATUSES[str(payload["outcome"])]
+
+
+def outcome_fields(stdout: bytes) -> dict[str, object]:
+    """Read a worker's captured output as its parent does: the last line's JSON object, or no field at all."""
+    lines = stdout.decode("utf-8", errors="replace").strip().splitlines()
+    try:
+        payload: object = json.loads(lines[-1]) if lines else None
+    except ValueError:
+        payload = None
+    return cast("dict[str, object]", payload) if isinstance(payload, dict) else {}
 
 
 def main(arguments: Sequence[str], *, opener: urllib.request.OpenerDirector | None = None) -> int:

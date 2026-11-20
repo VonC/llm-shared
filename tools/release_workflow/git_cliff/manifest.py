@@ -13,6 +13,9 @@ with `tested: none`, until Step 7 admits 2.14.2 after its reviewed evidence.
 The configuration schema imports this module at load time, so it imports only
 `dataclasses` and `re` and holds no network, filesystem or process code.
 
+Step 6 adds `asset_url`, the same derivation from a version and an asset
+name, for the evidence candidates that are not in any pin table.
+
 Each pin table is validated and indexed on first use. The cache is keyed by
 the identity of the table object and keeps that object, so its identity cannot
 be reused for another table while cached; a later lookup is one dictionary
@@ -160,9 +163,14 @@ def parse_pin(raw: str, *, pins: tuple[AdmittedPin, ...]) -> str:
     return admitted(raw, pins).version
 
 
+def asset_url(version: str, asset: str) -> str:
+    """Derive a release asset URL from its version and file name, keeping the upstream vX.Y.Z tag spelling."""
+    return f"{_RELEASES}/v{version}/{asset}"
+
+
 def download_url(pin: AdmittedPin) -> str:
-    """Derive the release asset URL, keeping the upstream vX.Y.Z tag spelling."""
-    return f"{_RELEASES}/v{pin.version}/{pin.asset}"
+    """Derive the release asset URL of an admitted pin."""
+    return asset_url(pin.version, pin.asset)
 
 
 # Empty until Step 7 admits 2.14.2 with its reviewed evidence bundle.

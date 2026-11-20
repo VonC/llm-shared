@@ -19,13 +19,25 @@ project file and takes no project lock:
    with one waiting line behind a live holder; under it the recheck (another
    caller may have published), the recovery of attempt directories whose
    actors are all `DEAD`, and `installation.install`.
-5. The lock is released (an unconfirmed child end retained its record), the
-   new entry is guarded, and only then the ready line is printed; an entry
+5. The new entry is guarded, the lock is released (an unconfirmed child end
+   retained its record), and only then the ready line is printed; an entry
    that cannot be guarded fails once under the extraction stage (plan Q18).
+   Since code review round 2 of Step 6 the guard is opened before the
+   release, not after it, so another installation, such as an evidence
+   candidate of another bundle with its own trust record, cannot replace the
+   entry in between.
    Since code review round 1, a ready line that cannot be written releases
    that guard before its failure leaves, so the entry stays replaceable;
    since round 2, that failure, like a waiting or download line that cannot
    be written, is the reporting stage of `ProvisioningError`.
+
+Step 6: the flow runs on an `installation.InstallTarget`. `provision` gives it
+`manifest_target(pin)` in the production namespace, unchanged; the evidence
+harness runs a candidate through `provision_target` in the evidence
+namespace, where the reuse check also compares the entry's archive digest
+with the candidate's trust record, read again before each check: the
+lock-free one and the recheck under the lock (code review round 1), so a
+waiter reuses the entry a concurrent first acquisition published.
 
 Every failure is a `ProvisioningError`; a lock record that cannot be removed
 after another failure is added to it as a note. `provisioning_budget` turns a
@@ -53,7 +65,7 @@ from tools.release_workflow.git_cliff.cache_lock import (
     LockSeams,
     LockWaitError,
 )
-from tools.release_workflow.git_cliff.installation import install
+from tools.release_workflow.git_cliff.installation import install, manifest_target
 from tools.release_workflow.git_cliff.invocation import (
     GitCliffInvocation,
     probe_request,
@@ -86,8 +98,9 @@ if TYPE_CHECKING:
 
     from tools.release_workflow.configuration import Configuration
     from tools.release_workflow.git_cliff.budget import BudgetPolicy
-    from tools.release_workflow.git_cliff.cache import EntryCheck, Guard
+    from tools.release_workflow.git_cliff.cache import Guard
     from tools.release_workflow.git_cliff.cache_lock import LockRecord
+    from tools.release_workflow.git_cliff.installation import InstallTarget
     from tools.release_workflow.git_cliff.manifest import AdmittedPin
     from tools.release_workflow.windows_child import ChildOutcome, ChildRequest
     from tools.release_workflow.windows_process import ProcessIdentity, ProcessState
@@ -162,18 +175,18 @@ def _wait_detail(error: LockWaitError) -> str:
 class _Flow:
     """One provisioning call of one caller for one pin."""
 
-    def __init__(self, layout: CacheLayout, pin: AdmittedPin, budget: BudgetPolicy, seams: ProvisioningSeams, caller: str) -> None:
-        """Bind the call to its pin's cache place."""
+    def __init__(self, layout: CacheLayout, target: InstallTarget, budget: BudgetPolicy, seams: ProvisioningSeams, caller: str) -> None:
+        """Bind the call to its target's cache place."""
         self._layout = layout
-        self._pin = pin
+        self._target = target
         self._budget = budget
         self._seams = seams
         self._caller = caller
-        self._place = layout.entry_dir(pin)
+        self._place = layout.entry_dir(target)
 
     def _failure(self, stage: Stage, detail: str, path: Path | None = None) -> ProvisioningError:
         """Describe a failed stage at the entry directory or at a given path."""
-        return ProvisioningError(stage, version=self._pin.version, path=self._place if path is None else path, detail=detail)
+        return ProvisioningError(stage, version=self._target.version, path=self._place if path is None else path, detail=detail)
 
     def run(self) -> GitCliffInvocation:
         """Check the platform, reuse a valid entry, or provision one under the lock and guard it."""
@@ -181,19 +194,15 @@ class _Flow:
             self._seams.platform_check()
         except PlatformError as error:
             raise self._failure(Stage.PLATFORM, str(error)) from error
-        found = self._check()
-        if isinstance(found, ValidEntry):
-            return self._invocation(found.guard)
-        guard = self._locked()
+        guard = self._reuse()
         if guard is not None:
             return self._invocation(guard)
-        try:
-            guard = self._seams.open_guard(self._layout.executable(self._pin))
-        except OSError as error:
-            raise self._failure(Stage.EXTRACTION, f"the entry just published cannot be guarded: {error}") from error
+        guard, installed = self._locked()
         invocation = self._invocation(guard)
+        if not installed:
+            return invocation
         try:
-            announce(self._seams.stderr, ready_line(self._pin.version, self._place), version=self._pin.version, path=self._place)
+            announce(self._seams.stderr, ready_line(self._target.version, self._place), version=self._target.version, path=self._place)
         except BaseException:
             # No caller owns the invocation yet: release its guard before the failure leaves.
             invocation.close()
@@ -202,25 +211,35 @@ class _Flow:
 
     def _invocation(self, guard: Guard) -> GitCliffInvocation:
         """Hand the guarded executable to the one object that starts git-cliff."""
-        return GitCliffInvocation(guard.path, self._pin.version, guard, launch=self._seams.launch)
+        return GitCliffInvocation(guard.path, self._target.version, guard, launch=self._seams.launch)
 
     def _probe(self, guard: Guard) -> ChildOutcome:
         """Run the record-free version probe, inheriting the entry's guard."""
         return self._seams.launch(probe_request(guard.path, inherited=(guard.handle,), deadline=self._budget.probe))
 
-    def _check(self) -> EntryCheck:
-        """Run the lock-free, write-free reuse check; a probe that cannot run or end is the containment stage."""
+    def _reuse(self) -> Guard | None:
+        """Run the write-free reuse check when the target allows reuse now; a probe that cannot run or end is the containment stage.
+
+        A target's `reuse` function is asked before each check and gives the archive digest the entry must record,
+        or None when no entry may be reused now; production has none and compares no archive digest.
+        """
+        asset: str | None = None
+        if self._target.reuse is not None:
+            asset = self._target.reuse()
+            if asset is None:
+                return None
         try:
-            return check_entry(self._layout, self._pin, open_guard=self._seams.open_guard, probe=self._probe)
+            found = check_entry(self._layout, self._target, open_guard=self._seams.open_guard, probe=self._probe, asset_sha256=asset)
         except ContainmentError as error:
             raise self._failure(Stage.CONTAINMENT, str(error)) from error
         except OSError as error:
             raise self._failure(Stage.EXTRACTION, f"the entry cannot be read: {error}") from error
+        return found.guard if isinstance(found, ValidEntry) else None
 
     def _lock(self) -> CacheLock:
         """Take the version and platform lock within the caller's own wait, announcing a live holder once."""
         seams = self._seams
-        lock = CacheLock(self._layout, self._pin, caller=self._caller, seams=LockSeams(
+        lock = CacheLock(self._layout, self._target, caller=self._caller, seams=LockSeams(
             clock=seams.clock, sleep=seams.sleep, probe=seams.process_state, current=seams.current_identity, mutex=seams.mutex,
             now=seams.now,
         ))
@@ -229,39 +248,48 @@ class _Flow:
         except LockWaitError as error:
             raise self._failure(Stage.LOCK_WAIT, _wait_detail(error), lock.path) from error
         except PermissionError as error:
-            raise permission_failure(self._pin.version, error, self._place) from error
+            raise permission_failure(self._target.version, error, self._place) from error
         except OSError as error:
             raise self._failure(Stage.LOCK_WAIT, str(error), lock.path) from error
 
     def _announce(self, holder: LockRecord, wait: float) -> None:
         """Print the waiting line once, for the first live holder."""
-        announce(self._seams.stderr, waiting_line(self._pin.version, holder.owner.pid, holder.started, wait), version=self._pin.version,
+        announce(self._seams.stderr, waiting_line(self._target.version, holder.owner.pid, holder.started, wait), version=self._target.version,
                  path=self._place)
 
-    def _locked(self) -> Guard | None:
-        """Under the lock: recheck, recover and install; return the guard of an entry another caller published."""
+    def _guard_published(self) -> Guard:
+        """Guard the entry this call just published; one that cannot be guarded fails once under the extraction stage."""
+        try:
+            return self._seams.open_guard(self._layout.executable(self._target))
+        except OSError as error:
+            raise self._failure(Stage.EXTRACTION, f"the entry just published cannot be guarded: {error}") from error
+
+    def _locked(self) -> tuple[Guard, bool]:
+        """Under the lock: recheck, or recover, install and guard the new entry; release; tell whether this call installed.
+
+        The new entry is guarded before the lock is released (code review round 2 of Step 6), so no other installation
+        can replace it between its publication and the guard this call hands out.
+        """
         lock = self._lock()
         try:
-            found = self._check()
-            if isinstance(found, ValidEntry):
-                guard: Guard | None = found.guard
-            else:
-                guard = None
+            guard = self._reuse()
+            installed = guard is None
+            if guard is None:
                 try:
                     lock.recover_attempts()
                 except OSError as error:
-                    raise permission_failure(self._pin.version, error, self._place) from error
-                install(self._layout, self._pin, self._budget, self._seams, lock)
+                    raise permission_failure(self._target.version, error, self._place) from error
+                install(self._layout, self._target, self._budget, self._seams, lock)
+                guard = self._guard_published()
         except BaseException as failure:
             self._release(lock, failure)
             raise
         try:
             self._release(lock, None)
         except ProvisioningError:
-            if guard is not None:
-                guard.close()
+            guard.close()
             raise
-        return guard
+        return guard, installed
 
     def _release(self, lock: CacheLock, failure: BaseException | None) -> None:
         """Release the lock; a record that cannot be removed fails the call, or is noted on the failure already raised."""
@@ -295,7 +323,27 @@ def provision(tooling_root: Path, pin: AdmittedPin | None, budget: BudgetPolicy,
     if pin is None:
         raise ProvisioningError(Stage.CONFIGURATION, version=None, path=layout.root,
                                 detail="no tested git-cliff pin is admitted, so there is no default pin")
-    return _Flow(layout, pin, budget, seams, caller).run()
+    return provision_target(layout, manifest_target(pin), budget, seams=seams, caller=caller)
+
+
+def provision_target(layout: CacheLayout, target: InstallTarget, budget: BudgetPolicy, *, seams: ProvisioningSeams,
+                     caller: str) -> GitCliffInvocation:
+    """Run the provisioning flow for any target in its layout's namespace, such as an evidence candidate.
+
+    Args:
+        layout: The cache layout, production or evidence, of the executing checkout.
+        target: What to reuse or install: `manifest_target(pin)`, or a candidate's target.
+        budget: The caller's budget policy, resolved once before this call.
+        seams: The Windows layer, time, standard error and worker runtime.
+        caller: The caller kind written in the lock record, such as `engine`, `gcliff` or `harness`.
+
+    Returns:
+        The invocation object holding the entry's open use guard.
+
+    Raises:
+        ProvisioningError: Any stage failed; the diagnostic names the version, the path, the stage and the remedy.
+    """
+    return _Flow(layout, target, budget, seams, caller).run()
 
 
 # eof

@@ -10,6 +10,9 @@ back to their owner. Records are strict schema 1. Reuse opens the guard,
 reads the record, hashes and probes in that order, stops at the first failure
 and closes the guard; an unconfirmed probe end retains the guard instead, and
 a valid reuse writes nothing.
+
+Step 6: given an expected archive digest (an evidence candidate's trust
+record), the check compares it with the record's before hashing.
 """
 
 from __future__ import annotations
@@ -284,6 +287,20 @@ def test_another_probe_failure_closes_the_guard_and_propagates(tmp_path: Path) -
     with pytest.raises(ContainmentError) as caught:
         check_entry(layout, PIN, open_guard=opener, probe=FakeProbe(error=failure))
     assert (caught.value, [(guard.closed, guard.retained) for guard in opener.opened]) == (failure, [(True, False)])
+
+
+def test_an_expected_archive_digest_is_compared_after_the_record_and_before_the_hash(tmp_path: Path) -> None:
+    """Step 6: an evidence candidate's entry must record its trust record's archive digest; another one is invalid unhashed."""
+    layout = CacheLayout(tmp_path, "evidence")
+    record = install_entry(layout, PIN)
+    opener, probe = FakeGuardOpener(), FakeProbe()
+    assert check_entry(layout, PIN, open_guard=opener, probe=probe, asset_sha256=record.asset_sha256) == ValidEntry(opener.opened[0], record)
+    opener.opened[0].close()
+    expected = "0" * 64
+    result = check_entry(layout, PIN, open_guard=opener, probe=probe, asset_sha256=expected)
+    assert result == UnusableEntry(absent=False, reason=f"entry.json records the archive SHA-256 {record.asset_sha256}, expected {expected}")
+    assert [(guard.hashed, guard.closed) for guard in opener.opened] == [(1, True), (0, True)]
+    assert probe.guards == opener.opened[:1]
 
 
 # eof

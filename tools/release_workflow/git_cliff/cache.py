@@ -30,6 +30,12 @@ evidence candidate in the evidence namespace.
 
 Step 5 makes `probe_problem` public: the installation's staging probe applies
 the same first-line rule as the reuse probe.
+
+Step 6: `check_entry` takes an optional expected archive digest. An evidence
+candidate passes its trust record's, compared with the record's
+`asset_sha256` right after the record is read and before any hash, so the
+candidate order is: archive digest against the trust record, executable
+against the entry, then the probe. Production passes none and keeps its order.
 """
 
 from __future__ import annotations
@@ -351,11 +357,13 @@ def probe_problem(outcome: ChildOutcome, pin: CachePin) -> str | None:
     return None
 
 
-def _validate(layout: CacheLayout, pin: CachePin, guard: Guard, probe: Callable[[Guard], ChildOutcome]) -> EntryCheck:
-    """Run the record, hash and probe checks under the held guard, stopping at the first failure."""
+def _validate(layout: CacheLayout, pin: CachePin, guard: Guard, probe: Callable[[Guard], ChildOutcome], asset_sha256: str | None) -> EntryCheck:
+    """Run the record, archive digest, hash and probe checks under the held guard, stopping at the first failure."""
     record = _read_record(layout, pin)
     if isinstance(record, str):
         return _invalid(record)
+    if asset_sha256 is not None and record.asset_sha256 != asset_sha256:
+        return _invalid(f"{ENTRY_RECORD} records the archive SHA-256 {record.asset_sha256}, expected {asset_sha256}")
     problem = _bytes_problem(guard, record)
     if problem is None:
         problem = probe_problem(probe(guard), pin)
@@ -363,14 +371,15 @@ def _validate(layout: CacheLayout, pin: CachePin, guard: Guard, probe: Callable[
 
 
 def check_entry(layout: CacheLayout, pin: CachePin, *, open_guard: Callable[[Path], Guard],
-                probe: Callable[[Guard], ChildOutcome]) -> EntryCheck:
-    """Check an entry lock-free and read-only: guard, record, hash, then probe.
+                probe: Callable[[Guard], ChildOutcome], asset_sha256: str | None = None) -> EntryCheck:
+    """Check an entry lock-free and read-only: guard, record, expected archive digest when given, hash, then probe.
 
     Args:
         layout: The cache layout of the executing checkout.
         pin: The pin whose entry is checked.
         open_guard: Opens the use guard; a missing executable raises `FileNotFoundError`.
         probe: Runs `git-cliff.exe --version` as a record-free child inheriting the guard.
+        asset_sha256: The archive digest the record must hold (an evidence candidate's trust record), or None.
 
     Returns:
         A `ValidEntry` holding the open guard, or an `UnusableEntry` whose guard is closed.
@@ -383,7 +392,7 @@ def check_entry(layout: CacheLayout, pin: CachePin, *, open_guard: Callable[[Pat
     except FileNotFoundError:
         return UnusableEntry(absent=True, reason=f"{EXECUTABLE} is missing")
     try:
-        found = _validate(layout, pin, guard, probe)
+        found = _validate(layout, pin, guard, probe, asset_sha256)
     except UnconfirmedEndError:
         guard.retain()
         raise

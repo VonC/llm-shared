@@ -13,6 +13,10 @@ and 65 stand for `ok`, `retryable` and `fatal`; they never reach a caller.
 Step 5 (code review round 1): a target the worker cannot write is a fatal
 outcome that names its `path`, while an HTTP error, whose `filename` is its
 URL, names none. Round 2: so does a write failure whose error named no file.
+
+Step 6: `outcome_fields` is the parent's reading of that line, shared by the
+installation and the evidence candidates: the last line's JSON object, or no
+field for an empty, non-JSON or non-object output.
 """
 
 from __future__ import annotations
@@ -35,6 +39,7 @@ from tools.release_workflow.git_cliff.download_worker import (
     STATUSES,
     WorkerRequest,
     main,
+    outcome_fields,
     parse_request,
     worker_arguments,
     worker_command,
@@ -186,6 +191,18 @@ def test_the_production_opener_is_the_network_one(tmp_path: Path, monkeypatch: p
     request = WorkerRequest(mode="archive", url=_ASSET, target=tmp_path / "archive.zip", expected_size=len(_BODY), remaining=30.0)
     assert main(worker_arguments(request)) == STATUSES["ok"]
     assert _outcome(capsys)[0]["outcome"] == "ok"
+
+
+@pytest.mark.parametrize(("stdout", "fields"), [
+    pytest.param(b'noise\n{"outcome": "ok", "metadata": "{}"}\n', {"outcome": "ok", "metadata": "{}"}, id="last-line"),
+    pytest.param(b"", {}, id="empty"),
+    pytest.param(b"Traceback (most recent call last):\n", {}, id="not-json"),
+    pytest.param(b"[1, 2]\n", {}, id="not-object"),
+    pytest.param(b'{"outcome": "ok"', {}, id="truncated"),
+])
+def test_the_parent_reads_the_last_output_line_as_the_outcome(stdout: bytes, fields: dict[str, object]) -> None:
+    """The one outcome line is the last line; anything else gives no field."""
+    assert outcome_fields(stdout) == fields
 
 
 # eof
