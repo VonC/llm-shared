@@ -3,6 +3,11 @@
 Step 1 of v0.14.0 version-sources raises the Git floor to 2.44.0: an older
 Git is refused, and the error explains that range selection needs a tag of a
 tag peeled to its commit in its one tag listing.
+
+Step 6 of v0.14.0 git-cliff-provisioning (plan decision Q09): `run` takes
+optional input bytes, passed through `subprocess.run(input=...)` without also
+setting `stdin`; without them the existing stdin rule is unchanged. Both
+branches are checked without a process.
 """
 
 from __future__ import annotations
@@ -216,6 +221,26 @@ def test_inaccessible_path_entry_is_skipped(tmp_path: Path, monkeypatch: pytest.
     source = {"PATH": os.pathsep.join(str(tmp_path / name) for name in ("blocked", "installed"))}
     context = GitExecutionContext.create(source, original_cwd=tmp_path, non_interactive=False)
     assert context.executable.parent.name == "installed"
+
+
+def test_input_bytes_reach_the_input_stream_without_a_stdin_setting(selected_git: tuple[GitExecutionContext, RecordingGit], tmp_path: Path) -> None:
+    """Given bytes go to `subprocess.run(input=...)`, which owns standard input, so no `stdin` is passed beside them."""
+    context, recorder = selected_git
+    context.run(["fast-import", "--quiet", "--done"], cwd=tmp_path, input=b"done\n")
+    arguments, kwargs = recorder.calls[-1]
+    assert arguments[-3:] == ["fast-import", "--quiet", "--done"]
+    assert kwargs["input"] == b"done\n"
+    assert "stdin" not in kwargs
+    assert (kwargs["capture_output"], kwargs["text"]) == (True, False)
+
+
+def test_without_input_the_stdin_rule_is_unchanged(selected_git: tuple[GitExecutionContext, RecordingGit], tmp_path: Path) -> None:
+    """A call without input bytes keeps the non-interactive closed standard input and passes no input."""
+    context, recorder = selected_git
+    context.run(["status"], cwd=tmp_path)
+    kwargs = recorder.calls[-1][1]
+    assert kwargs["stdin"] is subprocess.DEVNULL
+    assert "input" not in kwargs
 
 
 def test_interactive_policy_retains_stdin(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
