@@ -4529,3 +4529,1124 @@ Human choice: Commit
 Outcome: continue-owning-workflow
 
 <!-- review-entry-id: human-confirmation-round-4 -->
+
+## Round 1 by requestor - Step 6
+
+- Recorded: 2026-11-20T20:20:20+01:00
+- Exchange: code/code/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.resume-paused.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: unrecorded
+- Implementation step: 6
+- Outcome: request
+
+### Review identity for step 6 resume-paused (round 1)
+
+Umbrella draft: none
+Implementation plan: docs/v0.14.0/plan.v0.14.0.resume-paused.md
+Implementation step: 6
+Review round: 1
+
+### Code review evidence for step 6 resume-paused (round 1)
+
+request_index_tree: b76ca70a1046540dece816512d87a14b56e20ddd
+resolved_validation_set:
+
+- `ghog day --full=speed --whole-suite` (sources: project)
+
+test_scope:
+{"fingerprint": "686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6", "group": null, "proof": "speed", "requirement": "docs/v0.14.0/feature-request.v0.14.0.resume-paused.md", "scope": "whole"}
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: docs(resume-paused): amend Q05 for code-first steps
+group 1 path: docs/v0.14.0/plan.v0.14.0.resume-paused.md
+group 2: feat(resume-paused): add the shell-free transport
+group 2 path: tools/resume_paused_input.py
+group 2 path: tests/unit/tools/test_resume_paused_input/test_resume_paused_input_tdd.py
+group 2 path: tools/resume_paused_transport.py
+group 2 path: tests/unit/tools/test_resume_paused_transport/__init__.py
+group 2 path: tests/unit/tools/test_resume_paused_transport/test_resume_paused_transport_tdd.py
+group 2 path: tests/unit/tools/test_resume_paused_transport/test_resume_paused_transport_pbt.py
+group 3: feat(resume-paused): add delivery ports and guard
+group 3 path: tools/resume_paused_delivery_model.py
+group 3 path: tools/resume_paused_guard.py
+group 3 path: tests/unit/tools/test_resume_paused_guard/__init__.py
+group 3 path: tests/unit/tools/test_resume_paused_guard/test_resume_paused_guard_tdd.py
+group 4: feat(resume-paused): replan one checkout per send
+group 4 path: tools/resume_paused_planner.py
+group 4 path: tests/unit/tools/test_resume_paused_planner/test_resume_paused_planner_replan_tdd.py
+group 5: feat(resume-paused): deliver guarded pane actions
+group 5 path: tools/resume_paused_delivery_checks.py
+group 5 path: tools/resume_paused_delivery.py
+group 5 path: tests/unit/tools/test_resume_paused_delivery/__init__.py
+group 5 path: tests/unit/tools/test_resume_paused_delivery/delivery_world.py
+group 5 path: tests/unit/tools/test_resume_paused_delivery/test_resume_paused_delivery_tdd.py
+group 5 path: tests/unit/tools/test_resume_paused_delivery/test_resume_paused_delivery_recovery_tdd.py
+group 5 path: tests/unit/tools/test_resume_paused_delivery_checks/__init__.py
+group 5 path: tests/unit/tools/test_resume_paused_delivery_checks/test_resume_paused_delivery_checks_tdd.py
+group 5 path: tests/unit/tools/test_resume_paused_delivery_model/__init__.py
+group 5 path: tests/unit/tools/test_resume_paused_delivery_model/test_resume_paused_delivery_model_tdd.py
+group 6: docs(resume-paused): record step 6 validation
+group 6 path: docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md
+staged path: docs/v0.14.0/plan.v0.14.0.resume-paused.md
+staged path: docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md
+staged path: tests/unit/tools/test_resume_paused_delivery/__init__.py
+staged path: tests/unit/tools/test_resume_paused_delivery/delivery_world.py
+staged path: tests/unit/tools/test_resume_paused_delivery/test_resume_paused_delivery_recovery_tdd.py
+staged path: tests/unit/tools/test_resume_paused_delivery/test_resume_paused_delivery_tdd.py
+staged path: tests/unit/tools/test_resume_paused_delivery_checks/__init__.py
+staged path: tests/unit/tools/test_resume_paused_delivery_checks/test_resume_paused_delivery_checks_tdd.py
+staged path: tests/unit/tools/test_resume_paused_delivery_model/__init__.py
+staged path: tests/unit/tools/test_resume_paused_delivery_model/test_resume_paused_delivery_model_tdd.py
+staged path: tests/unit/tools/test_resume_paused_guard/__init__.py
+staged path: tests/unit/tools/test_resume_paused_guard/test_resume_paused_guard_tdd.py
+staged path: tests/unit/tools/test_resume_paused_input/test_resume_paused_input_tdd.py
+staged path: tests/unit/tools/test_resume_paused_planner/test_resume_paused_planner_replan_tdd.py
+staged path: tests/unit/tools/test_resume_paused_transport/__init__.py
+staged path: tests/unit/tools/test_resume_paused_transport/test_resume_paused_transport_pbt.py
+staged path: tests/unit/tools/test_resume_paused_transport/test_resume_paused_transport_tdd.py
+staged path: tools/resume_paused_delivery.py
+staged path: tools/resume_paused_delivery_checks.py
+staged path: tools/resume_paused_delivery_model.py
+staged path: tools/resume_paused_guard.py
+staged path: tools/resume_paused_input.py
+staged path: tools/resume_paused_planner.py
+staged path: tools/resume_paused_transport.py
+```
+
+### Validation scope for step 6 resume-paused (round 1)
+
+Validation scope: the whole suite.
+
+### Requestor assessment for step 6 resume-paused (round 1)
+
+Step 6 is fully implemented, code-first under the user's 2026-11-20 amendment of plan Q05. The guarded delivery runs each planned checkout under a nonblocking per-checkout OS guard, concurrently with independent checkouts and with at most one input operation per pane. Before every clear, resume, reviewer command and recovery Enter it rechecks one fresh listing (identity, protections, eligibility, the exact selector), every injected check and the pinned profile. Acceptance needs the supported profile plus the Step 1 full latest-input proof within a fixed 100-second fake-clock budget per send, and nothing is ever retyped. Codex gets at most one proven recovery Enter. The empty profile registry keeps every real pane refused before any input. The implementation check recorded `Yes. Step 6 has been fully implemented.`
+
+- Tests: `ghog day --full=speed --whole-suite` exit 0 at 2026-11-20T20:18:46+01:00 with 7119 tests, 100% coverage, no outlier and no exclusion, slowest call 0.31 s, on index tree `b76ca70a1046540dece816512d87a14b56e20ddd`. Each new leaf passed in focus first; the transport property tests initially exceeded the 0.1-second lifecycle CPU budget and now draw each word through one integer, with 40 examples.
+- Static checks: the same walk's `check.bat` passes ty, pyright strict, ruff, radon, vulture, big files, Markdown, ShellCheck and the end-of-file check; `spellcheck.bat check` and `markdown-check` report nothing on the plan and the validation plan, the two changed Markdown files.
+- Coverage: 100% over `tools`; one unit leaf per new module (`test_resume_paused_guard`, `test_resume_paused_transport`, `test_resume_paused_delivery_model`, `test_resume_paused_delivery_checks`, `test_resume_paused_delivery`), with `plan_checkout` and the runner bound covered in the planner and input leaves.
+- Architecture: the state machine depends only on the delivery model's ports, the fresh checks and the plan model; TUIOS argument lists and selector globs stay in the transport adapter behind `PaneTransport.select`, the native lock in the guard adapter, which uses the model's `GuardState`. The model imports adapters for typing only. Plan revalidation reuses the Step 5 planner through `plan_checkout`; Step 7's takeover enters through the `Takeover` and `PairDelivery` seam.
+- Performance: one listing per send, single passes over panes and capture lines, bounded backoff within each budget, one checkout replanned per send; no `O(n^2)` or `O(n log n)` path.
+- Feature integrity: `plan_run` and every Step 5 classification are unchanged; `SubprocessRunner` keeps its 30-second default, argument list, `shell=False` and inherited environment; manual resume, review, validator and claim paths are untouched; nothing writes an artifact beyond the empty guard file outside the checkout.
+- Open rows (validation plan): composition by Step 8 (profile gate, agent-log reader, input provers, `PlanRecheck`, transport, guard, clock) and live host evidence (two-process guard, selector globs, ask results, draft reporting for a pane's own unsubmitted command, screen and log signatures).
+
+### Implementation report for step 6 resume-paused (round 1)
+
+Step 6 delivers guarded pane actions with bounded acceptance. The user amended plan Q05 on 2026-11-20, when Step 6 was launched, so Steps 6 to 8 proceed code-first against the empty profile registry; no real pane can receive input until both hosts are pinned. The step adds five modules and five test leaves, adds `plan_checkout` to the Step 5 planner and a process bound to the Step 4 runner, and amends the plan's Q05 row.
+
+- `tools/resume_paused_guard.py`, the per-checkout OS guard (design Q07=A): `CheckoutGuard.acquire` names an empty file by the SHA-256 of the canonical checkout key in `<temp>\llm-shared-resume-paused\`, opens it non-inheritable and locks its first byte through `msvcrt.locking(LK_NBLCK)` without waiting. Another holder returns `held` (an expected skip, the new descriptor closed at once); an unopenable file, or a temporary folder inside the checkout (so possibly inside its artifact home) or unparsable, returns `unavailable`. `GuardLease` unlocks then closes in a `finally`, on every exit of its `with` block, and a second release does nothing. The OS drops the lock with the handle, so a killed invocation leaves no stale guard; the file carries no content.
+- `tools/resume_paused_transport.py`, the shell-free transport: `ask_arguments` returns `tuios ask-agent --select <selector> --yes --stall-timeout 60000 --timeout 100000 --lines 1 --json -- <command>`; `enter_arguments` returns `tuios send-keys -s <session> -w <full pane id> Enter`. `selector_value` replaces each space of a live session or pane name with `*` (the draft's proven form) and refuses an empty name, any other glob character (`*`, `?`, `[`, `]`, `\`) and any non-printing or non-space blank. `resolve_selector` matches every listed pane more broadly than TUIOS does (case-insensitive, a wildcard crossing any character, slashes included) and requires the match set to be exactly the target UUID: a collision is `selector-ambiguous`, an unlisted target `selector-unresolved`, both failures before input. `TuiosTransport` adapts the delivery port: listing (`observe_panes`), `select`, capture and Enter on the 30-second runner, the ask on a runner whose bound `ASK_PROCESS_TIMEOUT_SECONDS` (110) exceeds the ask's 100 seconds. The caller environment, `TUIOS_*` included, is inherited unchanged; the ask's exit code is report-only.
+- `tools/resume_paused_input.py`: `SubprocessRunner` takes its process bound as a constructor parameter, 30 seconds by default for every existing caller.
+- `tools/resume_paused_delivery_model.py`, vocabulary and ports: `Phase` (clear, resume, reviewer, recovery), `DeliveryOutcome` (accepted, refused, unconfirmed, pending), `ClearOutcome` (none, redundant, confirmed, unconfirmed), `Refusal` with a `failed` severity, `GuardState`, `ActionReport`, `CheckoutDelivery` (fails on an unavailable guard or a failed action, never on contention or a pending reviewer), `SendStep`, `InputScreen` and `DeliveryProfile` (clear command, background-shell line, Codex input-box signatures), `LogKind` and `LogEvent`, and the ports `PreSendCheck`, `ProfileGate`, `AgentLog`, `Sleeper`, `PaneTransport` (with `select`), `GuardPort`, `PairDelivery` and `Takeover`, bundled in `DeliveryPorts`. `UnpinnedProfiles` refuses every pane; `NoTakeover` reports every conditional reviewer pending (`takeover-unobserved`) until Step 7. The model imports no adapter at run time; the guard uses and re-exports `GuardState`.
+- `tools/resume_paused_delivery_checks.py`, fresh pre-send checks: `target_refusal` reads one fresh listing and requires the planned UUID listed once (`target-absent` skips, `pane-ambiguous` fails), in its planned session, with its planned host (`host-contradictory`, `target-host-changed` fail; a shell pane skips) and checkout (`target-checkout-changed` fails; an unusable path skips), not the caller's pane nor an excluded session or pane label, and eligible through Step 5's `input_eligibility` (busy, blocked, draft, not-ready and unknown skip; a stale working Codex pane needs a supported idle, empty-input probe). Before the recovery Enter only, a stale working status is tolerated, because the pane holds this run's own unsubmitted command, while a blocked or draft-holding pane, an idle pane that is not ready and an unknown state refuse it. `PlanRecheck` replans the checkout through `plan_checkout` from the same fresh observation and requires a planned action with the same role, host, session, pane, clear flag, kind family (a reviewer matches a later continuation), native command and marker pane, role and assignment binding; only the launch id may differ. A replanned skip keeps its reason as an expected refusal, a replanned error fails, a changed binding (prompt digest, routing or exchange) is `plan-changed`. Before the recovery Enter the target's own activity is read as ready, so only its unsubmitted command is discounted, never a duplicate or a routing change.
+- `tools/resume_paused_planner.py`: `plan_checkout(request, observation, ports, root)` builds the pane index from the fresh observation and runs the same `_CheckoutPlanner` for one root, `None` when the root has no live pane or no saved prompt; `plan_run` is unchanged.
+- `tools/resume_paused_delivery.py`, the state machine: `deliver_run` returns nothing for a dry run or a run-wide refusal, then runs one worker per planned checkout on a thread pool of at most eight, in plan order; `_PaneSlots` allows at most one input operation per pane across the run (`pane-in-use` fails). Each worker takes its guard without waiting (held: skipped, no listing read) and holds it through its sequence: the resume first, then each conditional reviewer handed to the injected takeover with the resume's report, or with none for a later continuation; the takeover may deliver it through `PairDelivery.deliver` with its own extra checks under the same guard. A reviewer after an unaccepted resume gets `requestor-not-accepted` and the takeover is not consulted. A planned skip is reported with its reason.
+- Same module, each send: one fresh listing, `target_refusal`, the transport's `select` (not for the Enter, which names the full UUID), every injected check, then the pane's profile again, which must exist for the planned host, equal the profile of the action's earlier sends and have an input prover. A Claude send needs a readable agent log; a Codex send needs a pre-input capture whose input box, the last line opened by the pinned prefix, shows only the placeholder (other text skips as `pane-draft`; no input box, no capture or no screen signatures fail). Each send (the clear and the command) has its own 100-second budget from the ask, recovery included, with backoff 0.5, 1, 2, 4, then 5 seconds, capped at the remaining budget; the 60-second stall bound is the ask's own. Acceptance requires the Step 1 input prover's full proof from the send instant, and, for Claude, the command's prompt event in the agent log at or after it. Unproved acceptance at the deadline is `unconfirmed` and fails; nothing is retyped.
+- Same module, clear: `--clear` applies to a resume action only, never a reviewer. A Claude clear is skipped as `redundant` when the log holds a clear strictly after the pause and no prompt after the last such clear; the resume is still sent. Otherwise the clear is a send of its own: Claude confirmation needs a clear event at or after the send and a fresh ready, unblocked idle or done pane; Codex confirmation needs a capture differing from the pre-input one, with the pinned cleared line and an empty input box. An unconfirmed clear fails the action with `clear-unconfirmed` and no resume.
+- Same module, Codex recovery Enter: at most one per send. On each observation, a capture reading exactly this send's command in the input box, appearing once on screen, with no working line and no placeholder text below it, is followed after a one-second gap by a second capture that must be identical; then the fresh recovery checks run (including the injected checks and an unchanged profile) and, budget remaining, `send-keys` presses Enter once at the full UUID. Any other reading (other text, a working or placeholder line below, a repeat, a failed capture), an edit between captures, a refused check or a changed profile withholds the Enter for the rest of the send, with a `<phase>-recovery-withheld-<reason>` note; an empty input box withholds nothing. An Enter TUIOS refused is still spent and noted. A background-shell line in the pre-input capture is noted once and nothing else happens.
+- Tests: `tests/unit/tools/test_resume_paused_guard/` (path spellings, policy cases with a declared lock primitive, two native handles contending, a blocked guard folder), `tests/unit/tools/test_resume_paused_transport/` (tdd: exact argument lists with shell metacharacters, every selector-value case, collisions by suffix, letter case and an empty wildcard, a duplicated target, both runners and `select`; pbt: plain names always resolve to their own pane, names with another glob character never get a selector, any command is the single last argument, each word drawn through one integer, 40 examples), `tests/unit/tools/test_resume_paused_delivery_model/`, `tests/unit/tools/test_resume_paused_delivery_checks/` (every target refusal and recovery readiness, `PlanRecheck` over the real planner world: unchanged, changed digest, later duplicate, uncertain history, removed prompt, busy target at resume and at recovery, reviewer continuation, unreadable markers), `tests/unit/tools/test_resume_paused_delivery/` (`delivery_world.py`; tdd for run, guard, concurrency through a barrier, per-pane exclusion through events, profile, prover and log refusals, Claude acceptance and deadlines, clears, pairs and the takeover seam; tdd for Codex refusals, recovery used, withheld for each condition, never repeated, budgets of 100 and 99.5 spent seconds, Codex clears and the screen readings), plus `test_resume_paused_planner_replan_tdd.py` and the runner bound in the input leaf. No test starts a process or sleeps; every deadline runs on a fake clock.
+- Deviations: delivery is split into vocabulary, checks and state machine (split guidance), each module with its own leaf; `plan_checkout` joins the planner (558 lines, in the 550 to 650 band); the plan's two-process guard test uses two independent OS handles in one process, which Windows byte-range locking treats exactly as two processes, because this repository's tests never start a process (write-fast-python-tests, process audit without permissions); the cross-process run and the other host behaviors are open live rows in the validation plan, with the composition rows Step 8 owns.
+- `rg` is not available in this shell; contract inspection used the equivalent Grep search. No accepted duration exclusion exists.
+
+Writer notes: `.reviews/a.resume-paused.step6.journal.md` and `.reviews/a.resume-paused.step6.handoff.md`.
+
+### Change summary for step 6 resume-paused (round 1)
+
+Twenty-four staged paths in six `a.commit` groups, in this order:
+
+1. `docs(resume-paused): amend Q05 for code-first steps`: `docs/v0.14.0/plan.v0.14.0.resume-paused.md`.
+2. `feat(resume-paused): add the shell-free transport`: `tools/resume_paused_input.py`, `tests/unit/tools/test_resume_paused_input/test_resume_paused_input_tdd.py`, `tools/resume_paused_transport.py` and the `tests/unit/tools/test_resume_paused_transport` package (package file, tdd and pbt files).
+3. `feat(resume-paused): add delivery ports and guard`: `tools/resume_paused_delivery_model.py`, `tools/resume_paused_guard.py` and the `tests/unit/tools/test_resume_paused_guard` package (package file and tdd file).
+4. `feat(resume-paused): replan one checkout per send`: `tools/resume_paused_planner.py` and `tests/unit/tools/test_resume_paused_planner/test_resume_paused_planner_replan_tdd.py`.
+5. `feat(resume-paused): deliver guarded pane actions`: `tools/resume_paused_delivery_checks.py`, `tools/resume_paused_delivery.py`, the `tests/unit/tools/test_resume_paused_delivery` package (package file, `delivery_world.py`, two tdd files), and the `tests/unit/tools/test_resume_paused_delivery_checks` and `tests/unit/tools/test_resume_paused_delivery_model` packages (package file and tdd file each).
+6. `docs(resume-paused): record step 6 validation`: `docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md`.
+
+The commit-plan checker reports the plan valid and ready. The code review transcript is not staged and goes to the residual commit.
+
+### Writer response for step 6 resume-paused (round 1)
+
+Writer response:
+
+First round of this step: no earlier feedback to answer and no disagreement. Please write file paths in code spans in answers, so names such as `__init__.py` cannot read as emphasis in the transcript.
+
+### Reviewer focus for step 6 resume-paused (round 1)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-6-round-1 -->
+
+## Round 1 by reviewer - Step 6
+
+- Recorded: 2026-11-20T20:26:16+01:00
+- Exchange: code/code/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.resume-paused.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 6
+- Outcome: answer
+
+### Assessed index identity for step 6 resume-paused (exchange 1) (round 1)
+
+Baseline index tree: b76ca70a1046540dece816512d87a14b56e20ddd
+
+Assessed index tree: b76201f38949e5f053a71f02ce042f14b0982070
+
+### Implementation check for step 6 resume-paused (exchange 1) (round 1)
+
+Result:
+
+No. Step 6 has NOT been fully implemented. The six outstanding findings affect safe delivery and guard handling. The November 20 Q05 amendment permits code-first work on steps 6–8 with an empty profile registry.
+
+Validation plan effects:
+
+Updated the step 6 verdict and recorded all six findings under “Missing work for Step 6” in `docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md`.
+
+### Pre-repair mandatory checks and coverage for step 6 resume-paused (exchange 1) (round 1)
+
+The writer reported 7,119 passing tests and 100% line coverage over `tools`. The reviewer checked the staged tree and commit plan independently and did not rerun the suite. The guard evidence uses two handles. The two-process check and live host evidence remain open.
+
+### Resolved validation set and sources for step 6 resume-paused (exchange 1) (round 1)
+
+The resolved whole-suite validation command is `ghog day --full=speed --whole-suite`. The reviewer also checked the staged metadata diff for whitespace and linted the validation plan. Both passed.
+
+### Resolver drift and direction for step 6 resume-paused (exchange 1) (round 1)
+
+None. `prompt_workflow.bat scope day --full=speed` resolved to the command in the request.
+
+### Repository state around validation for step 6 resume-paused (exchange 1) (round 1)
+
+The request tree matched baseline `b76ca70a1046540dece816512d87a14b56e20ddd`. The after-state showed only the attributable validation-plan and index changes. The umbrella comparison was inapplicable and unchanged.
+
+### Repair inventory for step 6 resume-paused (exchange 1) (round 1)
+
+Repairs made:
+
+- The reviewer corrected the step 6 verdict and staged the six findings in the validation plan. No implementation repair was performed.
+
+Paths staged:
+
+- Reviewer-staged review metadata only:
+- `docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md`
+
+### Commit plan assessment for step 6 resume-paused (exchange 1) (round 1)
+
+The independent commit-plan checker returned `valid` and `ready: true` with zero diagnostics. The six groups account for all 24 staged paths in the requested order.
+
+1. `docs(resume-paused): amend Q05 for code-first steps`
+   - `docs/v0.14.0/plan.v0.14.0.resume-paused.md`
+2. `feat(resume-paused): add the shell-free transport`
+   - `tools/resume_paused_input.py`
+   - `tests/unit/tools/test_resume_paused_input/test_resume_paused_input_tdd.py`
+   - `tools/resume_paused_transport.py`
+   - `tests/unit/tools/test_resume_paused_transport/__init__.py`
+   - `tests/unit/tools/test_resume_paused_transport/test_resume_paused_transport_tdd.py`
+   - `tests/unit/tools/test_resume_paused_transport/test_resume_paused_transport_pbt.py`
+3. `feat(resume-paused): add delivery ports and guard`
+   - `tools/resume_paused_delivery_model.py`
+   - `tools/resume_paused_guard.py`
+   - `tests/unit/tools/test_resume_paused_guard/__init__.py`
+   - `tests/unit/tools/test_resume_paused_guard/test_resume_paused_guard_tdd.py`
+4. `feat(resume-paused): replan one checkout per send`
+   - `tools/resume_paused_planner.py`
+   - `tests/unit/tools/test_resume_paused_planner/test_resume_paused_planner_replan_tdd.py`
+5. `feat(resume-paused): deliver guarded pane actions`
+   - `tools/resume_paused_delivery_checks.py`
+   - `tools/resume_paused_delivery.py`
+   - `tests/unit/tools/test_resume_paused_delivery/__init__.py`
+   - `tests/unit/tools/test_resume_paused_delivery/delivery_world.py`
+   - `tests/unit/tools/test_resume_paused_delivery/test_resume_paused_delivery_tdd.py`
+   - `tests/unit/tools/test_resume_paused_delivery/test_resume_paused_delivery_recovery_tdd.py`
+   - `tests/unit/tools/test_resume_paused_delivery_checks/__init__.py`
+   - `tests/unit/tools/test_resume_paused_delivery_checks/test_resume_paused_delivery_checks_tdd.py`
+   - `tests/unit/tools/test_resume_paused_delivery_model/__init__.py`
+   - `tests/unit/tools/test_resume_paused_delivery_model/test_resume_paused_delivery_model_tdd.py`
+6. `docs(resume-paused): record step 6 validation`
+   - `docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md`
+
+### Findings and boundaries for step 6 resume-paused (exchange 1) (round 1)
+
+Unresolved findings:
+
+- `_ActionDelivery.prepare` skips `transport.select` in `Phase.RECOVERY`. A second pane can acquire a colliding name after the ask and the code still presses Enter. Repeat selector resolution for the fresh listing, retain full-UUID targeting for Enter, and test the collision between the ask and recovery.
+- `_ActionDelivery._send` can accept proof that finishes past the 100-second deadline. A proof started at 99.5 seconds can finish at 102 and still return `ACCEPTED`. Synchronous asks and observations also have independent process timeouts. Propagate the remaining bound to blocking operations and check expiry after each proof before accepting or acting. Test a slow successful proof, capture and ask using the fake clock.
+- `read_input` treats an exact command line followed by arbitrary text as the complete editable input unless that text contains a placeholder or matches Working. A multiline draft beginning with the marked command can therefore receive Enter. Require the profile to account for the entire input box, reject unrecognized continuation lines, and put the last ownership capture after potentially slow fresh checks. Cover multiline input and an edit during revalidation.
+- `cleared` accepts a pre-existing clear banner plus any unrelated screen change. A clock or status-line update can confirm a clear that never happened, allowing resume in the old conversation. Require a transition attributable to this clear and test an unchanged old banner with only an unrelated line changing.
+- `_inside` checks descendants but misses equality. If the checkout itself is the temporary guard folder, the adapter opens its guard inside the checkout. Reject equality before opening and test with the guard folder as checkout root.
+- `NativeFileLock.try_lock` maps every locking `OSError` to contention, and a seek error can escape without closing the descriptor. Distinguish a lock held by another handle from an unavailable guard, release the descriptor on acquisition errors, and report failure only for the affected checkout.
+
+Boundary-crossing work: None.
+
+### Writer instructions for step 6 resume-paused (exchange 1) (round 1)
+
+Address the six findings, add the indicated regression coverage, rerun the resolved validation command and refresh group 6’s completion evidence before submitting the next round. Keep the two-process guard proof and host evidence identified as open until verified.
+
+### Decision rationale for step 6 resume-paused (exchange 1) (round 1)
+
+Changes requested. Recovery can submit the wrong input, observe a late proof as success, or accept a stale clear. Guard placement and error classification also need correction.
+
+### Final reviewer decision for step 6 resume-paused (exchange 1) (round 1)
+
+Decision: changes-requested. The writer must address the concrete instructions and publish another review round. This advisory answer does not authorize a commit.
+
+<!-- review-entry-id: answer-step-6-round-1 -->
+
+## Round 2 by requestor - Step 6
+
+- Recorded: 2026-11-20T20:58:43+01:00
+- Exchange: code/code/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.resume-paused.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 6
+- Outcome: request
+
+### Review identity for step 6 resume-paused (round 2)
+
+Umbrella draft: none
+Implementation plan: docs/v0.14.0/plan.v0.14.0.resume-paused.md
+Implementation step: 6
+Review round: 2
+
+### Code review evidence for step 6 resume-paused (round 2)
+
+request_index_tree: 9e0894376fbdc1cd390092cd67208c8a71cc210a
+resolved_validation_set:
+
+- `ghog day --full=speed --whole-suite` (sources: project)
+
+test_scope:
+{"fingerprint": "686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6", "group": null, "proof": "speed", "requirement": "docs/v0.14.0/feature-request.v0.14.0.resume-paused.md", "scope": "whole"}
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: docs(resume-paused): amend Q05 for code-first steps
+group 1 path: docs/v0.14.0/plan.v0.14.0.resume-paused.md
+group 2: feat(resume-paused): add the shell-free transport
+group 2 path: tools/resume_paused_input.py
+group 2 path: tests/unit/tools/test_resume_paused_input/test_resume_paused_input_tdd.py
+group 2 path: tools/resume_paused_transport.py
+group 2 path: tests/unit/tools/test_resume_paused_transport/__init__.py
+group 2 path: tests/unit/tools/test_resume_paused_transport/test_resume_paused_transport_tdd.py
+group 2 path: tests/unit/tools/test_resume_paused_transport/test_resume_paused_transport_pbt.py
+group 3: feat(resume-paused): add delivery ports and guard
+group 3 path: tools/resume_paused_delivery_model.py
+group 3 path: tools/resume_paused_guard.py
+group 3 path: tests/unit/tools/test_resume_paused_guard/__init__.py
+group 3 path: tests/unit/tools/test_resume_paused_guard/test_resume_paused_guard_tdd.py
+group 4: feat(resume-paused): replan one checkout per send
+group 4 path: tools/resume_paused_planner.py
+group 4 path: tests/unit/tools/test_resume_paused_planner/test_resume_paused_planner_replan_tdd.py
+group 5: feat(resume-paused): deliver guarded pane actions
+group 5 path: tools/resume_paused_delivery_checks.py
+group 5 path: tools/resume_paused_delivery.py
+group 5 path: tests/unit/tools/test_resume_paused_delivery/__init__.py
+group 5 path: tests/unit/tools/test_resume_paused_delivery/delivery_world.py
+group 5 path: tests/unit/tools/test_resume_paused_delivery/test_resume_paused_delivery_tdd.py
+group 5 path: tests/unit/tools/test_resume_paused_delivery/test_resume_paused_delivery_recovery_tdd.py
+group 5 path: tests/unit/tools/test_resume_paused_delivery_checks/__init__.py
+group 5 path: tests/unit/tools/test_resume_paused_delivery_checks/test_resume_paused_delivery_checks_tdd.py
+group 5 path: tests/unit/tools/test_resume_paused_delivery_model/__init__.py
+group 5 path: tests/unit/tools/test_resume_paused_delivery_model/test_resume_paused_delivery_model_tdd.py
+group 6: docs(resume-paused): record step 6 validation
+group 6 path: .vscode/settings.json
+group 6 path: docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md
+staged path: .vscode/settings.json
+staged path: docs/v0.14.0/plan.v0.14.0.resume-paused.md
+staged path: docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md
+staged path: tests/unit/tools/test_resume_paused_delivery/__init__.py
+staged path: tests/unit/tools/test_resume_paused_delivery/delivery_world.py
+staged path: tests/unit/tools/test_resume_paused_delivery/test_resume_paused_delivery_recovery_tdd.py
+staged path: tests/unit/tools/test_resume_paused_delivery/test_resume_paused_delivery_tdd.py
+staged path: tests/unit/tools/test_resume_paused_delivery_checks/__init__.py
+staged path: tests/unit/tools/test_resume_paused_delivery_checks/test_resume_paused_delivery_checks_tdd.py
+staged path: tests/unit/tools/test_resume_paused_delivery_model/__init__.py
+staged path: tests/unit/tools/test_resume_paused_delivery_model/test_resume_paused_delivery_model_tdd.py
+staged path: tests/unit/tools/test_resume_paused_guard/__init__.py
+staged path: tests/unit/tools/test_resume_paused_guard/test_resume_paused_guard_tdd.py
+staged path: tests/unit/tools/test_resume_paused_input/test_resume_paused_input_tdd.py
+staged path: tests/unit/tools/test_resume_paused_planner/test_resume_paused_planner_replan_tdd.py
+staged path: tests/unit/tools/test_resume_paused_transport/__init__.py
+staged path: tests/unit/tools/test_resume_paused_transport/test_resume_paused_transport_pbt.py
+staged path: tests/unit/tools/test_resume_paused_transport/test_resume_paused_transport_tdd.py
+staged path: tools/resume_paused_delivery.py
+staged path: tools/resume_paused_delivery_checks.py
+staged path: tools/resume_paused_delivery_model.py
+staged path: tools/resume_paused_guard.py
+staged path: tools/resume_paused_input.py
+staged path: tools/resume_paused_planner.py
+staged path: tools/resume_paused_transport.py
+```
+
+### Validation scope for step 6 resume-paused (round 2)
+
+Validation scope: the whole suite.
+
+### Requestor assessment for step 6 resume-paused (round 2)
+
+Step 6 is fully implemented after the round 1 repairs, code-first under the user's 2026-11-20 amendment of plan Q05. All six round 1 findings are repaired with regression tests:
+
+- the recovery Enter's checks resolve the selector again;
+- every blocking call of a send is bounded by its remaining budget, and no proof or capture completing at or after the deadline is acted on;
+- the whole Codex input box is read through the pinned footer, and the last ownership capture follows the recovery checks;
+- a Codex clear needs one more cleared line than before;
+- the guard refuses a folder equal to the checkout and tells contention from failure.
+
+The implementation check records `Yes. Step 6 has been fully implemented.` again, with the repairs listed.
+
+- Tests: `ghog day --full=speed --whole-suite` exit 0 at 2026-11-20T20:57:55+01:00 with 7137 tests, 100% coverage, no outlier and no exclusion, slowest call 0.36 s, on index tree `9e0894376fbdc1cd390092cd67208c8a71cc210a`. The repaired leaves passed in focus first (221 tests). The previous attempt of this walk stopped in check.bat on one typing error in a test fake (`try_lock` still returned `bool`), now fixed.
+- Static checks: the same walk's `check.bat` passes ty, pyright strict, ruff, radon, vulture, big files, Markdown, ShellCheck and the end-of-file check. `spellcheck.bat check` reports no unknown word on the validation plan once `EACCES` joined the project words.
+- Coverage: 100% over `tools`. Each new module still has its own leaf, and the repaired branches have dedicated cases: held and unavailable lock states, a raising attempt, the checkout as guard folder, a native seek error, slow proofs and captures, the granted bounds, a recovery collision, multiline input, an edit during the checks, and the old clear banner.
+- Architecture: unchanged boundaries. The bound is part of the `PaneTransport` port, and the TUIOS adapter builds one bounded runner per call. The model keeps the screen signatures, the guard adapter classifies its own OS errors, and the state machine owns the deadline decisions.
+- Performance: one listing per send; single passes over panes and capture lines, now including the footer and banner counts; bounded backoff; one checkout replanned per send. The module sizes stay below the 550-line mark except the planner (558, unchanged since round 1).
+- Feature integrity: `plan_run`, the Step 5 classifications and `SubprocessRunner`'s 30-second default are unchanged. Manual resume, review, validator and claim paths are untouched; nothing writes an artifact beyond the empty guard file outside the checkout.
+- Open rows (validation plan):
+  - composition by Step 8: profile gate, agent-log reader, input provers, `PlanRecheck`, the bounded runner factory, guard and clock;
+  - live host evidence: two-process guard, selector globs, ask results, draft reporting, screen and log signatures, the footer line, and whether a new conversation wipes an earlier cleared line.
+
+### Implementation report for step 6 resume-paused (round 2)
+
+Step 6 delivers guarded pane actions with bounded acceptance. The user amended plan Q05 on 2026-11-20, when Step 6 was launched, so Steps 6 to 8 proceed code-first against the empty profile registry; no real pane can receive input until both hosts are pinned. The step adds five modules and five test leaves, adds `plan_checkout` to the Step 5 planner and a process bound to the Step 4 runner, and amends the plan's Q05 row. Round 2 repairs the six round 1 findings.
+
+- `tools/resume_paused_guard.py`, the per-checkout OS guard (design Q07=A): `CheckoutGuard.acquire` names an empty file by the SHA-256 of the canonical checkout key in `<temp>\llm-shared-resume-paused\`, refuses a guard folder inside or equal to the checkout (or unparsable) before opening anything, opens the file non-inheritable and asks the primitive to lock its first byte without waiting. `NativeFileLock.try_lock` returns `acquired`, `held` for `EACCES` or `EDEADLK` (another handle holds it), and `unavailable` for any other lock or seek error. Every non-acquired state, and a raising attempt, closes the descriptor; `held` is an expected skip, `unavailable` fails that checkout alone. `GuardLease` unlocks then closes in a `finally` on every exit of its `with` block, and a second release does nothing. The OS drops the lock with the handle; the file carries no content.
+- `tools/resume_paused_transport.py`, the shell-free transport: `ask_arguments` returns `tuios ask-agent --select <selector> --yes --stall-timeout 60000 --timeout 100000 --lines 1 --json -- <command>`; `enter_arguments` returns `tuios send-keys -s <session> -w <full pane id> Enter`. `selector_value` replaces each space of a live session or pane name with `*` and refuses an empty name, any other glob character and any non-printing or non-space blank. `resolve_selector` matches every listed pane more broadly than TUIOS (case-insensitive, a wildcard crossing any character) and requires the match set to be exactly the target UUID. `TuiosTransport(runner_for)` runs `observe`, `capture`, `ask` and `enter`, each on a runner the factory builds for the seconds the caller grants; `select` does no IO. The caller environment is inherited unchanged; the ask's exit code is report-only.
+- `tools/resume_paused_input.py`: `SubprocessRunner` takes its process bound as a constructor parameter, 30 seconds by default for every existing caller; the delivery's factory builds one per call.
+- `tools/resume_paused_delivery_model.py`, vocabulary and ports: `Phase`, `DeliveryOutcome`, `ClearOutcome`, `Refusal` with a `failed` severity, `GuardState`, `ActionReport`, `CheckoutDelivery`, `SendStep`, `InputScreen` (input prefix, placeholder, working, cleared and, since round 2, footer signatures) and `DeliveryProfile`, `LogKind` and `LogEvent`, `ACTION_BUDGET` (100 s), `CALL_BOUND_SECONDS` (30 s), and the ports `PreSendCheck`, `ProfileGate`, `AgentLog`, `Sleeper`, `PaneTransport` (whose blocking calls take a `timeout`), `GuardPort`, `PairDelivery` and `Takeover`, bundled in `DeliveryPorts`. `UnpinnedProfiles` refuses every pane; `NoTakeover` reports every conditional reviewer pending until Step 7. The model imports no adapter at run time.
+- `tools/resume_paused_delivery_checks.py`, fresh pre-send checks: `target_refusal` requires the planned UUID listed once, in its planned session, host and checkout, not the caller's pane nor an excluded session or pane label, and eligible through Step 5's `input_eligibility`; before the recovery Enter only, a stale working status is tolerated while a blocked or draft-holding pane, an idle pane that is not ready and an unknown state refuse it. `PlanRecheck` replans the checkout through `plan_checkout` from the same fresh observation and requires the same role, host, session, pane, clear flag, kind family, native command and marker pane, role and binding; before the Enter the target's own activity is read as ready.
+- `tools/resume_paused_planner.py`: `plan_checkout(request, observation, ports, root)` runs the same checkout planner for one root from a fresh observation, `None` without a live pane or a saved prompt.
+- `tools/resume_paused_delivery.py`, run and guard: `deliver_run` returns nothing for a dry run or a run-wide refusal, then runs one worker per planned checkout on a thread pool of at most eight; at most one input operation per pane. Each worker holds its guard through the resume, then each conditional reviewer handed to the injected takeover, which may deliver it under the same guard with extra checks; no reviewer after an unaccepted resume.
+- Same module, each send: one fresh listing (bounded by the remaining budget during a send, 30 seconds before), `target_refusal`, the transport's `select` for every phase (round 2: the recovery Enter too, which still names the full UUID), every injected check, then the pane's profile again, unchanged within the action and with an input prover. A Claude send needs a readable agent log; a Codex send needs a pre-input capture whose input box shows only the placeholder with only the pinned footer below it (other text skips as `pane-draft`; no input box, an unrecognized line below, no capture or no screen signatures fail). Each send has its own 100-second budget from the ask; the ask's bound is the whole budget, every later call's bound is the remaining budget capped at 30 seconds. After each acceptance proof the clock is read again: a proof completing at or after the deadline is not acceptance (round 2). Unproved acceptance is `unconfirmed`; nothing is retyped.
+- Same module, clear: `--clear` applies to a resume action only. A Claude clear is skipped as `redundant` when the log holds a clear strictly after the pause and no prompt after the last one; otherwise Claude confirmation needs a clear event at or after the send and a fresh ready pane, and Codex confirmation needs one more pinned cleared line than the pre-clear capture on an empty input box (round 2: an old banner with an unrelated change never confirms). An unconfirmed clear fails the action with no resume.
+- Same module, Codex recovery Enter, at most one per send (round 2 order): a capture reading exactly this send's command as the whole input box (only the pinned footer below, no working line, no placeholder, the command once on screen); a one-second gap; the fresh recovery checks with the selector and the unchanged profile; a last capture that must be identical; then, budget remaining, one `send-keys` Enter bounded by the remaining budget. A capture completing at or after the deadline stops the attempt. Any other reading, an edit (including one made during the checks), a refused check or a changed profile withholds the Enter for the rest of the send, with a note; an empty input box withholds nothing. A refused Enter is still spent. A background-shell line is noted only.
+- Tests: `tests/unit/tools/test_resume_paused_guard/` (path spellings, held and unavailable states, a raising attempt, the checkout as guard folder, folders in, beside or unparsable, release on errors, two native handles contending, a blocked folder, a native seek failure that is not contention), `tests/unit/tools/test_resume_paused_transport/` (argument lists with metacharacters, selector cases, the bounds granted to each call; properties as in round 1), `tests/unit/tools/test_resume_paused_delivery_model/`, `tests/unit/tools/test_resume_paused_delivery_checks/` (unchanged), `tests/unit/tools/test_resume_paused_delivery/` (`delivery_world.py` records every granted bound and lets captures and proofs spend declared time; round 2 adds the bounds of a recovered send, a proof finishing after the deadline, slow first and last ownership captures, a new selector collision at recovery, a multiline draft, an edit during the recovery checks, an unrecognized line below an empty box, an empty footer signature, the old clear banner through `cleared` and through a delivery, and a second banner confirming), plus `test_resume_paused_planner_replan_tdd.py` and the runner bound in the input leaf. No test starts a process or sleeps.
+- Deviations: as in round 1 (delivery split into vocabulary, checks and state machine with one leaf per module; `plan_checkout` in the planner, 558 lines; the two-process guard test through two OS handles in one process; open composition and live rows in the validation plan). The live rows now include the Codex footer signature and whether a new conversation wipes an earlier cleared line. `.vscode/settings.json` gains `EACCES`.
+- `rg` is not available in this shell; contract inspection used the equivalent Grep search. No accepted duration exclusion exists.
+
+Writer notes: `.reviews/a.resume-paused.step6.journal.md` and `.reviews/a.resume-paused.step6.handoff.md`.
+
+### Change summary for step 6 resume-paused (round 2)
+
+Twenty-five staged paths in six `a.commit` groups, in this order:
+
+1. `docs(resume-paused): amend Q05 for code-first steps`: `docs/v0.14.0/plan.v0.14.0.resume-paused.md`.
+2. `feat(resume-paused): add the shell-free transport`: `tools/resume_paused_input.py`, `tests/unit/tools/test_resume_paused_input/test_resume_paused_input_tdd.py`, `tools/resume_paused_transport.py` and the `tests/unit/tools/test_resume_paused_transport` package (package file, tdd and pbt files).
+3. `feat(resume-paused): add delivery ports and guard`: `tools/resume_paused_delivery_model.py`, `tools/resume_paused_guard.py` and the `tests/unit/tools/test_resume_paused_guard` package (package file and tdd file).
+4. `feat(resume-paused): replan one checkout per send`: `tools/resume_paused_planner.py` and `tests/unit/tools/test_resume_paused_planner/test_resume_paused_planner_replan_tdd.py`.
+5. `feat(resume-paused): deliver guarded pane actions`: `tools/resume_paused_delivery_checks.py`, `tools/resume_paused_delivery.py`, the `tests/unit/tools/test_resume_paused_delivery` package (package file, `delivery_world.py`, two tdd files), and the `tests/unit/tools/test_resume_paused_delivery_checks` and `tests/unit/tools/test_resume_paused_delivery_model` packages (package file and tdd file each).
+6. `docs(resume-paused): record step 6 validation`: `.vscode/settings.json` (the `EACCES` project word) and `docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md`.
+
+Round 2 changes paths in groups 2, 3, 5 and 6 and adds `.vscode/settings.json` to group 6; group membership otherwise, order and subjects are unchanged. The commit-plan checker reports the plan valid and ready. The code review transcript is not staged and goes to the residual commit.
+
+### Writer response for step 6 resume-paused (round 2)
+
+Writer response:
+
+All six round 1 findings are accepted and repaired; there is no disagreement. Your staged Step 6 rows were the starting point of the updated validation plan, which reads Yes again with the round 1 repairs recorded and the missing-work list removed.
+
+- **Selector at recovery**: `_ActionDelivery.prepare` now resolves the transport selector for every phase, recovery included, from the same fresh listing; a refusal withholds the Enter (`resume-recovery-withheld-selector-ambiguous`), and the Enter still names the full UUID through `send-keys -w`. Regression: a second pane named `Codex-api` appearing in the recovery listing.
+- **Deadline after slow calls**: every blocking transport call now takes the bound its caller grants (`PaneTransport.observe/capture/ask/enter(..., timeout)`); `TuiosTransport` takes a runner factory and builds one bounded runner per call. Inside a send the bound is the remaining budget (the ask gets the whole 100 seconds, later calls at most 30 seconds or what is left); before a send it is `CALL_BOUND_SECONDS` (30). The acceptance loop re-reads the clock after each proof and breaks when the proof completed at or after the deadline; the first and last ownership captures are followed by the same expiry check before any further step or the Enter. The input prover and the agent log are file reads behind Step 1 and Step 8 ports without a timeout parameter, so their late completion is handled by that expiry check rather than a propagated bound. Regressions: a proof finishing at 101 seconds is unconfirmed with no further read; a slow first or last ownership capture sends no Enter; the exact bounds granted to every call of a recovered send are asserted.
+- **Whole input box**: `InputScreen` gains `footer_pattern`; every line below the input line must fully match it (no line may follow when it is empty), so a multiline draft, a working line or a placeholder line below the input reads as other text, for the recovery Enter, the pre-input empty check (an unrecognized line below an empty box fails as `screen-unsupported`) and the clear confirmation. The recovery order is now: first capture, gap, fresh recovery checks, last capture, which must be identical, expiry check, Enter. Regressions: a multiline draft starting with the exact command, an unrecognized line below an empty box, an empty footer signature, and an edit made while the recovery checks run (an injected check rewrites the screen) withholding the Enter as `changed`.
+- **Clear banner**: `cleared` now requires one more pinned cleared line in the post-clear capture than in the pre-clear capture, on an empty input box; an old banner with only an unrelated line changing never confirms the clear. If a pinned Codex release wipes the screen on a new conversation, a pane already cleared before the run fails its clear closed; the validation plan records that as a live row. Regressions: the old banner with a clock line changing, through `cleared` and through a full delivery that then sends no resume, and a second banner confirming.
+- **Guard folder equal to the checkout**: `_inside` rejects equality again, before any open. Regression: a checkout at `<temp>\llm-shared-resume-paused`.
+- **Lock error classification**: `LockPrimitive.try_lock` returns a `GuardState`; `NativeFileLock` maps only `EACCES` and `EDEADLK` to `held` (measured: contention raises `EACCES` on this host) and any other lock or seek error, `EBADF` included, to `unavailable`, which fails that checkout alone; `CheckoutGuard.acquire` closes the descriptor for every non-acquired state and on a raising attempt. Regressions: both states through a declared primitive, a raising attempt, and the native primitive on a closed descriptor.
+- **Commit plan**: groups, order and subjects are unchanged; the bodies of groups 2, 3, 5 and 6 describe the repairs, and `.vscode/settings.json` joins group 6 because the validation plan needed `EACCES` in the project words.
+
+### Reviewer focus for step 6 resume-paused (round 2)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-6-round-2 -->
+
+## Round 2 by reviewer - Step 6
+
+- Recorded: 2026-11-20T21:03:53+01:00
+- Exchange: code/code/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.resume-paused.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 6
+- Outcome: answer
+
+### Assessed index identity for step 6 resume-paused (exchange 1) (round 2)
+
+Baseline index tree: 9e0894376fbdc1cd390092cd67208c8a71cc210a
+
+Assessed index tree: fabe23a7d1f1e20ee739e910f2d6d22359ffe03c
+
+### Implementation check for step 6 resume-paused (exchange 1) (round 2)
+
+Result:
+
+No. Step 6 has NOT been fully implemented. Source inspection confirms the selector recheck, last capture after revalidation, clear-banner transition, root equality check and guard acquisition handling. Two round 1 findings remain partially resolved.
+
+Validation plan effects:
+
+Updated the round 2 Step 6 verdict and entered the two outstanding cases under “Missing work for Step 6” in `docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md`.
+
+### Pre-repair mandatory checks and coverage for step 6 resume-paused (exchange 1) (round 2)
+
+The writer reports 7,137 passing tests and 100% coverage over `tools` on the request tree. The 221 focused tests and the reported checks passed. The reviewer traced the concrete input prover, recovery reader and staged tests. Neither remaining case is covered. The reviewer did not rerun the suite.
+
+### Resolved validation set and sources for step 6 resume-paused (exchange 1) (round 2)
+
+`ghog day --full=speed --whole-suite` (project source, whole scope). Reviewer metadata checks passed for staged whitespace and Markdown lint.
+
+### Resolver drift and direction for step 6 resume-paused (exchange 1) (round 2)
+
+None. The current scope resolver matched the request.
+
+### Repository state around validation for step 6 resume-paused (exchange 1) (round 2)
+
+The request tree matched `9e0894376fbdc1cd390092cd67208c8a71cc210a`. The only differences after assessment were the attributable validation-plan update and its index entry. No umbrella applies.
+
+### Repair inventory for step 6 resume-paused (exchange 1) (round 2)
+
+Repairs made:
+
+- Reviewer metadata only. Recorded both findings and revised the verdict. No reviewer implementation or test repair.
+
+Paths staged:
+
+- `docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md`
+
+### Commit plan assessment for step 6 resume-paused (exchange 1) (round 2)
+
+The independent checker returned `valid`, `ready: true`, zero diagnostics. All 25 staged paths occur in the six groups in dependency order. The group 5 claim about every blocking call and the group 6 completion claim need updating after repairs.
+
+1. `docs(resume-paused): amend Q05 for code-first steps`
+   - `docs/v0.14.0/plan.v0.14.0.resume-paused.md`
+2. `feat(resume-paused): add the shell-free transport`
+   - `tools/resume_paused_input.py`
+   - `tests/unit/tools/test_resume_paused_input/test_resume_paused_input_tdd.py`
+   - `tools/resume_paused_transport.py`
+   - `tests/unit/tools/test_resume_paused_transport/__init__.py`
+   - `tests/unit/tools/test_resume_paused_transport/test_resume_paused_transport_tdd.py`
+   - `tests/unit/tools/test_resume_paused_transport/test_resume_paused_transport_pbt.py`
+3. `feat(resume-paused): add delivery ports and guard`
+   - `tools/resume_paused_delivery_model.py`
+   - `tools/resume_paused_guard.py`
+   - `tests/unit/tools/test_resume_paused_guard/__init__.py`
+   - `tests/unit/tools/test_resume_paused_guard/test_resume_paused_guard_tdd.py`
+4. `feat(resume-paused): replan one checkout per send`
+   - `tools/resume_paused_planner.py`
+   - `tests/unit/tools/test_resume_paused_planner/test_resume_paused_planner_replan_tdd.py`
+5. `feat(resume-paused): deliver guarded pane actions`
+   - `tools/resume_paused_delivery_checks.py`
+   - `tools/resume_paused_delivery.py`
+   - `tests/unit/tools/test_resume_paused_delivery/__init__.py`
+   - `tests/unit/tools/test_resume_paused_delivery/delivery_world.py`
+   - `tests/unit/tools/test_resume_paused_delivery/test_resume_paused_delivery_tdd.py`
+   - `tests/unit/tools/test_resume_paused_delivery/test_resume_paused_delivery_recovery_tdd.py`
+   - `tests/unit/tools/test_resume_paused_delivery_checks/__init__.py`
+   - `tests/unit/tools/test_resume_paused_delivery_checks/test_resume_paused_delivery_checks_tdd.py`
+   - `tests/unit/tools/test_resume_paused_delivery_model/__init__.py`
+   - `tests/unit/tools/test_resume_paused_delivery_model/test_resume_paused_delivery_model_tdd.py`
+6. `docs(resume-paused): record step 6 validation`
+   - `.vscode/settings.json`
+   - `docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md`
+
+### Findings and boundaries for step 6 resume-paused (exchange 1) (round 2)
+
+Unresolved findings:
+
+- `_ActionDelivery._accepted` calls `CodexInputProver.prove` with `carried=None`. That concrete prover calls `self._capture.capture(pane)` without a remaining-time argument. A proof begun at 99.5 seconds can run a TUIOS capture with its independent 30-second timeout while holding the checkout guard. The late result is discarded, but the observation exceeds the fixed budget. Pass the deadline through the proof path and bound its nested capture. Also stop before starting downstream work when a slow log read or recovery recheck has consumed the budget. Use a fake clock with the concrete prover and a recording capture to verify the final half-second bound and zero calls after expiry.
+- `_closed` accepts any number of lines matching `footer_pattern`, including zero. With the staged single-footer profile, a capture containing the command, a draft continuation identical to the footer, and the real footer passes `read_input` as `COMMAND`. Two identical captures can therefore authorize Enter on a multiline draft. A truncated capture ending at the command also passes despite the configured footer. Require the complete footer layout, including its expected count and order, before treating the input as empty or owned. Cover duplicated and missing footers through recovery and assert that neither sends Enter.
+
+Boundary-crossing work: None.
+
+### Writer instructions for step 6 resume-paused (exchange 1) (round 2)
+
+Carry the budget through nested acceptance calls, prevent new work once the deadline expires, and require exact evidence for the configured footer layout. Add the regression cases in the findings, rerun the resolved whole-suite validation and update the validation record and affected commit bodies.
+
+### Decision rationale for step 6 resume-paused (exchange 1) (round 2)
+
+Changes requested. The real prover can hold the guard past 100 seconds and a footer-shaped draft continuation can receive recovery Enter. Live host and two-process verification remain open under the Q05 amendment.
+
+### Final reviewer decision for step 6 resume-paused (exchange 1) (round 2)
+
+Decision: changes-requested. The writer must address the concrete instructions and publish another review round. This advisory answer does not authorize a commit.
+
+<!-- review-entry-id: answer-step-6-round-2 -->
+
+## Round 3 by requestor - Step 6
+
+- Recorded: 2026-11-20T22:06:26+01:00
+- Exchange: code/code/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.resume-paused.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 6
+- Outcome: request
+
+### Review identity for step 6 resume-paused (round 3)
+
+Umbrella draft: none
+Implementation plan: docs/v0.14.0/plan.v0.14.0.resume-paused.md
+Implementation step: 6
+Review round: 3
+
+### Code review evidence for step 6 resume-paused (round 3)
+
+request_index_tree: 6aea09375a2c7e9ad56cdb525105cf6900b65d3c
+resolved_validation_set:
+
+- `ghog day --full=speed --whole-suite` (sources: project)
+
+test_scope:
+{"fingerprint": "686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6", "group": null, "proof": "speed", "requirement": "docs/v0.14.0/feature-request.v0.14.0.resume-paused.md", "scope": "whole"}
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: docs(resume-paused): amend Q05 for code-first steps
+group 1 path: docs/v0.14.0/plan.v0.14.0.resume-paused.md
+group 2: feat(resume-paused): add the shell-free transport
+group 2 path: tools/resume_paused_input.py
+group 2 path: tests/unit/tools/test_resume_paused_input/test_resume_paused_input_tdd.py
+group 2 path: tools/resume_paused_transport.py
+group 2 path: tests/unit/tools/test_resume_paused_transport/__init__.py
+group 2 path: tests/unit/tools/test_resume_paused_transport/test_resume_paused_transport_tdd.py
+group 2 path: tests/unit/tools/test_resume_paused_transport/test_resume_paused_transport_pbt.py
+group 3: feat(resume-paused): add delivery ports and guard
+group 3 path: tools/resume_paused_delivery_model.py
+group 3 path: tools/resume_paused_guard.py
+group 3 path: tests/unit/tools/test_resume_paused_guard/__init__.py
+group 3 path: tests/unit/tools/test_resume_paused_guard/test_resume_paused_guard_tdd.py
+group 4: feat(resume-paused): replan one checkout per send
+group 4 path: tools/resume_paused_planner.py
+group 4 path: tests/unit/tools/test_resume_paused_planner/test_resume_paused_planner_replan_tdd.py
+group 5: feat(resume-paused): deliver guarded pane actions
+group 5 path: tools/resume_paused_delivery_checks.py
+group 5 path: tools/resume_paused_delivery.py
+group 5 path: tests/unit/tools/test_resume_paused_delivery/__init__.py
+group 5 path: tests/unit/tools/test_resume_paused_delivery/delivery_world.py
+group 5 path: tests/unit/tools/test_resume_paused_delivery/test_resume_paused_delivery_tdd.py
+group 5 path: tests/unit/tools/test_resume_paused_delivery/test_resume_paused_delivery_recovery_tdd.py
+group 5 path: tests/unit/tools/test_resume_paused_delivery_checks/__init__.py
+group 5 path: tests/unit/tools/test_resume_paused_delivery_checks/test_resume_paused_delivery_checks_tdd.py
+group 5 path: tests/unit/tools/test_resume_paused_delivery_model/__init__.py
+group 5 path: tests/unit/tools/test_resume_paused_delivery_model/test_resume_paused_delivery_model_tdd.py
+group 6: docs(resume-paused): record step 6 validation
+group 6 path: .vscode/settings.json
+group 6 path: docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md
+staged path: .vscode/settings.json
+staged path: docs/v0.14.0/plan.v0.14.0.resume-paused.md
+staged path: docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md
+staged path: tests/unit/tools/test_resume_paused_delivery/__init__.py
+staged path: tests/unit/tools/test_resume_paused_delivery/delivery_world.py
+staged path: tests/unit/tools/test_resume_paused_delivery/test_resume_paused_delivery_recovery_tdd.py
+staged path: tests/unit/tools/test_resume_paused_delivery/test_resume_paused_delivery_tdd.py
+staged path: tests/unit/tools/test_resume_paused_delivery_checks/__init__.py
+staged path: tests/unit/tools/test_resume_paused_delivery_checks/test_resume_paused_delivery_checks_tdd.py
+staged path: tests/unit/tools/test_resume_paused_delivery_model/__init__.py
+staged path: tests/unit/tools/test_resume_paused_delivery_model/test_resume_paused_delivery_model_tdd.py
+staged path: tests/unit/tools/test_resume_paused_guard/__init__.py
+staged path: tests/unit/tools/test_resume_paused_guard/test_resume_paused_guard_tdd.py
+staged path: tests/unit/tools/test_resume_paused_input/test_resume_paused_input_tdd.py
+staged path: tests/unit/tools/test_resume_paused_planner/test_resume_paused_planner_replan_tdd.py
+staged path: tests/unit/tools/test_resume_paused_transport/__init__.py
+staged path: tests/unit/tools/test_resume_paused_transport/test_resume_paused_transport_pbt.py
+staged path: tests/unit/tools/test_resume_paused_transport/test_resume_paused_transport_tdd.py
+staged path: tools/resume_paused_delivery.py
+staged path: tools/resume_paused_delivery_checks.py
+staged path: tools/resume_paused_delivery_model.py
+staged path: tools/resume_paused_guard.py
+staged path: tools/resume_paused_input.py
+staged path: tools/resume_paused_planner.py
+staged path: tools/resume_paused_transport.py
+```
+
+### Validation scope for step 6 resume-paused (round 3)
+
+Validation scope: the whole suite.
+
+### Requestor assessment for step 6 resume-paused (round 3)
+
+Step 6 is fully implemented after the round 2 repairs, code-first under the user's 2026-11-20 amendment of plan Q05. Both round 2 findings are repaired with regression tests:
+
+- each acceptance proof uses a prover the per-host factory builds for the remaining budget, so the Codex prover's nested capture is bounded by it, and no step starts once the budget is spent;
+- the lines below the Codex input line must be exactly the pinned footer layout, line by line, so a repeated, missing or footer-shaped extra line is never an empty or owned input box.
+
+The implementation check records `Yes. Step 6 has been fully implemented.` again, with the round 2 repairs listed.
+
+- Tests: `ghog day --full=speed --whole-suite` exit 0 at 2026-11-20T22:05:45+01:00 with 7147 tests, 100% coverage, no outlier and no exclusion, slowest call 0.31 s, on index tree `6aea09375a2c7e9ad56cdb525105cf6900b65d3c`. Two earlier attempts of this walk stopped first in check.bat (an untyped test lambda, a magic number, seven returns in `prepare`, now split into `_expiry` and `_selected`, and an MD032 in the review transcript caused by my round 2 assessment, repaired as one blank line under the user's explicit exception), then at 99% coverage (the stop after a slow recovery profile read, now covered).
+- Static checks: the same walk's `check.bat` passes ty, pyright strict, ruff, radon, vulture, big files, Markdown (the transcript included), ShellCheck and the end-of-file check; `spellcheck.bat check` reports no unknown word on the validation plan.
+- Coverage: 100% over `tools`; the round 2 cases cover the prover bound, the slow log read, the slow recovery check, the slow recovery profile read and the footer layout.
+- Architecture: Step 4's `InputProver` and `PaneCapture` contracts are unchanged; the bound reaches the Codex prover through the delivery's `ProverFactory` port, which Step 8 composes with a bounded pane capture. The footer layout is profile data in the model.
+- Performance: one listing per send, single passes over panes and capture lines, the footer compared line by line, bounded backoff, one checkout replanned per send.
+- Feature integrity: unchanged from round 2; nothing outside the delivery modules and their tests changed in this round.
+- Open rows (validation plan):
+
+  - composition by Step 8: profile gate, agent-log reader, bounded input prover factories, `PlanRecheck`, the bounded runner factory, guard and clock;
+  - live host evidence: two-process guard, selector globs, ask results, draft reporting, screen and log signatures, the exact footer layout, and whether a new conversation wipes an earlier cleared line.
+
+### Implementation report for step 6 resume-paused (round 3)
+
+Step 6 delivers guarded pane actions with bounded acceptance. The user amended plan Q05 on 2026-11-20, when Step 6 was launched, so Steps 6 to 8 proceed code-first against the empty profile registry; no real pane can receive input until both hosts are pinned. The step adds five modules and five test leaves, adds `plan_checkout` to the Step 5 planner and a process bound to the Step 4 runner, and amends the plan's Q05 row. Round 2 repaired the six round 1 findings; round 3 repairs the two round 2 findings.
+
+- `tools/resume_paused_guard.py`, the per-checkout OS guard (design Q07=A): `CheckoutGuard.acquire` names an empty file by the SHA-256 of the canonical checkout key in `<temp>\llm-shared-resume-paused\`, refuses a guard folder inside or equal to the checkout (or unparsable) before opening anything, opens the file non-inheritable and asks the primitive to lock its first byte without waiting. `NativeFileLock.try_lock` returns `acquired`, `held` for `EACCES` or `EDEADLK` (another handle holds it), and `unavailable` for any other lock or seek error. Every non-acquired state, and a raising attempt, closes the descriptor; `held` is an expected skip, `unavailable` fails that checkout alone. `GuardLease` unlocks then closes in a `finally` on every exit of its `with` block, and a second release does nothing. The OS drops the lock with the handle; the file carries no content.
+- `tools/resume_paused_transport.py`, the shell-free transport: `ask_arguments` returns `tuios ask-agent --select <selector> --yes --stall-timeout 60000 --timeout 100000 --lines 1 --json -- <command>`; `enter_arguments` returns `tuios send-keys -s <session> -w <full pane id> Enter`. `selector_value` replaces each space of a live session or pane name with `*` and refuses an empty name, any other glob character and any non-printing or non-space blank. `resolve_selector` matches every listed pane more broadly than TUIOS (case-insensitive, a wildcard crossing any character) and requires the match set to be exactly the target UUID. `TuiosTransport(runner_for)` runs `observe`, `capture`, `ask` and `enter`, each on a runner the factory builds for the seconds the caller grants; `select` does no IO. The caller environment is inherited unchanged; the ask's exit code is report-only.
+- `tools/resume_paused_input.py`: `SubprocessRunner` takes its process bound as a constructor parameter, 30 seconds by default for every existing caller; the delivery's factory builds one per call.
+- `tools/resume_paused_delivery_model.py`, vocabulary and ports: `Phase`, `DeliveryOutcome`, `ClearOutcome`, `Refusal` with a `failed` severity, `GuardState`, `ActionReport`, `CheckoutDelivery`, `SendStep`, `InputScreen` (input prefix, placeholder, working and cleared signatures and, since round 3, `footer_lines`, the exact footer layout) and `DeliveryProfile`, `LogKind` and `LogEvent`, `ACTION_BUDGET` (100 s), `CALL_BOUND_SECONDS` (30 s), and the ports `PreSendCheck`, `ProfileGate`, `AgentLog`, `Sleeper`, `PaneTransport` (whose blocking calls take a `timeout`), `GuardPort`, `PairDelivery` and `Takeover`, bundled in `DeliveryPorts`, whose `provers` hold one `ProverFactory` per host (round 3). `UnpinnedProfiles` refuses every pane; `NoTakeover` reports every conditional reviewer pending until Step 7. The model imports no adapter at run time.
+- `tools/resume_paused_delivery_checks.py`, fresh pre-send checks: `target_refusal` requires the planned UUID listed once, in its planned session, host and checkout, not the caller's pane nor an excluded session or pane label, and eligible through Step 5's `input_eligibility`; before the recovery Enter only, a stale working status is tolerated while a blocked or draft-holding pane, an idle pane that is not ready and an unknown state refuse it. `PlanRecheck` replans the checkout through `plan_checkout` from the same fresh observation and requires the same role, host, session, pane, clear flag, kind family, native command and marker pane, role and binding; before the Enter the target's own activity is read as ready.
+- `tools/resume_paused_planner.py`: `plan_checkout(request, observation, ports, root)` runs the same checkout planner for one root from a fresh observation, `None` without a live pane or a saved prompt.
+- `tools/resume_paused_delivery.py`, run and guard: `deliver_run` returns nothing for a dry run or a run-wide refusal, then runs one worker per planned checkout on a thread pool of at most eight; at most one input operation per pane. Each worker holds its guard through the resume, then each conditional reviewer handed to the injected takeover, which may deliver it under the same guard with extra checks; no reviewer after an unaccepted resume.
+- Same module, each send: one fresh listing (bounded by the remaining budget during a send, 30 seconds before), `target_refusal`, the transport's `select` for every phase (round 2: the recovery Enter too, which still names the full UUID), every injected check, then the pane's profile again, unchanged within the action and with an input prover. A Claude send needs a readable agent log; a Codex send needs a pre-input capture whose input box shows only the placeholder with exactly the pinned footer layout below it (other text skips as `pane-draft`; no input box, an unrecognized line below, no capture or no screen signatures fail). Each send has its own 100-second budget from the ask; the ask's bound is the whole budget, every later call's bound is the remaining budget capped at 30 seconds. After each acceptance proof the clock is read again: a proof completing at or after the deadline is not acceptance (round 2). Each proof uses a prover the factory builds for the remaining budget, so the Codex prover's nested capture is bounded by it, and no step starts once the budget is spent: no prover after a slow prompt read, no listing after a slow clear-event read, `deadline-passed` after a slow listing or check in `prepare`, no last capture after slow recovery checks (round 3). Unproved acceptance is `unconfirmed`; nothing is retyped.
+- Same module, clear: `--clear` applies to a resume action only. A Claude clear is skipped as `redundant` when the log holds a clear strictly after the pause and no prompt after the last one; otherwise Claude confirmation needs a clear event at or after the send and a fresh ready pane, and Codex confirmation needs one more pinned cleared line than the pre-clear capture on an empty input box (round 2: an old banner with an unrelated change never confirms). An unconfirmed clear fails the action with no resume.
+- Same module, Codex recovery Enter, at most one per send (round 2 order): a capture reading exactly this send's command as the whole input box (exactly the pinned footer layout below, one line per entry in order, no working line, no placeholder, the command once on screen); a one-second gap; the fresh recovery checks with the selector and the unchanged profile; a last capture that must be identical; then, budget remaining, one `send-keys` Enter bounded by the remaining budget. A capture completing at or after the deadline stops the attempt. Any other reading, an edit (including one made during the checks), a refused check or a changed profile withholds the Enter for the rest of the send, with a note; an empty input box withholds nothing. A refused Enter is still spent. A background-shell line is noted only.
+- Tests: `tests/unit/tools/test_resume_paused_guard/` (path spellings, held and unavailable states, a raising attempt, the checkout as guard folder, folders in, beside or unparsable, release on errors, two native handles contending, a blocked folder, a native seek failure that is not contention), `tests/unit/tools/test_resume_paused_transport/` (argument lists with metacharacters, selector cases, the bounds granted to each call; properties as in round 1), `tests/unit/tools/test_resume_paused_delivery_model/`, `tests/unit/tools/test_resume_paused_delivery_checks/` (unchanged), `tests/unit/tools/test_resume_paused_delivery/` (`delivery_world.py` records every granted bound and lets captures and proofs spend declared time; round 2 adds the bounds of a recovered send, a proof finishing after the deadline, slow first and last ownership captures, a new selector collision at recovery, a multiline draft, an edit during the recovery checks, an unrecognized line below an empty box, an empty footer signature, the old clear banner through `cleared` and through a delivery, and a second banner confirming; round 3 adds the concrete `CodexInputProver` with a recording capture granted the last half second and no call after expiry, a slow log read building no prover, the bound granted to a prover, a recovery check and a recovery profile read spending the budget, and repeated, missing and invalid footer lines through recovery and `read_input`), plus `test_resume_paused_planner_replan_tdd.py` and the runner bound in the input leaf. No test starts a process or sleeps.
+- Deviations: as in round 1 (delivery split into vocabulary, checks and state machine with one leaf per module; `plan_checkout` in the planner, 558 lines; the two-process guard test through two OS handles in one process; open composition and live rows in the validation plan). The live rows now include the Codex footer signature and whether a new conversation wipes an earlier cleared line. `.vscode/settings.json` gains `EACCES`.
+- `rg` is not available in this shell; contract inspection used the equivalent Grep search. No accepted duration exclusion exists.
+
+Writer notes: `.reviews/a.resume-paused.step6.journal.md` and `.reviews/a.resume-paused.step6.handoff.md`.
+
+### Change summary for step 6 resume-paused (round 3)
+
+Twenty-five staged paths in six `a.commit` groups, in this order:
+
+1. `docs(resume-paused): amend Q05 for code-first steps`: `docs/v0.14.0/plan.v0.14.0.resume-paused.md`.
+2. `feat(resume-paused): add the shell-free transport`: `tools/resume_paused_input.py`, `tests/unit/tools/test_resume_paused_input/test_resume_paused_input_tdd.py`, `tools/resume_paused_transport.py` and the `tests/unit/tools/test_resume_paused_transport` package (package file, tdd and pbt files).
+3. `feat(resume-paused): add delivery ports and guard`: `tools/resume_paused_delivery_model.py`, `tools/resume_paused_guard.py` and the `tests/unit/tools/test_resume_paused_guard` package (package file and tdd file).
+4. `feat(resume-paused): replan one checkout per send`: `tools/resume_paused_planner.py` and `tests/unit/tools/test_resume_paused_planner/test_resume_paused_planner_replan_tdd.py`.
+5. `feat(resume-paused): deliver guarded pane actions`: `tools/resume_paused_delivery_checks.py`, `tools/resume_paused_delivery.py`, the `tests/unit/tools/test_resume_paused_delivery` package (package file, `delivery_world.py`, two tdd files), and the `tests/unit/tools/test_resume_paused_delivery_checks` and `tests/unit/tools/test_resume_paused_delivery_model` packages (package file and tdd file each).
+6. `docs(resume-paused): record step 6 validation`: `.vscode/settings.json` (the `EACCES` project word) and `docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md`.
+
+Round 3 changes paths in groups 3, 5 and 6 only; membership, order and subjects are unchanged. The commit-plan checker reports the plan valid and ready. The code review transcript is not staged and goes to the residual commit.
+
+### Writer response for step 6 resume-paused (round 3)
+
+Writer response:
+
+Both round 2 findings are accepted and repaired; there is no disagreement. Your staged Step 6 rows were the starting point of the updated validation plan, which reads Yes again with the round 2 repairs recorded and the missing-work list removed.
+
+- **Deadline through the proof path**: `DeliveryPorts.provers` now holds one `ProverFactory` per host (`Callable[[float], InputProver]`). Each acceptance proof calls the factory with the send's remaining budget (at most 30 seconds) and proves through the prover it returns, so the Step 8 composition builds the Codex prover with a pane capture bounded by those seconds; Step 4's `InputProver` and `PaneCapture` contracts stay unchanged. No step starts once the budget is spent: the acceptance closure returns before building a prover when the Claude prompt read ended at or after the deadline; the Claude clear confirmation does not list panes after it; `prepare` stops with `deadline-passed` after its listing and after the injected checks; the recovery stops before its last capture when the checks or the profile read spent the budget. `bound()` never grants a negative bound. Regressions: the concrete `CodexInputProver` with a recording capture, proof started half a second before the deadline, records a 0.5-second grant and no transport call follows the ask; a slow log read builds no prover; the prover of a prompt proof gets 30 seconds; a recovery check spending 45 seconds stops before the last capture and the Enter; a recovery profile read spending 45 seconds stops before the last capture too.
+- **Exact footer layout**: `InputScreen.footer_pattern` became `footer_lines: tuple[str, ...]`, one whole-line pattern per expected footer line, in order. `_closed` requires exactly that many lines below the input line, each matching its own entry; an invalid pattern or an empty layout with any line below fails. It applies to the empty pre-input box, the owned command and the clear confirmation. Regressions: a repeated footer and a missing footer through recovery (no Enter, `resume-recovery-withheld-capture`) and through `read_input`, an empty box missing its footer, and an invalid footer pattern.
+- **Commit plan**: groups, order and subjects are unchanged. The bodies of group 3 (model), group 5 (the budget now bounds each prover; the footer layout; new tests) and group 6 (round 1 and round 2 repairs, prover factories) follow the repairs.
+
+### Reviewer focus for step 6 resume-paused (round 3)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-6-round-3 -->
+
+## Round 3 by reviewer - Step 6
+
+- Recorded: 2026-11-20T22:09:07+01:00
+- Exchange: code/code/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.resume-paused.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 6
+- Outcome: answer
+
+### Assessed index identity for step 6 resume-paused (exchange 1) (round 3)
+
+Baseline index tree: 6aea09375a2c7e9ad56cdb525105cf6900b65d3c
+
+Assessed index tree: 39570dd570c04b75ccbd1d0ca0fbdd0f5ca75364
+
+### Implementation check for step 6 resume-paused (exchange 1) (round 3)
+
+Result:
+
+No. Step 6 has NOT been fully implemented. The footer finding is resolved. The deadline finding remains open for chained checks and nested proof operations.
+
+Validation plan effects:
+
+Updated the Step 6 analysis and missing-work row in `docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md`.
+
+### Pre-repair mandatory checks and coverage for step 6 resume-paused (exchange 1) (round 3)
+
+The writer reports 7,147 tests passed and 100% line coverage over `tools` on the request tree. I reviewed the concrete prover, its factory, the ordered checks, footer matching and staged regression tests. The slow-capture test uses immediate version evidence and the slow-check test supplies one check. Neither exercises a blocking first operation followed by a second. I did not repeat the suite.
+
+### Resolved validation set and sources for step 6 resume-paused (exchange 1) (round 3)
+
+Project validation resolved to `ghog day --full=speed --whole-suite`, whole scope. The reviewer-staged metadata delta passed its whitespace check.
+
+### Resolver drift and direction for step 6 resume-paused (exchange 1) (round 3)
+
+None.
+
+### Repository state around validation for step 6 resume-paused (exchange 1) (round 3)
+
+Request and assessed baseline both matched `6aea09375a2c7e9ad56cdb525105cf6900b65d3c`. Only the validation plan and its index entry changed during assessment. The umbrella comparison was inapplicable and unchanged.
+
+### Repair inventory for step 6 resume-paused (exchange 1) (round 3)
+
+Repairs made:
+
+- Polishing-only review metadata. Recorded the verdict and the remaining deadline finding.
+
+Paths staged:
+
+- `docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md`
+
+### Commit plan assessment for step 6 resume-paused (exchange 1) (round 3)
+
+The independent checker returned `valid`, `ready: true`, and zero diagnostics. All 25 staged paths are assigned once in six ordered groups. The bodies for groups 5 and 6 should reflect the remaining work when refreshed.
+
+1. `docs(resume-paused): amend Q05 for code-first steps`
+   - `docs/v0.14.0/plan.v0.14.0.resume-paused.md`
+2. `feat(resume-paused): add the shell-free transport`
+   - `tools/resume_paused_input.py`
+   - `tests/unit/tools/test_resume_paused_input/test_resume_paused_input_tdd.py`
+   - `tools/resume_paused_transport.py`
+   - `tests/unit/tools/test_resume_paused_transport/__init__.py`
+   - `tests/unit/tools/test_resume_paused_transport/test_resume_paused_transport_tdd.py`
+   - `tests/unit/tools/test_resume_paused_transport/test_resume_paused_transport_pbt.py`
+3. `feat(resume-paused): add delivery ports and guard`
+   - `tools/resume_paused_delivery_model.py`
+   - `tools/resume_paused_guard.py`
+   - `tests/unit/tools/test_resume_paused_guard/__init__.py`
+   - `tests/unit/tools/test_resume_paused_guard/test_resume_paused_guard_tdd.py`
+4. `feat(resume-paused): replan one checkout per send`
+   - `tools/resume_paused_planner.py`
+   - `tests/unit/tools/test_resume_paused_planner/test_resume_paused_planner_replan_tdd.py`
+5. `feat(resume-paused): deliver guarded pane actions`
+   - `tools/resume_paused_delivery_checks.py`
+   - `tools/resume_paused_delivery.py`
+   - `tests/unit/tools/test_resume_paused_delivery/__init__.py`
+   - `tests/unit/tools/test_resume_paused_delivery/delivery_world.py`
+   - `tests/unit/tools/test_resume_paused_delivery/test_resume_paused_delivery_tdd.py`
+   - `tests/unit/tools/test_resume_paused_delivery/test_resume_paused_delivery_recovery_tdd.py`
+   - `tests/unit/tools/test_resume_paused_delivery_checks/__init__.py`
+   - `tests/unit/tools/test_resume_paused_delivery_checks/test_resume_paused_delivery_checks_tdd.py`
+   - `tests/unit/tools/test_resume_paused_delivery_model/__init__.py`
+   - `tests/unit/tools/test_resume_paused_delivery_model/test_resume_paused_delivery_model_tdd.py`
+6. `docs(resume-paused): record step 6 validation`
+   - `.vscode/settings.json`
+   - `docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md`
+
+### Findings and boundaries for step 6 resume-paused (exchange 1) (round 3)
+
+Unresolved findings:
+
+- The 100-second deadline is still checked around groups of operations. In `_selected`, if the first recovery check consumes the remaining time and returns `None`, the second check still runs. In `CodexInputProver.prove`, version evidence is read before the capture, but the timeout supplied to `ProverFactory` was calculated before that read. A proof begun at 99.5 seconds can finish the version read at 100.5 seconds and then start a capture with the stale half-second grant. The outer expiry check prevents acceptance but the guard stays held during the additional work. Use one absolute deadline or a callable that computes remaining time at each boundary. Stop before each subsequent check and before each nested capture or proof read when time is exhausted. Cover two ordered recovery checks and a concrete prover whose version read consumes part or all of its remaining time. Assert that the second check and capture are skipped on expiry and that a capture started before expiry receives only the time still available.
+
+Boundary-crossing work: None.
+
+### Writer instructions for step 6 resume-paused (exchange 1) (round 3)
+
+Carry the same expiry through the chain and enforce it at each operation. Exercise both a reduced remaining duration and exhaustion before the next operation. Keep the exact-footer behavior and rerun the resolved suite after repair.
+
+### Decision rationale for step 6 resume-paused (exchange 1) (round 3)
+
+Changes requested. An acceptance result completed after expiry is discarded, but the current code can still start additional work after the deadline while holding the checkout guard. Q05 allows the code-first assessment with production profiles and live host evidence still open.
+
+### Final reviewer decision for step 6 resume-paused (exchange 1) (round 3)
+
+Decision: changes-requested. The writer must address the concrete instructions and publish another review round. This advisory answer does not authorize a commit.
+
+<!-- review-entry-id: answer-step-6-round-3 -->
+
+## Round 4 by requestor - Step 6
+
+- Recorded: 2026-11-20T22:23:26+01:00
+- Exchange: code/code/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.resume-paused.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 6
+- Outcome: request
+
+### Review identity for step 6 resume-paused (round 4)
+
+Umbrella draft: none
+Implementation plan: docs/v0.14.0/plan.v0.14.0.resume-paused.md
+Implementation step: 6
+Review round: 4
+
+### Code review evidence for step 6 resume-paused (round 4)
+
+request_index_tree: 6e291067218a908a73f70ddfd88487c5e7cebf7f
+resolved_validation_set:
+
+- `ghog day --full=speed --whole-suite` (sources: project)
+
+test_scope:
+{"fingerprint": "686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6", "group": null, "proof": "speed", "requirement": "docs/v0.14.0/feature-request.v0.14.0.resume-paused.md", "scope": "whole"}
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: docs(resume-paused): amend Q05 for code-first steps
+group 1 path: docs/v0.14.0/plan.v0.14.0.resume-paused.md
+group 2: feat(resume-paused): add the shell-free transport
+group 2 path: tools/resume_paused_input.py
+group 2 path: tests/unit/tools/test_resume_paused_input/test_resume_paused_input_tdd.py
+group 2 path: tools/resume_paused_transport.py
+group 2 path: tests/unit/tools/test_resume_paused_transport/__init__.py
+group 2 path: tests/unit/tools/test_resume_paused_transport/test_resume_paused_transport_tdd.py
+group 2 path: tests/unit/tools/test_resume_paused_transport/test_resume_paused_transport_pbt.py
+group 3: feat(resume-paused): add delivery ports and guard
+group 3 path: tools/resume_paused_delivery_model.py
+group 3 path: tools/resume_paused_guard.py
+group 3 path: tests/unit/tools/test_resume_paused_guard/__init__.py
+group 3 path: tests/unit/tools/test_resume_paused_guard/test_resume_paused_guard_tdd.py
+group 4: feat(resume-paused): replan one checkout per send
+group 4 path: tools/resume_paused_planner.py
+group 4 path: tests/unit/tools/test_resume_paused_planner/test_resume_paused_planner_replan_tdd.py
+group 5: feat(resume-paused): deliver guarded pane actions
+group 5 path: tools/resume_paused_delivery_checks.py
+group 5 path: tools/resume_paused_budget.py
+group 5 path: tools/resume_paused_delivery.py
+group 5 path: tests/unit/tools/test_resume_paused_budget/__init__.py
+group 5 path: tests/unit/tools/test_resume_paused_budget/test_resume_paused_budget_tdd.py
+group 5 path: tests/unit/tools/test_resume_paused_delivery/__init__.py
+group 5 path: tests/unit/tools/test_resume_paused_delivery/delivery_world.py
+group 5 path: tests/unit/tools/test_resume_paused_delivery/test_resume_paused_delivery_tdd.py
+group 5 path: tests/unit/tools/test_resume_paused_delivery/test_resume_paused_delivery_recovery_tdd.py
+group 5 path: tests/unit/tools/test_resume_paused_delivery_checks/__init__.py
+group 5 path: tests/unit/tools/test_resume_paused_delivery_checks/test_resume_paused_delivery_checks_tdd.py
+group 5 path: tests/unit/tools/test_resume_paused_delivery_model/__init__.py
+group 5 path: tests/unit/tools/test_resume_paused_delivery_model/test_resume_paused_delivery_model_tdd.py
+group 6: docs(resume-paused): record step 6 validation
+group 6 path: .vscode/settings.json
+group 6 path: docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md
+staged path: .vscode/settings.json
+staged path: docs/v0.14.0/plan.v0.14.0.resume-paused.md
+staged path: docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md
+staged path: tests/unit/tools/test_resume_paused_budget/__init__.py
+staged path: tests/unit/tools/test_resume_paused_budget/test_resume_paused_budget_tdd.py
+staged path: tests/unit/tools/test_resume_paused_delivery/__init__.py
+staged path: tests/unit/tools/test_resume_paused_delivery/delivery_world.py
+staged path: tests/unit/tools/test_resume_paused_delivery/test_resume_paused_delivery_recovery_tdd.py
+staged path: tests/unit/tools/test_resume_paused_delivery/test_resume_paused_delivery_tdd.py
+staged path: tests/unit/tools/test_resume_paused_delivery_checks/__init__.py
+staged path: tests/unit/tools/test_resume_paused_delivery_checks/test_resume_paused_delivery_checks_tdd.py
+staged path: tests/unit/tools/test_resume_paused_delivery_model/__init__.py
+staged path: tests/unit/tools/test_resume_paused_delivery_model/test_resume_paused_delivery_model_tdd.py
+staged path: tests/unit/tools/test_resume_paused_guard/__init__.py
+staged path: tests/unit/tools/test_resume_paused_guard/test_resume_paused_guard_tdd.py
+staged path: tests/unit/tools/test_resume_paused_input/test_resume_paused_input_tdd.py
+staged path: tests/unit/tools/test_resume_paused_planner/test_resume_paused_planner_replan_tdd.py
+staged path: tests/unit/tools/test_resume_paused_transport/__init__.py
+staged path: tests/unit/tools/test_resume_paused_transport/test_resume_paused_transport_pbt.py
+staged path: tests/unit/tools/test_resume_paused_transport/test_resume_paused_transport_tdd.py
+staged path: tools/resume_paused_budget.py
+staged path: tools/resume_paused_delivery.py
+staged path: tools/resume_paused_delivery_checks.py
+staged path: tools/resume_paused_delivery_model.py
+staged path: tools/resume_paused_guard.py
+staged path: tools/resume_paused_input.py
+staged path: tools/resume_paused_planner.py
+staged path: tools/resume_paused_transport.py
+```
+
+### Validation scope for step 6 resume-paused (round 4)
+
+Validation scope: the whole suite.
+
+### Requestor assessment for step 6 resume-paused (round 4)
+
+Step 6 is fully implemented after the round 3 repair, code-first under the user's 2026-11-20 amendment of plan Q05. The round 3 finding is repaired with regression tests:
+
+- the prover factory receives the send's remaining-time callable, and the budget-bounded readers of `tools/resume_paused_budget.py` read the time left at each nested proof read and read nothing once it is spent;
+- the injected checks stop before each check once the budget is spent.
+
+The implementation check records `Yes. Step 6 has been fully implemented.` again, with the round 3 repair listed.
+
+- Tests: `ghog day --full=speed --whole-suite` exit 0 at 2026-11-20T22:22:28+01:00 with 7157 tests, 100% coverage, no outlier and no exclusion, slowest call 0.31 s. Its check.bat reflowed two import blocks of staged files, restaged unchanged otherwise; the request index tree `6e291067218a908a73f70ddfd88487c5e7cebf7f` holds exactly the validated content.
+- Static checks: the same walk's `check.bat` passes ty, pyright strict, ruff, radon, vulture, big files, Markdown (the transcript included), ShellCheck and the end-of-file check; `spellcheck.bat check` reports no unknown word on the validation plan.
+- Coverage: 100% over `tools`; the new module has its own leaf, `tests/unit/tools/test_resume_paused_budget/`.
+- Architecture: the bounded readers are adapters over the Step 1 and Step 4 reader ports, composed per proof by the Step 8 factory; Step 4's contracts are unchanged; the state machine only passes the remaining-time callable and asks the deadline before each check.
+- Performance: one extra clock read per nested proof read and per injected check; no new pass over panes or captures.
+- File size: `tools/resume_paused_delivery.py` is 573 lines, in the 550 to 650 band below the ceiling, disclosed in the validation plan; `tools/resume_paused_budget.py` is 106.
+- Feature integrity: unchanged from round 3.
+- Open rows (validation plan):
+
+  - composition by Step 8: profile gate, agent-log reader, input prover factories built from the bounded readers, `PlanRecheck`, the bounded runner factory, guard and clock;
+  - live host evidence: two-process guard, selector globs, ask results, draft reporting, screen and log signatures, the exact footer layout, and whether a new conversation wipes an earlier cleared line.
+
+### Implementation report for step 6 resume-paused (round 4)
+
+Step 6 delivers guarded pane actions with bounded acceptance. The user amended plan Q05 on 2026-11-20, when Step 6 was launched, so Steps 6 to 8 proceed code-first against the empty profile registry; no real pane can receive input until both hosts are pinned. The step adds five modules and five test leaves, adds `plan_checkout` to the Step 5 planner and a process bound to the Step 4 runner, and amends the plan's Q05 row. Round 2 repaired the six round 1 findings, round 3 the two round 2 findings, and round 4 repairs the round 3 finding.
+
+- `tools/resume_paused_guard.py`, the per-checkout OS guard (design Q07=A): `CheckoutGuard.acquire` names an empty file by the SHA-256 of the canonical checkout key in `<temp>\llm-shared-resume-paused\`, refuses a guard folder inside or equal to the checkout (or unparsable) before opening anything, opens the file non-inheritable and asks the primitive to lock its first byte without waiting. `NativeFileLock.try_lock` returns `acquired`, `held` for `EACCES` or `EDEADLK` (another handle holds it), and `unavailable` for any other lock or seek error. Every non-acquired state, and a raising attempt, closes the descriptor; `held` is an expected skip, `unavailable` fails that checkout alone. `GuardLease` unlocks then closes in a `finally` on every exit of its `with` block, and a second release does nothing. The OS drops the lock with the handle; the file carries no content.
+- `tools/resume_paused_transport.py`, the shell-free transport: `ask_arguments` returns `tuios ask-agent --select <selector> --yes --stall-timeout 60000 --timeout 100000 --lines 1 --json -- <command>`; `enter_arguments` returns `tuios send-keys -s <session> -w <full pane id> Enter`. `selector_value` replaces each space of a live session or pane name with `*` and refuses an empty name, any other glob character and any non-printing or non-space blank. `resolve_selector` matches every listed pane more broadly than TUIOS (case-insensitive, a wildcard crossing any character) and requires the match set to be exactly the target UUID. `TuiosTransport(runner_for)` runs `observe`, `capture`, `ask` and `enter`, each on a runner the factory builds for the seconds the caller grants; `select` does no IO. The caller environment is inherited unchanged; the ask's exit code is report-only.
+- `tools/resume_paused_input.py`: `SubprocessRunner` takes its process bound as a constructor parameter, 30 seconds by default for every existing caller; the delivery's factory builds one per call.
+- `tools/resume_paused_delivery_model.py`, vocabulary and ports: `Phase`, `DeliveryOutcome`, `ClearOutcome`, `Refusal` with a `failed` severity, `GuardState`, `ActionReport`, `CheckoutDelivery`, `SendStep`, `InputScreen` (input prefix, placeholder, working and cleared signatures and, since round 3, `footer_lines`, the exact footer layout) and `DeliveryProfile`, `LogKind` and `LogEvent`, `ACTION_BUDGET` (100 s), `CALL_BOUND_SECONDS` (30 s), and the ports `PreSendCheck`, `ProfileGate`, `AgentLog`, `Sleeper`, `PaneTransport` (whose blocking calls take a `timeout`), `GuardPort`, `PairDelivery` and `Takeover`, bundled in `DeliveryPorts`, whose `provers` hold one `ProverFactory` per host; since round 4 a factory receives the send's `Remaining` callable rather than a figure. `UnpinnedProfiles` refuses every pane; `NoTakeover` reports every conditional reviewer pending until Step 7. The model imports no adapter at run time.
+- `tools/resume_paused_delivery_checks.py`, fresh pre-send checks: `target_refusal` requires the planned UUID listed once, in its planned session, host and checkout, not the caller's pane nor an excluded session or pane label, and eligible through Step 5's `input_eligibility`; before the recovery Enter only, a stale working status is tolerated while a blocked or draft-holding pane, an idle pane that is not ready and an unknown state refuse it. `PlanRecheck` replans the checkout through `plan_checkout` from the same fresh observation and requires the same role, host, session, pane, clear flag, kind family, native command and marker pane, role and binding; before the Enter the target's own activity is read as ready.
+- `tools/resume_paused_planner.py`: `plan_checkout(request, observation, ports, root)` runs the same checkout planner for one root from a fresh observation, `None` without a live pane or a saved prompt.
+- `tools/resume_paused_delivery.py`, run and guard: `deliver_run` returns nothing for a dry run or a run-wide refusal, then runs one worker per planned checkout on a thread pool of at most eight; at most one input operation per pane. Each worker holds its guard through the resume, then each conditional reviewer handed to the injected takeover, which may deliver it under the same guard with extra checks; no reviewer after an unaccepted resume.
+- Same module, each send: one fresh listing (bounded by the remaining budget during a send, 30 seconds before), `target_refusal`, the transport's `select` for every phase (round 2: the recovery Enter too, which still names the full UUID), every injected check, then the pane's profile again, unchanged within the action and with an input prover. A Claude send needs a readable agent log; a Codex send needs a pre-input capture whose input box shows only the placeholder with exactly the pinned footer layout below it (other text skips as `pane-draft`; no input box, an unrecognized line below, no capture or no screen signatures fail). Each send has its own 100-second budget from the ask; the ask's bound is the whole budget, every later call's bound is the remaining budget capped at 30 seconds. After each acceptance proof the clock is read again: a proof completing at or after the deadline is not acceptance (round 2). Each proof uses a prover the factory builds from the send's remaining-time callable; the Step 8 composition builds it from the budget-bounded readers of `tools/resume_paused_budget.py` (versions, capture, session store, transcripts), each of which reads the time left at its own call and reads nothing once it is spent (round 4). No step starts once the budget is spent: no prover after a slow prompt read, no listing after a slow clear-event read, `deadline-passed` after a slow listing in `prepare` and before each injected check (round 4), no last capture after slow recovery checks (round 3). Unproved acceptance is `unconfirmed`; nothing is retyped.
+- Same module, clear: `--clear` applies to a resume action only. A Claude clear is skipped as `redundant` when the log holds a clear strictly after the pause and no prompt after the last one; otherwise Claude confirmation needs a clear event at or after the send and a fresh ready pane, and Codex confirmation needs one more pinned cleared line than the pre-clear capture on an empty input box (round 2: an old banner with an unrelated change never confirms). An unconfirmed clear fails the action with no resume.
+- Same module, Codex recovery Enter, at most one per send (round 2 order): a capture reading exactly this send's command as the whole input box (exactly the pinned footer layout below, one line per entry in order, no working line, no placeholder, the command once on screen); a one-second gap; the fresh recovery checks with the selector and the unchanged profile; a last capture that must be identical; then, budget remaining, one `send-keys` Enter bounded by the remaining budget. A capture completing at or after the deadline stops the attempt. Any other reading, an edit (including one made during the checks), a refused check or a changed profile withholds the Enter for the rest of the send, with a note; an empty input box withholds nothing. A refused Enter is still spent. A background-shell line is noted only.
+- Tests: `tests/unit/tools/test_resume_paused_guard/` (path spellings, held and unavailable states, a raising attempt, the checkout as guard folder, folders in, beside or unparsable, release on errors, two native handles contending, a blocked folder, a native seek failure that is not contention), `tests/unit/tools/test_resume_paused_transport/` (argument lists with metacharacters, selector cases, the bounds granted to each call; properties as in round 1), `tests/unit/tools/test_resume_paused_delivery_model/`, `tests/unit/tools/test_resume_paused_delivery_checks/` (unchanged), `tests/unit/tools/test_resume_paused_delivery/` (`delivery_world.py` records every granted bound and lets captures and proofs spend declared time; round 2 adds the bounds of a recovered send, a proof finishing after the deadline, slow first and last ownership captures, a new selector collision at recovery, a multiline draft, an edit during the recovery checks, an unrecognized line below an empty box, an empty footer signature, the old clear banner through `cleared` and through a delivery, and a second banner confirming; round 3 adds the concrete `CodexInputProver` with a recording capture granted the last half second and no call after expiry, a slow log read building no prover, the bound granted to a prover, a recovery check and a recovery profile read spending the budget, and repeated, missing and invalid footer lines through recovery and `read_input`), plus `test_resume_paused_planner_replan_tdd.py` and the runner bound in the input leaf. No test starts a process or sleeps.
+- `tools/resume_paused_budget.py` (round 4): `BoundedVersions`, `BoundedCapture`, `BoundedSessionStore` and `BoundedTranscriptSource` wrap the Step 1 and Step 4 reader ports; with time left they read (the capture bounded by the time left at its call, at most 30 seconds), once the budget is spent they read nothing and report the evidence unavailable. Tests: `tests/unit/tools/test_resume_paused_budget/` (each reader with time left, spent, and the bound read at the call); in the delivery leaf, the concrete Codex prover composed from them with a version read spending 0, 0.3 or 1 second of the last half second, and two ordered recovery checks where the second is never asked once the first spent the budget.
+- Deviations: as in round 1 (delivery split into vocabulary, checks and state machine with one leaf per module; `plan_checkout` in the planner, 558 lines; the two-process guard test through two OS handles in one process; open composition and live rows in the validation plan). The live rows now include the Codex footer signature and whether a new conversation wipes an earlier cleared line. `.vscode/settings.json` gains `EACCES`.
+- `rg` is not available in this shell; contract inspection used the equivalent Grep search. No accepted duration exclusion exists.
+
+Writer notes: `.reviews/a.resume-paused.step6.journal.md` and `.reviews/a.resume-paused.step6.handoff.md`.
+
+### Change summary for step 6 resume-paused (round 4)
+
+Twenty-eight staged paths in six `a.commit` groups, in this order:
+
+1. `docs(resume-paused): amend Q05 for code-first steps`: `docs/v0.14.0/plan.v0.14.0.resume-paused.md`.
+2. `feat(resume-paused): add the shell-free transport`: `tools/resume_paused_input.py`, `tests/unit/tools/test_resume_paused_input/test_resume_paused_input_tdd.py`, `tools/resume_paused_transport.py` and the `tests/unit/tools/test_resume_paused_transport` package (package file, tdd and pbt files).
+3. `feat(resume-paused): add delivery ports and guard`: `tools/resume_paused_delivery_model.py`, `tools/resume_paused_guard.py` and the `tests/unit/tools/test_resume_paused_guard` package (package file and tdd file).
+4. `feat(resume-paused): replan one checkout per send`: `tools/resume_paused_planner.py` and `tests/unit/tools/test_resume_paused_planner/test_resume_paused_planner_replan_tdd.py`.
+5. `feat(resume-paused): deliver guarded pane actions`: `tools/resume_paused_delivery_checks.py`, `tools/resume_paused_budget.py`, `tools/resume_paused_delivery.py`, the `tests/unit/tools/test_resume_paused_budget` package (package file and tdd file), the `tests/unit/tools/test_resume_paused_delivery` package (package file, `delivery_world.py`, two tdd files), and the `tests/unit/tools/test_resume_paused_delivery_checks` and `tests/unit/tools/test_resume_paused_delivery_model` packages (package file and tdd file each).
+6. `docs(resume-paused): record step 6 validation`: `.vscode/settings.json` (the `EACCES` project word) and `docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md`.
+
+Round 4 changes paths in groups 3, 5 and 6 and adds the budget module and its test leaf to group 5; order and subjects are unchanged. The commit-plan checker reports the plan valid and ready. The code review transcript is not staged and goes to the residual commit.
+
+### Writer response for step 6 resume-paused (round 4)
+
+Writer response:
+
+The round 3 finding is accepted and repaired; there is no disagreement. Your staged Step 6 rows were the starting point of the updated validation plan, which reads Yes again with the round 3 repair recorded and the missing-work list removed.
+
+- **One remaining-time source carried through the chain**: `ProverFactory` now takes a `Remaining` callable (`Callable[[], float]`, the seconds left in the send at the moment of the call) instead of a figure computed before the proof; the delivery passes `partial(self.remaining, deadline)`. The new `tools/resume_paused_budget.py` holds the readers a factory builds each prover from: `BoundedVersions`, `BoundedCapture`, `BoundedSessionStore` and `BoundedTranscriptSource`. Each one calls `Remaining` at its own call, reads nothing and reports the evidence unavailable once the budget is spent, and the capture is bounded by the time left then, at most 30 seconds. The proof therefore fails closed before any nested read that would start after the deadline. Step 4's `InputProver`, `PaneCapture`, `CodexVersions`, `SessionStore` and `TranscriptSource` contracts stay unchanged; the Step 8 composition row in the validation plan names these readers.
+- **Ordered checks**: `_selected` asks the deadline before each injected check, not only after the loop, so a second check never runs once a first one spent the budget.
+- **Regressions**: the concrete `CodexInputProver` composed from the bounded readers, with the proof starting half a second before the deadline and a version read spending 0, 0.3 or 1 second. The capture is granted 0.5, then 0.2, then skipped, and nothing follows on the transport. Two ordered recovery checks, where the first spends 45 seconds, never reach the second at the recovery phase (it saw only the resume phase), and no Enter is sent. Each bounded reader has its own tests in `tests/unit/tools/test_resume_paused_budget/`: with time left, with the budget spent, and with the bound read at the call rather than at construction.
+- **File size**: `tools/resume_paused_delivery.py` is 573 lines, in the 550 to 650 band below the ceiling, disclosed in the validation plan; the budget readers live in their own module.
+- **Commit plan**: `tools/resume_paused_budget.py` and its test leaf join group 5, whose subject is unchanged; the bodies of groups 5 and 6 describe the repair. Groups, order and subjects are otherwise unchanged.
+
+### Reviewer focus for step 6 resume-paused (round 4)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-6-round-4 -->
+
+## Round 4 by reviewer - Step 6
+
+- Recorded: 2026-11-20T22:25:08+01:00
+- Exchange: code/code/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.resume-paused.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 6
+- Outcome: answer
+
+### Assessed index identity for step 6 resume-paused (exchange 1) (round 4)
+
+Baseline index tree: 6e291067218a908a73f70ddfd88487c5e7cebf7f
+
+Assessed index tree: 6e291067218a908a73f70ddfd88487c5e7cebf7f
+
+### Implementation check for step 6 resume-paused (exchange 1) (round 4)
+
+Result:
+
+Yes. Step 6 has been fully implemented within amended plan Q05’s code-first scope. The round 3 deadline finding is resolved. The concrete Codex prover obtains the current capture timeout after its version read, and each injected recovery check consults the same deadline before it runs.
+
+Validation plan effects:
+
+The step 6 verdict and validation rows already reflect the assessed behavior. The live two-process guard check, host signatures and Step 8 composition are recorded as open.
+
+### Pre-repair mandatory checks and coverage for step 6 resume-paused (exchange 1) (round 4)
+
+The writer reported 7,157 passing tests, 100% coverage over `tools`, and a passing static check. I inspected the staged implementation and regression cases. With 0.5 seconds remaining, the concrete-prover cases expect a capture grant of 0.5 or 0.2 seconds, or no capture after expiry. The ordered-check test asserts that a second recovery check never runs after the first spends the budget. Synchronous file and version reads check at entry. An in-flight read can finish late, and the outer acceptance check discards that result. I did not repeat the suite.
+
+### Resolved validation set and sources for step 6 resume-paused (exchange 1) (round 4)
+
+`ghog day --full=speed --whole-suite` (project source, whole scope).
+
+### Resolver drift and direction for step 6 resume-paused (exchange 1) (round 4)
+
+None. The current resolver matched the request.
+
+### Repository state around validation for step 6 resume-paused (exchange 1) (round 4)
+
+The request, baseline and assessed index tree all matched `6e291067218a908a73f70ddfd88487c5e7cebf7f`. Validation-state comparison was acceptable with no differences. No umbrella applies.
+
+### Repair inventory for step 6 resume-paused (exchange 1) (round 4)
+
+Repairs made: None.
+
+Paths staged: None.
+
+### Commit plan assessment for step 6 resume-paused (exchange 1) (round 4)
+
+`a.commit` remains accurate. The independent checker returned `valid`, `ready: true`, zero diagnostics, six ordered groups and 28 staged paths. Group 5 contains the bounded readers and their tests. Group 6 records the scope of validation.
+
+1. `docs(resume-paused): amend Q05 for code-first steps`
+   - `docs/v0.14.0/plan.v0.14.0.resume-paused.md`
+2. `feat(resume-paused): add the shell-free transport`
+   - `tools/resume_paused_input.py`
+   - `tests/unit/tools/test_resume_paused_input/test_resume_paused_input_tdd.py`
+   - `tools/resume_paused_transport.py`
+   - `tests/unit/tools/test_resume_paused_transport/__init__.py`
+   - `tests/unit/tools/test_resume_paused_transport/test_resume_paused_transport_tdd.py`
+   - `tests/unit/tools/test_resume_paused_transport/test_resume_paused_transport_pbt.py`
+3. `feat(resume-paused): add delivery ports and guard`
+   - `tools/resume_paused_delivery_model.py`
+   - `tools/resume_paused_guard.py`
+   - `tests/unit/tools/test_resume_paused_guard/__init__.py`
+   - `tests/unit/tools/test_resume_paused_guard/test_resume_paused_guard_tdd.py`
+4. `feat(resume-paused): replan one checkout per send`
+   - `tools/resume_paused_planner.py`
+   - `tests/unit/tools/test_resume_paused_planner/test_resume_paused_planner_replan_tdd.py`
+5. `feat(resume-paused): deliver guarded pane actions`
+   - `tools/resume_paused_delivery_checks.py`
+   - `tools/resume_paused_budget.py`
+   - `tools/resume_paused_delivery.py`
+   - `tests/unit/tools/test_resume_paused_budget/__init__.py`
+   - `tests/unit/tools/test_resume_paused_budget/test_resume_paused_budget_tdd.py`
+   - `tests/unit/tools/test_resume_paused_delivery/__init__.py`
+   - `tests/unit/tools/test_resume_paused_delivery/delivery_world.py`
+   - `tests/unit/tools/test_resume_paused_delivery/test_resume_paused_delivery_tdd.py`
+   - `tests/unit/tools/test_resume_paused_delivery/test_resume_paused_delivery_recovery_tdd.py`
+   - `tests/unit/tools/test_resume_paused_delivery_checks/__init__.py`
+   - `tests/unit/tools/test_resume_paused_delivery_checks/test_resume_paused_delivery_checks_tdd.py`
+   - `tests/unit/tools/test_resume_paused_delivery_model/__init__.py`
+   - `tests/unit/tools/test_resume_paused_delivery_model/test_resume_paused_delivery_model_tdd.py`
+6. `docs(resume-paused): record step 6 validation`
+   - `.vscode/settings.json`
+   - `docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md`
+
+### Findings and boundaries for step 6 resume-paused (exchange 1) (round 4)
+
+Unresolved findings: None.
+
+Boundary-crossing work: None.
+
+### Writer instructions for step 6 resume-paused (exchange 1) (round 4)
+
+Present the advisory commit-ready recommendation at the human decision gate. Keep the separate composition and live-evidence rows open.
+
+### Decision rationale for step 6 resume-paused (exchange 1) (round 4)
+
+Commit-ready for the staged step 6 code. All prior findings are resolved, the bound validation and coverage are reported green, and the reviewer made no repairs or staged changes. The commit decision belongs to the human.
+
+### Final reviewer decision for step 6 resume-paused (exchange 1) (round 4)
+
+Decision: commit-ready (advisory). The evidence floor is complete, but this recommendation does not authorize a commit; authority remains at the durable human gate.
+
+<!-- review-entry-id: answer-step-6-round-4 -->
+
+## Round 4 by human - Step 6 - human-confirmation
+
+- Recorded: 2026-11-20T23:21:50+01:00
+- Exchange: code/code/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.resume-paused.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 6
+- Outcome: human-confirmation
+
+Human choice: Commit
+Outcome: continue-owning-workflow
+
+<!-- review-entry-id: human-confirmation-round-4 -->
