@@ -60,6 +60,7 @@
     "conftests",
     "crashitem",
     "cutover",
+    "deleteall",
     "delitem",
     "diataxis",
     "disableable",

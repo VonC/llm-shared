@@ -5272,3 +5272,2268 @@ Human choice: Commit
 Outcome: continue-owning-workflow
 
 <!-- review-entry-id: human-confirmation-round-3 -->
+
+## Round 1 by requestor - Step 6
+
+- Recorded: 2026-11-20T19:23:14+01:00
+- Exchange: code/code/v0.14.0/git-cliff-provisioning
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: unrecorded
+- Implementation step: 6
+- Outcome: request
+
+### Review identity for step 6 git-cliff-provisioning (round 1)
+
+Umbrella draft: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+Implementation plan: docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.md
+Implementation step: 6
+Review round: 1
+
+### Code review evidence for step 6 git-cliff-provisioning (round 1)
+
+request_index_tree: 70dbca4a6e5a6af9d1a28c1643d5ead9ab4083b5
+resolved_validation_set:
+
+- `ghog day --full=speed --whole-suite` (sources: project)
+
+test_scope:
+{"fingerprint": "686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6", "group": null, "proof": "speed", "requirement": "docs/v0.14.0/feature-request.v0.14.0.git-cliff-provisioning.md", "scope": "whole"}
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: feat(release): give Git an input stream
+group 1 path: tools/release_workflow/git.py
+group 1 path: tests/unit/tools/release_workflow/test_git/test_git_tdd.py
+group 1 path: tests/unit/tools/release_workflow/conftest.py
+group 2: refactor(release): provision any install target
+group 2 path: tools/release_workflow/git_cliff/archive.py
+group 2 path: tools/release_workflow/git_cliff/cache.py
+group 2 path: tools/release_workflow/git_cliff/cache_lock.py
+group 2 path: tools/release_workflow/git_cliff/download_worker.py
+group 2 path: tools/release_workflow/git_cliff/manifest.py
+group 2 path: tools/release_workflow/git_cliff/installation.py
+group 2 path: tools/release_workflow/git_cliff/provisioning.py
+group 2 path: tests/unit/tools/release_workflow/test_git_cliff_archive/test_git_cliff_archive_tdd.py
+group 2 path: tests/unit/tools/release_workflow/test_git_cliff_cache/test_git_cliff_cache_tdd.py
+group 2 path: tests/unit/tools/release_workflow/test_git_cliff_download_worker/test_git_cliff_download_worker_tdd.py
+group 2 path: tests/unit/tools/release_workflow/test_git_cliff_provisioning/test_git_cliff_provisioning_tdd.py
+group 2 path: tests/unit/tools/release_workflow/test_git_cliff_native_evidence/native_checks.v1.json
+group 3: feat(release): build the snapshot-tag fixture
+group 3 path: tools/release_workflow/git_cliff/fixture_history.py
+group 4: feat(release): compare two git-cliff versions
+group 4 path: tools/release_workflow/git_cliff/comparison.py
+group 5: feat(release): acquire git-cliff evidence candidates
+group 5 path: tools/release_workflow/git_cliff/candidates.py
+group 6: feat(release): add the reviewed evidence bundle
+group 6 path: tools/release_workflow/git_cliff/bundle.py
+group 7: test(release): cover the evidence modules
+group 7 path: tests/unit/tools/release_workflow/git_cliff_harness_fake.py
+group 7 path: tests/unit/tools/release_workflow/git_cliff_children_fake.py
+group 7 path: tests/unit/tools/release_workflow/git_cliff_support.py
+group 7 path: tests/unit/tools/release_workflow/test_git_cliff_fixture/__init__.py
+group 7 path: tests/unit/tools/release_workflow/test_git_cliff_fixture/test_git_cliff_fixture_tdd.py
+group 7 path: tests/unit/tools/release_workflow/test_git_cliff_comparison/__init__.py
+group 7 path: tests/unit/tools/release_workflow/test_git_cliff_comparison/test_git_cliff_comparison_tdd.py
+group 7 path: tests/unit/tools/release_workflow/test_git_cliff_candidates/__init__.py
+group 7 path: tests/unit/tools/release_workflow/test_git_cliff_candidates/test_git_cliff_candidates_tdd.py
+group 7 path: tests/unit/tools/release_workflow/test_git_cliff_candidates/test_git_cliff_candidates_records_tdd.py
+group 7 path: tests/unit/tools/release_workflow/test_git_cliff_bundle/__init__.py
+group 7 path: tests/unit/tools/release_workflow/test_git_cliff_bundle/test_git_cliff_bundle_tdd.py
+group 7 path: tests/unit/tools/release_workflow/test_git_cliff_bundle/test_git_cliff_bundle_review_tdd.py
+group 7 path: tests/unit/tools/release_workflow/test_git_cliff_bundle/test_git_cliff_bundle_pbt.py
+group 8: feat(release): run the evidence harness by hand
+group 8 path: tools/release_workflow/git_cliff/harness.py
+group 8 path: tools/release_workflow/git_cliff/__init__.py
+group 8 path: tests/unit/tools/release_workflow/test_git_cliff_harness/__init__.py
+group 8 path: tests/unit/tools/release_workflow/test_git_cliff_harness/test_git_cliff_harness_tdd.py
+group 9: docs(git-cliff-provisioning): record step 6 validation
+group 9 path: docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.validation.md
+staged path: docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.validation.md
+staged path: tests/unit/tools/release_workflow/conftest.py
+staged path: tests/unit/tools/release_workflow/git_cliff_children_fake.py
+staged path: tests/unit/tools/release_workflow/git_cliff_harness_fake.py
+staged path: tests/unit/tools/release_workflow/git_cliff_support.py
+staged path: tests/unit/tools/release_workflow/test_git/test_git_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_archive/test_git_cliff_archive_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_bundle/__init__.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_bundle/test_git_cliff_bundle_pbt.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_bundle/test_git_cliff_bundle_review_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_bundle/test_git_cliff_bundle_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_cache/test_git_cliff_cache_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_candidates/__init__.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_candidates/test_git_cliff_candidates_records_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_candidates/test_git_cliff_candidates_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_comparison/__init__.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_comparison/test_git_cliff_comparison_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_download_worker/test_git_cliff_download_worker_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_fixture/__init__.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_fixture/test_git_cliff_fixture_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_harness/__init__.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_harness/test_git_cliff_harness_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_native_evidence/native_checks.v1.json
+staged path: tests/unit/tools/release_workflow/test_git_cliff_provisioning/test_git_cliff_provisioning_tdd.py
+staged path: tools/release_workflow/git.py
+staged path: tools/release_workflow/git_cliff/__init__.py
+staged path: tools/release_workflow/git_cliff/archive.py
+staged path: tools/release_workflow/git_cliff/bundle.py
+staged path: tools/release_workflow/git_cliff/cache.py
+staged path: tools/release_workflow/git_cliff/cache_lock.py
+staged path: tools/release_workflow/git_cliff/candidates.py
+staged path: tools/release_workflow/git_cliff/comparison.py
+staged path: tools/release_workflow/git_cliff/download_worker.py
+staged path: tools/release_workflow/git_cliff/fixture_history.py
+staged path: tools/release_workflow/git_cliff/harness.py
+staged path: tools/release_workflow/git_cliff/installation.py
+staged path: tools/release_workflow/git_cliff/manifest.py
+staged path: tools/release_workflow/git_cliff/provisioning.py
+```
+
+### Validation scope for step 6 git-cliff-provisioning (round 1)
+
+Validation scope: the whole suite.
+
+### Requestor assessment for step 6 git-cliff-provisioning (round 1)
+
+Writer assessment for Step 6 of the git-cliff-provisioning plan, round 1: the
+step is fully implemented, and the implementation check records `Yes. Step 6
+has been fully implemented.` in the staged validation plan (the document
+status stays `No, it is not implemented.` while Steps 7 and 8 are not
+started).
+
+Evidence, all on the staged tree:
+
+- Red first: `ghog single` on the new leaves and the impacted ones failed at
+  collection on the missing names (exit 4, 11 errors).
+- Targeted: `ghog single` on the Step 6 leaves, `test_git` and the cache,
+  provisioning, installation, cache lock, manifest, worker and archive leaves,
+  472 passed (after one lifecycle CPU overrun of the bundle round-trip
+  property test, now 8 examples on the in-memory `tmp_path`).
+- Native record: the recorder with `--milestone step-5`, after the edits of
+  the covered sources (`cache.py`, `cache_lock.py`, `installation.py`,
+  `provisioning.py`, `download_worker.py`), passed 14 of 14 and the stalled
+  runner timeout demonstration; the evidence leaf accepts the record on the
+  final sources.
+- Default walk: `ghog day --whole-suite` exit 0. Earlier walks stopped at
+  check (typing of JSON test helpers, magic values, a pairwise loop, two
+  grade C tests, now split) and at the affected tests (the `read_only_git`
+  stand-in without the new `stream` keyword, now updated).
+- Review validation, `ghog day --full=speed --whole-suite` (built-in default,
+  no `.review-validation`): exit 0 with `cov=100 outliers=0 excluded=0
+  proof=speed`, 8057 tests, slowest call 0.31 s (outside this step), on index
+  tree `70dbca4a6e5a6af9d1a28c1643d5ead9ab4083b5`. No budget was changed and
+  no exclusion is accepted.
+- `rg -n 'manifest' tools/release_workflow/git_cliff/harness.py
+  tools/release_workflow/git_cliff/comparison.py
+  tools/release_workflow/git_cliff/candidates.py`: docstrings and the import
+  of `PLATFORM_TRIPLE` and `asset_url`, reads only.
+  `rg -n 'pragma: no cover' tools/release_workflow/git_cliff`: only the
+  harness `if __name__ == "__main__":` line.
+- Line counts: `candidates.py` 432, `fixture_history.py` 225,
+  `comparison.py` 291, `bundle.py` 546, `harness.py` 301, `git.py` 348;
+  every Python file below 550; the advisory overruns are recorded as
+  variance in the validation plan.
+- Markdown check and cSpell on the validation plan: clean.
+
+Architecture: candidates reach the cache, lock, worker, archive check,
+extraction, probe, guard and invocation only through
+`provisioning.provision_target` and an `InstallTarget`; production keeps
+`manifest_target`, with unchanged behavior. Git stays one boundary, with the
+input stream as its parameter. The harness is the only composition root
+(`HarnessContext`); the other modules take every resource as a parameter.
+Performance: linear in cases, hunks, entries and output bytes; the ranges take
+one pass over each listing; `difflib` runs only where outputs differ, which
+the plan's complexity bound allows for this by-hand harness. Feature
+integrity: production provisioning, the reuse check, `GitExecutionContext.run`
+without input and the worker's outcome line are unchanged; the manifest still
+admits no pin.
+
+Please check in particular: `InstallTarget` and `manifest_target` keeping
+production identical; the acceptance of `candidates` (record under the lock,
+listing on a first acquisition, `before_publish` timing); the non-reusable
+first acquisition; `run_comparison`'s worktree cleanup; the strict bundle
+reader and the review binding; and the harness's rerun path (ranges, fixture
+hashes, digests).
+
+### Implementation report for step 6 git-cliff-provisioning (round 1)
+
+Step 6, "Compatibility evidence harness", is the sixth of eight steps of the
+git-cliff-provisioning plan. It ships the internal comparison modules the
+evidence run of Step 7 uses by hand; nothing in a release, a build or a
+`gcliff` call imports them, and the manifest still admits no pin.
+
+Git input stream, `tools/release_workflow/git.py` (plan decision Q09):
+
+- `GitExecutionContext.run(arguments, *, cwd, check=True, input=None)`:
+  given bytes go through `subprocess.run(input=...)` without `stdin`; without
+  them the existing stdin rule applies. `_execute` takes them as `stream`, and
+  a new `_spawn` holds both process starts. The `read_only_git` stand-in in
+  `tests/unit/tools/release_workflow/conftest.py` accepts the new keyword.
+
+Provisioning of any install target (Step 3 to 5 modules):
+
+- `installation.InstallTarget` (frozen): version, triple, asset, size,
+  member, URL, `accept(archive) -> sha256` (a `VerificationError` is the
+  verification stage), `before_publish()` (run after the entry record is
+  written and the owner file removed, before retirement and publication),
+  `reusable` and `entry_asset`. `install(layout, target, budget, seams,
+  lock)` uses the target everywhere the pin was used. `manifest_target(pin)`
+  keeps production exactly: verify against the manifest size and digest,
+  record the manifest digest, nothing before publication, reusable, no
+  archive comparison on reuse.
+- `provisioning.provision_target(layout, target, budget, *, seams, caller)`
+  runs the unchanged flow in the layout's namespace; `provision` calls it with
+  `manifest_target(pin)` in production. A non-reusable target skips the
+  lock-free check and the recheck under the lock (`_reuse`).
+- `cache.check_entry(..., asset_sha256=None)`: when given, the record's
+  `asset_sha256` must equal it, compared after the record read and before the
+  hash, so the candidate order is archive digest, executable, probe.
+- `archive.archive_identity(path)` (SHA-256 and size of a staged file, used
+  by `verify_archive`) and the narrower `ArchiveMember` protocol of
+  `extract_member`; `download_worker.outcome_fields(stdout)`, the parent's
+  reading of the outcome line, now used by the installation;
+  `cache_lock.publish_file`, the former private `_publish`;
+  `manifest.asset_url(version, asset)`, behind `download_url`.
+- The native record is refreshed at milestone `step-5` (14 of 14 passed),
+  since `cache.py`, `cache_lock.py`, `installation.py`, `provisioning.py`
+  and `download_worker.py` are covered sources.
+
+Fixture history, `tools/release_workflow/git_cliff/fixture_history.py`
+(design "Frozen inputs and the coverage matrix", Q14):
+
+- 20 declared commits and four annotated tags (`v0.1.0`, `v0.2.0-SNAPSHOT`,
+  `v0.2.0`, `v0.3.0-SNAPSHOT`, in `TAGS`); one merge; messages for every
+  group and skip rule of the dev_workflow `cliff.toml`, a breaking change, a
+  fix whose body matches the security parser, a revert and an unconventional
+  commit.
+- `stream()`: commits with `deleteall` and every file inline, `from` and
+  `merge` in parent order, author and committer with fixed dates and two
+  zones; tags with tagger, date, zone and message; `done` at the end.
+- `environment(source, global_config)`, `build(git, directory)` (`init
+  --quiet --template= --object-format=sha1 --initial-branch=main`, then
+  `fast-import --quiet --done` with the stream as input, then `for-each-ref
+  --format=%(refname)%00%(objectname) refs/heads/main refs/tags`, each with
+  `CONFIG`), `FixtureHashes` and `verify`.
+
+Comparison, `tools/release_workflow/git_cliff/comparison.py` (design
+"Frozen inputs and the coverage matrix", "Outputs and classification", Q13):
+
+- `FrozenInputs` (pin, baseline, llm-shared commit, `CliffToml`, fixture
+  hashes, ranges, `CandidateIdentity` values, `FLAGS`, `ENVIRONMENT`),
+  `RangeCase`, `RunDigest`, `CaseResult` (hunk identifiers `<case> #<n>`),
+  `ComparisonResult`, `Workspace`.
+- `history_ranges(git, *, cwd, revision, repository)`: `rev-list
+  --topo-order --reverse` and the tag records reachable from the revision,
+  ordered in one pass; full history, consecutive pairs, last tag to HEAD.
+- `run_environment(source, home)`; `run_comparison(inputs, invocations, git,
+  workspace)`: `worktree add --detach` of the frozen commit with
+  `core.hooksPath` on an empty directory, baseline then pin per case through a
+  fresh invocation each (`-c <bundle copy> -w <directory> -s footer --
+  [range]`, engine policy, captured output, `RUN_SECONDS` = 120), worktree
+  removed and `worktree prune` in `finally`; `differing_hunks` (unified diff,
+  three lines of context, line endings kept); `verify_rerun`.
+
+Candidates, `tools/release_workflow/git_cliff/candidates.py` (design
+"Candidate lifecycle and admission order", "Candidate cache"; plan decision
+Q19):
+
+- `parse_listing(version, metadata)` and `AssetListing`; `Candidate` with its
+  validation; `EVIDENCE_ONLY_VERSIONS`, `UPSTREAM_DIGEST`,
+  `EVIDENCE_ONLY_HTTPS` and `TRUST_BASIS` (the evidence-only basis states the
+  authorization of 2026-11-13 and that HTTPS anchored the first download).
+- `TrustRecord(path, version)`: `read`, `require`, `write_once` (through
+  `publish_file` without replacement; an existing record is a
+  `CandidateError`, never rewritten) and `compare(received)` (a
+  `VerificationError` naming the record).
+- `acquire_candidate(tooling_root, version, budget, seams, *, trust_path)`:
+  an existing record is the identity (`provision_candidate`); otherwise the
+  metadata worker (`WorkerRequest(mode="metadata")`, record-free, expiring 60
+  s after it started, one retry after 5 s for a retryable failure), the trust
+  kind decided before any download, and `provision_target` in the evidence
+  namespace with a non-reusable target whose acceptance compares with the
+  listed size and published digest and writes the record in
+  `before_publish`; a record found under the lock is compared instead.
+- `provision_candidate(...)`: target with `entry_asset` = the recorded digest;
+  its acceptance compares every new download with the record.
+
+Bundle, `tools/release_workflow/git_cliff/bundle.py` (design "Outputs and
+classification", "Statuses"; plan decision Q16):
+
+- `Bundle` and its parts; strict `read` (via `lock_records.decode_object`,
+  then each member's form, then the listed file digests) and `write`;
+  `canonical_projection`, `with_review`, `refreshed`; `require_complete` and
+  `require_admissible` as listed in the validation plan. The default location
+  is `tools/release_workflow/git_cliff/bundles/<pin>`; `pins` defaults to the
+  shipped `ADMITTED_PINS`.
+
+Harness, `tools/release_workflow/git_cliff/harness.py` (design "The
+harness", Q15):
+
+- `main(arguments, *, context=None)`, `HarnessContext`,
+  `production_context()`, `evidence_git(source, *, checkout, temporary)`.
+  A comparison: budget once, existing bundle of the same pair, baseline then
+  pin acquired, fixture built and verified, inputs frozen (HEAD commit,
+  `rev-parse <commit>:tools/dev_workflow`, `cat-file blob
+  <submodule>:cliff.toml` in the submodule, copied into the bundle) or reused
+  with the same ranges, comparison, `verify_rerun`, `write` with
+  `refreshed`. A review: `with_review` over the current bundle and today's
+  local date. Expected failures print one diagnostic and return 2.
+
+Tests: `git_cliff_harness_fake.py` (new), the children fake (metadata role,
+versions from cache paths, evidence namespace, `run_output`), the support
+module (any version), and the leaves `test_git_cliff_fixture`,
+`test_git_cliff_comparison`, `test_git_cliff_candidates` (acquisition and
+records), `test_git_cliff_bundle` (model, review binding, property test) and
+`test_git_cliff_harness`, plus additions to `test_git`, the cache,
+provisioning, worker and archive leaves.
+
+Also staged: the validation plan's Step 6 sections and the
+`git_cliff/__init__.py` docstring.
+
+Writer notes: `.reviews/a.git-cliff-provisioning.step6.journal.md` and
+`.reviews/a.git-cliff-provisioning.step6.handoff.md`.
+
+### Change summary for step 6 git-cliff-provisioning (round 1)
+
+Staged paths (38), grouped in the root `a.commit` (nine groups, checker
+`ready: true`):
+
+1. `feat(release): give Git an input stream`:
+   `tools/release_workflow/git.py`,
+   `tests/unit/tools/release_workflow/test_git/test_git_tdd.py`,
+   `tests/unit/tools/release_workflow/conftest.py`.
+2. `refactor(release): provision any install target`:
+   `tools/release_workflow/git_cliff/archive.py`,
+   `tools/release_workflow/git_cliff/cache.py`,
+   `tools/release_workflow/git_cliff/cache_lock.py`,
+   `tools/release_workflow/git_cliff/download_worker.py`,
+   `tools/release_workflow/git_cliff/manifest.py`,
+   `tools/release_workflow/git_cliff/installation.py`,
+   `tools/release_workflow/git_cliff/provisioning.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_archive/test_git_cliff_archive_tdd.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_cache/test_git_cliff_cache_tdd.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_download_worker/test_git_cliff_download_worker_tdd.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_provisioning/test_git_cliff_provisioning_tdd.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_native_evidence/native_checks.v1.json`.
+3. `feat(release): build the snapshot-tag fixture`:
+   `tools/release_workflow/git_cliff/fixture_history.py`.
+4. `feat(release): compare two git-cliff versions`:
+   `tools/release_workflow/git_cliff/comparison.py`.
+5. `feat(release): acquire git-cliff evidence candidates`:
+   `tools/release_workflow/git_cliff/candidates.py`.
+6. `feat(release): add the reviewed evidence bundle`:
+   `tools/release_workflow/git_cliff/bundle.py`.
+7. `test(release): cover the evidence modules`:
+   `tests/unit/tools/release_workflow/git_cliff_harness_fake.py`,
+   `tests/unit/tools/release_workflow/git_cliff_children_fake.py`,
+   `tests/unit/tools/release_workflow/git_cliff_support.py`, and the
+   `test_git_cliff_fixture`, `test_git_cliff_comparison`,
+   `test_git_cliff_candidates` and `test_git_cliff_bundle` leaves with their
+   `__init__.py` files. The shared harness fake imports all four modules, so
+   their tests follow them.
+8. `feat(release): run the evidence harness by hand`:
+   `tools/release_workflow/git_cliff/harness.py`,
+   `tools/release_workflow/git_cliff/__init__.py`, and the
+   `test_git_cliff_harness` leaf with its `__init__.py`.
+9. `docs(git-cliff-provisioning): record step 6 validation`:
+   `docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.validation.md`.
+
+Steps 1 to 5 of this plan are committed and pushed (`1cfda502` is the base
+of this review). The transcript
+`docs/v0.14.0/review.code.v0.14.0.git-cliff-provisioning.md` stays unstaged
+for the residual commit.
+
+### Writer response for step 6 git-cliff-provisioning (round 1)
+
+Writer response:
+
+Writer response:
+
+This is the first round of the Step 6 code review; there is no earlier
+reviewer feedback to answer.
+
+Choices worth checking, all recorded in the step notes and in the staged
+validation plan:
+
+- Candidates reuse the Step 5 flow instead of a copy of it: `InstallTarget`
+  carries the acceptance and the hook a candidate needs, and
+  `manifest_target(pin)` keeps production behavior unchanged. This edits
+  covered sources, so the native record was rerun at `step-5`.
+- The release metadata is read before the candidate lock, not under it as the
+  plan's step list reads: the listing is needed to size the download and
+  writes nothing. The trust record is read, compared and written only under
+  the lock, inside the acceptance, so a record another acquisition wrote while
+  this one waited is compared and kept.
+- A first acquisition is never reusable: without a trust record no cached
+  entry can be tied to a record, and reusing one would skip the record write.
+- Signatures that differ in shape from the plan's list: `TrustRecord(path,
+  version).write_once(candidate)` and `.compare(received)` (a record object
+  instead of path arguments), `provision_candidate(..., *, trust_path)`,
+  `run_comparison(inputs, invocations, git, workspace)` (the directories and
+  the explicit environment), `read(directory)` and `write(directory, bundle)`,
+  `require_admissible(bundle, *, location=None, pins=ADMITTED_PINS)` with
+  `require_complete` holding the completeness checks, and `main(arguments, *,
+  context=None)`. `invocations` maps each version to a provider of fresh
+  invocation objects, since an invocation is single-use.
+- A tampered listed file is refused by `read`, the only way a committed
+  bundle is loaded, rather than again by `require_admissible`.
+- The pin's trust must be `upstream-digest` for completeness: admission must
+  rest on upstream integrity data.
+- Ranges are recomputed on every run and must equal the bundle's on a rerun,
+  so a new or moved tag fails instead of silently changing the cases.
+- `harness.py` has its own test leaf, which the plan's file list lacks, so it
+  reaches full coverage on its own.
+- The fixture Git environment drops every inherited `GIT_*` and points
+  `GIT_CONFIG_GLOBAL` at an empty file the harness writes in its temporary
+  directory; no hook can run because `init --template=` creates none and no
+  configuration names one. The worktree add passes `core.hooksPath` on an
+  empty directory, since llm-shared's own repository configuration still
+  applies there.
+- Hunks keep line endings, so a carriage return or a missing last line feed is
+  a visible difference rather than an empty hunk beside two differing
+  digests.
+
+### Reviewer focus for step 6 git-cliff-provisioning (round 1)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-6-round-1 -->
+
+## Round 1 by reviewer - Step 6
+
+- Recorded: 2026-11-20T19:31:18+01:00
+- Exchange: code/code/v0.14.0/git-cliff-provisioning
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 6
+- Outcome: answer
+
+### Assessed index identity for step 6 git-cliff-provisioning (exchange 1) (round 1)
+
+Baseline index tree: 70dbca4a6e5a6af9d1a28c1643d5ead9ab4083b5
+
+Assessed index tree: ba674bb30cb20e905c59f5b38fd4c087ccd00517
+
+### Implementation check for step 6 git-cliff-provisioning (exchange 1) (round 1)
+
+Result:
+
+No. Step 6 has NOT been fully implemented.
+
+The Git input stream, fixture generator, canonical review digest and write-once trust publication are present. Production still verifies the admitted manifest target. Six findings affect the evidence harness.
+
+Validation plan effects:
+
+Updated the Step 6 verdict and added six missing-work items immediately after the implementation section.
+
+### Pre-repair mandatory checks and coverage for step 6 git-cliff-provisioning (exchange 1) (round 1)
+
+The writer reports 8,057 tests, 100% coverage, a green speed walk, and 14 passing native checks. The independent focused run on the bound whole scope returned exit 0 with zero failures and warnings. The round log was newer than its start marker. The static review identified missing behavioral cases in the areas listed below.
+
+### Resolved validation set and sources for step 6 git-cliff-provisioning (exchange 1) (round 1)
+
+Both request and Step 6 resolver select `ghog day --full=speed --whole-suite` from the project default.
+
+### Resolver drift and direction for step 6 git-cliff-provisioning (exchange 1) (round 1)
+
+None.
+
+### Repository state around validation for step 6 git-cliff-provisioning (exchange 1) (round 1)
+
+Request and baseline index `70dbca4a6e5a6af9d1a28c1643d5ead9ab4083b5`. Assessed index `ba674bb30cb20e905c59f5b38fd4c087ccd00517`. The ordered comparison identified the reviewer’s Step 6 validation metadata and the ignored focused log. The umbrella digest matched before and after.
+
+### Repair inventory for step 6 git-cliff-provisioning (exchange 1) (round 1)
+
+Repairs made:
+
+- `docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.validation.md` (review metadata only).
+
+Paths staged:
+
+- `docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.validation.md`
+
+### Commit plan assessment for step 6 git-cliff-provisioning (exchange 1) (round 1)
+
+Independent `commit-plan-check.bat --format json` returned exit 0, state `valid`, ready `true` and zero diagnostics. The 38 staged paths are listed once across the nine ordered groups below.
+
+1. `feat(release): give Git an input stream` covers `tools/release_workflow/git.py`, `tests/unit/tools/release_workflow/test_git/test_git_tdd.py`, `tests/unit/tools/release_workflow/conftest.py`.
+2. `refactor(release): provision any install target` covers `tools/release_workflow/git_cliff/archive.py`, `tools/release_workflow/git_cliff/cache.py`, `tools/release_workflow/git_cliff/cache_lock.py`, `tools/release_workflow/git_cliff/download_worker.py`, `tools/release_workflow/git_cliff/manifest.py`, `tools/release_workflow/git_cliff/installation.py`, `tools/release_workflow/git_cliff/provisioning.py`, `tests/unit/tools/release_workflow/test_git_cliff_archive/test_git_cliff_archive_tdd.py`, `tests/unit/tools/release_workflow/test_git_cliff_cache/test_git_cliff_cache_tdd.py`, `tests/unit/tools/release_workflow/test_git_cliff_download_worker/test_git_cliff_download_worker_tdd.py`, `tests/unit/tools/release_workflow/test_git_cliff_provisioning/test_git_cliff_provisioning_tdd.py`, `tests/unit/tools/release_workflow/test_git_cliff_native_evidence/native_checks.v1.json`.
+3. `feat(release): build the snapshot-tag fixture` covers `tools/release_workflow/git_cliff/fixture_history.py`.
+4. `feat(release): compare two git-cliff versions` covers `tools/release_workflow/git_cliff/comparison.py`.
+5. `feat(release): acquire git-cliff evidence candidates` covers `tools/release_workflow/git_cliff/candidates.py`.
+6. `feat(release): add the reviewed evidence bundle` covers `tools/release_workflow/git_cliff/bundle.py`.
+7. `test(release): cover the evidence modules` covers `tests/unit/tools/release_workflow/git_cliff_harness_fake.py`, `tests/unit/tools/release_workflow/git_cliff_children_fake.py`, `tests/unit/tools/release_workflow/git_cliff_support.py`, `tests/unit/tools/release_workflow/test_git_cliff_fixture/__init__.py`, `tests/unit/tools/release_workflow/test_git_cliff_fixture/test_git_cliff_fixture_tdd.py`, `tests/unit/tools/release_workflow/test_git_cliff_comparison/__init__.py`, `tests/unit/tools/release_workflow/test_git_cliff_comparison/test_git_cliff_comparison_tdd.py`, `tests/unit/tools/release_workflow/test_git_cliff_candidates/__init__.py`, `tests/unit/tools/release_workflow/test_git_cliff_candidates/test_git_cliff_candidates_tdd.py`, `tests/unit/tools/release_workflow/test_git_cliff_candidates/test_git_cliff_candidates_records_tdd.py`, `tests/unit/tools/release_workflow/test_git_cliff_bundle/__init__.py`, `tests/unit/tools/release_workflow/test_git_cliff_bundle/test_git_cliff_bundle_tdd.py`, `tests/unit/tools/release_workflow/test_git_cliff_bundle/test_git_cliff_bundle_review_tdd.py`, `tests/unit/tools/release_workflow/test_git_cliff_bundle/test_git_cliff_bundle_pbt.py`.
+8. `feat(release): run the evidence harness by hand` covers `tools/release_workflow/git_cliff/harness.py`, `tools/release_workflow/git_cliff/__init__.py`, `tests/unit/tools/release_workflow/test_git_cliff_harness/__init__.py`, `tests/unit/tools/release_workflow/test_git_cliff_harness/test_git_cliff_harness_tdd.py`.
+9. `docs(git-cliff-provisioning): record step 6 validation` covers `docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.validation.md`.
+
+### Findings and boundaries for step 6 git-cliff-provisioning (exchange 1) (round 1)
+
+Unresolved findings:
+
+- **The admission check accepts an unsupported exclusion of status 69.** `bundle.py:478` checks only the revision shape and `excludes_69`. Empty commands, categories and observations pass, as does an observation of 69 alongside that assertion. Require the audit commands, source references and findings for the design’s exit-path categories, the required corroborating observations, and consistency with the recorded statuses. Cover absent evidence and contradictory status 69 in the admission tests.
+- **The bundle can certify candidate identities and a matrix its files do not substantiate.** `bundle.py:395` hashes the trust files without decoding them. The passing sample uses one-field trust files that the real `TrustRecord` rejects. `_inputs_problem` accepts one range and `_outputs_problem` accepts the same reduced list. Require two distinct candidates, reconcile each real trust record with the recorded identity, and validate full-history and required fixture ranges and tag hashes. Reject missing cases, duplicate cases and a manifest identity that differs from the reviewed candidate.
+- **A rerun can silently substitute frozen inputs.** `harness.py:224–232` restores the commit and configuration descriptor but reconstructs the candidate identities, flags and environment names. `fixture_history.verify` visits only the recorded tags. If an executable digest changes while output stays identical, the rerun succeeds and rewrites the bundle. Compare the complete recorded inputs with the actual run, including the copied configuration bytes and exact fixture hashes, before rendering or writing. Test input drift with identical output and verify the prior bundle survives.
+- **Worktree cleanup can leave a registration in the shared checkout.** `comparison.py:269–275` creates the worktree before entering `try`, suppresses filesystem deletion errors and ignores a failed Git prune. Cover partial creation and Windows removal failures. Remove the specific registered worktree through Git, verify cleanup and surface cleanup errors while preserving the original comparison failure.
+- **First acquisition permits a transport downgrade.** `candidates.py` uses the default redirect handling from `network.build_opener` for metadata and archives. Python’s standard redirect handler permits a redirect from HTTPS to HTTP. The 2.7.0 first download has no upstream digest, so its trust assertion requires certificate-verified HTTPS on every hop. Enforce that requirement before following redirects and cover it with offline adapter tests for metadata and archive acquisition.
+- **Concurrent first callers can retire a just-published valid candidate.** `candidates.py:428` fixes `reusable=False` before locking. A waiter that now has a trust record still downloads and tries to retire the winner’s entry, which can fail while the winner holds its Windows use guard. Re-read trust and check for a matching reusable entry under the lock. Bind the returned guard to the verified entry before another publisher can replace it. Exercise the interleaving with the first invocation still open and assert one installation and an unchanged trust record.
+
+Boundary-crossing work: None.
+
+### Writer instructions for step 6 git-cliff-provisioning (exchange 1) (round 1)
+
+Address all six missing-work items in the Step 6 validation plan, add focused regression cases and refresh validation and native evidence for any covered sources that change. Publish the updated index for round 2.
+
+### Decision rationale for step 6 git-cliff-provisioning (exchange 1) (round 1)
+
+Identity passes. Implementation completeness fails. Focused validation passes and the writer reports full measured coverage, but static test assessment finds gaps. Staged attribution passes. Six findings remain open. The mechanical commit-plan check passes. Changes are requested.
+
+### Final reviewer decision for step 6 git-cliff-provisioning (exchange 1) (round 1)
+
+Decision: changes-requested. The writer must address the concrete instructions and publish another review round. This advisory answer does not authorize a commit.
+
+<!-- review-entry-id: answer-step-6-round-1 -->
+
+## Round 2 by requestor - Step 6
+
+- Recorded: 2026-11-20T20:10:31+01:00
+- Exchange: code/code/v0.14.0/git-cliff-provisioning
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 6
+- Outcome: request
+
+### Review identity for step 6 git-cliff-provisioning (round 2)
+
+Umbrella draft: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+Implementation plan: docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.md
+Implementation step: 6
+Review round: 2
+
+### Code review evidence for step 6 git-cliff-provisioning (round 2)
+
+request_index_tree: 95f36ab5176c36b77e29e1cdad3ef051a6e11d59
+resolved_validation_set:
+
+- `ghog day --full=speed --whole-suite` (sources: project)
+
+test_scope:
+{"fingerprint": "686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6", "group": null, "proof": "speed", "requirement": "docs/v0.14.0/feature-request.v0.14.0.git-cliff-provisioning.md", "scope": "whole"}
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: feat(release): give Git an input stream
+group 1 path: tools/release_workflow/git.py
+group 1 path: tests/unit/tools/release_workflow/test_git/test_git_tdd.py
+group 1 path: tests/unit/tools/release_workflow/conftest.py
+group 2: fix(release): follow redirects only to HTTPS
+group 2 path: tools/release_workflow/git_cliff/network.py
+group 2 path: tests/unit/tools/release_workflow/test_git_cliff_network/test_git_cliff_network_tdd.py
+group 2 path: tests/unit/tools/release_workflow/git_cliff_support.py
+group 3: refactor(release): provision any install target
+group 3 path: tools/release_workflow/git_cliff/archive.py
+group 3 path: tools/release_workflow/git_cliff/cache.py
+group 3 path: tools/release_workflow/git_cliff/cache_lock.py
+group 3 path: tools/release_workflow/git_cliff/download_worker.py
+group 3 path: tools/release_workflow/git_cliff/manifest.py
+group 3 path: tools/release_workflow/git_cliff/installation.py
+group 3 path: tools/release_workflow/git_cliff/provisioning.py
+group 3 path: tests/unit/tools/release_workflow/test_git_cliff_archive/test_git_cliff_archive_tdd.py
+group 3 path: tests/unit/tools/release_workflow/test_git_cliff_cache/test_git_cliff_cache_tdd.py
+group 3 path: tests/unit/tools/release_workflow/test_git_cliff_download_worker/test_git_cliff_download_worker_tdd.py
+group 3 path: tests/unit/tools/release_workflow/test_git_cliff_provisioning/test_git_cliff_provisioning_tdd.py
+group 3 path: tests/unit/tools/release_workflow/test_git_cliff_native_evidence/native_checks.v1.json
+group 4: feat(release): build the snapshot-tag fixture
+group 4 path: tools/release_workflow/git_cliff/fixture_history.py
+group 5: feat(release): compare two git-cliff versions
+group 5 path: tools/release_workflow/git_cliff/comparison.py
+group 6: feat(release): acquire git-cliff evidence candidates
+group 6 path: tools/release_workflow/git_cliff/candidates.py
+group 7: feat(release): add the reviewed evidence bundle
+group 7 path: tools/release_workflow/git_cliff/bundle.py
+group 8: test(release): cover the evidence modules
+group 8 path: tests/unit/tools/release_workflow/git_cliff_harness_fake.py
+group 8 path: tests/unit/tools/release_workflow/git_cliff_children_fake.py
+group 8 path: tests/unit/tools/release_workflow/test_git_cliff_fixture/__init__.py
+group 8 path: tests/unit/tools/release_workflow/test_git_cliff_fixture/test_git_cliff_fixture_tdd.py
+group 8 path: tests/unit/tools/release_workflow/test_git_cliff_comparison/__init__.py
+group 8 path: tests/unit/tools/release_workflow/test_git_cliff_comparison/test_git_cliff_comparison_tdd.py
+group 8 path: tests/unit/tools/release_workflow/test_git_cliff_candidates/__init__.py
+group 8 path: tests/unit/tools/release_workflow/test_git_cliff_candidates/test_git_cliff_candidates_tdd.py
+group 8 path: tests/unit/tools/release_workflow/test_git_cliff_candidates/test_git_cliff_candidates_records_tdd.py
+group 8 path: tests/unit/tools/release_workflow/test_git_cliff_bundle/__init__.py
+group 8 path: tests/unit/tools/release_workflow/test_git_cliff_bundle/test_git_cliff_bundle_tdd.py
+group 8 path: tests/unit/tools/release_workflow/test_git_cliff_bundle/test_git_cliff_bundle_review_tdd.py
+group 8 path: tests/unit/tools/release_workflow/test_git_cliff_bundle/test_git_cliff_bundle_pbt.py
+group 9: feat(release): run the evidence harness by hand
+group 9 path: tools/release_workflow/git_cliff/harness.py
+group 9 path: tools/release_workflow/git_cliff/__init__.py
+group 9 path: tests/unit/tools/release_workflow/test_git_cliff_harness/__init__.py
+group 9 path: tests/unit/tools/release_workflow/test_git_cliff_harness/test_git_cliff_harness_tdd.py
+group 10: docs(git-cliff-provisioning): record step 6 validation
+group 10 path: docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.validation.md
+staged path: docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.validation.md
+staged path: tests/unit/tools/release_workflow/conftest.py
+staged path: tests/unit/tools/release_workflow/git_cliff_children_fake.py
+staged path: tests/unit/tools/release_workflow/git_cliff_harness_fake.py
+staged path: tests/unit/tools/release_workflow/git_cliff_support.py
+staged path: tests/unit/tools/release_workflow/test_git/test_git_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_archive/test_git_cliff_archive_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_bundle/__init__.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_bundle/test_git_cliff_bundle_pbt.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_bundle/test_git_cliff_bundle_review_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_bundle/test_git_cliff_bundle_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_cache/test_git_cliff_cache_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_candidates/__init__.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_candidates/test_git_cliff_candidates_records_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_candidates/test_git_cliff_candidates_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_comparison/__init__.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_comparison/test_git_cliff_comparison_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_download_worker/test_git_cliff_download_worker_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_fixture/__init__.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_fixture/test_git_cliff_fixture_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_harness/__init__.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_harness/test_git_cliff_harness_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_native_evidence/native_checks.v1.json
+staged path: tests/unit/tools/release_workflow/test_git_cliff_network/test_git_cliff_network_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_provisioning/test_git_cliff_provisioning_tdd.py
+staged path: tools/release_workflow/git.py
+staged path: tools/release_workflow/git_cliff/__init__.py
+staged path: tools/release_workflow/git_cliff/archive.py
+staged path: tools/release_workflow/git_cliff/bundle.py
+staged path: tools/release_workflow/git_cliff/cache.py
+staged path: tools/release_workflow/git_cliff/cache_lock.py
+staged path: tools/release_workflow/git_cliff/candidates.py
+staged path: tools/release_workflow/git_cliff/comparison.py
+staged path: tools/release_workflow/git_cliff/download_worker.py
+staged path: tools/release_workflow/git_cliff/fixture_history.py
+staged path: tools/release_workflow/git_cliff/harness.py
+staged path: tools/release_workflow/git_cliff/installation.py
+staged path: tools/release_workflow/git_cliff/manifest.py
+staged path: tools/release_workflow/git_cliff/network.py
+staged path: tools/release_workflow/git_cliff/provisioning.py
+```
+
+### Validation scope for step 6 git-cliff-provisioning (round 2)
+
+Validation scope: the whole suite.
+
+### Requestor assessment for step 6 git-cliff-provisioning (round 2)
+
+Writer assessment for Step 6 of the git-cliff-provisioning plan, round 2: the
+step is fully implemented after the round 1 repairs, and the rerun
+implementation check records `Yes. Step 6 has been fully implemented.` in the
+staged validation plan (the reviewer's round 1 missing-work list is done and
+removed; the document status stays `No, it is not implemented.` while Steps
+7 and 8 are not started).
+
+Evidence, all on the staged tree:
+
+- Round 1 repairs, each through its leaf: the bundle leaf covers every audit
+  and observation gap (no command, missing, repeated or empty category,
+  blank reference or finding, no exclusion, missing observation, observed
+  69, failing success, passing failure), one version for both candidates, a
+  missing full history, a broken chain, a duplicate or missing case, other
+  fixture tags, a manifest entry with another digest, and the trust record
+  reconciliation on read (another identity, an invalid record); the harness
+  leaf an executable drift with identical outputs and changed `cliff.toml`
+  bytes, both failing before any run with the bundle unchanged; the fixture
+  leaf tags missing from either side; the comparison leaf a partial
+  creation, a refused removal, cleanup problems noted on a run failure and a
+  Git that cannot list; the network leaf HTTP, uppercase HTTP and FTP
+  redirects refused for an archive and for release metadata; the candidates
+  leaf the concurrent first acquisition, with one download and no
+  retirement; the provisioning leaf a target allowing no reuse.
+  `ghog single` on the repaired leaves: 433 passed.
+- Native record: the recorder with `--milestone step-5`, after the edits of
+  the covered sources `network.py`, `installation.py` and `provisioning.py`,
+  passed 14 of 14 and the stalled runner timeout demonstration.
+- Default walk: `ghog day --whole-suite` exit 0 after splitting two grade C
+  checks of `bundle.py` and two typing fixes in the tests.
+- Review validation, `ghog day --full=speed --whole-suite` (built-in default):
+  exit 0 with `cov=100 outliers=0 excluded=0 proof=speed`, 8090 tests,
+  slowest call 0.31 s (outside this step), on index tree
+  `95f36ab5176c36b77e29e1cdad3ef051a6e11d59`. No budget was changed and no
+  exclusion is accepted.
+- `rg -n 'manifest'` on the harness, comparison and candidates modules: reads
+  only. `rg -n 'pragma: no cover' tools/release_workflow/git_cliff`: only the
+  harness entry line.
+- Line counts: `bundle.py` 622 (550 to 650 band, below the ceiling),
+  `candidates.py` 442, `comparison.py` 341, `harness.py` 318,
+  `fixture_history.py` 235, `network.py` 170; every other Python file below
+  550.
+- Markdown check and cSpell on the validation plan and the transcript: clean
+  (the word `deleteall` added to the project and user dictionaries).
+
+Architecture: the HTTPS-only rule lives in the network adapter; the reuse
+decision is the target's own function, asked by the flow at each check; the
+cleanup and its verification stay in the comparison. Performance: one trust
+record read per reuse check, three more Git calls and one listing pass per
+comparison, linear completeness checks (sets and counters). Feature
+integrity: production downloads now refuse a redirect off HTTPS as a fatal
+failure; GitHub's redirect stays on HTTPS.
+
+Please check in particular: `_matrix_complete` and `chained_ranges`;
+`_audit_problem` and `_observation_problem`; `_reconcile` in `read`;
+`_require_frozen` in the harness; `_removal_problems` and `_clean` with the
+original failure kept; `_HttpsRedirects`; and `_Flow._reuse` with the
+candidate's `reusable_asset` under the lock.
+
+### Implementation report for step 6 git-cliff-provisioning (round 2)
+
+Step 6, "Compatibility evidence harness", is the sixth of eight steps of the
+git-cliff-provisioning plan. It ships the internal comparison modules the
+evidence run of Step 7 uses by hand; nothing in a release, a build or a
+`gcliff` call imports them, and the manifest still admits no pin.
+
+Git input stream, `tools/release_workflow/git.py` (plan decision Q09):
+
+- `GitExecutionContext.run(arguments, *, cwd, check=True, input=None)`:
+  given bytes go through `subprocess.run(input=...)` without `stdin`; without
+  them the existing stdin rule applies. `_execute` takes them as `stream`, and
+  a new `_spawn` holds both process starts. The `read_only_git` stand-in in
+  `tests/unit/tools/release_workflow/conftest.py` accepts the new keyword.
+
+Provisioning of any install target (Step 3 to 5 modules):
+
+- `installation.InstallTarget` (frozen): version, triple, asset, size,
+  member, URL, `accept(archive) -> sha256` (a `VerificationError` is the
+  verification stage), `before_publish()` (run after the entry record is
+  written and the owner file removed, before retirement and publication)
+  and `reuse`, a function asked before each reuse check for the archive
+  digest a reused entry must record (None allows no reuse at that check;
+  production has no function and compares no archive digest). `install(layout, target, budget, seams,
+  lock)` uses the target everywhere the pin was used. `manifest_target(pin)`
+  keeps production exactly: verify against the manifest size and digest,
+  record the manifest digest, nothing before publication, reusable, no
+  archive comparison on reuse.
+- `provisioning.provision_target(layout, target, budget, *, seams, caller)`
+  runs the unchanged flow in the layout's namespace; `provision` calls it with
+  `manifest_target(pin)` in production. `_reuse` asks the target's function
+  before the lock-free check and again before the recheck under the lock.
+- `cache.check_entry(..., asset_sha256=None)`: when given, the record's
+  `asset_sha256` must equal it, compared after the record read and before the
+  hash, so the candidate order is archive digest, executable, probe.
+- `archive.archive_identity(path)` (SHA-256 and size of a staged file, used
+  by `verify_archive`) and the narrower `ArchiveMember` protocol of
+  `extract_member`; `download_worker.outcome_fields(stdout)`, the parent's
+  reading of the outcome line, now used by the installation;
+  `cache_lock.publish_file`, the former private `_publish`;
+  `manifest.asset_url(version, asset)`, behind `download_url`.
+- The native record is refreshed at milestone `step-5` (14 of 14 passed),
+  since `cache.py`, `cache_lock.py`, `installation.py`, `provisioning.py`
+  and `download_worker.py` are covered sources.
+
+Fixture history, `tools/release_workflow/git_cliff/fixture_history.py`
+(design "Frozen inputs and the coverage matrix", Q14):
+
+- 20 declared commits and four annotated tags (`v0.1.0`, `v0.2.0-SNAPSHOT`,
+  `v0.2.0`, `v0.3.0-SNAPSHOT`, in `TAGS`); one merge; messages for every
+  group and skip rule of the dev_workflow `cliff.toml`, a breaking change, a
+  fix whose body matches the security parser, a revert and an unconventional
+  commit.
+- `stream()`: commits with `deleteall` and every file inline, `from` and
+  `merge` in parent order, author and committer with fixed dates and two
+  zones; tags with tagger, date, zone and message; `done` at the end.
+- `environment(source, global_config)`, `build(git, directory)` (`init
+  --quiet --template= --object-format=sha1 --initial-branch=main`, then
+  `fast-import --quiet --done` with the stream as input, then `for-each-ref
+  --format=%(refname)%00%(objectname) refs/heads/main refs/tags`, each with
+  `CONFIG`), `FixtureHashes` and `verify`.
+
+Comparison, `tools/release_workflow/git_cliff/comparison.py` (design
+"Frozen inputs and the coverage matrix", "Outputs and classification", Q13):
+
+- `FrozenInputs` (pin, baseline, llm-shared commit, `CliffToml`, fixture
+  hashes, ranges, `CandidateIdentity` values, `FLAGS`, `ENVIRONMENT`),
+  `RangeCase`, `RunDigest`, `CaseResult` (hunk identifiers `<case> #<n>`),
+  `ComparisonResult`, `Workspace`.
+- `history_ranges(git, *, cwd, revision, repository)`: `rev-list
+  --topo-order --reverse` and the tag records reachable from the revision,
+  ordered in one pass; full history, consecutive pairs, last tag to HEAD.
+- `run_environment(source, home)`; `run_comparison(inputs, invocations, git,
+  workspace)`: `worktree add --detach` of the frozen commit with
+  `core.hooksPath` on an empty directory, baseline then pin per case through a
+  fresh invocation each (`-c <bundle copy> -w <directory> -s footer --
+  [range]`, engine policy, captured output, `RUN_SECONDS` = 120), worktree
+  removed and `worktree prune` in `finally`; `differing_hunks` (unified diff,
+  three lines of context, line endings kept); `verify_rerun`.
+
+Candidates, `tools/release_workflow/git_cliff/candidates.py` (design
+"Candidate lifecycle and admission order", "Candidate cache"; plan decision
+Q19):
+
+- `parse_listing(version, metadata)` and `AssetListing`; `Candidate` with its
+  validation; `EVIDENCE_ONLY_VERSIONS`, `UPSTREAM_DIGEST`,
+  `EVIDENCE_ONLY_HTTPS` and `TRUST_BASIS` (the evidence-only basis states the
+  authorization of 2026-11-13 and that HTTPS anchored the first download).
+- `TrustRecord(path, version)`: `read`, `require`, `write_once` (through
+  `publish_file` without replacement; an existing record is a
+  `CandidateError`, never rewritten) and `compare(received)` (a
+  `VerificationError` naming the record).
+- `acquire_candidate(tooling_root, version, budget, seams, *, trust_path)`:
+  an existing record is the identity (`provision_candidate`); otherwise the
+  metadata worker (`WorkerRequest(mode="metadata")`, record-free, expiring 60
+  s after it started, one retry after 5 s for a retryable failure), the trust
+  kind decided before any download, and `provision_target` in the evidence
+  namespace with a target whose acceptance compares with the listed size and
+  published digest and writes the record in `before_publish`; a record
+  found under the lock is compared instead, and the reuse function reads the
+  record before each check, so a published matching entry is reused.
+- `provision_candidate(...)`: the same target with the record present; its
+  acceptance compares every new download with the record.
+
+Bundle, `tools/release_workflow/git_cliff/bundle.py` (design "Outputs and
+classification", "Statuses"; plan decision Q16):
+
+- `Bundle` and its parts; strict `read` (via `lock_records.decode_object`,
+  then each member's form, then the listed file digests) and `write`;
+  `canonical_projection`, `with_review`, `refreshed`; `require_complete` and
+  `require_admissible` as listed in the validation plan. The default location
+  is `tools/release_workflow/git_cliff/bundles/<pin>`; `pins` defaults to the
+  shipped `ADMITTED_PINS`.
+
+Harness, `tools/release_workflow/git_cliff/harness.py` (design "The
+harness", Q15):
+
+- `main(arguments, *, context=None)`, `HarnessContext`,
+  `production_context()`, `evidence_git(source, *, checkout, temporary)`.
+  A comparison: budget once, existing bundle of the same pair, baseline then
+  pin acquired, fixture built and verified, inputs frozen (HEAD commit,
+  `rev-parse <commit>:tools/dev_workflow`, `cat-file blob
+  <submodule>:cliff.toml` in the submodule, copied into the bundle) or reused
+  and compared field by field, with the copied `cliff.toml` bytes, before
+  any run, comparison, `verify_rerun`, `write` with `refreshed`. A review: `with_review` over the current bundle and today's
+  local date. Expected failures print one diagnostic and return 2.
+
+Tests: `git_cliff_harness_fake.py` (new), the children fake (metadata role,
+versions from cache paths, evidence namespace, `run_output`), the support
+module (any version), and the leaves `test_git_cliff_fixture`,
+`test_git_cliff_comparison`, `test_git_cliff_candidates` (acquisition and
+records), `test_git_cliff_bundle` (model, review binding, property test) and
+`test_git_cliff_harness`, plus additions to `test_git`, the cache,
+provisioning, worker and archive leaves.
+
+Also staged: the validation plan's Step 6 sections and the
+`git_cliff/__init__.py` docstring.
+
+Code review round 1 repairs (round 2 of this exchange):
+
+- `bundle.py`: audit evidence (`AUDIT_CATEGORIES`, commands, references,
+  findings) and observations (`OBSERVATIONS`, no 69, consistent statuses);
+  trust record reconciliation in `read`; two distinct versions, the full
+  matrix (`comparison.chained_ranges`), the fixture's tags, and the manifest
+  identity in `require_complete`. 622 lines.
+- `harness.py`: complete frozen-input comparison and copied `cliff.toml`
+  bytes before any run; the temporary directory resolved to its long form.
+- `fixture_history.verify`: every tag of either side, in order.
+- `comparison.py`: `worktree add` inside the guarded block; cleanup through
+  `worktree remove --force`, deletion, prune and a verifying listing; cleanup
+  problems fail a successful run or are noted on the failure raised.
+- `network.py`: HTTPS-only redirect handler, `InsecureRedirectError` (fatal);
+  `git_cliff_support.CannedWeb.opener` now builds on the network opener.
+- `installation.InstallTarget.reuse` replaces `reusable` and `entry_asset`;
+  `provisioning._reuse` asks it before each check; `candidates` gives the
+  trust record's digest read at that moment, and `trust_record_bytes`.
+- Native record refreshed at `step-5` after the covered-source edits, 14 of
+  14 passed.
+- Tests: the bundle, comparison, fixture, candidates, harness, network and
+  provisioning leaves, and the harness fake's samples (full matrix, real
+  trust records, complete audit) and declared Git failures per action.
+
+Writer notes: `.reviews/a.git-cliff-provisioning.step6.journal.md` and
+`.reviews/a.git-cliff-provisioning.step6.handoff.md`.
+
+### Change summary for step 6 git-cliff-provisioning (round 2)
+
+Staged paths (40), grouped in the root `a.commit` (ten groups, checker
+`ready: true`). Round 2 adds `tools/release_workflow/git_cliff/network.py` and
+`tests/unit/tools/release_workflow/test_git_cliff_network/test_git_cliff_network_tdd.py`,
+grouped with `tests/unit/tools/release_workflow/git_cliff_support.py` in a new
+second group:
+
+1. `feat(release): give Git an input stream`: `tools/release_workflow/git.py`,
+   `tests/unit/tools/release_workflow/test_git/test_git_tdd.py`,
+   `tests/unit/tools/release_workflow/conftest.py`.
+2. `fix(release): follow redirects only to HTTPS`:
+   `tools/release_workflow/git_cliff/network.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_network/test_git_cliff_network_tdd.py`,
+   `tests/unit/tools/release_workflow/git_cliff_support.py`.
+3. `refactor(release): provision any install target`: `archive.py`,
+   `cache.py`, `cache_lock.py`, `download_worker.py`, `manifest.py`,
+   `installation.py`, `provisioning.py` (all in
+   `tools/release_workflow/git_cliff/`), the archive, cache, worker and
+   provisioning test files, and `native_checks.v1.json`.
+4. `feat(release): build the snapshot-tag fixture`: `fixture_history.py`.
+5. `feat(release): compare two git-cliff versions`: `comparison.py`.
+6. `feat(release): acquire git-cliff evidence candidates`: `candidates.py`.
+7. `feat(release): add the reviewed evidence bundle`: `bundle.py`.
+8. `test(release): cover the evidence modules`: `git_cliff_harness_fake.py`,
+   `git_cliff_children_fake.py`, and the fixture, comparison, candidates and
+   bundle leaves with their `__init__.py` files.
+9. `feat(release): run the evidence harness by hand`: `harness.py`,
+   `git_cliff/__init__.py`, and the harness leaf with its `__init__.py`.
+10. `docs(git-cliff-provisioning): record step 6 validation`:
+    `docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.validation.md`.
+
+Steps 1 to 5 of this plan are committed and pushed (`1cfda502` is the base
+of this review). The transcript
+`docs/v0.14.0/review.code.v0.14.0.git-cliff-provisioning.md` and
+`.vscode/settings.json` (the new cSpell word `deleteall` the transcript
+needs) stay unstaged for the residual commit.
+
+### Writer response for step 6 git-cliff-provisioning (round 2)
+
+Writer response:
+
+Writer response:
+
+All six round 1 findings are accepted and repaired; there is no
+disagreement. The reviewer's staged edit of the validation plan was kept as
+the basis of the rerun implementation check, which now records `Yes. Step 6
+has been fully implemented.` with the repairs; its missing-work list is done
+and removed.
+
+1. Unsupported exclusion of 69: `bundle._audit_problem` requires the audit's
+   revision, at least one non-blank command, each of `AUDIT_CATEGORIES`
+   (error return, argument-parsing errors, propagated helper statuses, panics
+   and abnormal termination) exactly once with non-blank references and a
+   finding, and `excludes_69`; `_observation_problem` requires the observed
+   success, usage error and failing render with their commands, refuses any
+   observed 69, a success other than 0 and a failure reported as 0. The bundle
+   leaf covers each absence and contradiction.
+2. Identities and matrix: `read` decodes both trust records with
+   `TrustRecord` and refuses one whose asset, size, digest or trust differs
+   from the candidate identity of the inputs, or that is not a valid record;
+   the sample bundle now carries real trust records. `require_complete`
+   refuses one version for both candidates, ranges that are not llm-shared's
+   full history and chained tag ranges then exactly the fixture's
+   (`comparison.chained_ranges`, the rule `history_ranges` uses, so a missing
+   or duplicate case is refused), fixture tags other than `TAGS`, and a
+   manifest entry of the pin that does not name this bundle with the reviewed
+   asset, size and digest.
+3. Rerun substitution: before any git-cliff run, the harness compares every
+   field of the frozen inputs it observes (candidate identities and
+   executable digests, flags and environment names included) and the digest
+   of the copied `cliff.toml` with the bundle's, and fails naming the changed
+   fields; the bundle keeps its bytes. `fixture_history.verify` compares the
+   branch and every tag of either side in order. The harness leaf covers an
+   executable drift with identical outputs and changed `cliff.toml` bytes.
+4. Worktree registration: `worktree add` runs inside the guarded block; the
+   cleanup runs `worktree remove --force <path>`, deletes what is left,
+   prunes, and lists the worktrees to verify the path is no longer
+   registered. Any problem (a refused deletion, a failed prune, a still
+   registered or unlistable worktree, a Git that cannot run) fails a
+   successful comparison, or is added as a note to the failure already
+   raised, which keeps propagating. The harness's temporary directory is
+   resolved to its long form, the form Git lists. The comparison leaf covers
+   a partial creation, a refused removal, notes on a run failure and a Git
+   that cannot list.
+5. Transport downgrade: `network.build_opener` installs an HTTPS-only redirect
+   handler; a redirect to HTTP, any case, or another scheme raises
+   `InsecureRedirectError` before it is opened, which `classify` treats as
+   fatal. This holds for every download and metadata lookup, production
+   included; GitHub's redirect to its asset host stays on HTTPS. The network
+   leaf covers an archive (no target created) and release metadata; the
+   canned opener is now the network module's own, with the canned handler
+   added.
+6. Concurrent first callers: `InstallTarget.reuse` is now a function the flow
+   asks before each reuse check, the recheck under the lock included, for the
+   archive digest a reused entry must record (None allows no reuse at that
+   check). A candidate's reads its trust record each time, so a waiter whose
+   record another first acquisition wrote checks and reuses that published
+   entry with its own guard instead of downloading and retiring it. The
+   candidates leaf plays the interleaving with the first invocation still
+   open: one download, no retirement, the record written once.
+
+Covered sources changed again (`network.py`, `installation.py`,
+`provisioning.py`), so the recorder was rerun at `step-5`: 14 of 14 passed.
+`bundle.py` grew to 622 lines, in the 550 to 650 band, below the ceiling;
+the checks stay in the module the plan names. The new cSpell word
+`deleteall` (fast-import's command, quoted in the round 1 request of the
+transcript) is in the project dictionary, which joins the residual commit
+with the transcript.
+
+### Reviewer focus for step 6 git-cliff-provisioning (round 2)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-6-round-2 -->
+
+## Round 2 by reviewer - Step 6
+
+- Recorded: 2026-11-20T20:17:55+01:00
+- Exchange: code/code/v0.14.0/git-cliff-provisioning
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 6
+- Outcome: answer
+
+### Assessed index identity for step 6 git-cliff-provisioning (exchange 1) (round 2)
+
+Baseline index tree: 95f36ab5176c36b77e29e1cdad3ef051a6e11d59
+
+Assessed index tree: 26585e932a1560acfbf79e9e440aab4575091b54
+
+### Implementation check for step 6 git-cliff-provisioning (exchange 1) (round 2)
+
+Result:
+
+No. Step 6 has NOT been fully implemented.
+
+The HTTPS redirect restriction covers metadata and archives. Reruns compare all frozen fields, the copied configuration bytes and the complete fixture hashes before comparison. Bundle reads reconcile both trust files, and admission checks fixture ranges, distinct versions, audit categories and the manifest identity. Partial worktree creation is cleaned up, and a waiter using the same trust record can reuse the winner. The four findings below remain open.
+
+Validation plan effects:
+
+Updated the Step 6 verdict and recorded four actionable cases under `Missing work for Step 6`.
+
+### Pre-repair mandatory checks and coverage for step 6 git-cliff-provisioning (exchange 1) (round 2)
+
+The writer reports 8,090 tests, `cov=100 outliers=0 excluded=0 proof=speed`, exit 0, on the request tree. The native record passed 14 of 14 checks. The reviewer’s independent `ghog affected --no-cov` using the exchange scope returned exit 0, zero failures and zero warnings. Static review found four missing behavioral cases.
+
+### Resolved validation set and sources for step 6 git-cliff-provisioning (exchange 1) (round 2)
+
+The request and the independent Step 6 resolver both select `ghog day --full=speed --whole-suite` from the project default.
+
+### Resolver drift and direction for step 6 git-cliff-provisioning (exchange 1) (round 2)
+
+None.
+
+### Repository state around validation for step 6 git-cliff-provisioning (exchange 1) (round 2)
+
+The request and baseline index both identify `95f36ab5176c36b77e29e1cdad3ef051a6e11d59`. The assessed tree is `26585e932a1560acfbf79e9e440aab4575091b54`. The ordered comparison found the attributable Step 6 validation edit, its index effect and the ignored focused-run log. The umbrella digest matched.
+
+### Repair inventory for step 6 git-cliff-provisioning (exchange 1) (round 2)
+
+Repairs made:
+
+- Updated the reviewed step’s validation metadata.
+
+Paths staged:
+
+- `docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.validation.md`
+
+### Commit plan assessment for step 6 git-cliff-provisioning (exchange 1) (round 2)
+
+The independent checker returned `valid`, ready `true`, with 10 ordered groups covering all 40 staged paths. Diagnostics were empty.
+
+1. `feat(release): give Git an input stream` groups `tools/release_workflow/git.py`, `tests/unit/tools/release_workflow/test_git/test_git_tdd.py`, `tests/unit/tools/release_workflow/conftest.py`.
+2. `fix(release): follow redirects only to HTTPS` groups `tools/release_workflow/git_cliff/network.py`, `tests/unit/tools/release_workflow/test_git_cliff_network/test_git_cliff_network_tdd.py`, `tests/unit/tools/release_workflow/git_cliff_support.py`.
+3. `refactor(release): provision any install target` groups `tools/release_workflow/git_cliff/archive.py`, `tools/release_workflow/git_cliff/cache.py`, `tools/release_workflow/git_cliff/cache_lock.py`, `tools/release_workflow/git_cliff/download_worker.py`, `tools/release_workflow/git_cliff/manifest.py`, `tools/release_workflow/git_cliff/installation.py`, `tools/release_workflow/git_cliff/provisioning.py`, `tests/unit/tools/release_workflow/test_git_cliff_archive/test_git_cliff_archive_tdd.py`, `tests/unit/tools/release_workflow/test_git_cliff_cache/test_git_cliff_cache_tdd.py`, `tests/unit/tools/release_workflow/test_git_cliff_download_worker/test_git_cliff_download_worker_tdd.py`, `tests/unit/tools/release_workflow/test_git_cliff_provisioning/test_git_cliff_provisioning_tdd.py`, `tests/unit/tools/release_workflow/test_git_cliff_native_evidence/native_checks.v1.json`.
+4. `feat(release): build the snapshot-tag fixture` groups `tools/release_workflow/git_cliff/fixture_history.py`.
+5. `feat(release): compare two git-cliff versions` groups `tools/release_workflow/git_cliff/comparison.py`.
+6. `feat(release): acquire git-cliff evidence candidates` groups `tools/release_workflow/git_cliff/candidates.py`.
+7. `feat(release): add the reviewed evidence bundle` groups `tools/release_workflow/git_cliff/bundle.py`.
+8. `test(release): cover the evidence modules` groups `tests/unit/tools/release_workflow/git_cliff_harness_fake.py`, `tests/unit/tools/release_workflow/git_cliff_children_fake.py`, `tests/unit/tools/release_workflow/test_git_cliff_fixture/__init__.py`, `tests/unit/tools/release_workflow/test_git_cliff_fixture/test_git_cliff_fixture_tdd.py`, `tests/unit/tools/release_workflow/test_git_cliff_comparison/__init__.py`, `tests/unit/tools/release_workflow/test_git_cliff_comparison/test_git_cliff_comparison_tdd.py`, `tests/unit/tools/release_workflow/test_git_cliff_candidates/__init__.py`, `tests/unit/tools/release_workflow/test_git_cliff_candidates/test_git_cliff_candidates_tdd.py`, `tests/unit/tools/release_workflow/test_git_cliff_candidates/test_git_cliff_candidates_records_tdd.py`, `tests/unit/tools/release_workflow/test_git_cliff_bundle/__init__.py`, `tests/unit/tools/release_workflow/test_git_cliff_bundle/test_git_cliff_bundle_tdd.py`, `tests/unit/tools/release_workflow/test_git_cliff_bundle/test_git_cliff_bundle_review_tdd.py`, `tests/unit/tools/release_workflow/test_git_cliff_bundle/test_git_cliff_bundle_pbt.py`.
+9. `feat(release): run the evidence harness by hand` groups `tools/release_workflow/git_cliff/harness.py`, `tools/release_workflow/git_cliff/__init__.py`, `tests/unit/tools/release_workflow/test_git_cliff_harness/__init__.py`, `tests/unit/tools/release_workflow/test_git_cliff_harness/test_git_cliff_harness_tdd.py`.
+10. `docs(git-cliff-provisioning): record step 6 validation` groups `docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.validation.md`.
+
+### Findings and boundaries for step 6 git-cliff-provisioning (exchange 1) (round 2)
+
+Unresolved findings:
+
+- **Check every recorded pin status.** In `bundle.py`, `_observation_problem` collapses observations by name before inspecting their statuses. A later success can hide an earlier status 69 or a contradictory success status. `_outputs_problem` also ignores the pin's status on comparison cases. Check each observation and each pin result against the exclusion, and check each named observation for consistency. Add admission tests with a current review for a repeated observation and a pin comparison returning 69.
+- **Verify the llm-shared ranges against the frozen history.** `_matrix_complete` infers the expected tags from the submitted ranges. Full history alone passes for llm-shared when the fixture matrix is complete, even when the frozen commit has reachable release tags. Skipping an intermediate tag or repeating a tag can also produce a self-consistent chain. Bind the expected ordered, unique llm-shared tags to the frozen revision independently of the range list. Test omitted and repeated project ranges with matching output rows.
+- **Report cleanup failures at the harness entry point.** `comparison._clean` attaches the worktree cleanup diagnostic to the primary exception with `add_note`. `harness.main` prints only the exception text, so the operator sees the comparison failure and misses the cleanup failure and worktree path. Preserve the primary diagnostic and report its cleanup notes on stderr. Exercise both failures together through `harness.main` and verify the exit status and both messages.
+- **Bind the fresh installation to the returned use guard.** `_Flow._locked` releases the version lock after `install`, and `_Flow.run` then opens the executable by path. Different bundle directories share the evidence cache but have independent trust records, so another installation can replace that path during the gap. Acquire the guard while publication is still protected, or revalidate the guarded entry against the caller's verified identity. Add a deterministic two-bundle concurrency test covering this interval and checking the identity held by the first invocation.
+
+Boundary-crossing work: None.
+
+### Writer instructions for step 6 git-cliff-provisioning (exchange 1) (round 2)
+
+Complete the four items under `Missing work for Step 6`. Exercise admission with a current review, the normal harness stderr path, and separate bundle trust records. Refresh the writer’s validation evidence on the resulting index.
+
+### Decision rationale for step 6 git-cliff-provisioning (exchange 1) (round 2)
+
+Identity passes for Step 6, round 2, occurrence 1. Completeness fails on four behaviors. The focused check and writer’s coverage evidence pass, and static inspection finds missing regression cases, so the validation and coverage criterion remains open. Staged attribution passes. Four carried findings remain open. The independent commit-plan check passes. The disposition is `changes-requested`.
+
+### Final reviewer decision for step 6 git-cliff-provisioning (exchange 1) (round 2)
+
+Decision: changes-requested. The writer must address the concrete instructions and publish another review round. This advisory answer does not authorize a commit.
+
+<!-- review-entry-id: answer-step-6-round-2 -->
+
+## Round 3 by requestor - Step 6
+
+- Recorded: 2026-11-20T21:03:00+01:00
+- Exchange: code/code/v0.14.0/git-cliff-provisioning
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 6
+- Outcome: request
+
+### Review identity for step 6 git-cliff-provisioning (round 3)
+
+Umbrella draft: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+Implementation plan: docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.md
+Implementation step: 6
+Review round: 3
+
+### Code review evidence for step 6 git-cliff-provisioning (round 3)
+
+request_index_tree: 95ce496729582667f2373b1e4c9511e7991c9ba6
+resolved_validation_set:
+
+- `ghog day --full=speed --whole-suite` (sources: project)
+
+test_scope:
+{"fingerprint": "686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6", "group": null, "proof": "speed", "requirement": "docs/v0.14.0/feature-request.v0.14.0.git-cliff-provisioning.md", "scope": "whole"}
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: feat(release): give Git an input stream
+group 1 path: tools/release_workflow/git.py
+group 1 path: tests/unit/tools/release_workflow/test_git/test_git_tdd.py
+group 1 path: tests/unit/tools/release_workflow/conftest.py
+group 2: fix(release): follow redirects only to HTTPS
+group 2 path: tools/release_workflow/git_cliff/network.py
+group 2 path: tests/unit/tools/release_workflow/test_git_cliff_network/test_git_cliff_network_tdd.py
+group 2 path: tests/unit/tools/release_workflow/git_cliff_support.py
+group 3: refactor(release): provision any install target
+group 3 path: tools/release_workflow/git_cliff/archive.py
+group 3 path: tools/release_workflow/git_cliff/cache.py
+group 3 path: tools/release_workflow/git_cliff/cache_lock.py
+group 3 path: tools/release_workflow/git_cliff/download_worker.py
+group 3 path: tools/release_workflow/git_cliff/manifest.py
+group 3 path: tools/release_workflow/git_cliff/installation.py
+group 3 path: tools/release_workflow/git_cliff/provisioning.py
+group 3 path: tests/unit/tools/release_workflow/test_git_cliff_archive/test_git_cliff_archive_tdd.py
+group 3 path: tests/unit/tools/release_workflow/test_git_cliff_cache/test_git_cliff_cache_tdd.py
+group 3 path: tests/unit/tools/release_workflow/test_git_cliff_download_worker/test_git_cliff_download_worker_tdd.py
+group 3 path: tests/unit/tools/release_workflow/test_git_cliff_provisioning/test_git_cliff_provisioning_tdd.py
+group 3 path: tests/unit/tools/release_workflow/test_git_cliff_native_evidence/native_checks.v1.json
+group 4: feat(release): build the snapshot-tag fixture
+group 4 path: tools/release_workflow/git_cliff/fixture_history.py
+group 5: feat(release): compare two git-cliff versions
+group 5 path: tools/release_workflow/git_cliff/comparison.py
+group 6: feat(release): acquire git-cliff evidence candidates
+group 6 path: tools/release_workflow/git_cliff/candidates.py
+group 7: feat(release): add the reviewed evidence bundle
+group 7 path: tools/release_workflow/git_cliff/bundle.py
+group 8: feat(release): check a bundle before admission
+group 8 path: tools/release_workflow/git_cliff/bundle_checks.py
+group 9: test(release): cover the evidence modules
+group 9 path: tests/unit/tools/release_workflow/git_cliff_harness_fake.py
+group 9 path: tests/unit/tools/release_workflow/git_cliff_children_fake.py
+group 9 path: tests/unit/tools/release_workflow/test_git_cliff_fixture/__init__.py
+group 9 path: tests/unit/tools/release_workflow/test_git_cliff_fixture/test_git_cliff_fixture_tdd.py
+group 9 path: tests/unit/tools/release_workflow/test_git_cliff_comparison/__init__.py
+group 9 path: tests/unit/tools/release_workflow/test_git_cliff_comparison/test_git_cliff_comparison_tdd.py
+group 9 path: tests/unit/tools/release_workflow/test_git_cliff_candidates/__init__.py
+group 9 path: tests/unit/tools/release_workflow/test_git_cliff_candidates/test_git_cliff_candidates_tdd.py
+group 9 path: tests/unit/tools/release_workflow/test_git_cliff_candidates/test_git_cliff_candidates_records_tdd.py
+group 9 path: tests/unit/tools/release_workflow/test_git_cliff_bundle/__init__.py
+group 9 path: tests/unit/tools/release_workflow/test_git_cliff_bundle/test_git_cliff_bundle_tdd.py
+group 9 path: tests/unit/tools/release_workflow/test_git_cliff_bundle/test_git_cliff_bundle_review_tdd.py
+group 9 path: tests/unit/tools/release_workflow/test_git_cliff_bundle/test_git_cliff_bundle_pbt.py
+group 9 path: tests/unit/tools/release_workflow/test_git_cliff_bundle_checks/__init__.py
+group 9 path: tests/unit/tools/release_workflow/test_git_cliff_bundle_checks/test_git_cliff_bundle_checks_tdd.py
+group 9 path: tests/unit/tools/release_workflow/test_git_cliff_bundle_checks/test_git_cliff_bundle_checks_review_tdd.py
+group 10: feat(release): run the evidence harness by hand
+group 10 path: tools/release_workflow/git_cliff/harness.py
+group 10 path: tools/release_workflow/git_cliff/__init__.py
+group 10 path: tests/unit/tools/release_workflow/test_git_cliff_harness/__init__.py
+group 10 path: tests/unit/tools/release_workflow/test_git_cliff_harness/test_git_cliff_harness_tdd.py
+group 11: docs(git-cliff-provisioning): record step 6 validation
+group 11 path: docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.validation.md
+staged path: docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.validation.md
+staged path: tests/unit/tools/release_workflow/conftest.py
+staged path: tests/unit/tools/release_workflow/git_cliff_children_fake.py
+staged path: tests/unit/tools/release_workflow/git_cliff_harness_fake.py
+staged path: tests/unit/tools/release_workflow/git_cliff_support.py
+staged path: tests/unit/tools/release_workflow/test_git/test_git_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_archive/test_git_cliff_archive_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_bundle/__init__.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_bundle/test_git_cliff_bundle_pbt.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_bundle/test_git_cliff_bundle_review_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_bundle/test_git_cliff_bundle_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_bundle_checks/__init__.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_bundle_checks/test_git_cliff_bundle_checks_review_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_bundle_checks/test_git_cliff_bundle_checks_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_cache/test_git_cliff_cache_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_candidates/__init__.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_candidates/test_git_cliff_candidates_records_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_candidates/test_git_cliff_candidates_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_comparison/__init__.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_comparison/test_git_cliff_comparison_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_download_worker/test_git_cliff_download_worker_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_fixture/__init__.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_fixture/test_git_cliff_fixture_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_harness/__init__.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_harness/test_git_cliff_harness_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_native_evidence/native_checks.v1.json
+staged path: tests/unit/tools/release_workflow/test_git_cliff_network/test_git_cliff_network_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_provisioning/test_git_cliff_provisioning_tdd.py
+staged path: tools/release_workflow/git.py
+staged path: tools/release_workflow/git_cliff/__init__.py
+staged path: tools/release_workflow/git_cliff/archive.py
+staged path: tools/release_workflow/git_cliff/bundle.py
+staged path: tools/release_workflow/git_cliff/bundle_checks.py
+staged path: tools/release_workflow/git_cliff/cache.py
+staged path: tools/release_workflow/git_cliff/cache_lock.py
+staged path: tools/release_workflow/git_cliff/candidates.py
+staged path: tools/release_workflow/git_cliff/comparison.py
+staged path: tools/release_workflow/git_cliff/download_worker.py
+staged path: tools/release_workflow/git_cliff/fixture_history.py
+staged path: tools/release_workflow/git_cliff/harness.py
+staged path: tools/release_workflow/git_cliff/installation.py
+staged path: tools/release_workflow/git_cliff/manifest.py
+staged path: tools/release_workflow/git_cliff/network.py
+staged path: tools/release_workflow/git_cliff/provisioning.py
+```
+
+### Validation scope for step 6 git-cliff-provisioning (round 3)
+
+Validation scope: the whole suite.
+
+### Requestor assessment for step 6 git-cliff-provisioning (round 3)
+
+Writer assessment for Step 6 of the git-cliff-provisioning plan, round 3: the
+step is fully implemented after the round 2 repairs, and the rerun
+implementation check records `Yes. Step 6 has been fully implemented.` in the
+staged validation plan (the reviewer's round 2 missing-work list is done and
+removed; the document status stays `No, it is not implemented.` while Steps
+7 and 8 are not started).
+
+Evidence, all on the staged tree:
+
+- Round 2 repairs, each through its leaf: the new bundle checks leaf covers,
+  with a current approved review, a repeated success hiding a 69 and one
+  hiding a status 1, and a pin comparison returning 69; a skipped tag, a
+  repeated tag and full history alone with tags recorded, each with matching
+  output rows; the harness leaf a comparison failure and a worktree cleanup
+  note printed together through `harness.main` (status 2, both messages, no
+  bundle) and the recorded llm-shared tags of a first run; the comparison
+  leaf `history_tags`; the candidates leaf two bundles with different trust
+  records sharing the evidence cache, the second acquisition run at the
+  first caller's lock release and refused at the in-use stage, the first
+  invocation keeping the verified bytes. `ghog single` on the bundle, bundle
+  checks, candidates, comparison, harness, provisioning and installation
+  leaves: 281 passed.
+- Native record: the recorder with `--milestone step-5`, after the edit of
+  the covered source `provisioning.py`, passed 14 of 14 and the stalled
+  runner timeout demonstration.
+- Default walk: `ghog day --whole-suite` exit 0 after splitting one grade C
+  check (`_observation_issue` out of `_observation_problem`).
+- Review validation, `ghog day --full=speed --whole-suite` (built-in default):
+  exit 0 with `cov=100 outliers=0 excluded=0 proof=speed`, 8097 tests,
+  slowest call 0.32 s (outside this step), on index tree
+  `95ce496729582667f2373b1e4c9511e7991c9ba6`. A first speed walk on an
+  earlier tree failed on CPU only: two tests of
+  `tests/unit/tools/shared_lifecycle/test_audit_declarations` (outside this
+  step, passing in focus) and the bundle round-trip property test, whose
+  examples rebuilt the synthetic archives; `sample_candidate` in the harness
+  fake is now cached (deterministic archive, frozen identity), the focused
+  rerun with `--full=speed` passed, and the walk above passed. No budget was
+  changed and no exclusion is accepted.
+- `rg -n 'manifest'` on the harness, comparison, candidates and bundle checks
+  modules: reads only (`bundle_checks` reads `ADMITTED_PINS`).
+  `rg -n 'pragma: no cover' tools/release_workflow/git_cliff`: only the
+  harness entry line.
+- Line counts: `bundle.py` 451 and `bundle_checks.py` 233 (split from the 639
+  lines the round 2 checks reached), `candidates.py` 442, `comparison.py`
+  346, `harness.py` 327, `provisioning.py` 349, `fixture_history.py` 235;
+  every Python file below 550.
+- Markdown check and cSpell on the validation plan and the transcript: clean.
+
+Architecture: `bundle` keeps the model, its strict codec and the review
+binding; `bundle_checks` holds the admission rules and depends on `bundle`,
+never the reverse; the recorded tags come from the comparison's Git reads,
+and the guard is opened by the provisioning flow under its own lock.
+Performance: one more pass over `rev-list` and the tag listing per
+comparison (the one `history_ranges` already made), linear checks per
+observation and per case. Feature integrity: production provisioning now
+guards a freshly published entry before it releases the lock, with the same
+ready line and stages; the guard is closed if the release fails.
+
+Please check in particular: `_observation_issue` and `_outputs_problem`;
+`_matrix_complete` with `FrozenInputs.llm_shared_tags` and
+`comparison.history_tags`; `harness.main` printing the notes; `_Flow._locked`
+guarding before `_release`; and the two-bundle test in the candidates leaf.
+
+### Implementation report for step 6 git-cliff-provisioning (round 3)
+
+Step 6, "Compatibility evidence harness", is the sixth of eight steps of the
+git-cliff-provisioning plan. It ships the internal comparison modules the
+evidence run of Step 7 uses by hand; nothing in a release, a build or a
+`gcliff` call imports them, and the manifest still admits no pin.
+
+Git input stream, `tools/release_workflow/git.py` (plan decision Q09):
+
+- `GitExecutionContext.run(arguments, *, cwd, check=True, input=None)`:
+  given bytes go through `subprocess.run(input=...)` without `stdin`; without
+  them the existing stdin rule applies. `_execute` takes them as `stream`, and
+  a new `_spawn` holds both process starts. The `read_only_git` stand-in in
+  `tests/unit/tools/release_workflow/conftest.py` accepts the new keyword.
+
+Provisioning of any install target (Step 3 to 5 modules):
+
+- `installation.InstallTarget` (frozen): version, triple, asset, size,
+  member, URL, `accept(archive) -> sha256` (a `VerificationError` is the
+  verification stage), `before_publish()` (run after the entry record is
+  written and the owner file removed, before retirement and publication)
+  and `reuse`, a function asked before each reuse check for the archive
+  digest a reused entry must record (None allows no reuse at that check;
+  production has no function and compares no archive digest). `install(layout, target, budget, seams,
+  lock)` uses the target everywhere the pin was used. `manifest_target(pin)`
+  keeps production exactly: verify against the manifest size and digest,
+  record the manifest digest, nothing before publication, reusable, no
+  archive comparison on reuse.
+- `provisioning.provision_target(layout, target, budget, *, seams, caller)`
+  runs the unchanged flow in the layout's namespace; `provision` calls it with
+  `manifest_target(pin)` in production. `_reuse` asks the target's function
+  before the lock-free check and again before the recheck under the lock.
+- `cache.check_entry(..., asset_sha256=None)`: when given, the record's
+  `asset_sha256` must equal it, compared after the record read and before the
+  hash, so the candidate order is archive digest, executable, probe.
+- `archive.archive_identity(path)` (SHA-256 and size of a staged file, used
+  by `verify_archive`) and the narrower `ArchiveMember` protocol of
+  `extract_member`; `download_worker.outcome_fields(stdout)`, the parent's
+  reading of the outcome line, now used by the installation;
+  `cache_lock.publish_file`, the former private `_publish`;
+  `manifest.asset_url(version, asset)`, behind `download_url`.
+- The native record is refreshed at milestone `step-5` (14 of 14 passed),
+  since `cache.py`, `cache_lock.py`, `installation.py`, `provisioning.py`
+  and `download_worker.py` are covered sources.
+
+Fixture history, `tools/release_workflow/git_cliff/fixture_history.py`
+(design "Frozen inputs and the coverage matrix", Q14):
+
+- 20 declared commits and four annotated tags (`v0.1.0`, `v0.2.0-SNAPSHOT`,
+  `v0.2.0`, `v0.3.0-SNAPSHOT`, in `TAGS`); one merge; messages for every
+  group and skip rule of the dev_workflow `cliff.toml`, a breaking change, a
+  fix whose body matches the security parser, a revert and an unconventional
+  commit.
+- `stream()`: commits with `deleteall` and every file inline, `from` and
+  `merge` in parent order, author and committer with fixed dates and two
+  zones; tags with tagger, date, zone and message; `done` at the end.
+- `environment(source, global_config)`, `build(git, directory)` (`init
+  --quiet --template= --object-format=sha1 --initial-branch=main`, then
+  `fast-import --quiet --done` with the stream as input, then `for-each-ref
+  --format=%(refname)%00%(objectname) refs/heads/main refs/tags`, each with
+  `CONFIG`), `FixtureHashes` and `verify`.
+
+Comparison, `tools/release_workflow/git_cliff/comparison.py` (design
+"Frozen inputs and the coverage matrix", "Outputs and classification", Q13):
+
+- `FrozenInputs` (pin, baseline, llm-shared commit, `CliffToml`, fixture
+  hashes, ranges, `CandidateIdentity` values, `FLAGS`, `ENVIRONMENT`),
+  `RangeCase`, `RunDigest`, `CaseResult` (hunk identifiers `<case> #<n>`),
+  `ComparisonResult`, `Workspace`.
+- `history_ranges(git, *, cwd, revision, repository)`: `rev-list
+  --topo-order --reverse` and the tag records reachable from the revision,
+  ordered in one pass; full history, consecutive pairs, last tag to HEAD.
+- `run_environment(source, home)`; `run_comparison(inputs, invocations, git,
+  workspace)`: `worktree add --detach` of the frozen commit with
+  `core.hooksPath` on an empty directory, baseline then pin per case through a
+  fresh invocation each (`-c <bundle copy> -w <directory> -s footer --
+  [range]`, engine policy, captured output, `RUN_SECONDS` = 120), worktree
+  removed and `worktree prune` in `finally`; `differing_hunks` (unified diff,
+  three lines of context, line endings kept); `verify_rerun`.
+
+Candidates, `tools/release_workflow/git_cliff/candidates.py` (design
+"Candidate lifecycle and admission order", "Candidate cache"; plan decision
+Q19):
+
+- `parse_listing(version, metadata)` and `AssetListing`; `Candidate` with its
+  validation; `EVIDENCE_ONLY_VERSIONS`, `UPSTREAM_DIGEST`,
+  `EVIDENCE_ONLY_HTTPS` and `TRUST_BASIS` (the evidence-only basis states the
+  authorization of 2026-11-13 and that HTTPS anchored the first download).
+- `TrustRecord(path, version)`: `read`, `require`, `write_once` (through
+  `publish_file` without replacement; an existing record is a
+  `CandidateError`, never rewritten) and `compare(received)` (a
+  `VerificationError` naming the record).
+- `acquire_candidate(tooling_root, version, budget, seams, *, trust_path)`:
+  an existing record is the identity (`provision_candidate`); otherwise the
+  metadata worker (`WorkerRequest(mode="metadata")`, record-free, expiring 60
+  s after it started, one retry after 5 s for a retryable failure), the trust
+  kind decided before any download, and `provision_target` in the evidence
+  namespace with a target whose acceptance compares with the listed size and
+  published digest and writes the record in `before_publish`; a record
+  found under the lock is compared instead, and the reuse function reads the
+  record before each check, so a published matching entry is reused.
+- `provision_candidate(...)`: the same target with the record present; its
+  acceptance compares every new download with the record.
+
+Bundle, `tools/release_workflow/git_cliff/bundle.py` (design "Outputs and
+classification", "Statuses"; plan decision Q16):
+
+- `Bundle` and its parts; strict `read` (via `lock_records.decode_object`,
+  then each member's form, then the listed file digests) and `write`;
+  `canonical_projection`, `covered_sha256`, `with_review`, `refreshed`;
+  `require_complete` and `require_admissible` as listed in the validation
+  plan, in `bundle_checks.py` since round 3 of this exchange. The default location
+  is `tools/release_workflow/git_cliff/bundles/<pin>`; `pins` defaults to the
+  shipped `ADMITTED_PINS`.
+
+Harness, `tools/release_workflow/git_cliff/harness.py` (design "The
+harness", Q15):
+
+- `main(arguments, *, context=None)`, `HarnessContext`,
+  `production_context()`, `evidence_git(source, *, checkout, temporary)`.
+  A comparison: budget once, existing bundle of the same pair, baseline then
+  pin acquired, fixture built and verified, inputs frozen (HEAD commit,
+  `rev-parse <commit>:tools/dev_workflow`, `cat-file blob
+  <submodule>:cliff.toml` in the submodule, copied into the bundle) or reused
+  and compared field by field, with the copied `cliff.toml` bytes, before
+  any run, comparison, `verify_rerun`, `write` with `refreshed`. A review: `with_review` over the current bundle and today's
+  local date. Expected failures print one diagnostic and return 2.
+
+Tests: `git_cliff_harness_fake.py` (new), the children fake (metadata role,
+versions from cache paths, evidence namespace, `run_output`), the support
+module (any version), and the leaves `test_git_cliff_fixture`,
+`test_git_cliff_comparison`, `test_git_cliff_candidates` (acquisition and
+records), `test_git_cliff_bundle` (model, review binding, property test) and
+`test_git_cliff_harness`, plus additions to `test_git`, the cache,
+provisioning, worker and archive leaves.
+
+Also staged: the validation plan's Step 6 sections and the
+`git_cliff/__init__.py` docstring.
+
+Code review round 1 repairs (round 2 of this exchange):
+
+- `bundle.py`: audit evidence (`AUDIT_CATEGORIES`, commands, references,
+  findings) and observations (`OBSERVATIONS`, no 69, consistent statuses);
+  trust record reconciliation in `read`; two distinct versions, the full
+  matrix (`comparison.chained_ranges`), the fixture's tags, and the manifest
+  identity in `require_complete`. 622 lines.
+- `harness.py`: complete frozen-input comparison and copied `cliff.toml`
+  bytes before any run; the temporary directory resolved to its long form.
+- `fixture_history.verify`: every tag of either side, in order.
+- `comparison.py`: `worktree add` inside the guarded block; cleanup through
+  `worktree remove --force`, deletion, prune and a verifying listing; cleanup
+  problems fail a successful run or are noted on the failure raised.
+- `network.py`: HTTPS-only redirect handler, `InsecureRedirectError` (fatal);
+  `git_cliff_support.CannedWeb.opener` now builds on the network opener.
+- `installation.InstallTarget.reuse` replaces `reusable` and `entry_asset`;
+  `provisioning._reuse` asks it before each check; `candidates` gives the
+  trust record's digest read at that moment, and `trust_record_bytes`.
+- Native record refreshed at `step-5` after the covered-source edits, 14 of
+  14 passed.
+- Tests: the bundle, comparison, fixture, candidates, harness, network and
+  provisioning leaves, and the harness fake's samples (full matrix, real
+  trust records, complete audit) and declared Git failures per action.
+
+Code review round 2 repairs (round 3 of this exchange):
+
+- `bundle_checks.py` (new, 233 lines): the admission rules split from
+  `bundle.py`, which keeps the model, the strict codec and the review
+  binding (451 lines, `covered_sha256` now public). `_observation_issue`
+  checks each observation on its own before the presence check;
+  `_outputs_problem` refuses a pin result of 69; `_matrix_complete` requires
+  llm-shared's recorded tags once each and the ranges to be exactly their
+  chain, then the fixture's.
+- `comparison.py`: `history_tags(git, *, cwd, revision)` gives each tag
+  reachable from the revision with its commit, in history order, in one
+  pass; `FrozenInputs.llm_shared_tags` records them; the bundle encodes them
+  as a list of `{name, commit}`.
+- `harness.py`: `_inputs` records the tags and chains llm-shared's ranges
+  from them; `main` prints each note of a failure after its diagnostic.
+- `provisioning.py`: `_locked` guards the published entry before releasing
+  the lock and closes the guard when the release fails; `run` prints the
+  ready line only for an installation.
+- Native record refreshed at `step-5` after the edit of `provisioning.py`,
+  14 of 14 passed.
+- Tests: the new bundle checks leaf (completeness and admissibility, with
+  the round 2 regressions), the bundle leaf reduced to storage and binding,
+  the candidates leaf's two-bundle guard test, the harness leaf's cleanup
+  note and recorded tags, the comparison leaf's `history_tags`; the harness
+  fake's sample inputs record one llm-shared tag.
+
+Writer notes: `.reviews/a.git-cliff-provisioning.step6.journal.md` and
+`.reviews/a.git-cliff-provisioning.step6.handoff.md`.
+
+### Change summary for step 6 git-cliff-provisioning (round 3)
+
+Staged paths (44), grouped in the root `a.commit` (eleven groups, checker
+`ready: true`). Round 3 adds `tools/release_workflow/git_cliff/bundle_checks.py`
+in its own group after the bundle, and the new leaf
+`tests/unit/tools/release_workflow/test_git_cliff_bundle_checks/` (three
+files) in the test group:
+
+1. `feat(release): give Git an input stream`: `tools/release_workflow/git.py`,
+   `tests/unit/tools/release_workflow/test_git/test_git_tdd.py`,
+   `tests/unit/tools/release_workflow/conftest.py`.
+2. `fix(release): follow redirects only to HTTPS`:
+   `tools/release_workflow/git_cliff/network.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_network/test_git_cliff_network_tdd.py`,
+   `tests/unit/tools/release_workflow/git_cliff_support.py`.
+3. `refactor(release): provision any install target`: `archive.py`,
+   `cache.py`, `cache_lock.py`, `download_worker.py`, `manifest.py`,
+   `installation.py`, `provisioning.py` (all in
+   `tools/release_workflow/git_cliff/`), the archive, cache, worker and
+   provisioning test files, and `native_checks.v1.json`; round 3 adds the
+   guard opened before the lock release.
+4. `feat(release): build the snapshot-tag fixture`: `fixture_history.py`.
+5. `feat(release): compare two git-cliff versions`: `comparison.py`, with
+   `history_tags` and `FrozenInputs.llm_shared_tags`.
+6. `feat(release): acquire git-cliff evidence candidates`: `candidates.py`.
+7. `feat(release): add the reviewed evidence bundle`: `bundle.py` (model,
+   strict codec, review binding).
+8. `feat(release): check a bundle before admission`: `bundle_checks.py`.
+9. `test(release): cover the evidence modules`: `git_cliff_harness_fake.py`,
+   `git_cliff_children_fake.py`, and the fixture, comparison, candidates,
+   bundle and bundle checks leaves with their `__init__.py` files.
+10. `feat(release): run the evidence harness by hand`: `harness.py`,
+    `git_cliff/__init__.py`, and the harness leaf with its `__init__.py`.
+11. `docs(git-cliff-provisioning): record step 6 validation`:
+    `docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.validation.md`.
+
+Steps 1 to 5 of this plan are committed and pushed (`1cfda502` is the base
+of this review). The transcript
+`docs/v0.14.0/review.code.v0.14.0.git-cliff-provisioning.md` and
+`.vscode/settings.json` (the cSpell word `deleteall` the transcript needs)
+stay unstaged for the residual commit.
+
+### Writer response for step 6 git-cliff-provisioning (round 3)
+
+Writer response:
+
+Writer response:
+
+All four round 2 findings are accepted and repaired; there is no
+disagreement. The reviewer's staged edit of the validation plan was kept as
+the basis of the rerun implementation check, which again records `Yes. Step 6
+has been fully implemented.` with the round 2 repairs; its missing-work list
+is done and removed.
+
+1. Every recorded pin status: `bundle_checks._observation_issue` checks each
+   observation on its own, in the recorded order, before any grouping by
+   name: a 69, a blank command, a success other than 0 and a usage error or
+   failing render reported as 0 are each refused, so a later observation of
+   the same name hides nothing; the presence of each of `OBSERVATIONS` is
+   checked after. `_outputs_problem` refuses a comparison case where the pin
+   returned 69. The bundle checks leaf covers, with a current approved
+   review, a repeated success hiding a 69 and one hiding a status 1, and a
+   pin comparison returning 69.
+2. llm-shared ranges bound to the frozen history: `FrozenInputs` now records
+   `llm_shared_tags`, each tag reachable from the frozen commit with its
+   commit, in history order (`comparison.history_tags`, one pass over
+   `rev-list` and the tag listing). Completeness requires each recorded tag
+   once and the ranges to be exactly `chained_ranges` of the recorded tags,
+   then exactly the fixture's, so full history alone, an omitted or a
+   repeated tag are refused even with matching output rows. A rerun compares
+   the recorded tags with the ones Git reports, field by field, before any
+   run. The bundle checks leaf covers a skipped tag, a repeated tag and full
+   history alone with tags recorded, each with matching outputs; the harness
+   leaf the recorded tags of a first run; the comparison leaf
+   `history_tags`.
+3. Cleanup failures at the entry point: `harness.main` prints the failure's
+   diagnostic, then each note it carries, on standard error with the harness
+   prefix, and returns 2. The harness leaf runs a comparison whose git-cliff
+   run does not end with a worktree still registered after its removal:
+   status 2, the comparison failure first, then the cleanup note naming the
+   worktree path, and no bundle written.
+4. Fresh installation bound to the guard: `_Flow._locked` now opens the use
+   guard of the entry it just published while the version lock is still
+   held, then releases the lock; the guard is closed if the release fails.
+   An entry that cannot be guarded keeps the extraction stage of plan Q18.
+   The candidates leaf plays two bundles sharing the evidence cache with
+   different trust records for the baseline: the second bundle's
+   acquisition runs the moment the first caller's lock record is removed,
+   and is refused at the in-use stage because the first invocation already
+   holds its guard; the executable keeps the bytes the first caller
+   verified.
+
+To keep `bundle.py` below the 550 to 650 band after these checks grew it to
+639 lines, the admission rules (`require_complete`, `require_admissible` and
+their checks, `KINDS`, `AUDIT_CATEGORIES`, `OBSERVATIONS`) moved to the new
+`tools/release_workflow/git_cliff/bundle_checks.py` (233 lines), with
+`covered_sha256` made public in `bundle` (451 lines); their tests moved to the
+new leaf `tests/unit/tools/release_workflow/test_git_cliff_bundle_checks/`.
+This deviates from the plan's `bundle.require_admissible` name only by
+module; the validation plan records it. Step 7 imports it from
+`bundle_checks`.
+
+`provisioning.py` changed again, so the recorder was rerun at `step-5`: 14
+of 14 passed. The guard order change is recorded under feature integrity:
+production provisioning now guards a fresh entry before releasing the lock,
+with the same ready line and stages.
+
+### Reviewer focus for step 6 git-cliff-provisioning (round 3)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-6-round-3 -->
+
+## Round 3 by reviewer - Step 6
+
+- Recorded: 2026-11-20T21:13:54+01:00
+- Exchange: code/code/v0.14.0/git-cliff-provisioning
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 6
+- Outcome: answer
+
+### Assessed index identity for step 6 git-cliff-provisioning (exchange 1) (round 3)
+
+Baseline index tree: 95ce496729582667f2373b1e4c9511e7991c9ba6
+
+Assessed index tree: 95ce496729582667f2373b1e4c9511e7991c9ba6
+
+### Implementation check for step 6 git-cliff-provisioning (exchange 1) (round 3)
+
+Result:
+
+Yes. Step 6 has been fully implemented.
+
+Each raw observation and each pin comparison result is now checked for status 69. The harness captures ordered tag names and commits from Git at the frozen revision, and bundle admission checks the range matrix against that inventory. Regression tests cover hidden statuses and missing or repeated ranges with matching outputs. The harness CLI reports both the primary comparison error and the worktree cleanup note. Fresh installation acquires its use guard under the version lock. The two-bundle regression verifies the first caller still holds its verified bytes when a competing installation attempts retirement.
+
+Validation plan effects:
+
+The writer’s Step 6 verdict and implementation notes already describe the repairs and the move of admission checks to `bundle_checks.py`. The earlier work list is complete.
+
+### Pre-repair mandatory checks and coverage for step 6 git-cliff-provisioning (exchange 1) (round 3)
+
+The writer reports 8,097 tests with `cov=100 outliers=0 excluded=0 proof=speed`, exit 0 on the request tree, and 14 of 14 native checks. The reviewer’s independent `ghog affected --no-cov` with the exchange scope completed with zero failures and warnings. The coverage gate measures `tools` with its configured exclusions. The staged regression tests exercise the four previously missing behaviors.
+
+### Resolved validation set and sources for step 6 git-cliff-provisioning (exchange 1) (round 3)
+
+The request and independent Step 6 resolver both select `ghog day --full=speed --whole-suite` from the project default.
+
+### Resolver drift and direction for step 6 git-cliff-provisioning (exchange 1) (round 3)
+
+None.
+
+### Repository state around validation for step 6 git-cliff-provisioning (exchange 1) (round 3)
+
+The request, baseline and assessed tree are `95ce496729582667f2373b1e4c9511e7991c9ba6`. The ordered comparison reports only the ignored focused-run log. The umbrella digest matches. Git's default whitespace check flags the CRLF endings in `bundle_checks.py`. Its check with CRLF recognized as a line ending passes.
+
+### Repair inventory for step 6 git-cliff-provisioning (exchange 1) (round 3)
+
+Repairs made: None.
+
+Paths staged: None.
+
+### Commit plan assessment for step 6 git-cliff-provisioning (exchange 1) (round 3)
+
+The independent checker returned `valid`, ready `true`, with 11 ordered groups covering all 44 staged paths. Diagnostics were empty. The admission rules follow the storage model they import.
+
+1. `feat(release): give Git an input stream` groups `tools/release_workflow/git.py`, `tests/unit/tools/release_workflow/test_git/test_git_tdd.py`, `tests/unit/tools/release_workflow/conftest.py`.
+2. `fix(release): follow redirects only to HTTPS` groups `tools/release_workflow/git_cliff/network.py`, `tests/unit/tools/release_workflow/test_git_cliff_network/test_git_cliff_network_tdd.py`, `tests/unit/tools/release_workflow/git_cliff_support.py`.
+3. `refactor(release): provision any install target` groups `tools/release_workflow/git_cliff/archive.py`, `tools/release_workflow/git_cliff/cache.py`, `tools/release_workflow/git_cliff/cache_lock.py`, `tools/release_workflow/git_cliff/download_worker.py`, `tools/release_workflow/git_cliff/manifest.py`, `tools/release_workflow/git_cliff/installation.py`, `tools/release_workflow/git_cliff/provisioning.py`, `tests/unit/tools/release_workflow/test_git_cliff_archive/test_git_cliff_archive_tdd.py`, `tests/unit/tools/release_workflow/test_git_cliff_cache/test_git_cliff_cache_tdd.py`, `tests/unit/tools/release_workflow/test_git_cliff_download_worker/test_git_cliff_download_worker_tdd.py`, `tests/unit/tools/release_workflow/test_git_cliff_provisioning/test_git_cliff_provisioning_tdd.py`, `tests/unit/tools/release_workflow/test_git_cliff_native_evidence/native_checks.v1.json`.
+4. `feat(release): build the snapshot-tag fixture` groups `tools/release_workflow/git_cliff/fixture_history.py`.
+5. `feat(release): compare two git-cliff versions` groups `tools/release_workflow/git_cliff/comparison.py`.
+6. `feat(release): acquire git-cliff evidence candidates` groups `tools/release_workflow/git_cliff/candidates.py`.
+7. `feat(release): add the reviewed evidence bundle` groups `tools/release_workflow/git_cliff/bundle.py`.
+8. `feat(release): check a bundle before admission` groups `tools/release_workflow/git_cliff/bundle_checks.py`.
+9. `test(release): cover the evidence modules` groups `tests/unit/tools/release_workflow/git_cliff_harness_fake.py`, `tests/unit/tools/release_workflow/git_cliff_children_fake.py`, `tests/unit/tools/release_workflow/test_git_cliff_fixture/__init__.py`, `tests/unit/tools/release_workflow/test_git_cliff_fixture/test_git_cliff_fixture_tdd.py`, `tests/unit/tools/release_workflow/test_git_cliff_comparison/__init__.py`, `tests/unit/tools/release_workflow/test_git_cliff_comparison/test_git_cliff_comparison_tdd.py`, `tests/unit/tools/release_workflow/test_git_cliff_candidates/__init__.py`, `tests/unit/tools/release_workflow/test_git_cliff_candidates/test_git_cliff_candidates_tdd.py`, `tests/unit/tools/release_workflow/test_git_cliff_candidates/test_git_cliff_candidates_records_tdd.py`, `tests/unit/tools/release_workflow/test_git_cliff_bundle/__init__.py`, `tests/unit/tools/release_workflow/test_git_cliff_bundle/test_git_cliff_bundle_tdd.py`, `tests/unit/tools/release_workflow/test_git_cliff_bundle/test_git_cliff_bundle_review_tdd.py`, `tests/unit/tools/release_workflow/test_git_cliff_bundle/test_git_cliff_bundle_pbt.py`, `tests/unit/tools/release_workflow/test_git_cliff_bundle_checks/__init__.py`, `tests/unit/tools/release_workflow/test_git_cliff_bundle_checks/test_git_cliff_bundle_checks_tdd.py`, `tests/unit/tools/release_workflow/test_git_cliff_bundle_checks/test_git_cliff_bundle_checks_review_tdd.py`.
+10. `feat(release): run the evidence harness by hand` groups `tools/release_workflow/git_cliff/harness.py`, `tools/release_workflow/git_cliff/__init__.py`, `tests/unit/tools/release_workflow/test_git_cliff_harness/__init__.py`, `tests/unit/tools/release_workflow/test_git_cliff_harness/test_git_cliff_harness_tdd.py`.
+11. `docs(git-cliff-provisioning): record step 6 validation` groups `docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.validation.md`.
+
+### Findings and boundaries for step 6 git-cliff-provisioning (exchange 1) (round 3)
+
+Unresolved findings: None.
+
+Boundary-crossing work: None.
+
+### Writer instructions for step 6 git-cliff-provisioning (exchange 1) (round 3)
+
+The human commit decision can proceed on the assessed tree.
+
+### Decision rationale for step 6 git-cliff-provisioning (exchange 1) (round 3)
+
+All six readiness checks pass for Step 6, round 3, occurrence 1. The request matches the index, implementation is complete, validation and measured coverage pass, staging is attributable to the writer, all carried findings are closed, and the commit plan covers the staged paths. The move of the admission API to `bundle_checks` is documented and its consumers use that module. The recommendation is `commit-ready`.
+
+### Final reviewer decision for step 6 git-cliff-provisioning (exchange 1) (round 3)
+
+Decision: commit-ready (advisory). The evidence floor is complete, but this recommendation does not authorize a commit; authority remains at the durable human gate.
+
+<!-- review-entry-id: answer-step-6-round-3 -->
+
+## Round 3 by human - Step 6 - human-confirmation
+
+- Recorded: 2026-11-20T21:30:50+01:00
+- Exchange: code/code/v0.14.0/git-cliff-provisioning
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 6
+- Outcome: human-confirmation
+
+Human choice: Rework and review again
+Outcome: another-round
+Guidance: Rework and review again: normalize `tools/release_workflow/git_cliff/bundle_checks.py`
+to LF line endings, the only CRLF file among the staged paths (flagged by
+Git's default whitespace check in the round 3 answer). Line endings only, no
+content change; validate on the new tree and review it in round 4.
+
+<!-- review-entry-id: human-confirmation-round-3 -->
+
+## Round 4 by requestor - Step 6
+
+- Recorded: 2026-11-20T21:40:54+01:00
+- Exchange: code/code/v0.14.0/git-cliff-provisioning
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 6
+- Outcome: request
+
+### Review identity for step 6 git-cliff-provisioning (round 4)
+
+Umbrella draft: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+Implementation plan: docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.md
+Implementation step: 6
+Review round: 4
+
+### Code review evidence for step 6 git-cliff-provisioning (round 4)
+
+request_index_tree: 19c9b249b649246e667c35a49a618aba8e5f412a
+resolved_validation_set:
+
+- `ghog day --full=speed --whole-suite` (sources: project)
+
+test_scope:
+{"fingerprint": "686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6", "group": null, "proof": "speed", "requirement": "docs/v0.14.0/feature-request.v0.14.0.git-cliff-provisioning.md", "scope": "whole"}
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: feat(release): give Git an input stream
+group 1 path: tools/release_workflow/git.py
+group 1 path: tests/unit/tools/release_workflow/test_git/test_git_tdd.py
+group 1 path: tests/unit/tools/release_workflow/conftest.py
+group 2: fix(release): follow redirects only to HTTPS
+group 2 path: tools/release_workflow/git_cliff/network.py
+group 2 path: tests/unit/tools/release_workflow/test_git_cliff_network/test_git_cliff_network_tdd.py
+group 2 path: tests/unit/tools/release_workflow/git_cliff_support.py
+group 3: refactor(release): provision any install target
+group 3 path: tools/release_workflow/git_cliff/archive.py
+group 3 path: tools/release_workflow/git_cliff/cache.py
+group 3 path: tools/release_workflow/git_cliff/cache_lock.py
+group 3 path: tools/release_workflow/git_cliff/download_worker.py
+group 3 path: tools/release_workflow/git_cliff/manifest.py
+group 3 path: tools/release_workflow/git_cliff/installation.py
+group 3 path: tools/release_workflow/git_cliff/provisioning.py
+group 3 path: tests/unit/tools/release_workflow/test_git_cliff_archive/test_git_cliff_archive_tdd.py
+group 3 path: tests/unit/tools/release_workflow/test_git_cliff_cache/test_git_cliff_cache_tdd.py
+group 3 path: tests/unit/tools/release_workflow/test_git_cliff_download_worker/test_git_cliff_download_worker_tdd.py
+group 3 path: tests/unit/tools/release_workflow/test_git_cliff_provisioning/test_git_cliff_provisioning_tdd.py
+group 3 path: tests/unit/tools/release_workflow/test_git_cliff_native_evidence/native_checks.v1.json
+group 4: feat(release): build the snapshot-tag fixture
+group 4 path: tools/release_workflow/git_cliff/fixture_history.py
+group 5: feat(release): compare two git-cliff versions
+group 5 path: tools/release_workflow/git_cliff/comparison.py
+group 6: feat(release): acquire git-cliff evidence candidates
+group 6 path: tools/release_workflow/git_cliff/candidates.py
+group 7: feat(release): add the reviewed evidence bundle
+group 7 path: tools/release_workflow/git_cliff/bundle.py
+group 8: feat(release): check a bundle before admission
+group 8 path: tools/release_workflow/git_cliff/bundle_checks.py
+group 9: test(release): cover the evidence modules
+group 9 path: tests/unit/tools/release_workflow/git_cliff_harness_fake.py
+group 9 path: tests/unit/tools/release_workflow/git_cliff_children_fake.py
+group 9 path: tests/unit/tools/release_workflow/test_git_cliff_fixture/__init__.py
+group 9 path: tests/unit/tools/release_workflow/test_git_cliff_fixture/test_git_cliff_fixture_tdd.py
+group 9 path: tests/unit/tools/release_workflow/test_git_cliff_comparison/__init__.py
+group 9 path: tests/unit/tools/release_workflow/test_git_cliff_comparison/test_git_cliff_comparison_tdd.py
+group 9 path: tests/unit/tools/release_workflow/test_git_cliff_candidates/__init__.py
+group 9 path: tests/unit/tools/release_workflow/test_git_cliff_candidates/test_git_cliff_candidates_tdd.py
+group 9 path: tests/unit/tools/release_workflow/test_git_cliff_candidates/test_git_cliff_candidates_records_tdd.py
+group 9 path: tests/unit/tools/release_workflow/test_git_cliff_bundle/__init__.py
+group 9 path: tests/unit/tools/release_workflow/test_git_cliff_bundle/test_git_cliff_bundle_tdd.py
+group 9 path: tests/unit/tools/release_workflow/test_git_cliff_bundle/test_git_cliff_bundle_review_tdd.py
+group 9 path: tests/unit/tools/release_workflow/test_git_cliff_bundle/test_git_cliff_bundle_pbt.py
+group 9 path: tests/unit/tools/release_workflow/test_git_cliff_bundle_checks/__init__.py
+group 9 path: tests/unit/tools/release_workflow/test_git_cliff_bundle_checks/test_git_cliff_bundle_checks_tdd.py
+group 9 path: tests/unit/tools/release_workflow/test_git_cliff_bundle_checks/test_git_cliff_bundle_checks_review_tdd.py
+group 10: feat(release): run the evidence harness by hand
+group 10 path: tools/release_workflow/git_cliff/harness.py
+group 10 path: tools/release_workflow/git_cliff/__init__.py
+group 10 path: tests/unit/tools/release_workflow/test_git_cliff_harness/__init__.py
+group 10 path: tests/unit/tools/release_workflow/test_git_cliff_harness/test_git_cliff_harness_tdd.py
+group 11: docs(git-cliff-provisioning): record step 6 validation
+group 11 path: docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.validation.md
+staged path: docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.validation.md
+staged path: tests/unit/tools/release_workflow/conftest.py
+staged path: tests/unit/tools/release_workflow/git_cliff_children_fake.py
+staged path: tests/unit/tools/release_workflow/git_cliff_harness_fake.py
+staged path: tests/unit/tools/release_workflow/git_cliff_support.py
+staged path: tests/unit/tools/release_workflow/test_git/test_git_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_archive/test_git_cliff_archive_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_bundle/__init__.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_bundle/test_git_cliff_bundle_pbt.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_bundle/test_git_cliff_bundle_review_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_bundle/test_git_cliff_bundle_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_bundle_checks/__init__.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_bundle_checks/test_git_cliff_bundle_checks_review_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_bundle_checks/test_git_cliff_bundle_checks_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_cache/test_git_cliff_cache_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_candidates/__init__.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_candidates/test_git_cliff_candidates_records_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_candidates/test_git_cliff_candidates_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_comparison/__init__.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_comparison/test_git_cliff_comparison_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_download_worker/test_git_cliff_download_worker_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_fixture/__init__.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_fixture/test_git_cliff_fixture_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_harness/__init__.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_harness/test_git_cliff_harness_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_native_evidence/native_checks.v1.json
+staged path: tests/unit/tools/release_workflow/test_git_cliff_network/test_git_cliff_network_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_provisioning/test_git_cliff_provisioning_tdd.py
+staged path: tools/release_workflow/git.py
+staged path: tools/release_workflow/git_cliff/__init__.py
+staged path: tools/release_workflow/git_cliff/archive.py
+staged path: tools/release_workflow/git_cliff/bundle.py
+staged path: tools/release_workflow/git_cliff/bundle_checks.py
+staged path: tools/release_workflow/git_cliff/cache.py
+staged path: tools/release_workflow/git_cliff/cache_lock.py
+staged path: tools/release_workflow/git_cliff/candidates.py
+staged path: tools/release_workflow/git_cliff/comparison.py
+staged path: tools/release_workflow/git_cliff/download_worker.py
+staged path: tools/release_workflow/git_cliff/fixture_history.py
+staged path: tools/release_workflow/git_cliff/harness.py
+staged path: tools/release_workflow/git_cliff/installation.py
+staged path: tools/release_workflow/git_cliff/manifest.py
+staged path: tools/release_workflow/git_cliff/network.py
+staged path: tools/release_workflow/git_cliff/provisioning.py
+```
+
+### Validation scope for step 6 git-cliff-provisioning (round 4)
+
+Validation scope: the whole suite.
+
+### Requestor assessment for step 6 git-cliff-provisioning (round 4)
+
+Writer assessment for Step 6 of the git-cliff-provisioning plan, round 4: a
+replacement round the user asked for at the round 3 convergence gate, for line
+endings only. Step 6 stays fully implemented: the staged validation plan
+records `Yes. Step 6 has been fully implemented.`, unchanged since round 3.
+
+Change since the round 3 assessed tree
+`95ce496729582667f2373b1e4c9511e7991c9ba6`: `tools/release_workflow/git_cliff/bundle_checks.py`
+converted from CRLF to LF line endings. `git diff 95ce4967 19c9b249` touches
+only that file, and `git diff --ignore-cr-at-eol 95ce4967 19c9b249` is empty.
+`git diff --cached --check` is clean, and `git ls-files --eol` reports no
+staged `i/crlf` file.
+
+Evidence, on the staged tree:
+
+- Review validation, `ghog day --full=speed --whole-suite` (built-in default):
+  exit 0 with `cov=100 outliers=0 excluded=0 proof=speed`, 8097 tests,
+  slowest call 0.31 s (outside this step), on index tree
+  `19c9b249b649246e667c35a49a618aba8e5f412a`. No budget was changed and no
+  exclusion is accepted.
+- No covered source of the native record changed, so the step-5 record
+  (14 of 14) stands.
+- The readiness checker reports `valid`, ready `true`, 11 groups and 44
+  staged paths; `a.commit` is unchanged since round 3.
+- Markdown check and cSpell on the validation plan and the transcript: clean.
+
+Please confirm that the only change is the line endings of `bundle_checks.py`.
+
+### Implementation report for step 6 git-cliff-provisioning (round 4)
+
+Step 6, "Compatibility evidence harness", is the sixth of eight steps of the
+git-cliff-provisioning plan. It ships the internal comparison modules the
+evidence run of Step 7 uses by hand; nothing in a release, a build or a
+`gcliff` call imports them, and the manifest still admits no pin.
+
+Git input stream, `tools/release_workflow/git.py` (plan decision Q09):
+
+- `GitExecutionContext.run(arguments, *, cwd, check=True, input=None)`:
+  given bytes go through `subprocess.run(input=...)` without `stdin`; without
+  them the existing stdin rule applies. `_execute` takes them as `stream`, and
+  a new `_spawn` holds both process starts. The `read_only_git` stand-in in
+  `tests/unit/tools/release_workflow/conftest.py` accepts the new keyword.
+
+Provisioning of any install target (Step 3 to 5 modules):
+
+- `installation.InstallTarget` (frozen): version, triple, asset, size,
+  member, URL, `accept(archive) -> sha256` (a `VerificationError` is the
+  verification stage), `before_publish()` (run after the entry record is
+  written and the owner file removed, before retirement and publication)
+  and `reuse`, a function asked before each reuse check for the archive
+  digest a reused entry must record (None allows no reuse at that check;
+  production has no function and compares no archive digest). `install(layout, target, budget, seams,
+  lock)` uses the target everywhere the pin was used. `manifest_target(pin)`
+  keeps production exactly: verify against the manifest size and digest,
+  record the manifest digest, nothing before publication, reusable, no
+  archive comparison on reuse.
+- `provisioning.provision_target(layout, target, budget, *, seams, caller)`
+  runs the unchanged flow in the layout's namespace; `provision` calls it with
+  `manifest_target(pin)` in production. `_reuse` asks the target's function
+  before the lock-free check and again before the recheck under the lock.
+- `cache.check_entry(..., asset_sha256=None)`: when given, the record's
+  `asset_sha256` must equal it, compared after the record read and before the
+  hash, so the candidate order is archive digest, executable, probe.
+- `archive.archive_identity(path)` (SHA-256 and size of a staged file, used
+  by `verify_archive`) and the narrower `ArchiveMember` protocol of
+  `extract_member`; `download_worker.outcome_fields(stdout)`, the parent's
+  reading of the outcome line, now used by the installation;
+  `cache_lock.publish_file`, the former private `_publish`;
+  `manifest.asset_url(version, asset)`, behind `download_url`.
+- The native record is refreshed at milestone `step-5` (14 of 14 passed),
+  since `cache.py`, `cache_lock.py`, `installation.py`, `provisioning.py`
+  and `download_worker.py` are covered sources.
+
+Fixture history, `tools/release_workflow/git_cliff/fixture_history.py`
+(design "Frozen inputs and the coverage matrix", Q14):
+
+- 20 declared commits and four annotated tags (`v0.1.0`, `v0.2.0-SNAPSHOT`,
+  `v0.2.0`, `v0.3.0-SNAPSHOT`, in `TAGS`); one merge; messages for every
+  group and skip rule of the dev_workflow `cliff.toml`, a breaking change, a
+  fix whose body matches the security parser, a revert and an unconventional
+  commit.
+- `stream()`: commits with `deleteall` and every file inline, `from` and
+  `merge` in parent order, author and committer with fixed dates and two
+  zones; tags with tagger, date, zone and message; `done` at the end.
+- `environment(source, global_config)`, `build(git, directory)` (`init
+  --quiet --template= --object-format=sha1 --initial-branch=main`, then
+  `fast-import --quiet --done` with the stream as input, then `for-each-ref
+  --format=%(refname)%00%(objectname) refs/heads/main refs/tags`, each with
+  `CONFIG`), `FixtureHashes` and `verify`.
+
+Comparison, `tools/release_workflow/git_cliff/comparison.py` (design
+"Frozen inputs and the coverage matrix", "Outputs and classification", Q13):
+
+- `FrozenInputs` (pin, baseline, llm-shared commit, `CliffToml`, fixture
+  hashes, ranges, `CandidateIdentity` values, `FLAGS`, `ENVIRONMENT`),
+  `RangeCase`, `RunDigest`, `CaseResult` (hunk identifiers `<case> #<n>`),
+  `ComparisonResult`, `Workspace`.
+- `history_ranges(git, *, cwd, revision, repository)`: `rev-list
+  --topo-order --reverse` and the tag records reachable from the revision,
+  ordered in one pass; full history, consecutive pairs, last tag to HEAD.
+- `run_environment(source, home)`; `run_comparison(inputs, invocations, git,
+  workspace)`: `worktree add --detach` of the frozen commit with
+  `core.hooksPath` on an empty directory, baseline then pin per case through a
+  fresh invocation each (`-c <bundle copy> -w <directory> -s footer --
+  [range]`, engine policy, captured output, `RUN_SECONDS` = 120), worktree
+  removed and `worktree prune` in `finally`; `differing_hunks` (unified diff,
+  three lines of context, line endings kept); `verify_rerun`.
+
+Candidates, `tools/release_workflow/git_cliff/candidates.py` (design
+"Candidate lifecycle and admission order", "Candidate cache"; plan decision
+Q19):
+
+- `parse_listing(version, metadata)` and `AssetListing`; `Candidate` with its
+  validation; `EVIDENCE_ONLY_VERSIONS`, `UPSTREAM_DIGEST`,
+  `EVIDENCE_ONLY_HTTPS` and `TRUST_BASIS` (the evidence-only basis states the
+  authorization of 2026-11-13 and that HTTPS anchored the first download).
+- `TrustRecord(path, version)`: `read`, `require`, `write_once` (through
+  `publish_file` without replacement; an existing record is a
+  `CandidateError`, never rewritten) and `compare(received)` (a
+  `VerificationError` naming the record).
+- `acquire_candidate(tooling_root, version, budget, seams, *, trust_path)`:
+  an existing record is the identity (`provision_candidate`); otherwise the
+  metadata worker (`WorkerRequest(mode="metadata")`, record-free, expiring 60
+  s after it started, one retry after 5 s for a retryable failure), the trust
+  kind decided before any download, and `provision_target` in the evidence
+  namespace with a target whose acceptance compares with the listed size and
+  published digest and writes the record in `before_publish`; a record
+  found under the lock is compared instead, and the reuse function reads the
+  record before each check, so a published matching entry is reused.
+- `provision_candidate(...)`: the same target with the record present; its
+  acceptance compares every new download with the record.
+
+Bundle, `tools/release_workflow/git_cliff/bundle.py` (design "Outputs and
+classification", "Statuses"; plan decision Q16):
+
+- `Bundle` and its parts; strict `read` (via `lock_records.decode_object`,
+  then each member's form, then the listed file digests) and `write`;
+  `canonical_projection`, `covered_sha256`, `with_review`, `refreshed`;
+  `require_complete` and `require_admissible` as listed in the validation
+  plan, in `bundle_checks.py` since round 3 of this exchange. The default location
+  is `tools/release_workflow/git_cliff/bundles/<pin>`; `pins` defaults to the
+  shipped `ADMITTED_PINS`.
+
+Harness, `tools/release_workflow/git_cliff/harness.py` (design "The
+harness", Q15):
+
+- `main(arguments, *, context=None)`, `HarnessContext`,
+  `production_context()`, `evidence_git(source, *, checkout, temporary)`.
+  A comparison: budget once, existing bundle of the same pair, baseline then
+  pin acquired, fixture built and verified, inputs frozen (HEAD commit,
+  `rev-parse <commit>:tools/dev_workflow`, `cat-file blob
+  <submodule>:cliff.toml` in the submodule, copied into the bundle) or reused
+  and compared field by field, with the copied `cliff.toml` bytes, before
+  any run, comparison, `verify_rerun`, `write` with `refreshed`. A review: `with_review` over the current bundle and today's
+  local date. Expected failures print one diagnostic and return 2.
+
+Tests: `git_cliff_harness_fake.py` (new), the children fake (metadata role,
+versions from cache paths, evidence namespace, `run_output`), the support
+module (any version), and the leaves `test_git_cliff_fixture`,
+`test_git_cliff_comparison`, `test_git_cliff_candidates` (acquisition and
+records), `test_git_cliff_bundle` (model, review binding, property test) and
+`test_git_cliff_harness`, plus additions to `test_git`, the cache,
+provisioning, worker and archive leaves.
+
+Also staged: the validation plan's Step 6 sections and the
+`git_cliff/__init__.py` docstring.
+
+Code review round 1 repairs (round 2 of this exchange):
+
+- `bundle.py`: audit evidence (`AUDIT_CATEGORIES`, commands, references,
+  findings) and observations (`OBSERVATIONS`, no 69, consistent statuses);
+  trust record reconciliation in `read`; two distinct versions, the full
+  matrix (`comparison.chained_ranges`), the fixture's tags, and the manifest
+  identity in `require_complete`. 622 lines.
+- `harness.py`: complete frozen-input comparison and copied `cliff.toml`
+  bytes before any run; the temporary directory resolved to its long form.
+- `fixture_history.verify`: every tag of either side, in order.
+- `comparison.py`: `worktree add` inside the guarded block; cleanup through
+  `worktree remove --force`, deletion, prune and a verifying listing; cleanup
+  problems fail a successful run or are noted on the failure raised.
+- `network.py`: HTTPS-only redirect handler, `InsecureRedirectError` (fatal);
+  `git_cliff_support.CannedWeb.opener` now builds on the network opener.
+- `installation.InstallTarget.reuse` replaces `reusable` and `entry_asset`;
+  `provisioning._reuse` asks it before each check; `candidates` gives the
+  trust record's digest read at that moment, and `trust_record_bytes`.
+- Native record refreshed at `step-5` after the covered-source edits, 14 of
+  14 passed.
+- Tests: the bundle, comparison, fixture, candidates, harness, network and
+  provisioning leaves, and the harness fake's samples (full matrix, real
+  trust records, complete audit) and declared Git failures per action.
+
+Code review round 2 repairs (round 3 of this exchange):
+
+- `bundle_checks.py` (new, 233 lines): the admission rules split from
+  `bundle.py`, which keeps the model, the strict codec and the review
+  binding (451 lines, `covered_sha256` now public). `_observation_issue`
+  checks each observation on its own before the presence check;
+  `_outputs_problem` refuses a pin result of 69; `_matrix_complete` requires
+  llm-shared's recorded tags once each and the ranges to be exactly their
+  chain, then the fixture's.
+- `comparison.py`: `history_tags(git, *, cwd, revision)` gives each tag
+  reachable from the revision with its commit, in history order, in one
+  pass; `FrozenInputs.llm_shared_tags` records them; the bundle encodes them
+  as a list of `{name, commit}`.
+- `harness.py`: `_inputs` records the tags and chains llm-shared's ranges
+  from them; `main` prints each note of a failure after its diagnostic.
+- `provisioning.py`: `_locked` guards the published entry before releasing
+  the lock and closes the guard when the release fails; `run` prints the
+  ready line only for an installation.
+- Native record refreshed at `step-5` after the edit of `provisioning.py`,
+  14 of 14 passed.
+- Tests: the new bundle checks leaf (completeness and admissibility, with
+  the round 2 regressions), the bundle leaf reduced to storage and binding,
+  the candidates leaf's two-bundle guard test, the harness leaf's cleanup
+  note and recorded tags, the comparison leaf's `history_tags`; the harness
+  fake's sample inputs record one llm-shared tag.
+
+Round 4 of this exchange (human rework at the round 3 gate):
+
+- `bundle_checks.py`: line endings normalized from CRLF to LF, like every
+  other staged file; no content change.
+
+Writer notes: `.reviews/a.git-cliff-provisioning.step6.journal.md` and
+`.reviews/a.git-cliff-provisioning.step6.handoff.md`.
+
+### Change summary for step 6 git-cliff-provisioning (round 4)
+
+Staged paths (44), grouped in the root `a.commit` (eleven groups, checker
+`ready: true`), unchanged since round 3 except the line endings of
+`tools/release_workflow/git_cliff/bundle_checks.py` (CRLF to LF). Round 3 added
+that module in its own group after the bundle, and the new leaf
+`tests/unit/tools/release_workflow/test_git_cliff_bundle_checks/` (three
+files) in the test group:
+
+1. `feat(release): give Git an input stream`: `tools/release_workflow/git.py`,
+   `tests/unit/tools/release_workflow/test_git/test_git_tdd.py`,
+   `tests/unit/tools/release_workflow/conftest.py`.
+2. `fix(release): follow redirects only to HTTPS`:
+   `tools/release_workflow/git_cliff/network.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_network/test_git_cliff_network_tdd.py`,
+   `tests/unit/tools/release_workflow/git_cliff_support.py`.
+3. `refactor(release): provision any install target`: `archive.py`,
+   `cache.py`, `cache_lock.py`, `download_worker.py`, `manifest.py`,
+   `installation.py`, `provisioning.py` (all in
+   `tools/release_workflow/git_cliff/`), the archive, cache, worker and
+   provisioning test files, and `native_checks.v1.json`; round 3 adds the
+   guard opened before the lock release.
+4. `feat(release): build the snapshot-tag fixture`: `fixture_history.py`.
+5. `feat(release): compare two git-cliff versions`: `comparison.py`, with
+   `history_tags` and `FrozenInputs.llm_shared_tags`.
+6. `feat(release): acquire git-cliff evidence candidates`: `candidates.py`.
+7. `feat(release): add the reviewed evidence bundle`: `bundle.py` (model,
+   strict codec, review binding).
+8. `feat(release): check a bundle before admission`: `bundle_checks.py`.
+9. `test(release): cover the evidence modules`: `git_cliff_harness_fake.py`,
+   `git_cliff_children_fake.py`, and the fixture, comparison, candidates,
+   bundle and bundle checks leaves with their `__init__.py` files.
+10. `feat(release): run the evidence harness by hand`: `harness.py`,
+    `git_cliff/__init__.py`, and the harness leaf with its `__init__.py`.
+11. `docs(git-cliff-provisioning): record step 6 validation`:
+    `docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.validation.md`.
+
+Steps 1 to 5 of this plan are committed and pushed (`1cfda502` is the base
+of this review). The transcript
+`docs/v0.14.0/review.code.v0.14.0.git-cliff-provisioning.md` and
+`.vscode/settings.json` (the cSpell word `deleteall` the transcript needs)
+stay unstaged for the residual commit.
+
+### Human guidance and writer response for step 6 git-cliff-provisioning (round 4)
+
+Human guidance:
+
+Rework and review again: normalize `tools/release_workflow/git_cliff/bundle_checks.py`
+to LF line endings, the only CRLF file among the staged paths (flagged by
+Git's default whitespace check in the round 3 answer). Line endings only, no
+content change; validate on the new tree and review it in round 4.
+
+Writer response:
+
+Writer response:
+
+Round 3 closed with no unresolved finding and a `commit-ready`
+recommendation. At the convergence gate the user chose `Rework and review
+again` for the one flaw the round 3 answer noted under repository state:
+`tools/release_workflow/git_cliff/bundle_checks.py` had CRLF line endings,
+the only CRLF file among the staged paths, which Git's default whitespace
+check flags. The split script that created it in round 3 wrote it without
+forcing LF.
+
+The file is now LF, like every other staged file. This is the only change
+since the round 3 assessed tree `95ce496729582667f2373b1e4c9511e7991c9ba6`:
+`git diff 95ce4967 <round 4 tree>` touches only that file (233 lines
+replaced), and the same diff with `--ignore-cr-at-eol` is empty. `git diff
+--cached --check` is clean and `git ls-files --eol` reports no staged
+`i/crlf` file. No code, test, validation plan or `a.commit` content changed;
+the readiness checker still reports 11 groups and 44 paths.
+
+### Reviewer focus for step 6 git-cliff-provisioning (round 4)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-6-round-4 -->
+
+## Round 4 by reviewer - Step 6
+
+- Recorded: 2026-11-20T21:44:54+01:00
+- Exchange: code/code/v0.14.0/git-cliff-provisioning
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 6
+- Outcome: answer
+
+### Assessed index identity for step 6 git-cliff-provisioning (exchange 1) (round 4)
+
+Baseline index tree: 19c9b249b649246e667c35a49a618aba8e5f412a
+
+Assessed index tree: 19c9b249b649246e667c35a49a618aba8e5f412a
+
+### Implementation check for step 6 git-cliff-provisioning (exchange 1) (round 4)
+
+Result:
+
+Yes. Step 6 has been fully implemented.
+
+The only file changed since the reviewed round 3 tree is `tools/release_workflow/git_cliff/bundle_checks.py`. Ignoring carriage returns at end of line yields an empty tree diff. This preserves the implementation and regression coverage assessed in round 3.
+
+Validation plan effects:
+
+The staged Step 6 verdict remains accurate.
+
+### Pre-repair mandatory checks and coverage for step 6 git-cliff-provisioning (exchange 1) (round 4)
+
+On the round 4 tree the writer reports 8,097 tests, `cov=100 outliers=0 excluded=0 proof=speed`, exit 0. The reviewer’s independent `ghog affected --no-cov` using the exchange scope returned exit 0 with zero failures and warnings. The measured source scope is `tools` with the configured exclusions.
+
+### Resolved validation set and sources for step 6 git-cliff-provisioning (exchange 1) (round 4)
+
+Both the request and the reviewer’s project resolver select `ghog day --full=speed --whole-suite` from the project default.
+
+### Resolver drift and direction for step 6 git-cliff-provisioning (exchange 1) (round 4)
+
+None.
+
+### Repository state around validation for step 6 git-cliff-provisioning (exchange 1) (round 4)
+
+Round 3 tree `95ce496729582667f2373b1e4c9511e7991c9ba6` and round 4 tree `19c9b249b649246e667c35a49a618aba8e5f412a` differ only in `bundle_checks.py`. The request, baseline and assessed round 4 tree match. The ordered boundary check found only the ignored focused-run log. The umbrella digest matched.
+
+### Repair inventory for step 6 git-cliff-provisioning (exchange 1) (round 4)
+
+Repairs made: None.
+
+Paths staged: None.
+
+### Commit plan assessment for step 6 git-cliff-provisioning (exchange 1) (round 4)
+
+The independent checker returned `valid`, ready `true`, with 11 ordered groups covering all 44 staged paths. Diagnostics were empty.
+
+1. `feat(release): give Git an input stream` groups `tools/release_workflow/git.py`, `tests/unit/tools/release_workflow/test_git/test_git_tdd.py`, `tests/unit/tools/release_workflow/conftest.py`.
+2. `fix(release): follow redirects only to HTTPS` groups `tools/release_workflow/git_cliff/network.py`, `tests/unit/tools/release_workflow/test_git_cliff_network/test_git_cliff_network_tdd.py`, `tests/unit/tools/release_workflow/git_cliff_support.py`.
+3. `refactor(release): provision any install target` groups `tools/release_workflow/git_cliff/archive.py`, `tools/release_workflow/git_cliff/cache.py`, `tools/release_workflow/git_cliff/cache_lock.py`, `tools/release_workflow/git_cliff/download_worker.py`, `tools/release_workflow/git_cliff/manifest.py`, `tools/release_workflow/git_cliff/installation.py`, `tools/release_workflow/git_cliff/provisioning.py`, `tests/unit/tools/release_workflow/test_git_cliff_archive/test_git_cliff_archive_tdd.py`, `tests/unit/tools/release_workflow/test_git_cliff_cache/test_git_cliff_cache_tdd.py`, `tests/unit/tools/release_workflow/test_git_cliff_download_worker/test_git_cliff_download_worker_tdd.py`, `tests/unit/tools/release_workflow/test_git_cliff_provisioning/test_git_cliff_provisioning_tdd.py`, `tests/unit/tools/release_workflow/test_git_cliff_native_evidence/native_checks.v1.json`.
+4. `feat(release): build the snapshot-tag fixture` groups `tools/release_workflow/git_cliff/fixture_history.py`.
+5. `feat(release): compare two git-cliff versions` groups `tools/release_workflow/git_cliff/comparison.py`.
+6. `feat(release): acquire git-cliff evidence candidates` groups `tools/release_workflow/git_cliff/candidates.py`.
+7. `feat(release): add the reviewed evidence bundle` groups `tools/release_workflow/git_cliff/bundle.py`.
+8. `feat(release): check a bundle before admission` groups `tools/release_workflow/git_cliff/bundle_checks.py`.
+9. `test(release): cover the evidence modules` groups `tests/unit/tools/release_workflow/git_cliff_harness_fake.py`, `tests/unit/tools/release_workflow/git_cliff_children_fake.py`, `tests/unit/tools/release_workflow/test_git_cliff_fixture/__init__.py`, `tests/unit/tools/release_workflow/test_git_cliff_fixture/test_git_cliff_fixture_tdd.py`, `tests/unit/tools/release_workflow/test_git_cliff_comparison/__init__.py`, `tests/unit/tools/release_workflow/test_git_cliff_comparison/test_git_cliff_comparison_tdd.py`, `tests/unit/tools/release_workflow/test_git_cliff_candidates/__init__.py`, `tests/unit/tools/release_workflow/test_git_cliff_candidates/test_git_cliff_candidates_tdd.py`, `tests/unit/tools/release_workflow/test_git_cliff_candidates/test_git_cliff_candidates_records_tdd.py`, `tests/unit/tools/release_workflow/test_git_cliff_bundle/__init__.py`, `tests/unit/tools/release_workflow/test_git_cliff_bundle/test_git_cliff_bundle_tdd.py`, `tests/unit/tools/release_workflow/test_git_cliff_bundle/test_git_cliff_bundle_review_tdd.py`, `tests/unit/tools/release_workflow/test_git_cliff_bundle/test_git_cliff_bundle_pbt.py`, `tests/unit/tools/release_workflow/test_git_cliff_bundle_checks/__init__.py`, `tests/unit/tools/release_workflow/test_git_cliff_bundle_checks/test_git_cliff_bundle_checks_tdd.py`, `tests/unit/tools/release_workflow/test_git_cliff_bundle_checks/test_git_cliff_bundle_checks_review_tdd.py`.
+10. `feat(release): run the evidence harness by hand` groups `tools/release_workflow/git_cliff/harness.py`, `tools/release_workflow/git_cliff/__init__.py`, `tests/unit/tools/release_workflow/test_git_cliff_harness/__init__.py`, `tests/unit/tools/release_workflow/test_git_cliff_harness/test_git_cliff_harness_tdd.py`.
+11. `docs(git-cliff-provisioning): record step 6 validation` groups `docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.validation.md`.
+
+### Findings and boundaries for step 6 git-cliff-provisioning (exchange 1) (round 4)
+
+Unresolved findings: None.
+
+Boundary-crossing work: None.
+
+### Human guidance response for step 6 git-cliff-provisioning (exchange 1) (round 4)
+
+Human guidance:
+
+Rework and review again: normalize `tools/release_workflow/git_cliff/bundle_checks.py`
+to LF line endings, the only CRLF file among the staged paths (flagged by
+Git's default whitespace check in the round 3 answer). Line endings only, no
+content change; validate on the new tree and review it in round 4.
+
+Guidance response:
+
+Confirmed. The writer normalized `tools/release_workflow/git_cliff/bundle_checks.py` to LF. Comparing the two Git trees with `--ignore-cr-at-eol --exit-code` returned 0 with an empty diff. The default `git diff --cached --check` passed, and `git ls-files --eol` reports LF in the index for this file and zero CRLF files across all 44 staged paths.
+
+### Writer instructions for step 6 git-cliff-provisioning (exchange 1) (round 4)
+
+The human commit decision can proceed on the assessed round 4 tree.
+
+### Decision rationale for step 6 git-cliff-provisioning (exchange 1) (round 4)
+
+All six readiness checks pass for Step 6, round 4, occurrence 1. The identity and index match, implementation is complete, validation and coverage pass, staged attribution is intact, no findings remain open, and the commit plan is valid. The recommendation is `commit-ready`.
+
+### Final reviewer decision for step 6 git-cliff-provisioning (exchange 1) (round 4)
+
+Decision: commit-ready (advisory). The evidence floor is complete, but this recommendation does not authorize a commit; authority remains at the durable human gate.
+
+<!-- review-entry-id: answer-step-6-round-4 -->
+
+## Round 4 by human - Step 6 - human-confirmation
+
+- Recorded: 2026-11-20T21:55:22+01:00
+- Exchange: code/code/v0.14.0/git-cliff-provisioning
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 6
+- Outcome: human-confirmation
+
+Human choice: Commit
+Outcome: continue-owning-workflow
+
+<!-- review-entry-id: human-confirmation-round-4 -->
