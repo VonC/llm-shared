@@ -3752,3 +3752,1523 @@ Human choice: Commit
 Outcome: continue-owning-workflow
 
 <!-- review-entry-id: human-confirmation-round-1 -->
+
+## Round 1 by requestor - Step 5
+
+- Recorded: 2026-11-20T11:26:51+01:00
+- Exchange: code/code/v0.14.0/git-cliff-provisioning
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: unrecorded
+- Implementation step: 5
+- Outcome: request
+
+### Review identity for step 5 git-cliff-provisioning (round 1)
+
+Umbrella draft: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+Implementation plan: docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.md
+Implementation step: 5
+Review round: 1
+
+### Code review evidence for step 5 git-cliff-provisioning (round 1)
+
+request_index_tree: da1a91ca73e4f9d40e69e7af64b39fdfa55236cb
+resolved_validation_set:
+
+- `ghog day --full=speed --whole-suite` (sources: project)
+
+test_scope:
+{"fingerprint": "686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6", "group": null, "proof": "speed", "requirement": "docs/v0.14.0/feature-request.v0.14.0.git-cliff-provisioning.md", "scope": "whole"}
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: feat(release): add the git-cliff failure contract
+group 1 path: tools/release_workflow/git_cliff/messages.py
+group 1 path: tools/release_workflow/git_cliff/budget.py
+group 1 path: tests/unit/tools/release_workflow/test_git_cliff_messages/__init__.py
+group 1 path: tests/unit/tools/release_workflow/test_git_cliff_messages/test_git_cliff_messages_tdd.py
+group 1 path: tests/unit/tools/release_workflow/test_git_cliff_budget/test_git_cliff_budget_tdd.py
+group 2: feat(release): start git-cliff through one object
+group 2 path: tools/release_workflow/git_cliff/invocation.py
+group 2 path: tests/unit/tools/release_workflow/test_git_cliff_invocation/__init__.py
+group 2 path: tests/unit/tools/release_workflow/test_git_cliff_invocation/test_git_cliff_invocation_tdd.py
+group 3: feat(release): provision git-cliff under its lock
+group 3 path: tools/release_workflow/git_cliff/cache.py
+group 3 path: tools/release_workflow/git_cliff/installation.py
+group 3 path: tools/release_workflow/git_cliff/provisioning.py
+group 3 path: tools/release_workflow/git_cliff/__init__.py
+group 3 path: tests/unit/tools/release_workflow/git_cliff_children_fake.py
+group 3 path: tests/unit/tools/release_workflow/test_git_cliff_installation/__init__.py
+group 3 path: tests/unit/tools/release_workflow/test_git_cliff_installation/test_git_cliff_installation_tdd.py
+group 3 path: tests/unit/tools/release_workflow/test_git_cliff_provisioning/__init__.py
+group 3 path: tests/unit/tools/release_workflow/test_git_cliff_provisioning/test_git_cliff_provisioning_tdd.py
+group 3 path: tests/unit/tools/release_workflow/test_git_cliff_provisioning/test_git_cliff_provisioning_contention_tdd.py
+group 3 path: tests/unit/tools/release_workflow/test_git_cliff_provisioning/test_git_cliff_provisioning_budget_tdd.py
+group 3 path: tests/unit/tools/release_workflow/test_git_cliff_provisioning/test_git_cliff_provisioning_lifecycle_tdd.py
+group 4: test(release): record step 5 native checks
+group 4 path: tests/unit/tools/release_workflow/git_cliff_native_service.py
+group 4 path: tests/unit/tools/release_workflow/git_cliff_native_checks.py
+group 4 path: tests/unit/tools/release_workflow/test_git_cliff_native_evidence/native_checks.v1.json
+group 4 path: tests/unit/tools/release_workflow/test_git_cliff_native_evidence/test_git_cliff_native_evidence_tdd.py
+group 5: docs(git-cliff-provisioning): record step 5 validation
+group 5 path: docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.validation.md
+staged path: docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.validation.md
+staged path: tests/unit/tools/release_workflow/git_cliff_children_fake.py
+staged path: tests/unit/tools/release_workflow/git_cliff_native_checks.py
+staged path: tests/unit/tools/release_workflow/git_cliff_native_service.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_budget/test_git_cliff_budget_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_installation/__init__.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_installation/test_git_cliff_installation_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_invocation/__init__.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_invocation/test_git_cliff_invocation_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_messages/__init__.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_messages/test_git_cliff_messages_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_native_evidence/native_checks.v1.json
+staged path: tests/unit/tools/release_workflow/test_git_cliff_native_evidence/test_git_cliff_native_evidence_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_provisioning/__init__.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_provisioning/test_git_cliff_provisioning_budget_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_provisioning/test_git_cliff_provisioning_contention_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_provisioning/test_git_cliff_provisioning_lifecycle_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_provisioning/test_git_cliff_provisioning_tdd.py
+staged path: tools/release_workflow/git_cliff/__init__.py
+staged path: tools/release_workflow/git_cliff/budget.py
+staged path: tools/release_workflow/git_cliff/cache.py
+staged path: tools/release_workflow/git_cliff/installation.py
+staged path: tools/release_workflow/git_cliff/invocation.py
+staged path: tools/release_workflow/git_cliff/messages.py
+staged path: tools/release_workflow/git_cliff/provisioning.py
+```
+
+### Validation scope for step 5 git-cliff-provisioning (round 1)
+
+Validation scope: the whole suite.
+
+### Requestor assessment for step 5 git-cliff-provisioning (round 1)
+
+Writer assessment for Step 5 of the git-cliff-provisioning plan, round 1: the
+step is fully implemented, and its implementation check records
+`Yes. Step 5 has been fully implemented.` in the staged validation plan,
+whose document status stays `No, it is not implemented.` while Steps 6 to 8
+are not started.
+
+Evidence, all on the staged tree:
+
+- Tests first: `ghog single` on the four new test leaves and the budget test
+  failed at collection on the missing `provisioning`, `messages`,
+  `invocation` and `installation` modules (exit 4, 7 errors). With the
+  modules, the new leaves, the budget test and the cache test pass (220
+  tests); two later additions (a refused recovery listing, a never-ending
+  staging probe in the installation leaf) pass too.
+- Native record: the recorder with `--milestone step-5`, after the last
+  covered source change, passed 14 of 14 checks (the five service checks
+  3.0 s to 4.8 s) and the stalled-runner timeout (3.07 s); the validator
+  accepts `native_checks.v1.json` for the current sources.
+- `ghog day --whole-suite`, the command printed by `pw scope day`, exit 0
+  after two walks that failed: the first at check (exception messages, a
+  single-item membership test, an untyped outcome payload, typed
+  expectations, a context manager's return type, a grade C test now split),
+  the second only on the record, still `step-4` before the recorder run.
+- Review validation, `ghog day --full=speed --whole-suite` (the built-in
+  default; no `.review-validation`): exit 0 with
+  `cov=100 outliers=0 excluded=0 proof=speed` (7852 tests, slowest call
+  0.77 s, outside this step), on index tree
+  `da1a91ca73e4f9d40e69e7af64b39fdfa55236cb`. Two earlier speed walks
+  failed: one at check (`ANN401` on a test helper, fixed), one at full on two
+  lifecycle CPU overruns outside this step
+  (`tests/unit/tools/shared_lifecycle/test_audit_declarations/test_audit_declarations_tdd.py`,
+  0.141 s and 0.156 s in the full suite); `ghog single` on that file passed
+  with both at 0.031 s, and the printed rerun accepted them inside the band.
+  No budget was changed and no exclusion is accepted.
+- `rg -n 'sys\.stdout|print\(' tools/release_workflow/git_cliff`: only the
+  worker's outcome line. `rg -n 'GIT_CLIFF_' tools/release_workflow/git_cliff`:
+  the removal rule only in `invocation.py`; `budget.py` matches the override's
+  own name.
+- Line counts: `messages.py` 144, `invocation.py` 158, `installation.py` 330,
+  `provisioning.py` 289, `git_cliff_children_fake.py` 453,
+  `git_cliff_native_service.py` 343, recorder 316; every Python file stays
+  below 550.
+- Markdown check and cSpell on the validation plan: clean.
+
+Architecture: the service reaches the Windows layer, time, standard error
+and the worker runtime only through `ProvisioningSeams`, bound in
+`production_seams`; `installation` depends on its `InstallSeams` protocol,
+not on `provisioning`; only `invocation` builds git-cliff child requests and
+holds the `GIT_CLIFF_*` rule; every failure leaves as `ProvisioningError`,
+mapped once at the service boundary. Performance: reuse is one guard, one
+record, one hash and one probe; provisioning is at most two attempts, one
+probe and one listing of the version directory. Feature integrity: no
+existing command imports the new modules; `BudgetSettingError` keeps its
+message and status.
+
+Please check in particular: the flow order and the error mapping of
+`provision` (platform, reuse, lock, recheck, recovery, install, release,
+guard, ready line); the guard lifetime in `GitCliffInvocation` (closed after
+the child, at once without a child, retained on an unconfirmed end) and the
+passthrough refusal of captured output; the retry decision inside D and its
+time-left checks; `retire_entry` from each state; the staging removal and
+`retain_record()` split between ended and unconfirmed children; the fake's
+parent-death model (snapshot then restore) and whether the lifecycle cases
+prove what the design rows claim; and the native service checks, including
+the job-handle duplicate that keeps a child alive after its caller was
+killed.
+
+### Implementation report for step 5 git-cliff-provisioning (round 1)
+
+Step 5, "Provisioning service, invocation object and failure contract", is
+the fifth of eight steps of the git-cliff-provisioning plan. It composes the
+Step 1 to 4 primitives into the design's target flow; no engine operation
+calls it before item 4, and no pin is admitted before Step 7.
+
+Failure contract, `tools/release_workflow/git_cliff/messages.py` (design
+"Messages, statuses and the failure contract"):
+
+- `Stage` (eleven stages) and the read-only `REMEDIES`; the lock-wait remedy
+  is `cache_lock.LOCK_WAIT_REMEDY`.
+- `ProvisioningError(ValueError)`: `exit_code = 2`, `stage`, `version` (None
+  before any pin exists), `path`, `detail`; its text is `diagnostic()`,
+  `git-cliff <pin> unavailable at <path> (<stage> stage): <detail>. <remedy>`.
+- `permission_failure(version, error, fallback)`: the permission stage naming
+  the nearest existing directory above the refused path.
+- `downloading_line`, `ready_line`, `waiting_line` (holder PID, its start as
+  local time with offset, the caller's own W).
+- `budget.BudgetSettingError` keeps the refused text as `value`.
+
+Invocation object, `tools/release_workflow/git_cliff/invocation.py` (design
+"The provisioning entry point for items 4 and 5", "Version probe"; design
+decision Q09):
+
+- `engine_environment(environment=None)`: the given or process environment
+  without any `GIT_CLIFF_*` name in any case, the only place of that rule.
+- `probe_request(executable, *, inherited, deadline, record=None)`:
+  `--version` in the executable's directory under the engine policy.
+- `GitCliffInvocation(executable, version, guard, *, launch)`, single-use:
+  `run(arguments, *, policy, cwd, environment=None, output="capture",
+  deadline=None)` builds one `ChildRequest` with the guard handle in
+  `inherited` and hands it to the launcher (`run_contained` in production).
+  Engine: environment filtered, stdin closed, output as asked. Passthrough:
+  environment as given (None inherits), stdin and output inherited; a
+  capture request is refused. The guard is closed in `finally`, so once the
+  child ended or at once when no child was created; on `UnconfirmedEndError`
+  it is retained first. A refused or unconfirmed start is
+  `ProvisioningError(CONTAINMENT)`. `close()` and the block form release an
+  unused invocation.
+
+Installation, `tools/release_workflow/git_cliff/installation.py` (design
+"Download, verification and extraction", "Publication", "Child process
+lifecycle", "Time budgets and retries"):
+
+- `install(layout, pin, budget, seams, lock)`: `.staging-<pid>-<created>-<token>/`
+  and `owner.json`; worker attempts through `worker_command` and the
+  launcher, each recorded by `lock.record_child` then in the owner file
+  (temporary file and replace) before it resumes; D's deadline fixed before
+  the first attempt; only a retryable outcome is retried, after the 5 s delay,
+  when time remains after it; `verify_archive`, `extract_member`, archive
+  removed; recorded staging probe within 15 s (`cache.probe_problem`, now
+  public); `entry.json`; `owner.json` removed; `retire_entry`; publication by
+  `staging.rename(entry)`.
+- Failures: an ended child's failure removes staging and propagates (the
+  caller releases the lock); `UnconfirmedEndError` calls
+  `lock.retain_record()`, keeps staging, and is the containment stage. A file
+  operation refused in staging (publication included) is the permission stage
+  naming the directory; a recording failure caused by `PermissionError` is the
+  permission stage, any other recording failure the containment stage.
+- `retire_entry(layout, pin, attempt)`: no entry, nothing; otherwise rename
+  `git-cliff.exe` to `.retired-<pid>-<created>-<token>.exe` when present, then
+  the directory to `<pin>/.retired-<pid>-<created>-<token>/`; either refusal is
+  the in-use stage.
+- `InstallSeams`: the protocol of the seams it uses, so `installation` does
+  not import `provisioning`.
+
+Service, `tools/release_workflow/git_cliff/provisioning.py` (design "Target
+flow", "Reuse check and the use guard", "Provisioning lock, contention and
+recovery"; plan decision Q18):
+
+- `ProvisioningSeams` (the plan's ten seams plus `now`, the local time of the
+  record stamps) and `production_seams(runtime)`.
+- `provision(tooling_root, pin, budget, *, seams, caller)`: missing pin is the
+  configuration stage; platform check; reuse check (`check_entry` with a
+  record-free probe inheriting the guard) returning silently; otherwise
+  `CacheLock.acquire(W, waiting line)`, recheck, `recover_attempts`,
+  `install`; release; guard on the new entry (a failure is the extraction
+  stage, once, without the ready line); ready line.
+- Error mapping at its boundary: `LockWaitError` to lock wait (naming the
+  last live holder, or none), `PermissionError` to permission, other lock
+  `OSError` (unverifiable record, unavailable mutex) to lock wait, reuse-probe
+  containment to containment, an unreadable entry to extraction. A lock record
+  that cannot be removed fails the call, or is added as a note to the failure
+  already raised.
+- `provisioning_budget(environment, *, tooling_root, pin)`: the budget-setting
+  stage for a refused value; `configured_pin(configuration)`: the validated
+  `[git-cliff] version` or None.
+
+Tests: `git_cliff_children_fake.py` (scripted children by role, recording
+before resume, guard copies for the child's lifetime, reaps, unconfirmed ends;
+a world whose guards and busy directories refuse renames, and whose simulated
+parent death snapshots the cache, closes the dying caller's guards and lets a
+second caller continue from exactly that state), and the leaves
+`test_git_cliff_messages`, `test_git_cliff_invocation`,
+`test_git_cliff_installation` and `test_git_cliff_provisioning` (reuse and
+entry point, contention, budget, lifecycle).
+
+Native checks: `git_cliff_native_service.py` (new, beside the 470-line probes
+module) adds five `step-5` checks through the service with killed helper
+callers, a temporary tooling root, the synthetic pin 9.9.9 and a stand-in
+executable (pip's distlib console launcher, a shebang, a ZIP `__main__.py`
+printing `git-cliff 9.9.9`); the recorder catalog, helper dispatch and the
+evidence validator follow; `native_checks.v1.json` holds milestone `step-5`.
+
+Also staged: the validation plan's Step 5 sections and the
+`git_cliff/__init__.py` docstring.
+
+Writer notes: `.reviews/a.git-cliff-provisioning.step5.journal.md` and
+`.reviews/a.git-cliff-provisioning.step5.handoff.md`.
+
+### Change summary for step 5 git-cliff-provisioning (round 1)
+
+Staged paths (25), grouped in the root `a.commit` (five groups, checker
+`ready: true`):
+
+1. `feat(release): add the git-cliff failure contract`:
+   `tools/release_workflow/git_cliff/messages.py`,
+   `tools/release_workflow/git_cliff/budget.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_messages/__init__.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_messages/test_git_cliff_messages_tdd.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_budget/test_git_cliff_budget_tdd.py`.
+2. `feat(release): start git-cliff through one object`:
+   `tools/release_workflow/git_cliff/invocation.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_invocation/__init__.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_invocation/test_git_cliff_invocation_tdd.py`.
+3. `feat(release): provision git-cliff under its lock`:
+   `tools/release_workflow/git_cliff/cache.py`,
+   `tools/release_workflow/git_cliff/installation.py`,
+   `tools/release_workflow/git_cliff/provisioning.py`,
+   `tools/release_workflow/git_cliff/__init__.py`,
+   `tests/unit/tools/release_workflow/git_cliff_children_fake.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_installation/__init__.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_installation/test_git_cliff_installation_tdd.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_provisioning/__init__.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_provisioning/test_git_cliff_provisioning_tdd.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_provisioning/test_git_cliff_provisioning_contention_tdd.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_provisioning/test_git_cliff_provisioning_budget_tdd.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_provisioning/test_git_cliff_provisioning_lifecycle_tdd.py`.
+4. `test(release): record step 5 native checks`:
+   `tests/unit/tools/release_workflow/git_cliff_native_service.py`,
+   `tests/unit/tools/release_workflow/git_cliff_native_checks.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_native_evidence/native_checks.v1.json`,
+   `tests/unit/tools/release_workflow/test_git_cliff_native_evidence/test_git_cliff_native_evidence_tdd.py`.
+5. `docs(git-cliff-provisioning): record step 5 validation`:
+   `docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.validation.md`.
+
+Steps 1 to 4 of this plan are committed and pushed (`d9c38262` is the base
+of this review). This round's transcript entry is appended to
+`docs/v0.14.0/review.code.v0.14.0.git-cliff-provisioning.md` and stays
+unstaged for the residual commit.
+
+### Writer response for step 5 git-cliff-provisioning (round 1)
+
+Writer response:
+
+Writer response:
+
+This is the first round of the Step 5 code review; there is no earlier
+reviewer feedback to answer.
+
+Choices worth checking, all recorded in the step notes and in the staged
+validation plan:
+
+- `ProvisioningSeams` adds `now` to the plan's ten seams, for the entry and
+  lock record stamps; `installation` takes the `InstallSeams` protocol rather
+  than importing `provisioning`, which imports it.
+- `GitCliffInvocation` is single-use: the plan's "close the object's own
+  guard only after the child exits, or at once when creation fails" leaves no
+  guard for a second run. `run` keeps the plan's six keyword parameters with a
+  `PLR0913` suppression. A passthrough start must state `output="inherit"`;
+  capture is refused rather than silently ignored.
+- The caller resolves the budget once before `provision`, as the plan's
+  signature takes a resolved `budget`; `provisioning_budget` gives the
+  budget-setting stage its pin and path. `BudgetSettingError` gained `value`
+  so the diagnostic does not repeat the remedy.
+- The new entry is guarded after the lock release, in the plan's flow order;
+  a guard that cannot open is the extraction stage once (plan Q18).
+- Failure mapping beyond the design's table: a file operation refused in
+  staging, the publication rename included, is the permission stage naming
+  the nearest existing directory; a recording failure is the permission stage
+  when caused by `PermissionError`, otherwise containment; an unreadable
+  entry during the reuse check is the extraction stage (delete and retry); an
+  unverifiable lock record or an unavailable transition mutex is the lock-wait
+  stage; a lock record that cannot be removed fails a successful call, or
+  becomes a note on the failure already raised.
+- Simulated parent death: the fake raises a `BaseException` at the boundary
+  after snapshotting the cache tree; the cleanup the code then runs is undone
+  by restoring that snapshot, which is what a killed process leaves.
+- Long waits in tests use a fake clock that wakes 29.75 s late, so a 360 s
+  wait costs twelve polls within the CPU budget.
+- Native checks: the worker check points `HTTPS_PROXY` and `HTTP_PROXY` at a
+  silent local endpoint and runs the worker through this checkout's bootstrap
+  (the temporary root holds no checkout); the guard checks take a duplicate of
+  the helper's job handle, so the child outlives its killed caller until the
+  recorder closes it, then the rename succeeds. The stand-in also performs
+  its own short reads of the executable (launcher and ZIP import), so the
+  refusal during the run is the service-level behavior; the guard alone was
+  proven by the Step 2 checks.
+
+### Reviewer focus for step 5 git-cliff-provisioning (round 1)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-5-round-1 -->
+
+## Round 1 by reviewer - Step 5
+
+- Recorded: 2026-11-20T11:38:48+01:00
+- Exchange: code/code/v0.14.0/git-cliff-provisioning
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 5
+- Outcome: answer
+
+### Assessed index identity for step 5 git-cliff-provisioning (exchange 1) (round 1)
+
+Baseline index tree: da1a91ca73e4f9d40e69e7af64b39fdfa55236cb
+
+Assessed index tree: 870f63b9f6f1321b6de10ed0dd4c8181b654f2db
+
+### Implementation check for step 5 git-cliff-provisioning (exchange 1) (round 1)
+
+Result:
+
+No. Step 5 has NOT been fully implemented.
+
+The ordinary reuse and installation paths match the plan. Five findings affect recovery, timeout enforcement, reporting, handle ownership and native evidence.
+
+Validation plan effects:
+
+Updated and staged only the Step 5 verdict, missing-work list and feature integrity note in the validation plan.
+
+### Pre-repair mandatory checks and coverage for step 5 git-cliff-provisioning (exchange 1) (round 1)
+
+The requestor reported 7,852 passing tests and 100% measured coverage on the request tree. The independent scope-bound `ghog affected --no-cov` run exited 0 with zero failures and warnings. Static inspection found failure paths beyond the existing assertions. The coverage gate measures `tools` and excludes tests and package initializers.
+
+### Resolved validation set and sources for step 5 git-cliff-provisioning (exchange 1) (round 1)
+
+`ghog day --full=speed --whole-suite` (project). The reviewer checked the requestor's proof for the captured whole-suite scope.
+
+### Resolver drift and direction for step 5 git-cliff-provisioning (exchange 1) (round 1)
+
+The current resolver returned the same command, scope and project source.
+
+### Repository state around validation for step 5 git-cliff-provisioning (exchange 1) (round 1)
+
+The requested tree was `da1a91ca73e4f9d40e69e7af64b39fdfa55236cb`. The assessed tree is `870f63b9f6f1321b6de10ed0dd4c8181b654f2db`. The boundary check reported the validation plan, the resulting index change and the ignored focused-test log. The umbrella digest matched.
+
+### Repair inventory for step 5 git-cliff-provisioning (exchange 1) (round 1)
+
+Repairs made:
+
+- Polishing only (review metadata). Updated the Step 5 validation rows. Implementation and tests received no reviewer edits.
+
+Paths staged:
+
+- `docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.validation.md`
+- `tests/unit/tools/release_workflow/git_cliff_children_fake.py`
+- `tests/unit/tools/release_workflow/git_cliff_native_checks.py`
+- `tests/unit/tools/release_workflow/git_cliff_native_service.py`
+- `tests/unit/tools/release_workflow/test_git_cliff_budget/test_git_cliff_budget_tdd.py`
+- `tests/unit/tools/release_workflow/test_git_cliff_installation/__init__.py`
+- `tests/unit/tools/release_workflow/test_git_cliff_installation/test_git_cliff_installation_tdd.py`
+- `tests/unit/tools/release_workflow/test_git_cliff_invocation/__init__.py`
+- `tests/unit/tools/release_workflow/test_git_cliff_invocation/test_git_cliff_invocation_tdd.py`
+- `tests/unit/tools/release_workflow/test_git_cliff_messages/__init__.py`
+- `tests/unit/tools/release_workflow/test_git_cliff_messages/test_git_cliff_messages_tdd.py`
+- `tests/unit/tools/release_workflow/test_git_cliff_native_evidence/native_checks.v1.json`
+- `tests/unit/tools/release_workflow/test_git_cliff_native_evidence/test_git_cliff_native_evidence_tdd.py`
+- `tests/unit/tools/release_workflow/test_git_cliff_provisioning/__init__.py`
+- `tests/unit/tools/release_workflow/test_git_cliff_provisioning/test_git_cliff_provisioning_budget_tdd.py`
+- `tests/unit/tools/release_workflow/test_git_cliff_provisioning/test_git_cliff_provisioning_contention_tdd.py`
+- `tests/unit/tools/release_workflow/test_git_cliff_provisioning/test_git_cliff_provisioning_lifecycle_tdd.py`
+- `tests/unit/tools/release_workflow/test_git_cliff_provisioning/test_git_cliff_provisioning_tdd.py`
+- `tools/release_workflow/git_cliff/__init__.py`
+- `tools/release_workflow/git_cliff/budget.py`
+- `tools/release_workflow/git_cliff/cache.py`
+- `tools/release_workflow/git_cliff/installation.py`
+- `tools/release_workflow/git_cliff/invocation.py`
+- `tools/release_workflow/git_cliff/messages.py`
+- `tools/release_workflow/git_cliff/provisioning.py`
+
+### Commit plan assessment for step 5 git-cliff-provisioning (exchange 1) (round 1)
+
+The independent checker exited 0, state `valid`, ready `true`, with 25 staged paths and zero diagnostics. Ordered groups follow.
+
+1. `feat(release): add the git-cliff failure contract` (5 paths)
+2. `feat(release): start git-cliff through one object` (3 paths)
+3. `feat(release): provision git-cliff under its lock` (12 paths)
+4. `test(release): record step 5 native checks` (4 paths)
+5. `docs(git-cliff-provisioning): record step 5 validation` (1 paths)
+
+Group membership and dependency order are accurate. The final group's body still records a Yes verdict. Refresh it after addressing the findings.
+
+### Findings and boundaries for step 5 git-cliff-provisioning (exchange 1) (round 1)
+
+Unresolved findings:
+
+- Preserve an existing staging directory when `mkdir()` fails. At `installation.py:185`, a name collision raises `FileExistsError` and the handler at line 188 recursively deletes the directory this call never created. Force a collision with a sentinel file and verify its contents survive.
+- Keep one absolute download deadline through worker creation, recording and the native wait. At `installation.py:251`, an already exhausted budget reaches `WorkerRequest` as a nonpositive duration and raises a bare `ValueError`. Time spent recording a suspended worker also gets added to D because the native wait starts with the earlier duration. Exercise both delays with a fake clock and verify the download-stage error and child cleanup.
+- Preserve a local archive write denial across the worker boundary. `network.stream_archive` can raise `PermissionError` opening the target. `download_worker.main` emits a generic fatal outcome and `installation.py:258` reports the download stage with a proxy remedy. Carry the local failure and its path through the worker result, then assert the permission stage and directory remedy.
+- Release the newly opened guard if the ready message fails. At `provisioning.py:189`, a broken or closed stderr can raise before the invocation takes ownership. The native handle then remains open in a long-lived caller and prevents later retirement. Inject a failing ready-line writer and verify that the published entry can be renamed after the call.
+- Make the two native guard checks identify the inherited guard. `git_cliff_native_service.py:256` observes a rename refusal while the target is itself the running stand-in executable. Its image or its own file accesses can produce the same result. Verify the child's inherited handle refers to the guarded file or add a control that distinguishes those causes, then refresh the Step 5 native record.
+
+Boundary-crossing work: None.
+
+### Writer instructions for step 5 git-cliff-provisioning (exchange 1) (round 1)
+
+Address the five missing-work items in the Step 5 validation plan, refresh the affected native evidence and commit description, and submit the revised index for review.
+
+### Decision rationale for step 5 git-cliff-provisioning (exchange 1) (round 1)
+
+Identity and staged attribution pass. The commit-plan checker accepts the grouping. Implementation completeness, regression coverage and native guard evidence remain open. Changes requested.
+
+### Final reviewer decision for step 5 git-cliff-provisioning (exchange 1) (round 1)
+
+Decision: changes-requested. The writer must address the concrete instructions and publish another review round. This advisory answer does not authorize a commit.
+
+<!-- review-entry-id: answer-step-5-round-1 -->
+
+## Round 2 by requestor - Step 5
+
+- Recorded: 2026-11-20T12:18:45+01:00
+- Exchange: code/code/v0.14.0/git-cliff-provisioning
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 5
+- Outcome: request
+
+### Review identity for step 5 git-cliff-provisioning (round 2)
+
+Umbrella draft: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+Implementation plan: docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.md
+Implementation step: 5
+Review round: 2
+
+### Code review evidence for step 5 git-cliff-provisioning (round 2)
+
+request_index_tree: 5053bad4a8a44df5f5c146fcdcb59cf5fa3c0acb
+resolved_validation_set:
+
+- `ghog day --full=speed --whole-suite` (sources: project)
+
+test_scope:
+{"fingerprint": "686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6", "group": null, "proof": "speed", "requirement": "docs/v0.14.0/feature-request.v0.14.0.git-cliff-provisioning.md", "scope": "whole"}
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: fix(release): count the child deadline from its call
+group 1 path: tools/release_workflow/windows_child.py
+group 1 path: tests/unit/tools/release_workflow/test_windows_child/test_windows_child_tdd.py
+group 2: feat(release): add the git-cliff failure contract
+group 2 path: tools/release_workflow/git_cliff/messages.py
+group 2 path: tools/release_workflow/git_cliff/budget.py
+group 2 path: tests/unit/tools/release_workflow/test_git_cliff_messages/__init__.py
+group 2 path: tests/unit/tools/release_workflow/test_git_cliff_messages/test_git_cliff_messages_tdd.py
+group 2 path: tests/unit/tools/release_workflow/test_git_cliff_budget/test_git_cliff_budget_tdd.py
+group 3: feat(release): start git-cliff through one object
+group 3 path: tools/release_workflow/git_cliff/invocation.py
+group 3 path: tests/unit/tools/release_workflow/test_git_cliff_invocation/__init__.py
+group 3 path: tests/unit/tools/release_workflow/test_git_cliff_invocation/test_git_cliff_invocation_tdd.py
+group 4: feat(release): provision git-cliff under its lock
+group 4 path: tools/release_workflow/git_cliff/download_worker.py
+group 4 path: tools/release_workflow/git_cliff/cache.py
+group 4 path: tools/release_workflow/git_cliff/installation.py
+group 4 path: tools/release_workflow/git_cliff/provisioning.py
+group 4 path: tools/release_workflow/git_cliff/__init__.py
+group 4 path: tests/unit/tools/release_workflow/git_cliff_children_fake.py
+group 4 path: tests/unit/tools/release_workflow/test_git_cliff_download_worker/test_git_cliff_download_worker_tdd.py
+group 4 path: tests/unit/tools/release_workflow/test_git_cliff_installation/__init__.py
+group 4 path: tests/unit/tools/release_workflow/test_git_cliff_installation/test_git_cliff_installation_tdd.py
+group 4 path: tests/unit/tools/release_workflow/test_git_cliff_provisioning/__init__.py
+group 4 path: tests/unit/tools/release_workflow/test_git_cliff_provisioning/test_git_cliff_provisioning_tdd.py
+group 4 path: tests/unit/tools/release_workflow/test_git_cliff_provisioning/test_git_cliff_provisioning_contention_tdd.py
+group 4 path: tests/unit/tools/release_workflow/test_git_cliff_provisioning/test_git_cliff_provisioning_budget_tdd.py
+group 4 path: tests/unit/tools/release_workflow/test_git_cliff_provisioning/test_git_cliff_provisioning_lifecycle_tdd.py
+group 5: test(release): record step 5 native checks
+group 5 path: tests/unit/tools/release_workflow/git_cliff_native_service.py
+group 5 path: tests/unit/tools/release_workflow/git_cliff_native_checks.py
+group 5 path: tests/unit/tools/release_workflow/test_git_cliff_native_evidence/native_checks.v1.json
+group 5 path: tests/unit/tools/release_workflow/test_git_cliff_native_evidence/test_git_cliff_native_evidence_tdd.py
+group 6: docs(git-cliff-provisioning): record step 5 validation
+group 6 path: docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.validation.md
+staged path: docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.validation.md
+staged path: tests/unit/tools/release_workflow/git_cliff_children_fake.py
+staged path: tests/unit/tools/release_workflow/git_cliff_native_checks.py
+staged path: tests/unit/tools/release_workflow/git_cliff_native_service.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_budget/test_git_cliff_budget_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_download_worker/test_git_cliff_download_worker_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_installation/__init__.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_installation/test_git_cliff_installation_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_invocation/__init__.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_invocation/test_git_cliff_invocation_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_messages/__init__.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_messages/test_git_cliff_messages_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_native_evidence/native_checks.v1.json
+staged path: tests/unit/tools/release_workflow/test_git_cliff_native_evidence/test_git_cliff_native_evidence_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_provisioning/__init__.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_provisioning/test_git_cliff_provisioning_budget_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_provisioning/test_git_cliff_provisioning_contention_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_provisioning/test_git_cliff_provisioning_lifecycle_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_provisioning/test_git_cliff_provisioning_tdd.py
+staged path: tests/unit/tools/release_workflow/test_windows_child/test_windows_child_tdd.py
+staged path: tools/release_workflow/git_cliff/__init__.py
+staged path: tools/release_workflow/git_cliff/budget.py
+staged path: tools/release_workflow/git_cliff/cache.py
+staged path: tools/release_workflow/git_cliff/download_worker.py
+staged path: tools/release_workflow/git_cliff/installation.py
+staged path: tools/release_workflow/git_cliff/invocation.py
+staged path: tools/release_workflow/git_cliff/messages.py
+staged path: tools/release_workflow/git_cliff/provisioning.py
+staged path: tools/release_workflow/windows_child.py
+```
+
+### Validation scope for step 5 git-cliff-provisioning (round 2)
+
+Validation scope: the whole suite.
+
+### Requestor assessment for step 5 git-cliff-provisioning (round 2)
+
+Writer assessment for Step 5 of the git-cliff-provisioning plan, round 2: the
+step is fully implemented after the five round 1 repairs, and the rerun
+implementation check records `Yes. Step 5 has been fully implemented.` in the
+staged validation plan (the reviewer's missing-work list is removed, its
+document status stays `No, it is not implemented.` while Steps 6 to 8 are
+not started).
+
+Evidence, all on the staged tree:
+
+- Repairs, tests first where they apply: the installation leaf adds a staging
+  name collision (sentinel kept), an owner file that cannot be written
+  (staging this call created removed), a budget spent before the first
+  attempt and a worker-reported write denial; the `windows_child` leaf adds
+  recording time taken from the wait (frozen clock elsewhere); the worker leaf
+  adds a target it cannot write (path reported, none for an HTTP error); the
+  provisioning leaf adds a broken ready line (guard released, entry renamed
+  afterwards); the messages leaf adds `denied_write`. `ghog single` on these
+  leaves exit 0 (235 tests, then the installation leaf again).
+- Native record: the recorder with `--milestone step-5`, after the last
+  covered source change (`windows_child.py`, `download_worker.py`, the
+  service checks), passed 14 of 14 (the five service checks 2.0 s to 12.3 s)
+  and the stalled-runner timeout (3.04 s). The guard checks now also observe
+  `inherited_handle_is_guard: true` and `control_without_guard: renamed`. A
+  first rerun failed only the run variant's rename after the child, still
+  refused by the stand-in's interpreter (a job member with its own inherited
+  copy) before the job was ended until empty.
+- Review validation, `ghog day --full=speed --whole-suite` (built-in default):
+  exit 0 with `cov=100 outliers=0 excluded=0 proof=speed` (7862 tests,
+  slowest call 0.31 s, outside this step), on index tree
+  `5053bad4a8a44df5f5c146fcdcb59cf5fa3c0acb`. An earlier speed walk on the
+  repaired tree stopped at `cov=99` on the new owner-file branch, now tested.
+  No budget was changed and no exclusion is accepted.
+- `rg -n 'sys\.stdout|print\(' tools/release_workflow/git_cliff`: only the
+  worker's outcome line. `rg -n 'GIT_CLIFF_' tools/release_workflow/git_cliff`:
+  the removal rule only in `invocation.py`.
+- Line counts: `installation.py` 351, `provisioning.py` 297, `messages.py`
+  150, `download_worker.py` 163, `windows_child.py` 607 (in the 550 to 650
+  band since Step 2, below the ceiling), `git_cliff_native_service.py` 412.
+- Markdown check and cSpell on the validation plan: clean.
+
+Architecture: unchanged boundaries; the deadline fix lives where the wait
+happens (`run_contained`), and the worker's local-failure path is part of its
+private outcome contract with the installation. Performance: unchanged
+bounds. Feature integrity: `run_contained` callers only get a shorter wait
+when creation or recording took time; the worker's outcome gains a field only
+for local file failures.
+
+Please check in particular: the deadline counted from the `run_contained`
+call and the spent-D check of the download loop; the staging removal rule
+after a collision or an owner-file failure; the worker's `path` rule (local
+`OSError` with a file name, not a URL error) and its permission mapping; the
+ready-line guard release; and the native guard checks' handle identification,
+job emptying and guard-free control.
+
+### Implementation report for step 5 git-cliff-provisioning (round 2)
+
+Step 5, "Provisioning service, invocation object and failure contract", is
+the fifth of eight steps of the git-cliff-provisioning plan. It composes the
+Step 1 to 4 primitives into the design's target flow; no engine operation
+calls it before item 4, and no pin is admitted before Step 7.
+
+Failure contract, `tools/release_workflow/git_cliff/messages.py` (design
+"Messages, statuses and the failure contract"):
+
+- `Stage` (eleven stages) and the read-only `REMEDIES`; the lock-wait remedy
+  is `cache_lock.LOCK_WAIT_REMEDY`.
+- `ProvisioningError(ValueError)`: `exit_code = 2`, `stage`, `version` (None
+  before any pin exists), `path`, `detail`; its text is `diagnostic()`,
+  `git-cliff <pin> unavailable at <path> (<stage> stage): <detail>. <remedy>`.
+- `permission_failure(version, error, fallback)`: the permission stage naming
+  the nearest existing directory above the refused path.
+- `downloading_line`, `ready_line`, `waiting_line` (holder PID, its start as
+  local time with offset, the caller's own W).
+- `budget.BudgetSettingError` keeps the refused text as `value`.
+
+Invocation object, `tools/release_workflow/git_cliff/invocation.py` (design
+"The provisioning entry point for items 4 and 5", "Version probe"; design
+decision Q09):
+
+- `engine_environment(environment=None)`: the given or process environment
+  without any `GIT_CLIFF_*` name in any case, the only place of that rule.
+- `probe_request(executable, *, inherited, deadline, record=None)`:
+  `--version` in the executable's directory under the engine policy.
+- `GitCliffInvocation(executable, version, guard, *, launch)`, single-use:
+  `run(arguments, *, policy, cwd, environment=None, output="capture",
+  deadline=None)` builds one `ChildRequest` with the guard handle in
+  `inherited` and hands it to the launcher (`run_contained` in production).
+  Engine: environment filtered, stdin closed, output as asked. Passthrough:
+  environment as given (None inherits), stdin and output inherited; a
+  capture request is refused. The guard is closed in `finally`, so once the
+  child ended or at once when no child was created; on `UnconfirmedEndError`
+  it is retained first. A refused or unconfirmed start is
+  `ProvisioningError(CONTAINMENT)`. `close()` and the block form release an
+  unused invocation.
+
+Installation, `tools/release_workflow/git_cliff/installation.py` (design
+"Download, verification and extraction", "Publication", "Child process
+lifecycle", "Time budgets and retries"):
+
+- `install(layout, pin, budget, seams, lock)`: `.staging-<pid>-<created>-<token>/`
+  and `owner.json`; worker attempts through `worker_command` and the
+  launcher, each recorded by `lock.record_child` then in the owner file
+  (temporary file and replace) before it resumes; D's deadline fixed before
+  the first attempt; only a retryable outcome is retried, after the 5 s delay,
+  when time remains after it; `verify_archive`, `extract_member`, archive
+  removed; recorded staging probe within 15 s (`cache.probe_problem`, now
+  public); `entry.json`; `owner.json` removed; `retire_entry`; publication by
+  `staging.rename(entry)`.
+- Failures: an ended child's failure removes staging and propagates (the
+  caller releases the lock); `UnconfirmedEndError` calls
+  `lock.retain_record()`, keeps staging, and is the containment stage. A file
+  operation refused in staging (publication included) is the permission stage
+  naming the directory; a recording failure caused by `PermissionError` is the
+  permission stage, any other recording failure the containment stage.
+- `retire_entry(layout, pin, attempt)`: no entry, nothing; otherwise rename
+  `git-cliff.exe` to `.retired-<pid>-<created>-<token>.exe` when present, then
+  the directory to `<pin>/.retired-<pid>-<created>-<token>/`; either refusal is
+  the in-use stage.
+- `InstallSeams`: the protocol of the seams it uses, so `installation` does
+  not import `provisioning`.
+
+Service, `tools/release_workflow/git_cliff/provisioning.py` (design "Target
+flow", "Reuse check and the use guard", "Provisioning lock, contention and
+recovery"; plan decision Q18):
+
+- `ProvisioningSeams` (the plan's ten seams plus `now`, the local time of the
+  record stamps) and `production_seams(runtime)`.
+- `provision(tooling_root, pin, budget, *, seams, caller)`: missing pin is the
+  configuration stage; platform check; reuse check (`check_entry` with a
+  record-free probe inheriting the guard) returning silently; otherwise
+  `CacheLock.acquire(W, waiting line)`, recheck, `recover_attempts`,
+  `install`; release; guard on the new entry (a failure is the extraction
+  stage, once, without the ready line); ready line.
+- Error mapping at its boundary: `LockWaitError` to lock wait (naming the
+  last live holder, or none), `PermissionError` to permission, other lock
+  `OSError` (unverifiable record, unavailable mutex) to lock wait, reuse-probe
+  containment to containment, an unreadable entry to extraction. A lock record
+  that cannot be removed fails the call, or is added as a note to the failure
+  already raised.
+- `provisioning_budget(environment, *, tooling_root, pin)`: the budget-setting
+  stage for a refused value; `configured_pin(configuration)`: the validated
+  `[git-cliff] version` or None.
+
+Tests: `git_cliff_children_fake.py` (scripted children by role, recording
+before resume, guard copies for the child's lifetime, reaps, unconfirmed ends;
+a world whose guards and busy directories refuse renames, and whose simulated
+parent death snapshots the cache, closes the dying caller's guards and lets a
+second caller continue from exactly that state), and the leaves
+`test_git_cliff_messages`, `test_git_cliff_invocation`,
+`test_git_cliff_installation` and `test_git_cliff_provisioning` (reuse and
+entry point, contention, budget, lifecycle).
+
+Native checks: `git_cliff_native_service.py` (new, beside the 470-line probes
+module) adds five `step-5` checks through the service with killed helper
+callers, a temporary tooling root, the synthetic pin 9.9.9 and a stand-in
+executable (pip's distlib console launcher, a shebang, a ZIP `__main__.py`
+printing `git-cliff 9.9.9`); the recorder catalog, helper dispatch and the
+evidence validator follow; `native_checks.v1.json` holds milestone `step-5`.
+
+Also staged: the validation plan's Step 5 sections and the
+`git_cliff/__init__.py` docstring.
+
+Round 1 repairs (code review round 1, five findings):
+
+- `installation`: staging creation and its owner file are separate steps; a
+  failed `mkdir()` removes nothing, a failed owner file removes only the
+  directory this call created. The download loop checks what remains of D at
+  the top of each attempt and fails the download stage when it is spent. A
+  worker outcome naming a local `path` is the permission stage
+  (`messages.denied_write`), not retried.
+- `windows_child.run_contained`: the deadline counts from the call (injectable
+  `clock`); the root wait receives what remains, down to zero, so creation and
+  recording are taken from it.
+- `download_worker.main`: a local `OSError` with a file name that is not a URL
+  error adds that `path` to its fatal outcome.
+- `provisioning`: the new entry's guard is wrapped in its invocation before
+  the ready line; a ready line that cannot be written closes it.
+- `git_cliff_native_service`: the guard checks name the file of the child's
+  inherited handle value, end the job until it counts no active process
+  before the rename after the child, and run a guard-free control of the
+  stand-in; the record is refreshed (14 of 14).
+
+Writer notes: `.reviews/a.git-cliff-provisioning.step5.journal.md` and
+`.reviews/a.git-cliff-provisioning.step5.handoff.md`.
+
+### Change summary for step 5 git-cliff-provisioning (round 2)
+
+Staged paths (30), grouped in the root `a.commit` (six groups, checker
+`ready: true`); round 2 adds `tools/release_workflow/windows_child.py`,
+`tests/unit/tools/release_workflow/test_windows_child/test_windows_child_tdd.py`,
+`tools/release_workflow/git_cliff/download_worker.py` and
+`tests/unit/tools/release_workflow/test_git_cliff_download_worker/test_git_cliff_download_worker_tdd.py`:
+
+1. `fix(release): count the child deadline from its call`:
+   `tools/release_workflow/windows_child.py`,
+   `tests/unit/tools/release_workflow/test_windows_child/test_windows_child_tdd.py`.
+2. `feat(release): add the git-cliff failure contract`:
+   `tools/release_workflow/git_cliff/messages.py`,
+   `tools/release_workflow/git_cliff/budget.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_messages/__init__.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_messages/test_git_cliff_messages_tdd.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_budget/test_git_cliff_budget_tdd.py`.
+3. `feat(release): start git-cliff through one object`:
+   `tools/release_workflow/git_cliff/invocation.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_invocation/__init__.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_invocation/test_git_cliff_invocation_tdd.py`.
+4. `feat(release): provision git-cliff under its lock`:
+   `tools/release_workflow/git_cliff/download_worker.py`,
+   `tools/release_workflow/git_cliff/cache.py`,
+   `tools/release_workflow/git_cliff/installation.py`,
+   `tools/release_workflow/git_cliff/provisioning.py`,
+   `tools/release_workflow/git_cliff/__init__.py`,
+   `tests/unit/tools/release_workflow/git_cliff_children_fake.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_download_worker/test_git_cliff_download_worker_tdd.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_installation/__init__.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_installation/test_git_cliff_installation_tdd.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_provisioning/__init__.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_provisioning/test_git_cliff_provisioning_tdd.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_provisioning/test_git_cliff_provisioning_contention_tdd.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_provisioning/test_git_cliff_provisioning_budget_tdd.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_provisioning/test_git_cliff_provisioning_lifecycle_tdd.py`.
+5. `test(release): record step 5 native checks`:
+   `tests/unit/tools/release_workflow/git_cliff_native_service.py`,
+   `tests/unit/tools/release_workflow/git_cliff_native_checks.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_native_evidence/native_checks.v1.json`,
+   `tests/unit/tools/release_workflow/test_git_cliff_native_evidence/test_git_cliff_native_evidence_tdd.py`.
+6. `docs(git-cliff-provisioning): record step 5 validation`:
+   `docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.validation.md`.
+
+Steps 1 to 4 of this plan are committed and pushed (`d9c38262` is the base
+of this review). The transcript
+`docs/v0.14.0/review.code.v0.14.0.git-cliff-provisioning.md` stays unstaged
+for the residual commit.
+
+### Writer response for step 5 git-cliff-provisioning (round 2)
+
+Writer response:
+
+Writer response to round 1 (changes-requested, five findings, no reviewer
+code repair). All five are accepted and repaired; there is no disagreement.
+
+- Staging ownership: `install` now separates the creation of staging from its
+  owner file. A `mkdir()` failure, a name collision included, raises the
+  permission stage without removing anything; only a directory this call
+  created is removed when its owner file cannot be written. The installation
+  leaf forces a collision (fixed token) over a directory holding a sentinel,
+  which survives, and no worker starts.
+- One absolute download deadline: the download loop checks what remains of D
+  at the top of every attempt and fails the download stage before building a
+  `WorkerRequest` when it is spent, so no nonpositive budget reaches it. The
+  recording delay is fixed where the wait happens: `run_contained` now counts
+  its deadline from its own call (new injectable `clock`), so creation and
+  recording are taken from the wait, down to zero, instead of extending D.
+  Tests: the installation leaf spends D before the first attempt (no worker,
+  staging removed, lock released) and keeps the after-delay case; the
+  `windows_child` leaf runs on a frozen clock and adds recording time taken
+  from the wait (1750 ms left of 2.5 s, then zero).
+- Local write denial: the worker adds the `path` of a local `OSError` that is
+  not a URL error (an `HTTPError` carries its URL as `filename`, so it names
+  none) to its fatal outcome; the installation reports the permission stage
+  naming that directory through the new `messages.denied_write`, without a
+  retry. Tests in the worker, installation and messages leaves.
+- Ready line: the new guard is wrapped in its invocation first; if the ready
+  line cannot be written, the invocation is closed before the failure leaves.
+  The provisioning leaf injects a failing writer and renames the published
+  executable afterwards.
+- Native guard evidence: both guard checks now name the file behind the
+  handle value the child inherited (`GetFinalPathNameByHandleW` on a copy
+  closed before any rename), which must be the guarded executable, and run a
+  control of the same stand-in without any guard, whose rename succeeds while
+  it runs. The first recorder rerun also showed that the stand-in's own
+  interpreter, a job member, holds an inherited copy too: the check now ends
+  the job and waits until it counts no active process before the rename after
+  the child. The recorder then passed 14 of 14.
+
+The reviewer's validation-plan edits (No verdict, missing work, feature
+integrity note) are superseded by the implementation check rerun: the Step 5
+analysis is back to Yes, the repairs are recorded and the missing-work list is
+removed. `a.commit` gains a first group for the `windows_child` change, and the
+worker change joins the service group; the final group's body mentions the
+round 1 repairs.
+
+### Reviewer focus for step 5 git-cliff-provisioning (round 2)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-5-round-2 -->
+
+## Round 2 by reviewer - Step 5
+
+- Recorded: 2026-11-20T12:24:09+01:00
+- Exchange: code/code/v0.14.0/git-cliff-provisioning
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 5
+- Outcome: answer
+
+### Assessed index identity for step 5 git-cliff-provisioning (exchange 1) (round 2)
+
+Baseline index tree: 5053bad4a8a44df5f5c146fcdcb59cf5fa3c0acb
+
+Assessed index tree: 7a443a75a4e2c6ded3a8d90236a49f3bdf8558ce
+
+### Implementation check for step 5 git-cliff-provisioning (exchange 1) (round 2)
+
+Result:
+
+No. Step 5 has NOT been fully implemented.
+
+The sentinel survives a collision, the broken ready line releases the guard, and both recorded native cases identify the inherited handle and include a guard-free control. The early budget check, record-time deduction and worker path on open failure cover part of the two carried findings. The remaining cases are listed below.
+
+Validation plan effects:
+
+Updated and staged only the Step 5 verdict and missing-work list in docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.validation.md.
+
+### Pre-repair mandatory checks and coverage for step 5 git-cliff-provisioning (exchange 1) (round 2)
+
+The writer reported 7,862 tests and 100% coverage in its whole-suite speed walk on the request tree. The independent scope-bound `ghog affected --no-cov` run exited 0 with zero failures and warnings. The static test review identified a deadline transition and error cases that the current assertions miss or explicitly accept.
+
+### Resolved validation set and sources for step 5 git-cliff-provisioning (exchange 1) (round 2)
+
+`ghog day --full=speed --whole-suite` (project source, requestor evidence).
+
+### Resolver drift and direction for step 5 git-cliff-provisioning (exchange 1) (round 2)
+
+The current resolver produced the same command, order and source.
+
+### Repository state around validation for step 5 git-cliff-provisioning (exchange 1) (round 2)
+
+The request tree matched 5053bad4a8a44df5f5c146fcdcb59cf5fa3c0acb. The focused run changed only its ignored log within the validation capture. The assessed tree is 7a443a75a4e2c6ded3a8d90236a49f3bdf8558ce after staging the attributable validation-plan patch. The umbrella digest matched before and after.
+
+### Repair inventory for step 5 git-cliff-provisioning (exchange 1) (round 2)
+
+Repairs made:
+
+- docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.validation.md — review metadata only. Updated the Step 5 verdict and concrete missing work.
+
+Paths staged:
+
+- docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.validation.md
+- tests/unit/tools/release_workflow/git_cliff_children_fake.py
+- tests/unit/tools/release_workflow/git_cliff_native_checks.py
+- tests/unit/tools/release_workflow/git_cliff_native_service.py
+- tests/unit/tools/release_workflow/test_git_cliff_budget/test_git_cliff_budget_tdd.py
+- tests/unit/tools/release_workflow/test_git_cliff_download_worker/test_git_cliff_download_worker_tdd.py
+- `tests/unit/tools/release_workflow/test_git_cliff_installation/__init__.py`
+- tests/unit/tools/release_workflow/test_git_cliff_installation/test_git_cliff_installation_tdd.py
+- `tests/unit/tools/release_workflow/test_git_cliff_invocation/__init__.py`
+- tests/unit/tools/release_workflow/test_git_cliff_invocation/test_git_cliff_invocation_tdd.py
+- `tests/unit/tools/release_workflow/test_git_cliff_messages/__init__.py`
+- tests/unit/tools/release_workflow/test_git_cliff_messages/test_git_cliff_messages_tdd.py
+- tests/unit/tools/release_workflow/test_git_cliff_native_evidence/native_checks.v1.json
+- tests/unit/tools/release_workflow/test_git_cliff_native_evidence/test_git_cliff_native_evidence_tdd.py
+- `tests/unit/tools/release_workflow/test_git_cliff_provisioning/__init__.py`
+- tests/unit/tools/release_workflow/test_git_cliff_provisioning/test_git_cliff_provisioning_budget_tdd.py
+- tests/unit/tools/release_workflow/test_git_cliff_provisioning/test_git_cliff_provisioning_contention_tdd.py
+- tests/unit/tools/release_workflow/test_git_cliff_provisioning/test_git_cliff_provisioning_lifecycle_tdd.py
+- tests/unit/tools/release_workflow/test_git_cliff_provisioning/test_git_cliff_provisioning_tdd.py
+- tests/unit/tools/release_workflow/test_windows_child/test_windows_child_tdd.py
+- `tools/release_workflow/git_cliff/__init__.py`
+- tools/release_workflow/git_cliff/budget.py
+- tools/release_workflow/git_cliff/cache.py
+- tools/release_workflow/git_cliff/download_worker.py
+- tools/release_workflow/git_cliff/installation.py
+- tools/release_workflow/git_cliff/invocation.py
+- tools/release_workflow/git_cliff/messages.py
+- tools/release_workflow/git_cliff/provisioning.py
+- tools/release_workflow/windows_child.py
+
+### Commit plan assessment for step 5 git-cliff-provisioning (exchange 1) (round 2)
+
+Independent checker returned valid, ready, exit 0, and zero diagnostics. Its six ordered subjects cover 29 staged paths. The request prose says 30. The file grouping is accurate. Before committing, align the validation commit body with the final Step 5 verdict.
+
+1. fix(release): count the child deadline from its call (2 paths)
+2. feat(release): add the git-cliff failure contract (5 paths)
+3. feat(release): start git-cliff through one object (3 paths)
+4. feat(release): provision git-cliff under its lock (14 paths)
+5. test(release): record step 5 native checks (4 paths)
+6. docs(git-cliff-provisioning): record step 5 validation (1 paths)
+
+### Findings and boundaries for step 5 git-cliff-provisioning (exchange 1) (round 2)
+
+Unresolved findings:
+
+- Carry the original monotonic download expiry from `installation._download` into the contained run. The remaining duration is sampled before command construction and is restarted in `_Run.__init__`. Recording can also consume the budget, yet `_pre_resume` still resumes the worker and a zero-time wait can report success. Exercise a delay between sampling and launcher entry, and recording past expiry. Require a download-stage timeout and settlement of any suspended child before it can run.
+- Attach the archive target to failures from opening, writing and closing the output stream. `download_worker.main` uses `OSError.filename`, which may be absent on a buffered write or flush. The parent then reports a download failure and a proxy remedy. Exercise a target that opens successfully and raises a filename-less write error, and a response read that fails separately. Verify that the former names the local target directory and the latter keeps its network diagnostic.
+- Keep the ready-message guard cleanup and preserve the public `provision()` failure contract. The new regression expects a raw `OSError` from `provisioning.py` when stderr is broken, bypassing `ProvisioningError` and its engine status 2. Give the caller a typed diagnostic that identifies the reporting failure, preserve the cause, and assert that the published entry can still be renamed.
+
+Boundary-crossing work: None.
+
+### Writer instructions for step 5 git-cliff-provisioning (exchange 1) (round 2)
+
+Complete the three items under Missing work for Step 5, exercise each failure through its caller, refresh the native evidence for affected sources, and update the validation plan and commit description before requesting another review.
+
+### Decision rationale for step 5 git-cliff-provisioning (exchange 1) (round 2)
+
+Identity and staged attribution passed. The focused suite passed and the mechanical commit-plan check passed. Completeness, static test coverage and absence of unresolved findings prevent a commit-ready recommendation.
+
+### Final reviewer decision for step 5 git-cliff-provisioning (exchange 1) (round 2)
+
+Decision: changes-requested. The writer must address the concrete instructions and publish another review round. This advisory answer does not authorize a commit.
+
+<!-- review-entry-id: answer-step-5-round-2 -->
+
+## Round 3 by requestor - Step 5
+
+- Recorded: 2026-11-20T12:51:29+01:00
+- Exchange: code/code/v0.14.0/git-cliff-provisioning
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 5
+- Outcome: request
+
+### Review identity for step 5 git-cliff-provisioning (round 3)
+
+Umbrella draft: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+Implementation plan: docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.md
+Implementation step: 5
+Review round: 3
+
+### Code review evidence for step 5 git-cliff-provisioning (round 3)
+
+request_index_tree: 594013eefdd02590437447450fb150aaa2f0295d
+resolved_validation_set:
+
+- `ghog day --full=speed --whole-suite` (sources: project)
+
+test_scope:
+{"fingerprint": "686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6", "group": null, "proof": "speed", "requirement": "docs/v0.14.0/feature-request.v0.14.0.git-cliff-provisioning.md", "scope": "whole"}
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: fix(release): bound a contained child by its expiry
+group 1 path: tools/release_workflow/windows_child.py
+group 1 path: tests/unit/tools/release_workflow/test_windows_child/test_windows_child_tdd.py
+group 2: feat(release): add the git-cliff failure contract
+group 2 path: tools/release_workflow/git_cliff/messages.py
+group 2 path: tools/release_workflow/git_cliff/budget.py
+group 2 path: tests/unit/tools/release_workflow/test_git_cliff_messages/__init__.py
+group 2 path: tests/unit/tools/release_workflow/test_git_cliff_messages/test_git_cliff_messages_tdd.py
+group 2 path: tests/unit/tools/release_workflow/test_git_cliff_budget/test_git_cliff_budget_tdd.py
+group 3: feat(release): start git-cliff through one object
+group 3 path: tools/release_workflow/git_cliff/invocation.py
+group 3 path: tests/unit/tools/release_workflow/test_git_cliff_invocation/__init__.py
+group 3 path: tests/unit/tools/release_workflow/test_git_cliff_invocation/test_git_cliff_invocation_tdd.py
+group 4: feat(release): provision git-cliff under its lock
+group 4 path: tools/release_workflow/git_cliff/network.py
+group 4 path: tools/release_workflow/git_cliff/download_worker.py
+group 4 path: tools/release_workflow/git_cliff/cache.py
+group 4 path: tools/release_workflow/git_cliff/installation.py
+group 4 path: tools/release_workflow/git_cliff/provisioning.py
+group 4 path: tools/release_workflow/git_cliff/__init__.py
+group 4 path: tests/unit/tools/release_workflow/git_cliff_children_fake.py
+group 4 path: tests/unit/tools/release_workflow/test_git_cliff_network/test_git_cliff_network_tdd.py
+group 4 path: tests/unit/tools/release_workflow/test_git_cliff_download_worker/test_git_cliff_download_worker_tdd.py
+group 4 path: tests/unit/tools/release_workflow/test_git_cliff_installation/__init__.py
+group 4 path: tests/unit/tools/release_workflow/test_git_cliff_installation/test_git_cliff_installation_tdd.py
+group 4 path: tests/unit/tools/release_workflow/test_git_cliff_provisioning/__init__.py
+group 4 path: tests/unit/tools/release_workflow/test_git_cliff_provisioning/test_git_cliff_provisioning_tdd.py
+group 4 path: tests/unit/tools/release_workflow/test_git_cliff_provisioning/test_git_cliff_provisioning_contention_tdd.py
+group 4 path: tests/unit/tools/release_workflow/test_git_cliff_provisioning/test_git_cliff_provisioning_budget_tdd.py
+group 4 path: tests/unit/tools/release_workflow/test_git_cliff_provisioning/test_git_cliff_provisioning_lifecycle_tdd.py
+group 5: test(release): record step 5 native checks
+group 5 path: tests/unit/tools/release_workflow/git_cliff_native_service.py
+group 5 path: tests/unit/tools/release_workflow/git_cliff_native_checks.py
+group 5 path: tests/unit/tools/release_workflow/test_git_cliff_native_evidence/native_checks.v1.json
+group 5 path: tests/unit/tools/release_workflow/test_git_cliff_native_evidence/test_git_cliff_native_evidence_tdd.py
+group 6: docs(git-cliff-provisioning): record step 5 validation
+group 6 path: docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.validation.md
+staged path: docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.validation.md
+staged path: tests/unit/tools/release_workflow/git_cliff_children_fake.py
+staged path: tests/unit/tools/release_workflow/git_cliff_native_checks.py
+staged path: tests/unit/tools/release_workflow/git_cliff_native_service.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_budget/test_git_cliff_budget_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_download_worker/test_git_cliff_download_worker_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_installation/__init__.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_installation/test_git_cliff_installation_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_invocation/__init__.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_invocation/test_git_cliff_invocation_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_messages/__init__.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_messages/test_git_cliff_messages_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_native_evidence/native_checks.v1.json
+staged path: tests/unit/tools/release_workflow/test_git_cliff_native_evidence/test_git_cliff_native_evidence_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_network/test_git_cliff_network_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_provisioning/__init__.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_provisioning/test_git_cliff_provisioning_budget_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_provisioning/test_git_cliff_provisioning_contention_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_provisioning/test_git_cliff_provisioning_lifecycle_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_provisioning/test_git_cliff_provisioning_tdd.py
+staged path: tests/unit/tools/release_workflow/test_windows_child/test_windows_child_tdd.py
+staged path: tools/release_workflow/git_cliff/__init__.py
+staged path: tools/release_workflow/git_cliff/budget.py
+staged path: tools/release_workflow/git_cliff/cache.py
+staged path: tools/release_workflow/git_cliff/download_worker.py
+staged path: tools/release_workflow/git_cliff/installation.py
+staged path: tools/release_workflow/git_cliff/invocation.py
+staged path: tools/release_workflow/git_cliff/messages.py
+staged path: tools/release_workflow/git_cliff/network.py
+staged path: tools/release_workflow/git_cliff/provisioning.py
+staged path: tools/release_workflow/windows_child.py
+```
+
+### Validation scope for step 5 git-cliff-provisioning (round 3)
+
+Validation scope: the whole suite.
+
+### Requestor assessment for step 5 git-cliff-provisioning (round 3)
+
+Writer assessment for Step 5 of the git-cliff-provisioning plan, round 3: the
+step is fully implemented after the round 1 and round 2 repairs, and the rerun
+implementation check records `Yes. Step 5 has been fully implemented.` in the
+staged validation plan (the reviewer's round 2 missing-work list is removed;
+the document status stays `No, it is not implemented.` while Steps 6 to 8 are
+not started).
+
+Evidence, all on the staged tree:
+
+- Round 2 repairs, each through its caller: the installation leaf reaches a
+  worker's resume past D after a delay at launcher entry and after a
+  recording that spends D (download stage, the worker never ran, staging and
+  lock released) and a download line that cannot be written (reporting
+  stage); the `windows_child` leaf covers the earlier of `expires` and the
+  call-relative deadline bounding the wait and children recorded past their
+  bound never resumed; the network leaf covers write and close failures that
+  name no file, a target that cannot be opened (all naming the target) and a
+  stalled read naming none; the worker leaf a write failure naming no file
+  still reported with its path; the contention leaf a waiting line and the
+  provisioning leaf a ready line that cannot be written (reporting stage,
+  cause kept, guard released, entry renamed afterwards); the messages leaf
+  `announce`. `ghog single` on these leaves exit 0 (288 tests).
+- Native record: the recorder with `--milestone step-5`, after the last
+  covered source change (`windows_child.py`, `network.py`, the service
+  modules), passed 14 of 14 (the five service checks 2.1 s to 5.6 s) and the
+  stalled-runner timeout (3.04 s).
+- Default walk exit 0 after fixing its check findings (`PT011`, `TRY301`,
+  radon C on the fake launcher, now split, and `MD050` on five bare
+  `__init__.py` paths of the round 2 answer in the transcript, now code
+  spans; the transcript stays unstaged).
+- Review validation, `ghog day --full=speed --whole-suite` (built-in default):
+  exit 0 with `cov=100 outliers=0 excluded=0 proof=speed` (7879 tests,
+  slowest call 0.31 s, outside this step), on index tree
+  `594013eefdd02590437447450fb150aaa2f0295d`. No budget was changed and no
+  exclusion is accepted.
+- `rg -n 'sys\.stdout|print\(' tools/release_workflow/git_cliff`: only the
+  worker's outcome line. `rg -n 'GIT_CLIFF_' tools/release_workflow/git_cliff`:
+  the removal rule only in `invocation.py`.
+- Line counts: `installation.py` 356, `provisioning.py` 301, `messages.py`
+  165, `network.py` 148, `windows_child.py` 619 (in the 550 to 650 band
+  since Step 2, below the ceiling), `git_cliff_children_fake.py` 485.
+- Markdown check and cSpell on the validation plan and the transcript: clean.
+
+Architecture: unchanged boundaries; the absolute expiry is a field of the
+child request, honored by the launcher where the resume and the wait happen;
+the target-failure rule lives in the network adapter; standard-error writes
+go through one messages helper. Performance: unchanged bounds (one extra
+clock read per child, one wrapper call per written chunk). Feature integrity:
+`expires` is optional; a `run_contained` caller sees a child never resumed
+only when its own bound was already spent; `reporting` is a twelfth stage
+beside the design's eleven, recorded in the validation plan.
+
+Please check in particular: `_Run`'s earlier-bound computation, the
+no-resume path and its teardown; the installation's `expires=deadline`
+without a duration; `_on_target` around open, write and close, and that
+response reads stay unwrapped; and `announce` with the ready line's guard
+release.
+
+### Implementation report for step 5 git-cliff-provisioning (round 3)
+
+Step 5, "Provisioning service, invocation object and failure contract", is
+the fifth of eight steps of the git-cliff-provisioning plan. It composes the
+Step 1 to 4 primitives into the design's target flow; no engine operation
+calls it before item 4, and no pin is admitted before Step 7.
+
+Failure contract, `tools/release_workflow/git_cliff/messages.py` (design
+"Messages, statuses and the failure contract"):
+
+- `Stage` (eleven stages) and the read-only `REMEDIES`; the lock-wait remedy
+  is `cache_lock.LOCK_WAIT_REMEDY`.
+- `ProvisioningError(ValueError)`: `exit_code = 2`, `stage`, `version` (None
+  before any pin exists), `path`, `detail`; its text is `diagnostic()`,
+  `git-cliff <pin> unavailable at <path> (<stage> stage): <detail>. <remedy>`.
+- `permission_failure(version, error, fallback)`: the permission stage naming
+  the nearest existing directory above the refused path.
+- `downloading_line`, `ready_line`, `waiting_line` (holder PID, its start as
+  local time with offset, the caller's own W).
+- `budget.BudgetSettingError` keeps the refused text as `value`.
+
+Invocation object, `tools/release_workflow/git_cliff/invocation.py` (design
+"The provisioning entry point for items 4 and 5", "Version probe"; design
+decision Q09):
+
+- `engine_environment(environment=None)`: the given or process environment
+  without any `GIT_CLIFF_*` name in any case, the only place of that rule.
+- `probe_request(executable, *, inherited, deadline, record=None)`:
+  `--version` in the executable's directory under the engine policy.
+- `GitCliffInvocation(executable, version, guard, *, launch)`, single-use:
+  `run(arguments, *, policy, cwd, environment=None, output="capture",
+  deadline=None)` builds one `ChildRequest` with the guard handle in
+  `inherited` and hands it to the launcher (`run_contained` in production).
+  Engine: environment filtered, stdin closed, output as asked. Passthrough:
+  environment as given (None inherits), stdin and output inherited; a
+  capture request is refused. The guard is closed in `finally`, so once the
+  child ended or at once when no child was created; on `UnconfirmedEndError`
+  it is retained first. A refused or unconfirmed start is
+  `ProvisioningError(CONTAINMENT)`. `close()` and the block form release an
+  unused invocation.
+
+Installation, `tools/release_workflow/git_cliff/installation.py` (design
+"Download, verification and extraction", "Publication", "Child process
+lifecycle", "Time budgets and retries"):
+
+- `install(layout, pin, budget, seams, lock)`: `.staging-<pid>-<created>-<token>/`
+  and `owner.json`; worker attempts through `worker_command` and the
+  launcher, each recorded by `lock.record_child` then in the owner file
+  (temporary file and replace) before it resumes; D's deadline fixed before
+  the first attempt; only a retryable outcome is retried, after the 5 s delay,
+  when time remains after it; `verify_archive`, `extract_member`, archive
+  removed; recorded staging probe within 15 s (`cache.probe_problem`, now
+  public); `entry.json`; `owner.json` removed; `retire_entry`; publication by
+  `staging.rename(entry)`.
+- Failures: an ended child's failure removes staging and propagates (the
+  caller releases the lock); `UnconfirmedEndError` calls
+  `lock.retain_record()`, keeps staging, and is the containment stage. A file
+  operation refused in staging (publication included) is the permission stage
+  naming the directory; a recording failure caused by `PermissionError` is the
+  permission stage, any other recording failure the containment stage.
+- `retire_entry(layout, pin, attempt)`: no entry, nothing; otherwise rename
+  `git-cliff.exe` to `.retired-<pid>-<created>-<token>.exe` when present, then
+  the directory to `<pin>/.retired-<pid>-<created>-<token>/`; either refusal is
+  the in-use stage.
+- `InstallSeams`: the protocol of the seams it uses, so `installation` does
+  not import `provisioning`.
+
+Service, `tools/release_workflow/git_cliff/provisioning.py` (design "Target
+flow", "Reuse check and the use guard", "Provisioning lock, contention and
+recovery"; plan decision Q18):
+
+- `ProvisioningSeams` (the plan's ten seams plus `now`, the local time of the
+  record stamps) and `production_seams(runtime)`.
+- `provision(tooling_root, pin, budget, *, seams, caller)`: missing pin is the
+  configuration stage; platform check; reuse check (`check_entry` with a
+  record-free probe inheriting the guard) returning silently; otherwise
+  `CacheLock.acquire(W, waiting line)`, recheck, `recover_attempts`,
+  `install`; release; guard on the new entry (a failure is the extraction
+  stage, once, without the ready line); ready line.
+- Error mapping at its boundary: `LockWaitError` to lock wait (naming the
+  last live holder, or none), `PermissionError` to permission, other lock
+  `OSError` (unverifiable record, unavailable mutex) to lock wait, reuse-probe
+  containment to containment, an unreadable entry to extraction. A lock record
+  that cannot be removed fails the call, or is added as a note to the failure
+  already raised.
+- `provisioning_budget(environment, *, tooling_root, pin)`: the budget-setting
+  stage for a refused value; `configured_pin(configuration)`: the validated
+  `[git-cliff] version` or None.
+
+Tests: `git_cliff_children_fake.py` (scripted children by role, recording
+before resume, guard copies for the child's lifetime, reaps, unconfirmed ends;
+a world whose guards and busy directories refuse renames, and whose simulated
+parent death snapshots the cache, closes the dying caller's guards and lets a
+second caller continue from exactly that state), and the leaves
+`test_git_cliff_messages`, `test_git_cliff_invocation`,
+`test_git_cliff_installation` and `test_git_cliff_provisioning` (reuse and
+entry point, contention, budget, lifecycle).
+
+Native checks: `git_cliff_native_service.py` (new, beside the 470-line probes
+module) adds five `step-5` checks through the service with killed helper
+callers, a temporary tooling root, the synthetic pin 9.9.9 and a stand-in
+executable (pip's distlib console launcher, a shebang, a ZIP `__main__.py`
+printing `git-cliff 9.9.9`); the recorder catalog, helper dispatch and the
+evidence validator follow; `native_checks.v1.json` holds milestone `step-5`.
+
+Also staged: the validation plan's Step 5 sections and the
+`git_cliff/__init__.py` docstring.
+
+Round 1 repairs (code review round 1, five findings):
+
+- `installation`: staging creation and its owner file are separate steps; a
+  failed `mkdir()` removes nothing, a failed owner file removes only the
+  directory this call created. The download loop checks what remains of D at
+  the top of each attempt and fails the download stage when it is spent. A
+  worker outcome naming a local `path` is the permission stage
+  (`messages.denied_write`), not retried.
+- `windows_child.run_contained`: the deadline counts from the call (injectable
+  `clock`); the root wait receives what remains, down to zero, so creation and
+  recording are taken from it.
+- `download_worker.main`: a local `OSError` with a file name that is not a URL
+  error adds that `path` to its fatal outcome.
+- `provisioning`: the new entry's guard is wrapped in its invocation before
+  the ready line; a ready line that cannot be written closes it.
+- `git_cliff_native_service`: the guard checks name the file of the child's
+  inherited handle value, end the job until it counts no active process
+  before the rename after the child, and run a guard-free control of the
+  stand-in; the record is refreshed (14 of 14).
+
+Round 2 repairs (code review round 2, three findings):
+
+- `windows_child`: `ChildRequest.expires`, an absolute instant on the run's
+  clock; `run_contained` takes the earlier of it and its call-relative
+  deadline, checks it after recording and, once passed, never resumes the
+  child (the teardown ends it suspended; timed out).
+- `installation`: each worker request carries D's expiry (`expires=deadline`)
+  and no duration; the worker still receives what remains for its socket
+  timeout. The download line goes through `messages.announce`.
+- `network.stream_archive`: opening, each write and the close of the target
+  run through `_on_target`, which raises an `OSError` naming the target from
+  its cause; the target is closed on any failure; the size check moved to
+  `_within`. Response reads are not wrapped.
+- `messages`: `Stage.REPORTING` and its remedy; `announce(write, line, *,
+  version, path)` turns an `OSError` or `ValueError` of the stream into that
+  stage with the error as cause.
+- `provisioning`: the waiting and ready lines go through `announce`; the
+  ready line still closes the new invocation first.
+- Test support: the fake launcher honors `expires` like `run_contained`
+  (records `ran` and the launch time; `entry_seconds` spends time before
+  creation); its creation moved to `_create`.
+
+Writer notes: `.reviews/a.git-cliff-provisioning.step5.journal.md` and
+`.reviews/a.git-cliff-provisioning.step5.handoff.md`.
+
+### Change summary for step 5 git-cliff-provisioning (round 3)
+
+Staged paths (31), grouped in the root `a.commit` (six groups, checker
+`ready: true`). Round 2 added `tools/release_workflow/windows_child.py`,
+`tests/unit/tools/release_workflow/test_windows_child/test_windows_child_tdd.py`,
+`tools/release_workflow/git_cliff/download_worker.py` and
+`tests/unit/tools/release_workflow/test_git_cliff_download_worker/test_git_cliff_download_worker_tdd.py`;
+round 3 adds `tools/release_workflow/git_cliff/network.py` and
+`tests/unit/tools/release_workflow/test_git_cliff_network/test_git_cliff_network_tdd.py`.
+The first group's subject changed with the expiry repair:
+
+1. `fix(release): bound a contained child by its expiry`:
+   `tools/release_workflow/windows_child.py`,
+   `tests/unit/tools/release_workflow/test_windows_child/test_windows_child_tdd.py`.
+2. `feat(release): add the git-cliff failure contract`:
+   `tools/release_workflow/git_cliff/messages.py`,
+   `tools/release_workflow/git_cliff/budget.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_messages/__init__.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_messages/test_git_cliff_messages_tdd.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_budget/test_git_cliff_budget_tdd.py`.
+3. `feat(release): start git-cliff through one object`:
+   `tools/release_workflow/git_cliff/invocation.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_invocation/__init__.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_invocation/test_git_cliff_invocation_tdd.py`.
+4. `feat(release): provision git-cliff under its lock`:
+   `tools/release_workflow/git_cliff/network.py`,
+   `tools/release_workflow/git_cliff/download_worker.py`,
+   `tools/release_workflow/git_cliff/cache.py`,
+   `tools/release_workflow/git_cliff/installation.py`,
+   `tools/release_workflow/git_cliff/provisioning.py`,
+   `tools/release_workflow/git_cliff/__init__.py`,
+   `tests/unit/tools/release_workflow/git_cliff_children_fake.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_network/test_git_cliff_network_tdd.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_download_worker/test_git_cliff_download_worker_tdd.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_installation/__init__.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_installation/test_git_cliff_installation_tdd.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_provisioning/__init__.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_provisioning/test_git_cliff_provisioning_tdd.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_provisioning/test_git_cliff_provisioning_contention_tdd.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_provisioning/test_git_cliff_provisioning_budget_tdd.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_provisioning/test_git_cliff_provisioning_lifecycle_tdd.py`.
+5. `test(release): record step 5 native checks`:
+   `tests/unit/tools/release_workflow/git_cliff_native_service.py`,
+   `tests/unit/tools/release_workflow/git_cliff_native_checks.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_native_evidence/native_checks.v1.json`,
+   `tests/unit/tools/release_workflow/test_git_cliff_native_evidence/test_git_cliff_native_evidence_tdd.py`.
+6. `docs(git-cliff-provisioning): record step 5 validation`:
+   `docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.validation.md`.
+
+Steps 1 to 4 of this plan are committed and pushed (`d9c38262` is the base
+of this review). The transcript
+`docs/v0.14.0/review.code.v0.14.0.git-cliff-provisioning.md` stays unstaged
+for the residual commit.
+
+### Writer response for step 5 git-cliff-provisioning (round 3)
+
+Writer response:
+
+Writer response to round 2 (changes-requested, three findings, no reviewer
+code repair). All three are accepted and repaired; there is no disagreement.
+
+- Absolute download expiry: `ChildRequest` gains `expires`, an absolute
+  instant on the launcher's monotonic clock (the seams' clock in production).
+  Each worker request carries D's expiry itself instead of a duration, so the
+  sample before command construction and the restart in `_Run.__init__` are
+  gone. `run_contained` bounds the wait by the earlier of `expires` and its
+  deadline counted from the call, and checks that bound after recording: a
+  child past it is never resumed, the teardown ends it suspended and the
+  outcome is timed out, which the installation reports as the download stage.
+  Tests: the installation leaf reaches the worker's resume past D after a
+  delay at launcher entry and after a recording that spends D (no run, no
+  write, staging and lock released); the `windows_child` leaf covers the
+  earlier bound reaching the wait and children recorded past their bound
+  never resumed. One older case, a negative deadline, moved there, since such
+  a child now never runs.
+- Target failures: `network.stream_archive` wraps opening, every write and
+  the close of the target; an `OSError` there is raised again naming the
+  target, from its cause, and the target is closed on any failure; a failed
+  response read is not wrapped and keeps its network error. Tests: the
+  network leaf (write and close failures naming no file, a target that cannot
+  be opened, a stalled read naming none) and the worker leaf (a write failure
+  naming no file still reports the path); the installation leaf already maps
+  a reported path to the permission stage.
+- Reporting failures: `messages.announce` writes every standard-error line
+  (download, waiting, ready). A stream that raises `OSError` or `ValueError`
+  is a new `reporting` stage of `ProvisioningError` (status 2, remedy: check
+  the calling command's console or redirection), with the original error as
+  cause; the ready line still closes the new invocation's guard first. This
+  adds a twelfth stage beside the design's eleven; the validation plan's
+  feature integrity notes it. Tests: messages (`announce` with both error
+  kinds), installation (download line), contention (waiting line) and
+  provisioning (ready line, the published executable renamed afterwards).
+
+Also from round 2: the change summary now counts 31 staged paths; the final
+group's body matches the Yes verdict restored by the rerun implementation
+check, which supersedes the reviewer's No and missing-work rows. The default
+walk found MD050 in the transcript on bare `__init__.py` paths of the round 2
+answer; those five lines are now code spans (polishing, transcript unstaged).
+
+### Reviewer focus for step 5 git-cliff-provisioning (round 3)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-5-round-3 -->
+
+## Round 3 by reviewer - Step 5
+
+- Recorded: 2026-11-20T12:55:40+01:00
+- Exchange: code/code/v0.14.0/git-cliff-provisioning
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 5
+- Outcome: answer
+
+### Assessed index identity for step 5 git-cliff-provisioning (exchange 1) (round 3)
+
+Baseline index tree: 594013eefdd02590437447450fb150aaa2f0295d
+
+Assessed index tree: 594013eefdd02590437447450fb150aaa2f0295d
+
+### Implementation check for step 5 git-cliff-provisioning (exchange 1) (round 3)
+
+Result:
+
+Yes. Step 5 has been fully implemented.
+
+I traced the original download expiry through worker launch, pre-resume checking and the native wait. The tests cover a worker delayed at entry or while recording, settlement without resume, and the remaining time supplied to the wait. The worker retains the target path on open, write and close errors. A stalled response read keeps its network classification. Stderr failures now reach callers as a `ProvisioningError` with status 2 and the original cause. The ready-line case also verifies that the guard closes and the published executable can be renamed. The earlier staging sentinel and native guard checks still apply.
+
+Validation plan effects:
+
+The staged Step 5 validation plan already records the Yes verdict, the three repairs and their evidence. The writer documents the additional `reporting` stage for a broken console or redirection. It supplies a remedy specific to that stream while preserving the eleven planned stages.
+
+### Pre-repair mandatory checks and coverage for step 5 git-cliff-provisioning (exchange 1) (round 3)
+
+The independent scope-bound `ghog affected --no-cov` run passed with zero failures and warnings. The writer reported 7,879 tests, 100% coverage, zero speed outliers, zero exclusions, and fourteen passing native checks on the refreshed milestone. Static review of the changed failure paths found matching assertions.
+
+### Resolved validation set and sources for step 5 git-cliff-provisioning (exchange 1) (round 3)
+
+`ghog day --full=speed --whole-suite` from the project configuration. The requestor supplied the executed result.
+
+### Resolver drift and direction for step 5 git-cliff-provisioning (exchange 1) (round 3)
+
+The current resolver and the request agree on the command, its order and the project source.
+
+### Repository state around validation for step 5 git-cliff-provisioning (exchange 1) (round 3)
+
+The request, baseline and assessed index trees all equal `594013eefdd02590437447450fb150aaa2f0295d`. The validation capture detected only the ignored focused-test log. The umbrella digest comparison passed.
+
+### Repair inventory for step 5 git-cliff-provisioning (exchange 1) (round 3)
+
+Repairs made: None.
+
+Paths staged: None.
+
+### Commit plan assessment for step 5 git-cliff-provisioning (exchange 1) (round 3)
+
+Independent checker returned valid and ready, exit 0 with zero diagnostics. All 31 staged paths are accounted for exactly once. The six subjects in order are:
+
+1. `fix(release): bound a contained child by its expiry` (2 paths)
+2. `feat(release): add the git-cliff failure contract` (5 paths)
+3. `feat(release): start git-cliff through one object` (3 paths)
+4. `feat(release): provision git-cliff under its lock` (16 paths)
+5. `test(release): record step 5 native checks` (4 paths)
+6. `docs(git-cliff-provisioning): record step 5 validation` (1 paths)
+
+### Findings and boundaries for step 5 git-cliff-provisioning (exchange 1) (round 3)
+
+Unresolved findings: None.
+
+Boundary-crossing work: None.
+
+### Writer instructions for step 5 git-cliff-provisioning (exchange 1) (round 3)
+
+Present the advisory recommendation at the human commit gate.
+
+### Decision rationale for step 5 git-cliff-provisioning (exchange 1) (round 3)
+
+Exact review identity, implementation completeness, focused validation and static coverage, staged attribution, resolution of the carried findings, and commit grouping all passed. The reviewer made no substantive repairs. Step 5 is commit-ready for the human decision.
+
+### Final reviewer decision for step 5 git-cliff-provisioning (exchange 1) (round 3)
+
+Decision: commit-ready (advisory). The evidence floor is complete, but this recommendation does not authorize a commit; authority remains at the durable human gate.
+
+<!-- review-entry-id: answer-step-5-round-3 -->
+
+## Round 3 by human - Step 5 - human-confirmation
+
+- Recorded: 2026-11-20T13:45:11+01:00
+- Exchange: code/code/v0.14.0/git-cliff-provisioning
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 5
+- Outcome: human-confirmation
+
+Human choice: Commit
+Outcome: continue-owning-workflow
+
+<!-- review-entry-id: human-confirmation-round-3 -->
