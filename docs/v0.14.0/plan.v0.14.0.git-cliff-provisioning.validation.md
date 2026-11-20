@@ -1770,9 +1770,31 @@ impaired.
 
 ### Analysis of Step 6 implementation state
 
-Not started. Step 6 is not implemented because no implementation work has
-begun: no candidate identity, trust record, fixture history, comparison or
-bundle model exists, and `GitExecutionContext.run` takes no input.
+Yes. Step 6 has been fully implemented.
+
+Code review round 2 found four more gaps, now repaired: every observation and
+every pin result is checked against the exclusion of 69, llm-shared's ranges
+must be the chain of the tags the inputs record with their commits, the
+harness prints the cleanup notes a failure carries, and a freshly published
+entry is guarded before the lock is released. The admission rules moved to
+`bundle_checks`, beside the storage model.
+
+The five harness modules exist and are tested with fakes only:
+`git_cliff/candidates.py` acquires a candidate's identity outside the
+manifest, writes its trust record once and provisions it in the evidence
+namespace through the Step 3 to 5 primitives; `git_cliff/fixture_history.py`
+builds the snapshot-tag fixture from one deterministic `git fast-import`
+stream; `git_cliff/comparison.py` runs both versions on frozen inputs in a
+temporary worktree and keeps digests, statuses and hunks;
+`git_cliff/bundle.py` reads and writes the strict schema 1 bundle and binds
+the user's review to its canonical projection and the digests of its files,
+and `git_cliff/bundle_checks.py` checks its completeness and admissibility;
+`git_cliff/harness.py` is the developer entry point,
+which also records the review. `GitExecutionContext.run` takes an optional
+`input`. The harness never writes the manifest, never reaches the production
+namespace, and fails on a changed trust record, fixture hash or rerun digest.
+The command printed by `pw scope day` reports `exit=0`, and both `rg` checks
+show only the expected lines.
 
 ### Goal for Step 6
 
@@ -1809,27 +1831,404 @@ binding of the user's review to the exact evidence) and `git_cliff/harness.py`
 
 ### What was implemented for Step 6
 
-_(empty — no check has taken place yet.)_.
+The diff delivers the Step 6 file list of the plan, one more test leaf and
+small additions to Step 3 to 5 modules, so candidates reuse the provisioning
+flow instead of a copy of it.
+
+- **Candidates**: `parse_listing(version, metadata)` reads the one Windows
+  x64 asset of the release named `v<version>`: its exact size and its
+  `sha256:` digest, or none. `Candidate` (version, asset, size, SHA-256,
+  trust, HTTPS source, local acquisition time) refuses a malformed identity
+  and `evidence-only-https` trust outside `EVIDENCE_ONLY_VERSIONS`
+  (`2.7.0`). `TrustRecord(path, version)` reads strictly (exact members,
+  schema 1, its own version, the basis text of its trust kind), `require`s an
+  acquired record, writes once by non-replacing publication (an existing
+  record is refused, never rewritten) and `compare`s a received archive.
+  `acquire_candidate(tooling_root, version, budget, seams, *, trust_path)`
+  takes the identity from an existing record; without one it reads the
+  listing through the record-free metadata worker (60 s, one retry after 5 s
+  for a retryable failure), refuses evidence-only trust for any other version
+  before any download, and installs while no trust record exists. The acceptance
+  hashes the staged archive itself, compares it with the trust record, or
+  with the listed size and published digest, and writes the record in the
+  installation's `before_publish` hook, after extraction and the staging
+  probe, under the candidate lock; a record written by another acquisition
+  meanwhile is compared and kept. `provision_candidate` is the reuse path:
+  the entry's archive digest against the trust record, then the executable
+  against the entry, then the probe.
+- **Fixture history**: a declared history of 20 commits (one merge, the
+  parser and skip-rule matrix of the dev_workflow `cliff.toml`, a breaking
+  change, a security body with a fix, an unconventional commit) and four
+  annotated tags (`v0.1.0`, `v0.2.0-SNAPSHOT`, `v0.2.0`, `v0.3.0-SNAPSHOT`).
+  `stream()` writes it as one fast-import stream: each commit replaces its
+  whole tree, names its parents in order and its author and committer with
+  fixed dates and zones; each tag names its tagger, date, zone and message;
+  the stream ends with `done`. `environment(source, global_config)` drops
+  every inherited `GIT_*`, names an empty global file and sets
+  `GIT_CONFIG_NOSYSTEM=1`. `build(git, directory)` runs `init --template=
+  --object-format=sha1 --initial-branch=main`, then `fast-import --quiet
+  --done` fed the stream as input, then one `for-each-ref`, each with `CONFIG`
+  (no line-ending conversion, no signing, no automatic maintenance), and
+  returns `FixtureHashes`; `verify` names the first ref that differs.
+- **Comparison**: `FrozenInputs` records the pin and baseline, the
+  llm-shared commit, `CliffToml` (source path, digest, dev_workflow commit),
+  the fixture hashes, the ranges, both `CandidateIdentity` values with their
+  executable digests, the `FLAGS` with placeholders and the `ENVIRONMENT`
+  names. `history_ranges` gives the full history, each consecutive `vA..vB`
+  of the reachable tags in history order (one pass, tags of one commit in
+  Git's name order) and `<last tag>..HEAD`. `run_environment` keeps
+  `SystemRoot`, `TEMP` and `TMP` and points `HOME` and `USERPROFILE` at an
+  empty directory. `run_comparison` adds a worktree of the frozen commit with
+  an empty hooks directory, runs the baseline then the pin on every case
+  through fresh invocation objects under the engine policy within
+  `RUN_SECONDS`, and always removes and prunes the worktree. A differing case
+  keeps its unified-diff hunks with three lines of context (line endings and
+  a missing last line feed stay visible); `verify_rerun` names the first case
+  and version whose digest or status differs.
+- **Bundle**: `Bundle` with `Classification`, `Audit`, `AuditCategory`,
+  `ObservedStatus` and `Review`. `read(directory)` decodes schema 1 strictly
+  (exact members, one form per value, no repeated key) and checks every
+  listed file against its digest; `write(directory, bundle)` writes readable
+  UTF-8 at once. `canonical_projection` is the bundle without `review` as
+  canonical JSON; `with_review` records the decision, reviewer `user`, the ISO
+  local date and the projection's SHA-256; `refreshed` keeps the hand-written
+  classification, audit, observed statuses and review over a rerun.
+  `bundle_checks.require_complete(bundle, *, location, pins)` (in `bundle`
+  until code review round 2) refuses any missing or foreign input, outputs that do not follow the ranges, hunks where outputs
+  are equal or none where they differ, an unknown, repeated or unclassified
+  hunk, a defect, an intentional entry without its reason, a missing audit,
+  an audit without its revision or not excluding 69, a pin without
+  upstream-digest trust, and a pin the manifest admits without naming this
+  bundle; `require_admissible` adds the review checks.
+- **Harness**: `main(arguments, *, context=None)` parses `--bundle` with
+  `--pin` and `--baseline`, or `--review approved|rejected`. A comparison
+  resolves the budget once, reads an existing bundle of the same pair,
+  acquires the baseline then the pin, builds and checks the fixture, freezes
+  HEAD's commit and the committed `cliff.toml` of the recorded dev_workflow
+  commit (copied into the bundle), or reuses the bundle's inputs and requires
+  the same ranges, runs the comparison, requires a rerun to reproduce the
+  bundle, and writes it with `refreshed`. A review writes only the decision.
+  Every expected failure prints one diagnostic and returns 2.
+  `HarnessContext` carries every boundary; `production_context` and
+  `evidence_git` bind the real ones. The `if __name__ == "__main__":` line is
+  the only `# pragma: no cover`.
+- **Git**: `run(..., input=None)` passes given bytes through
+  `subprocess.run(input=...)` without `stdin` (a new `_spawn`), and keeps the
+  stdin rule otherwise; `_execute` takes them as `stream`.
+- **Step 3 to 5 modules**: `installation.InstallTarget` (version, triple,
+  asset, size, member, URL, `accept`, `before_publish`, `reuse`) replaces
+  the pin of `install`, and `manifest_target(pin)`
+  keeps production exactly as before (manifest verification, nothing before
+  publication, no archive comparison on reuse). `provisioning._Flow` runs on
+  a target, and `provision_target(layout, target, budget, *, seams, caller)`
+  serves the evidence namespace; a target whose `reuse` function allows none
+  at a check skips it. `cache.check_entry` takes an optional `asset_sha256`, compared
+  after the record and before the hash. `archive.archive_identity` and the
+  narrower `ArchiveMember` protocol, `download_worker.outcome_fields` (now
+  also read by the installation), `cache_lock.publish_file` (the former
+  private `_publish`) and `manifest.asset_url` are small public additions.
+- **Test support**: `git_cliff_harness_fake.py` (canned release metadata and
+  its metadata worker child, the recording Git behind a real
+  `GitExecutionContext`, tag and ref listings, scripted git-cliff runs, sample
+  bundles); the children fake gains the `metadata` role, versions read from
+  cache paths, the evidence namespace and `run_output`; the support module's
+  synthetic archive and pin take any version; the `read_only_git` stand-in in
+  `conftest.py` accepts the new `stream` keyword.
+- **Code review round 1 repairs**:
+  - Audit evidence: `require_complete` refuses an audit without its commands
+    or without every exit-path category of `AUDIT_CATEGORIES` once, each with
+    source references and a finding, and observed statuses without
+    `OBSERVATIONS` (success, usage error, failing render) and their commands,
+    with a status 69, a failing success or a passing failure.
+  - Identities and matrix: `read` reconciles each trust record with the
+    candidate identity of the inputs; completeness requires two distinct
+    versions, llm-shared's full history and chained tag ranges then exactly
+    the fixture's (`comparison.chained_ranges`, also behind
+    `history_ranges`), the fixture's own tags, and a manifest entry of the pin
+    that names this bundle with the reviewed asset, size and digest.
+  - Rerun drift: the harness compares every field of the frozen inputs it
+    observes, and the digest of the copied `cliff.toml`, with the bundle's
+    before any git-cliff run; `fixture_history.verify` compares every tag of
+    either side in order.
+  - Worktree cleanup: `worktree add` runs inside the guarded block; the
+    cleanup runs `worktree remove --force`, deletes what is left, prunes and
+    lists the worktrees to verify the registration is gone; a cleanup problem
+    fails a successful comparison, or is a note on the failure already
+    raised. The harness's temporary directory is resolved to its long form.
+  - HTTPS on every hop: `network.build_opener` follows a redirect only to an
+    HTTPS location (`InsecureRedirectError`, fatal), for archives and release
+    metadata alike; the canned test opener is the network module's own.
+  - Concurrent first acquisition: `InstallTarget.reuse` is a function the
+    flow calls before each reuse check, the recheck under the lock included;
+    a candidate's reads its trust record then, so a waiter reuses the entry
+    another first acquisition published, with its own guard, instead of
+    retiring an entry still in use.
+- **Code review round 2 repairs**:
+  - Every recorded status: `_observation_issue` checks each observation on
+    its own (a 69, a missing command, a success other than 0, a failure
+    reported as 0), so a repeated name hides nothing; `_outputs_problem`
+    refuses a case where the pin returned 69.
+  - Frozen llm-shared tags: `FrozenInputs.llm_shared_tags` records each tag
+    reachable from the frozen commit with its commit, in history order
+    (`comparison.history_tags`, one pass); completeness requires each tag
+    once and the ranges to be exactly their chain, then the fixture's; a
+    rerun compares the tags Git reports with the recorded ones.
+  - Cleanup diagnostics: `harness.main` prints every note a failure carries
+    after its diagnostic, so a worktree cleanup problem noted on a comparison
+    failure reaches standard error with its path.
+  - Guard before release: `_Flow._locked` guards the entry it just published
+    before it releases the lock, so another installation, such as a
+    candidate of another bundle with its own trust record, cannot replace it
+    in between; the guard is closed when the release fails.
+  - Line budget: the admission rules (`require_complete`,
+    `require_admissible` and their checks) moved from `bundle.py` to the new
+    `bundle_checks.py`, with `covered_sha256` public in `bundle`; their tests
+    moved to the new `test_git_cliff_bundle_checks` leaf.
+- **Validation evidence**:
+  - Red first: `ghog single` on the new leaves and the impacted ones failed at
+    collection on the missing names (exit 4, 11 errors).
+  - Targeted: `ghog single` on the Step 6 leaves, `test_git` and the cache,
+    provisioning, installation, cache lock, manifest, worker and archive
+    leaves, 472 passed after one lifecycle CPU overrun of the bundle round
+    trip, which now runs 8 examples on the in-memory `tmp_path`.
+  - Native record: the recorder with `--milestone step-5`, after the edits of
+    the covered sources (`cache.py`, `cache_lock.py`, `installation.py`,
+    `provisioning.py`, `download_worker.py`), passed 14 of 14 checks and the
+    timeout demonstration; the evidence leaf accepts the record on the final
+    sources.
+  - Gate: `ghog day --whole-suite`, the command printed by `pw scope day` at
+    the default level, exit 0 at 2026-11-20T19:10:13+01:00. Earlier walks
+    stopped at check (typing of JSON test helpers, magic values, a pairwise
+    loop, two grade C tests, now split) and at the affected tests (the
+    `read_only_git` stand-in without `stream`, now updated).
+  - Round 1 repairs: `ghog single` on the network, worker, candidates,
+    comparison, fixture, bundle, harness, provisioning, installation and
+    cache leaves, 433 passed once the canned opener kept its own reference to
+    the network opener; the recorder with `--milestone step-5`, after the
+    edits of `network.py`, `installation.py` and `provisioning.py`, passed 14
+    of 14; `ghog day --whole-suite` exit 0 at 2026-11-20T20:00:23+01:00 after
+    splitting two grade C checks.
+  - Round 2 repairs: `ghog single` on the bundle, bundle checks, candidates,
+    comparison, harness, provisioning and installation leaves, 281 passed
+    once one expectation followed the new wording; the recorder with
+    `--milestone step-5`, after the edit of `provisioning.py`, passed 14 of
+    14; `ghog day --whole-suite` exit 0 at 2026-11-20T20:40:37+01:00 after
+    splitting one grade C check.
+  - `rg -n 'manifest'` on the harness, comparison and candidates modules shows
+    docstrings and the import of `PLATFORM_TRIPLE` and `asset_url`: reads
+    only. `rg -n 'pragma: no cover' tools/release_workflow/git_cliff` shows
+    only the harness entry line.
+- **Line counts**: `candidates.py` 442 (advisory 260), `fixture_history.py`
+  235 (advisory 200), `comparison.py` 346 (advisory 260), `bundle.py` 451 and
+  `bundle_checks.py` 233 (advisory 250 for both, split in round 2),
+  `harness.py` 327 (advisory 130), `git.py` 348 (+17, advisory +6),
+  `installation.py` 408, `provisioning.py` 349, `network.py` 170, `cache.py`
+  407, `cache_lock.py` 380, `archive.py` 115, `download_worker.py` 177,
+  `manifest.py` 180, `git_cliff/__init__.py` 58; `git_cliff_harness_fake.py`
+  316 (advisory 90), `git_cliff_children_fake.py` 506, `git_cliff_support.py`
+  411; new tests 415 and 247 (candidates), 219 (fixture), 339 (comparison),
+  248, 98 and 69 (bundle, review binding, property test), 253 and 129
+  (bundle checks and admissibility, not in the plan) and 422 (harness, not in
+  the plan), against advisories of 280, 170, 260 and 260; `test_git_tdd.py`
+  257 (+25, advisory +15). Every Python file stays below 550; the advisory
+  overruns are variance.
 
 ### New types or classes introduced for Step 6
 
-_(empty — no check has taken place yet.)_.
+- `tools.release_workflow.git_cliff.candidates`: `CandidateError`,
+  `AssetListing`, `Candidate`, `TrustRecord`, `EVIDENCE_ONLY_VERSIONS`,
+  `UPSTREAM_DIGEST`, `EVIDENCE_ONLY_HTTPS`, `TRUST_BASIS`, `metadata_url`,
+  `candidate_asset`, `parse_listing`, `acquire_candidate` and
+  `provision_candidate`.
+- `tools.release_workflow.git_cliff.fixture_history`: `FixtureError`,
+  `FixtureHashes`, `CONFIG`, `TAGS`, `stream`, `environment`, `build` and
+  `verify`.
+- `tools.release_workflow.git_cliff.comparison`: `ComparisonError`,
+  `RangeCase`, `CliffToml`, `CandidateIdentity`, `FrozenInputs`,
+  `RunDigest`, `CaseResult`, `ComparisonResult`, `Workspace`, `FLAGS`,
+  `ENVIRONMENT`, `RUN_SECONDS`, `history_ranges`, `run_environment`,
+  `differing_hunks`, `run_comparison` and `verify_rerun`.
+- `tools.release_workflow.git_cliff.bundle`: `BundleError`, `Bundle`,
+  `Classification`, `Audit`, `AuditCategory`, `ObservedStatus`, `Review`,
+  `trust_name`, `listed_files`, `file_digests`, `read`, `write`,
+  `canonical_projection`, `with_review`, `refreshed`, `require_complete` and
+  `require_admissible`.
+- `tools.release_workflow.git_cliff.harness`: `HarnessContext`,
+  `evidence_git`, `production_context` and `main`.
+- Code review round 2: `tools.release_workflow.git_cliff.bundle_checks`
+  (`require_complete`, `require_admissible`, `KINDS`, `AUDIT_CATEGORIES`,
+  `OBSERVATIONS`, moved from `bundle`), `bundle.covered_sha256`,
+  `comparison.history_tags` and `FrozenInputs.llm_shared_tags`.
+- Code review round 1: `candidates.trust_record_bytes`,
+  `comparison.chained_ranges`, `bundle.AUDIT_CATEGORIES` and
+  `bundle.OBSERVATIONS`, `network.InsecureRedirectError`, and
+  `InstallTarget.reuse` replacing `reusable` and `entry_asset`.
+- Existing modules: `installation.InstallTarget` and `manifest_target`,
+  `provisioning.provision_target`, `cache.check_entry(asset_sha256=...)`,
+  `archive.archive_identity` and `ArchiveMember`,
+  `download_worker.outcome_fields`, `cache_lock.publish_file`,
+  `manifest.asset_url`, `GitExecutionContext.run(input=...)`.
+- Test support: `release_metadata`, `metadata`, `FakeGit`, `GitCall`,
+  `git_context`, `tag_listing`, `refs_listing`, `CliffRuns`, `sample_inputs`,
+  `sample_outputs`, `sample_bundle`, `sample_files` and `place_bundle` in
+  `git_cliff_harness_fake.py`.
 
 ### Architecture check for Step 6
 
-_(empty — no check has taken place yet.)_.
+- **One provisioning flow**: candidates reach the cache, the lock, the
+  worker, the archive check, the extraction, the probe, the guard and the
+  invocation only through `provisioning.provision_target` and an
+  `InstallTarget`; no second download loop, lock or publication exists.
+  Production reaches the same flow through `manifest_target`, whose behavior
+  is unchanged.
+- **One Git boundary**: the fixture, the worktree, the ranges and the
+  `cliff.toml` copy all go through `GitExecutionContext`; the input stream is
+  a parameter of that boundary, not a second subprocess call in the harness.
+- **Composition root**: `harness.py` alone binds the real environment, the
+  Windows layer, the evidence Git, the temporary directory, the date and the
+  streams, through `HarnessContext`; the other modules take every resource as
+  a parameter, so the tests replace each one.
+- **Dependency direction**: the harness depends on candidates, fixture,
+  comparison and bundle; the bundle depends on the comparison and fixture
+  types, the candidates' trust vocabulary and record reader, and the
+  manifest's admitted pins, which it only reads; candidates depend on
+  provisioning, installation and the cache primitives; no lower module
+  imports the harness, the bundle or the comparison.
+- **Storage and admission apart (code review round 2)**: `bundle` holds the
+  model, its strict codec and the review binding; `bundle_checks` holds the
+  rules that decide admission and depends on `bundle`, never the reverse.
+- **Rules where they belong (code review round 1)**: the HTTPS-only redirect
+  rule lives in the network adapter, so every download and metadata lookup
+  obeys it; the reuse decision is the target's own function, which the
+  provisioning flow asks at each check without knowing what a trust record
+  is; the worktree cleanup and its verification stay in the comparison, the
+  only module that adds a worktree.
+- **Evidence namespace**: every candidate path comes from
+  `CacheLayout(..., "evidence")`; the production resolver cannot reach it, and
+  the harness writes only its bundle directory.
+
+No, there is nothing that needs to be addressed: no DDD-Hexagonal violation or
+smell is visible in this step.
 
 ### Performance check for Step 6
 
-_(empty — no check has taken place yet.)_.
+- **Production paths**: reuse and provisioning keep their Step 5 cost; the
+  new archive comparison of a reused entry (evidence only) is one string
+  comparison, and a target object adds constant work.
+- **Candidates**: at most two metadata attempts and two download attempts,
+  one hash of the staged archive and one trust record read per acceptance and
+  per reuse check.
+- **Fixture and ranges**: the stream is built once from fixed data; the
+  ranges take one pass over the history listing and one over the tag listing,
+  with no sort of variable-sized input (the remaining sorts are over fixed
+  key sets, the three listed files and the fixed fixture trees).
+- **Comparison**: two runs per case; digests are linear in the output bytes;
+  hunks use `difflib` only where outputs differ, the one path above linear,
+  which the plan's complexity bound allows for this by-hand harness; the
+  cleanup adds three Git calls and one pass over the worktree listing.
+- **Bundle**: decoding, encoding, completeness, the matrix check, the audit
+  and observation checks and the classification check are linear in cases,
+  hunks, categories and entries (sets and counters, no pairwise comparison);
+  `read` decodes the two trust records once each.
+
+No, there is no performance issue that needs to be addressed.
 
 ### Unit test coverage check for Step 6
 
-_(empty — no check has taken place yet.)_.
+The coverage gate measures `tools` only (`[tool.coverage.run] source`), with
+`*/tests/*` and `*/__init__.py` omitted, at `fail_under = 100`. The default
+walk skips the full stage, so this check reasons statically; the measured
+`--full=speed` proof follows before the review request.
+
+- **`tools/release_workflow/git_cliff/candidates.py`**:
+  `test_git_cliff_candidates/` reaches both first acquisitions, the
+  record-free metadata worker, every failure that leaves no record (a size
+  overflow, a short body, a published digest mismatch, an extraction, a probe,
+  an unconfirmed end, two retryable failures, a metadata failure, a parent
+  death), the recovery after an unconfirmed end, the refused evidence-only
+  version, a later different archive, a record written while waiting, the
+  reuse order, the evidence layout, the budget, every listing refusal, every
+  identity and record refusal, `require`, and each metadata failure (twice
+  retryable, fatal, timeout, containment, no outcome, no time, spent);
+  covered.
+- **`tools/release_workflow/git_cliff/fixture_history.py`**:
+  `test_git_cliff_fixture/` reaches the stream, the environment, the build
+  with its three calls, each listing refusal and both `verify` failures;
+  covered.
+- **`tools/release_workflow/git_cliff/comparison.py`**:
+  `test_git_cliff_comparison/` reaches the ranges with and without tags, a tag
+  outside the history, the environment and its missing name, the runs,
+  identical and differing outputs, line endings, the worktree on success and
+  on a run that does not end, and the three `verify_rerun` outcomes; covered.
+- **`tools/release_workflow/git_cliff/bundle.py`**: `test_git_cliff_bundle/`
+  reaches the round trip with and without an audit, every reader refusal, a
+  missing `bundle.json`, changed, missing and unlisted files, the trust
+  record reconciliation, and in its review file the projection,
+  `with_review`, `covered_sha256` and `refreshed`; its property test
+  round-trips generated content; covered.
+- **`tools/release_workflow/git_cliff/harness.py`**:
+  `test_git_cliff_harness/` reaches a first run, a rerun that keeps the
+  review, the three failing reruns, another pair, both review decisions, a
+  missing bundle, the parser refusals, an absolute directory, a refused
+  budget, `production_context`, `evidence_git` and both writers; covered.
+- **`tools/release_workflow/git.py`**: `test_git/` adds both stdin branches;
+  covered.
+- **Step 3 to 5 modules**: the cache leaf adds the archive comparison, the
+  provisioning leaf a target allowing no reuse, the worker leaf
+  `outcome_fields`, the archive leaf `archive_identity` and the network leaf
+  the HTTPS-only redirects for an archive and for release metadata; the
+  installation leaf keeps reaching the target path through `provision`;
+  covered.
+- **`tools/release_workflow/git_cliff/bundle_checks.py`** (round 2):
+  `test_git_cliff_bundle_checks/` reaches every completeness refusal, the
+  audit and observation checks with repeated names, a pin result of 69, the
+  recorded tag chain, the manifest identity, and in its review file each
+  admissibility refusal, a stale and a kept approval; covered.
+- **Round 2 repairs**: the candidates leaf adds a second bundle's
+  acquisition at the first caller's lock release, refused while the first
+  invocation holds its guard; the harness leaf a cleanup note printed after
+  the comparison failure and the recorded llm-shared tags; the comparison
+  leaf `history_tags`; the bundle leaf keeps the storage and binding cases.
+- **Round 1 repairs**: the candidates leaf adds a waiter of a concurrent
+  first acquisition reusing the entry still in use; the comparison leaf a
+  partial creation, a worktree that cannot be removed, cleanup problems noted
+  on a run failure and a Git that cannot list; the fixture leaf tags missing
+  from either side; the bundle leaf every audit and observation gap, the
+  matrix and identity gaps, a manifest digest that differs and the trust
+  record reconciliation on read; the harness leaf an executable drift with
+  identical outputs and changed `cliff.toml` bytes.
+- **Files outside the gate**: `git_cliff_harness_fake.py`, the children fake,
+  the support module and `conftest.py` live under `tests` and are not
+  measured; every top-level symbol of the new fake is used by the new leaves.
+
+No, there is no unit-tested class below 100% that needs completing for Step 6.
+No, none of the top-level symbols of the files outside the gate is
+unreferenced.
 
 ### Feature integrity for Step 6
 
-_(empty — no check has taken place yet.)_.
+- **Existing feature behavior**: provisioning behaves as in Step 5 through
+  `manifest_target`; the reuse check compares no archive digest in
+  production; `GitExecutionContext.run` without input keeps its stdin rule;
+  the worker's outcome line is unchanged and only its parsing moved; the
+  lock's publication is the same function under a public name.
+- **Reporting or diagnostics**: no existing message changes; the harness
+  writes its own summary and diagnostics, and `ProvisioningError` keeps its
+  stages.
+- **Guard order (code review round 2)**: production provisioning now guards a
+  freshly published entry before it releases the lock instead of after; the
+  ready line, the extraction stage of an entry that cannot be guarded (plan
+  Q18) and the lock-wait stage of a record that cannot be removed are
+  unchanged, and the guard is closed when the release fails.
+- **Network rule (code review round 1)**: production downloads now refuse a
+  redirect to a location other than HTTPS, as a fatal download failure;
+  GitHub's redirect to its asset host stays on HTTPS and is followed as
+  before.
+- **Compatibility or rollout note**: the manifest still admits no pin; the
+  harness runs only by hand in Step 7, and no engine command reaches it.
+
+No, there is no existing feature or reporting capability that appears
+impaired.
 
 ---
 
