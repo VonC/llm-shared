@@ -34,6 +34,14 @@ plan decision Q12). No process, socket, job, native call or real wait:
   `BaseException`. The test's `dies()` block then restores the snapshot,
   which is exactly what a dead parent leaves (no cleanup of its own ran),
   declares that caller `DEAD` and continues as `SECOND`, another live caller.
+
+Step 6 serves the evidence candidates: a worker in metadata mode has its own
+`metadata` role, which has no default and must be scripted (the harness fake
+builds those children); the default archive and probe answer of a child take
+their version from the cache path they work in (`<version>/<attempt or
+triple>/...`), so two candidates share one world; a world can be built in the
+evidence namespace; and `run_output` gives the status and output of each
+unscripted git-cliff run from its request.
 """
 
 from __future__ import annotations
@@ -140,10 +148,15 @@ class Launched:
 
 
 def _role(request: ChildRequest) -> str:
-    """Sort a request: the download worker, the version probe, or a git-cliff run."""
+    """Sort a request: the download worker, the metadata worker, the version probe, or a git-cliff run."""
     if "git-cliff-worker" in request.arguments:
-        return "worker"
+        return "metadata" if "metadata" in request.arguments else "worker"
     return "probe" if request.arguments == ("--version",) else "run"
+
+
+def _version(path: Path) -> str:
+    """Read the version of a cache path `<version>/<attempt or triple>/<file>`."""
+    return path.parent.parent.name
 
 
 class FakeChildren:
@@ -152,7 +165,7 @@ class FakeChildren:
     def __init__(self, world: ProvisionWorld) -> None:
         """Start with no script and no launch."""
         self._world = world
-        self._scripts: dict[str, list[Child]] = {"worker": [], "probe": [], "run": []}
+        self._scripts: dict[str, list[Child]] = {"worker": [], "metadata": [], "probe": [], "run": []}
         self.launched: list[Launched] = []
 
     def script(self, role: str, *children: Child) -> None:
@@ -229,8 +242,10 @@ class FakeChildren:
         if role != "worker":
             return None
         target = parse_request(request.arguments[request.arguments.index("--") + 1:]).target
-        content = child.write if child.write is not None or child.stdout is not None or child.hang else synthetic_archive()
-        if content is not None and target is not None:
+        if target is None:
+            return None
+        content = child.write if child.write is not None or child.stdout is not None or child.hang else synthetic_archive(_version(target))
+        if content is not None:
             target.write_bytes(content)
         return content
 
@@ -248,16 +263,21 @@ class FakeChildren:
         world.end(identity)
         if child.hang:
             return ChildOutcome(status=1, stdout=b"", stderr=b"", timed_out=True, identity=identity)
-        return ChildOutcome(status=child.status, stdout=self._stdout(role, child, written), stderr=b"", timed_out=False, identity=identity)
+        status, stdout = self._result(role, child, launched.request, written)
+        return ChildOutcome(status=status, stdout=stdout, stderr=b"", timed_out=False, identity=identity)
 
-    def _stdout(self, role: str, child: Child, written: bytes | None) -> bytes:
-        """The scripted output, or the role's default one."""
+    def _result(self, role: str, child: Child, request: ChildRequest, written: bytes | None) -> tuple[int, bytes]:
+        """The scripted status and output, or the role's default ones; a probe reports the version of its cache path."""
         if child.stdout is not None:
-            return child.stdout
+            return child.status, child.stdout
         if role == "worker":
             content = written or b""
-            return outcome_line("ok", size=len(content), sha256=hashlib.sha256(content).hexdigest())
-        return f"git-cliff {self._world.pin.version}\n".encode() if role == "probe" else b""
+            return child.status, outcome_line("ok", size=len(content), sha256=hashlib.sha256(content).hexdigest())
+        if role == "probe":
+            return child.status, f"git-cliff {_version(request.executable)}\n".encode()
+        if role == "run" and self._world.run_output is not None:
+            return self._world.run_output(request)
+        return child.status, b""
 
 
 def _alive_current() -> ProcessStates:
@@ -290,6 +310,7 @@ class ProvisionWorld:
     query_seconds: float = 0.0
     mutex_error: OSError | None = None
     on_line: Callable[[str], object] | None = None
+    run_output: Callable[[ChildRequest], tuple[int, bytes]] | None = None
     _left: dict[str, bytes | None] | None = None
 
     def __post_init__(self) -> None:
@@ -297,9 +318,9 @@ class ProvisionWorld:
         self.children = FakeChildren(self)
 
     @classmethod
-    def build(cls, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> ProvisionWorld:
-        """Create the tooling root and route every rename through the guard table."""
-        world = cls(CacheLayout(tmp_path / "tooling"))
+    def build(cls, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, namespace: str = "production") -> ProvisionWorld:
+        """Create the tooling root and route every rename through the guard table; the layout is in the given namespace."""
+        world = cls(CacheLayout(tmp_path / "tooling", namespace))
         world.layout.tooling_root.mkdir(parents=True)
         original = os.rename
 
