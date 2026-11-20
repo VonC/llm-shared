@@ -20,7 +20,7 @@ The [deferred senv integration checklist](feature-request.v0.14.0.resume-paused.
 
 Yes. Step 1 has been fully implemented.
 
-The round 6 reviewer confirms the Step 1 code deliverable under plan Q05=A. The repairs of rounds 1 through 5 are present, including R5-1: every proved continuation into a listed file requires its predecessor, and the regression cases cover missing ancestors, foreign, unreadable and incomplete predecessors alongside a complete-history control and the boot boundary. No unresolved code finding remains. The read-only adapters and shared builders are implemented; the writer reports a green whole-suite speed gate with 6166 tests and 100% coverage over `tools`. The reviewer assessed coverage statically and did not repeat the gate. This is not host support: the registry remains empty, every live validation row stays open, and Steps 6 through 8 remain blocked until both hosts have a pinned profile.
+The round 6 reviewer confirms the Step 1 code deliverable under plan Q05=A. The repairs of rounds 1 through 5 are present, including R5-1: every proved continuation into a listed file requires its predecessor, and the regression cases cover missing ancestors, foreign, unreadable and incomplete predecessors alongside a complete-history control and the boot boundary. No unresolved code finding remains. The read-only adapters and shared builders are implemented; the writer reports a green whole-suite speed gate with 6166 tests and 100% coverage over `tools`. The reviewer assessed coverage statically and did not repeat the gate. This is not host support: the registry remains empty, every live validation row stays open, and Steps 6 through 8 remain blocked until both hosts have a pinned profile. Since the user's 2026-11-20 amendment of plan Q05, Steps 6 through 8 proceed code-first and only input to a real pane waits for both pinned profiles.
 
 This verdict is the round 6 code-review result for the code deliverable that plan Q05=A scopes. It does not certify the obligations that design Q27=B and Q28=A, consolidated on 2026-11-17, added later: the conservative boot-boundary and schedule handling of Step 1 stays open in the follow-up section below and must be complete before any profile is pinned, and the all-pane idle guard belongs to Step 7.
 
@@ -95,7 +95,7 @@ The all-pane idle guard of design Q27=B is Step 7 runtime work, not a Step 1 row
 
 ### Live validation checklist for Step 1
 
-Plan Q05=A keeps these rows open without blocking Steps 2 through 5. Steps 6 through 8 stay blocked until both hosts have a pinned profile. No row below is validated.
+Plan Q05=A keeps these rows open without blocking Steps 2 through 5; as amended on 2026-11-20, Steps 6 through 8 also proceed code-first, and no real pane receives input until both hosts have a pinned profile. No row below is validated.
 
 - [ ] Claude: local-command completion and the all-pane idle guard of design Q27=B, the proved requestor pane included, on each pinned version.
 - [ ] Claude: turn closure for every input kind and chain tip, including parallel calls, fan-out leaves, notifications, slash input and compaction.
@@ -371,7 +371,7 @@ tests must still pass.
 
 ### Live host dependencies of Step 4
 
-These rows belong to the Step 1 live matrix and stay open under plan Q05=A; they gate Steps 6 to 8, not this code.
+These rows belong to the Step 1 live matrix and stay open under plan Q05=A; they gate profile pinning, so any input to a real pane, not this code.
 
 - [ ] Codex: the pane-tied pre-input version and pinned screen profile of a receiving pane; until a release is pinned, `UnpinnedCodexVersions` reports them unavailable and the validator refuses.
 - [ ] Claude: the logged form of the marked slash command in the transcript of each pinned version, which the input proof compares exactly.
@@ -515,7 +515,9 @@ No existing feature or reporting capability appears impaired.
 
 ### Analysis of Step 6 implementation state
 
-Not started. Step 6 is not implemented because its planned code, contract changes and focused validation have not been delivered or checked.
+Yes. Step 6 has been fully implemented.
+
+The guarded delivery executes a Step 5 plan under a nonblocking per-checkout OS guard, one safe action at a time per checkout and independent checkouts concurrently. Every clear, resume, reviewer command and recovery Enter is preceded, under the held guard, by fresh identity, protection, eligibility, selector, injected and profile checks. Each send has its own fixed 100-second fake-clock budget, enforced at every step: each blocking transport call is bounded by the time left, each injected check and each nested read of an acceptance proof (version evidence, pane capture, session files, transcripts) starts only while time is left and reads the time left when it starts, and no result completed after the deadline is acted on. Acceptance needs the supported profile and the Step 1 full latest-input proof, and uncertain submission is never retyped. Only Codex may get one recovery Enter, after a proved-empty pre-input capture and identical captures of the exact command as the whole input box with exactly the pinned footer layout below it, the last one taken after the recovery checks. Code review round 1 found six gaps, round 2 two partial repairs and round 3 one remaining deadline gap in chained checks and nested proof reads; all are repaired with regression tests. The user amended plan Q05 on 2026-11-20 so Steps 6 to 8 proceed code-first; the profile registry stays empty, so no real pane receives input, and the production adapters and live host evidence below remain open rows.
 
 ### Goal for Step 6
 
@@ -528,27 +530,94 @@ Execute one safe action at a time per checkout while independent checkouts progr
 
 ### What was implemented for Step 6
 
-_(empty — no check has taken place yet.)_.
+- **OS guard** (`tools/resume_paused_guard.py`): `CheckoutGuard.acquire` locks one byte of an empty file named by the SHA-256 of the canonical checkout key, in a folder of the user's temporary directory, without waiting. Another holder makes the checkout an immediate `held` skip; an unopenable file or a temporary folder inside the checkout is `unavailable` and fails the checkout. `GuardLease` releases on every exit of its `with` block, exceptions included, and the OS drops the lock with its handle. The file holds no content and authorizes nothing.
+- **Transport** (`tools/resume_paused_transport.py`): `ask_arguments` builds `tuios ask-agent --select 'session:S name:N' --yes --stall-timeout 60000 --timeout 100000 --lines 1 --json -- <command>`, the command one inert argument after `--`; `enter_arguments` builds `tuios send-keys -s S -w <full pane id> Enter`. `selector_value` turns each space of the live session and name into the documented `*` wildcard and refuses any other glob or non-printing character; `resolve_selector` matches more broadly than TUIOS (any letter case, a wildcard crossing any character) and requires exactly the validated UUID among every listed pane, so a collision is an error before input. `TuiosTransport` runs discovery, `select`, captures, the ask and the Enter, each on a runner bounded by the seconds the delivery grants, inheriting the caller environment; the ask's exit code is report-only.
+- **Runner bound** (`tools/resume_paused_input.py`): `SubprocessRunner` takes its process bound as a parameter (default 30 seconds), so the delivery's runner factory can bound each call by the remaining budget of its send.
+- **Delivery vocabulary and ports** (`tools/resume_paused_delivery_model.py`): send phases, outcomes, refusals with their severity, guard states, reports, the profile, log, transport, guard, sleeper, pre-send check and takeover ports. `UnpinnedProfiles` refuses every pane while no profile is pinned, and `NoTakeover` keeps every conditional reviewer pending until Step 7.
+- **Fresh pre-send checks** (`tools/resume_paused_delivery_checks.py`): `target_refusal` requires the planned UUID listed once, in its session, with its host and checkout, not the caller's pane nor an excluded session or label, and eligible as Step 5 decides; before the recovery Enter a stale working status is tolerated while a blocked, draft-holding, not-ready or unknown pane refuses it. `PlanRecheck` replans the checkout through `plan_checkout` from the same fresh observation and requires the same native command and marker identity (pane, role, assignment binding), so a changed prompt digest, routing or exchange, a later duplicate or an uncertain history refuses the send; before the Enter only the target's own activity is read as ready. A reviewer continuation matches a planned reviewer.
+- **Single-checkout replan** (`tools/resume_paused_planner.py`): `plan_checkout` plans one checkout from a fresh observation with the same checkout gates, or returns `None` when the checkout has no live pane or no saved prompt.
+- **State machine** (`tools/resume_paused_delivery.py`): `deliver_run` delivers nothing for a dry run or a run-wide refusal and runs one worker per planned checkout on a thread pool, at most one input operation per pane. Each worker holds its guard across the protected sequence: the resume first, then each conditional reviewer through the injected takeover, which may deliver it under the same guard with its own checks (the seam for Step 7's all-pane idle guard); a reviewer after an unaccepted resume is never attempted. `--clear` clears only a resume action: a Claude clear logged after the pause with no later prompt is skipped as redundant, otherwise the clear must be confirmed (Claude: a clear event after the send and a ready pane; Codex: one more pinned cleared line than the pre-clear capture, on an empty input box), and an unconfirmed clear fails the action with no resume.
+- **Acceptance and deadlines**: each send has its own 100-second budget, recovery included, with backoff from half a second to five seconds that never passes the deadline; the 60-second stall bound belongs to the ask. Acceptance needs the pane's supported profile and the Step 1 input prover's full proof from the send instant, plus, for Claude, the command's prompt event in the agent log. A Codex send needs a pre-input capture whose input box shows only the placeholder (a draft skips, an unreadable layout fails); a Claude send needs a readable agent log. Unproved acceptance at the deadline is an unconfirmed failure, never retyped.
+- **Codex recovery Enter**: at most one per send. A capture must show exactly the send's command as the whole input box, once on screen, with exactly the pinned footer layout below it; then the fresh recovery checks (the selector included) and an unchanged profile, then a last identical capture, all before the deadline. An edit, a working, placeholder or draft line, a repeat, a failed capture or check, a changed profile or an expired budget withholds it for good, with a note. A refused Enter is still spent. A background-shell line is reported only.
+- **Tests**: leaves `test_resume_paused_guard`, `test_resume_paused_transport` (tdd and pbt), `test_resume_paused_delivery_model`, `test_resume_paused_delivery_checks` and `test_resume_paused_delivery` (tdd for run, guard, Claude, clear and pairs, tdd for Codex recovery and screen readings, and the declared world `delivery_world.py`), plus `test_resume_paused_planner_replan_tdd.py` in the planner leaf and the runner bound in the input leaf. Fake clocks drive every deadline: a stalled ask spending 60 seconds, an ask exhausting the budget, one ending half a second before it, backoff ending exactly at 100 seconds. Deterministic barriers prove concurrent checkouts and the per-pane exclusion.
+- **Code review round 1 repairs**: the recovery checks resolve the selector again from their fresh listing (a collision appearing after the ask withholds the Enter, which still names the full UUID). Every blocking transport call of a send gets its remaining budget as its bound (`TuiosTransport` builds one bounded runner per call; the ask gets the whole 100 seconds, later calls at most 30), and a proof, capture or check completing at or after the deadline is never acted on. A footer signature makes the profile account for the whole input box: any other line below the input line, such as a multiline draft, reads as other text, and the last ownership capture now follows the recovery checks. A Codex clear needs one more pinned cleared line than the pre-clear capture. The guard refuses a temporary folder that is the checkout itself, treats only `EACCES` and `EDEADLK` as contention (any other lock or seek error is unavailability of that checkout) and closes its descriptor on every failed acquisition.
+- **Code review round 2 repairs**: `DeliveryPorts.provers` holds one prover factory per host, and each acceptance proof uses a prover built for the remaining budget, so a capture the Codex input prover takes is bounded by it (a proof started half a second before the deadline grants its capture half a second). No step starts once the budget is spent: a slow log read starts no proof, a slow listing or check ends the preparation as `deadline-passed`, and the recovery stops before its last capture. `InputScreen.footer_lines` pins the exact footer layout, one line per entry in order, so a repeated, missing or footer-shaped extra line below the input line is unrecognized, for an empty box as for an owned one.
+- **Code review round 3 repairs**: the prover factory receives the send's remaining-time callable (`Remaining`) instead of a figure computed before the proof. `tools/resume_paused_budget.py` adds the budget-bounded readers a factory composes the provers from: `BoundedVersions`, `BoundedCapture`, `BoundedSessionStore` and `BoundedTranscriptSource` each read the time left at their own call, read nothing once it is spent, and the capture is bounded by what is left then (a version read spending 0.3 of the last 0.5 seconds leaves the capture 0.2, one spending a second skips it). The injected checks stop before each check once the budget is spent, so a second check never runs after a first one spent it.
+- **Validation evidence**: the new leaves passed in focus with `ghog single`; `ghog day --whole-suite` (the selector printed by `pw scope day`, default level) exited 0 after strict-typing and lint fixes and after the dependency refactor of the implementation check, and the requestor's `ghog day --full=speed --whole-suite` walk measures each round. Grep inspection of the five new modules found no shell use, file write other than the empty guard file, bulk launcher or token.
+- **Deviations from the planned file list**: the plan names the guard, transport and delivery modules with one delivery leaf. Delivery is split into vocabulary and ports, fresh checks, the state machine and, since round 3, the budget-bounded proof readers (`tools/resume_paused_budget.py`), as its split guidance allows, and each module has its own leaf under the one-leaf-per-module rule. `plan_checkout` joins the planner and the runner bound joins the input module. The plan's two-process guard test runs two independent OS handles in one process, which Windows locks exactly as two processes, because this repository's tests never start a process; the cross-process run stays a live row below. The transport property tests draw each word through one integer over the same alphabet and lengths, with 40 examples as the sibling evidence properties.
+
+### Composition dependencies of Step 6
+
+The delivery receives these adapters as ports; Step 8 composes them, and none may report a supported profile before both hosts are pinned (plan Q05 as amended on 2026-11-20).
+
+- [ ] Profile gate from pane-tied version evidence (Step 1 adapters) with each pinned profile's clear command, background-shell line and Codex input-box signatures; `UnpinnedProfiles` until then.
+- [ ] Claude agent-log reader of prompt and clear events in the profile's logged form, `None` when unreadable.
+- [ ] Input prover factories: `ClaudeInputProver` and `CodexInputProver` (Step 4) per host, each built per proof from the budget-bounded readers of `tools/resume_paused_budget.py` over the send's remaining-time callable.
+- [ ] `PlanRecheck` over `plan_checkout` bound to the run's request and Step 5 readers, plus Step 7's all-pane idle guard on every Claude reviewer send.
+- [ ] `TuiosTransport` with a factory of `SubprocessRunner`s bounded by the granted seconds; `CheckoutGuard` with the native lock; a real clock and sleeper.
+
+### Live host dependencies of Step 6
+
+These rows belong with the Step 1 live matrix; synthetic fixtures cannot establish them.
+
+- [ ] Guard contention between two real processes on Windows, and release when an invocation is killed.
+- [ ] TUIOS selector globs: letter case, what `*` crosses, and the match set of `--select` for a name holding a wildcard.
+- [ ] `ask-agent --json` behavior on a stall, a timeout and a refused pane, against the report-only exit code.
+- [ ] Whether TUIOS reports `draft_held` for a pane's own unsubmitted command, which refuses the Codex recovery Enter.
+- [ ] Codex input-box, placeholder, working, cleared and exact footer layout signatures and the new-conversation command of each pinned release, including whether a new conversation wipes an earlier cleared line (then a pane cleared before the run fails its clear confirmation, closed); Claude `/clear` and prompt log forms and readiness after a clear.
 
 ### New types or classes introduced for Step 6
 
-_(empty — no check has taken place yet.)_.
+- `LockPrimitive`, `NativeFileLock`, `GuardLease`, `CheckoutGuard`: the per-checkout OS guard, over the model's `GuardState`.
+- `Selection`, `AskOutcome`, `TuiosTransport`: the shell-free transport.
+- `GuardState`, `Phase`, `DeliveryOutcome`, `ClearOutcome`, `Refusal`, `ActionReport`, `CheckoutDelivery`, `SendStep`, `InputScreen`, `DeliveryProfile`, `LogKind`, `LogEvent`, `DeliveryPorts`: the delivery vocabulary.
+- `PreSendCheck`, `ProfileGate`, `AgentLog`, `Sleeper`, `PaneTransport`, `GuardPort`, `PairDelivery`, `Takeover`, with the defaults `UnpinnedProfiles` and `NoTakeover`: the delivery ports.
+- `TargetContext`, `PlanRecheck`: fresh pre-send checks.
+- `Remaining`, `ProverFactory`, `BoundedCapture`, `BoundedVersions`, `BoundedSessionStore`, `BoundedTranscriptSource`: the per-proof remaining-time bound and the budget-bounded proof readers.
+- `InputLine` and the private state-machine classes `_PaneSlots`, `_Recovery`, `_ActionDelivery`, `_CheckoutWorker`.
+- Test-only: `World`, `FakeClock`, `FakeTransport`, `FakeLog`, `LogPort`, `FakeProver`, `FakeProfiles`, `FakeProbe`, `FakeGuard` and the declared-plan builders.
 
 ### Architecture check for Step 6
 
-_(empty — no check has taken place yet.)_.
+- **Ports and adapters**: the state machine depends only on the delivery model's ports, the fresh checks and the plan model. TUIOS argument lists and selector globs stay in the transport adapter behind `PaneTransport.select`, `ask` and `enter`; the native `msvcrt` lock stays in the guard adapter, which uses the model's `GuardState` and re-exports it. The model imports adapters for typing only.
+- **Separation**: OS locking, transport and orchestration are separate modules, as the plan's split guidance asks; vocabulary and fresh checks are split from the state machine. Takeover observation stays for Step 7 behind the `Takeover` seam, argument parsing and reporting for Step 8.
+- **Reuse**: the fresh checks reuse Step 5's eligibility and host classification, and `PlanRecheck` reuses the planner instead of duplicating its gates.
+- **Import direction**: plan model and delivery model, then checks and guard, then the state machine; transport depends on Step 4 and Step 5 readers only. No cycle.
+- **File size**: guard 188, transport 154, delivery model 349, checks 206 and budget readers 106 lines are below the 550 safe-to-extend mark; the delivery state machine is 573 lines after three review rounds, whose fix notes its docstring carries, and the planner 558 after `plan_checkout`, both in the 550 to 650 band and below the ceiling.
+
+No DDD-Hexagonal violation or adapter smell is visible. No, there is nothing that needs to be addressed.
 
 ### Performance check for Step 6
 
-_(empty — no check has taken place yet.)_.
+- **No new `O(n^2)` or `O(n log n)` path**: each send takes one listing; locating the target, checking the selector and building the activity map are single passes over the panes. A capture is read in single passes: input box, working or placeholder lines below it, command occurrences.
+- **Bounded observation**: polling backs off to five seconds within each 100-second budget, so a send makes a bounded number of acceptance reads. Each read costs the evidence it inspects (agent log, input proof, capture), as the plan's evidence-cost section allows, with no cache of mutable evidence.
+- **Replanning**: `PlanRecheck` replans one checkout, not the run, before each send.
+- **Concurrency**: at most eight checkout workers share one run; the per-pane slot set is a constant-time lock and set operation.
+
+No, there is no performance issue that needs to be addressed.
 
 ### Unit test coverage check for Step 6
 
-_(empty — no check has taken place yet.)_.
+The coverage gate measures `tools` (`pyproject.toml`, `[tool.coverage.run]`), line coverage, so every new module is measured; protocol method bodies compile to no executable line. Each module has its own leaf designed to reach 100%:
+
+- `test_resume_paused_guard`: guard path spellings, acquisition, contention and unavailable lock states, a raising lock attempt, unopenable files, temporary folders in, equal to or beside the checkout or unparsable, release on exceptions and on a failed unlock, and the native lock through two handles, a blocked folder and a seek failure that is not contention.
+- `test_resume_paused_transport`: argument lists with metacharacters, every selector-value case, unique, colliding and unresolved selectors, both runners of `TuiosTransport` and its `select`; properties for plain and glob names and arbitrary commands.
+- `test_resume_paused_delivery_model`: checkout failure verdicts, the fixed budget and the default ports.
+- `test_resume_paused_budget`: each bounded reader with time left (the capture capped at the call bound and bounded by the time left at its own call) and with the budget spent (nothing read).
+- `test_resume_paused_delivery_checks`: every identity, protection, eligibility and recovery-readiness refusal, the stale working override, and `PlanRecheck` over the real planner for unchanged plans, a changed digest, a later duplicate, an uncertain history, a removed prompt, busy targets, reviewer continuations and unreadable markers.
+- `test_resume_paused_delivery`: run, guard, concurrency, per-pane exclusion, profile, prover and log refusals, Claude acceptance and deadlines, redundant, needed and unconfirmed clears, pairs and the takeover seam; Codex empty-input refusals, recovery used, withheld for every condition (a new selector collision, an edit during the recovery checks, a multiline draft, a repeated or missing footer, a recovery check spending the budget included) and never repeated, the bound granted to every call and to each prover, the concrete Codex prover's capture granted the last half second, a log read or a proof or capture completing after the deadline, Codex clears (an old banner with an unrelated change included) and the pure screen readings.
+- The planner leaf covers `plan_checkout`; the input leaf covers the runner bound and its unchanged environment.
+
+No, there is no unit-tested class below 100% that needs completing for Step 6.
 
 ### Feature integrity for Step 6
 
-_(empty — no check has taken place yet.)_.
+- **Existing readers and planner**: `plan_run` and every Step 5 classification are unchanged; `plan_checkout` adds an entry point over the same checkout planner.
+- **Runner**: `SubprocessRunner` keeps its 30-second default, argument list, `shell=False` and inherited environment for every existing caller.
+- **Manual workflows and receivers**: nothing changes for manual `resume-session` or `review-resume`, the validator or the claim; delivery writes no receipt, journal, claim or other artifact beyond the empty guard file outside the checkout.
+- **Reporting**: no existing output changes; reports are new in-memory results for Step 8.
+
+No existing feature or reporting capability appears impaired.
 
 ## Step 7. Confirm takeover and activate only a verified missing reviewer
 
