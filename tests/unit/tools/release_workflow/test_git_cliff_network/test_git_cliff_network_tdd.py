@@ -14,6 +14,10 @@ through a real `urllib` opener over canned answers, with no socket.
 Step 5 (code review round 2): a failure to open, write or close the target
 names it, even when the original error named no file, and the target is
 closed; a failed response read keeps its network error, which names no file.
+
+Step 6 (code review round 1): the opener follows a redirect only to another
+HTTPS location; a redirect to plain HTTP or any other scheme is refused before
+it is opened, for an archive and for release metadata, as a fatal failure.
 """
 
 from __future__ import annotations
@@ -33,6 +37,7 @@ import pytest
 from tests.unit.tools.release_workflow.git_cliff_support import Canned, CannedWeb
 from tools.release_workflow.git_cliff import network
 from tools.release_workflow.git_cliff.network import (
+    InsecureRedirectError,
     Received,
     SizeOverflowError,
     build_opener,
@@ -96,6 +101,30 @@ def test_the_redirect_to_the_release_asset_host_is_followed(tmp_path: Path) -> N
     web = CannedWeb({_ASSET: Canned(status=302, location=_STORED), _STORED: Canned(body=_BODY)})
     received = stream_archive(web.opener(), _ASSET, tmp_path / "archive.zip", expected_size=len(_BODY), socket_timeout=30)
     assert (received.size, web.opened) == (len(_BODY), [(_ASSET, 30), (_STORED, 30)])
+
+
+def test_the_opener_follows_redirects_through_its_https_only_handler() -> None:
+    """The standard redirect handler is replaced by one that keeps every hop on HTTPS."""
+    handler = _handler(build_opener(proxies={}, context=_context()), urllib.request.HTTPRedirectHandler)
+    assert type(handler).__name__ == "_HttpsRedirects"
+
+
+@pytest.mark.parametrize("location", ["http://release-assets.githubusercontent.com/asset", "HTTP://github.com/x", "ftp://example.com/x"])
+def test_a_redirect_away_from_https_is_refused_for_an_archive(location: str, tmp_path: Path) -> None:
+    """Certificate verification never stops mid-way: the archive is not followed off HTTPS, and no target is created."""
+    web, target = CannedWeb({_ASSET: Canned(status=302, location=location)}), tmp_path / "archive.zip"
+    with pytest.raises(InsecureRedirectError, match="only HTTPS locations are followed"):
+        stream_archive(web.opener(), _ASSET, target, expected_size=len(_BODY), socket_timeout=30)
+    assert (web.opened, target.exists()) == ([(_ASSET, 30)], False)
+    assert classify(InsecureRedirectError("refused")) == "fatal"
+
+
+def test_a_redirect_away_from_https_is_refused_for_release_metadata() -> None:
+    """The metadata lookup is held to the same rule."""
+    web = CannedWeb({_RELEASE: Canned(status=301, location="http://api.github.com/repos/orhun/git-cliff/releases/tags/v2.7.0")})
+    with pytest.raises(InsecureRedirectError, match="redirect 301"):
+        fetch_metadata(web.opener(), _RELEASE, socket_timeout=30)
+    assert web.opened == [(_RELEASE, 30)]
 
 
 def test_a_longer_body_stops_at_the_first_extra_byte(tmp_path: Path) -> None:

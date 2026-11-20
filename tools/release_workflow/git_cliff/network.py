@@ -29,6 +29,12 @@ inside its own process, so that its parent can end a call that never returns.
 A socket timeout bounds each blocking operation, never the whole transfer;
 the caller's deadline does that. No response header is read, so a server's
 retry delay extends no budget.
+
+Since code review round 1 of Step 6, the opener follows a redirect only to
+another HTTPS location: the standard handler would follow one to plain HTTP,
+and an evidence-only first download (2.7.0) rests on certificate-verified
+HTTPS for every hop. A refused redirect is `InsecureRedirectError`, a fatal
+failure for the metadata lookup and the archive alike.
 """
 
 from __future__ import annotations
@@ -41,7 +47,7 @@ import ssl
 import urllib.error
 import urllib.request
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Literal
+from typing import IO, TYPE_CHECKING, Literal
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Mapping
@@ -57,6 +63,10 @@ class SizeOverflowError(ValueError):
     """The body is longer than its expected size; a repeated download would not change it."""
 
 
+class InsecureRedirectError(ValueError):
+    """A server redirected to a location that is not HTTPS; following it would drop certificate verification."""
+
+
 @dataclass(frozen=True)
 class Received:
     """What one archive attempt received: its size in bytes and its SHA-256."""
@@ -65,11 +75,23 @@ class Received:
     sha256: str
 
 
+class _HttpsRedirects(urllib.request.HTTPRedirectHandler):
+    """Follow redirects as the standard handler does, but only to HTTPS locations."""
+
+    def redirect_request(self, req: urllib.request.Request, fp: IO[bytes], code: int, msg: str, headers: http.client.HTTPMessage,  # noqa: PLR0913 - the standard handler's signature
+                         newurl: str) -> urllib.request.Request | None:
+        """Refuse a redirect to any scheme other than HTTPS before it is followed."""
+        if not newurl.lower().startswith("https://"):
+            detail = f"{req.full_url}: redirect {code} to {newurl} refused, only HTTPS locations are followed"
+            raise InsecureRedirectError(detail)
+        return super().redirect_request(req, fp, code, msg, headers, newurl)
+
+
 def build_opener(*, proxies: Mapping[str, str] | None = None, context: ssl.SSLContext | None = None) -> urllib.request.OpenerDirector:
-    """Build the opener from the standard proxies and the verifying default context, or from declared ones."""
+    """Build the opener from the standard proxies and the verifying default context, or from declared ones; redirects stay on HTTPS."""
     chosen = urllib.request.getproxies() if proxies is None else dict(proxies)
     secure = ssl.create_default_context() if context is None else context
-    return urllib.request.build_opener(urllib.request.ProxyHandler(chosen), urllib.request.HTTPSHandler(context=secure))
+    return urllib.request.build_opener(urllib.request.ProxyHandler(chosen), urllib.request.HTTPSHandler(context=secure), _HttpsRedirects())
 
 
 def stream_archive(opener: urllib.request.OpenerDirector, url: str, target: Path, *, expected_size: int,

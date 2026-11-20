@@ -15,7 +15,9 @@ plan decision Q12). The builders are declared state, never real resources:
   liveness queries that can each take fake time (a slow transition), and
   builders for another caller's lock record and for attempt directories;
 - `synthetic_pin()`: an `AdmittedPin` for 2.14.2 built from a small generated
-  archive, its real size and SHA-256 computed here;
+  archive, its real size and SHA-256 computed here; since Step 6, both
+  `synthetic_archive(version)` and `synthetic_pin(version)` take any version,
+  so an evidence candidate such as 2.7.0 has its own archive and member path;
 - `install_entry`: a published entry (stand-in executable and its record);
 - `FakeGuardOpener` and `FakeGuard`: use guards over scenario files, which the
   native `CreateFileW` could not see in the memory filesystem;
@@ -29,6 +31,10 @@ redirect, a body whose read stalls like a silent socket, or an exception) and
 a real `urllib` opener that serves them without any socket, through the
 standard redirect and error handlers, recording every open with its timeout
 and every read size.
+
+Since code review round 1 of Step 6, `CannedWeb.opener` is the network
+module's own opener with the canned handler added, so its HTTPS-only redirect
+rule applies to every canned redirect.
 """
 
 from __future__ import annotations
@@ -49,6 +55,7 @@ from datetime import datetime, timedelta, timezone
 from functools import cache
 from typing import TYPE_CHECKING, cast
 
+from tools.release_workflow.git_cliff import network
 from tools.release_workflow.git_cliff.cache import OWNER_FILE, EntryRecord, Guard
 from tools.release_workflow.git_cliff.cache_lock import CacheLock, LockRecord, LockSeams
 from tools.release_workflow.git_cliff.manifest import PLATFORM_TRIPLE, AdmittedPin
@@ -74,6 +81,8 @@ _WRITE_MODES = frozenset("wax+")
 _WRITE_FLAGS = os.O_WRONLY | os.O_RDWR | os.O_CREAT | os.O_APPEND | os.O_TRUNC
 _DENIED = ("mkdir", "rename", "replace", "remove", "unlink", "rmdir")
 _OPEN, _OS_OPEN = "open", "os.open"
+# Taken at import, so a test that replaces the worker's opener with a canned one never reaches its own replacement.
+_NETWORK_OPENER = network.build_opener
 
 
 def _no_actions() -> list[tuple[float, Callable[[], object]]]:
@@ -192,23 +201,23 @@ class LockWorld:
 
 
 @cache
-def synthetic_archive() -> bytes:
-    """Build a small archive holding the stand-in executable at the 2.14.2 member path."""
+def synthetic_archive(version: str = VERSION) -> bytes:
+    """Build a small archive holding the stand-in executable at the member path of a version (2.14.2 by default)."""
     buffer = io.BytesIO()
     with zipfile.ZipFile(buffer, "w", compression=zipfile.ZIP_DEFLATED) as archive:
-        for name, content in ((f"git-cliff-{VERSION}/git-cliff.exe", STAND_IN_EXECUTABLE), (f"git-cliff-{VERSION}/README.md", b"stand-in\n")):
+        for name, content in ((f"git-cliff-{version}/git-cliff.exe", STAND_IN_EXECUTABLE), (f"git-cliff-{version}/README.md", b"stand-in\n")):
             archive.writestr(zipfile.ZipInfo(name, date_time=_ARCHIVE_TIME), content)
     return buffer.getvalue()
 
 
 @cache
-def synthetic_pin() -> AdmittedPin:
-    """Admit 2.14.2 with the real size and SHA-256 of the synthetic archive."""
-    archive = synthetic_archive()
+def synthetic_pin(version: str = VERSION) -> AdmittedPin:
+    """Admit a version (2.14.2 by default) with the real size and SHA-256 of its synthetic archive."""
+    archive = synthetic_archive(version)
     return AdmittedPin(
-        version=VERSION, default=True, triple=PLATFORM_TRIPLE, asset=f"git-cliff-{VERSION}-{PLATFORM_TRIPLE}.zip",
-        size=len(archive), sha256=hashlib.sha256(archive).hexdigest(), member=f"git-cliff-{VERSION}/git-cliff.exe",
-        evidence=f"tools/release_workflow/git_cliff/bundles/{VERSION}",
+        version=version, default=True, triple=PLATFORM_TRIPLE, asset=f"git-cliff-{version}-{PLATFORM_TRIPLE}.zip",
+        size=len(archive), sha256=hashlib.sha256(archive).hexdigest(), member=f"git-cliff-{version}/git-cliff.exe",
+        evidence=f"tools/release_workflow/git_cliff/bundles/{version}",
     )
 
 
@@ -370,9 +379,10 @@ class CannedWeb:
     reads: list[int] = field(default_factory=list[int])
 
     def opener(self) -> urllib.request.OpenerDirector:
-        """Build a real opener that serves the canned answers first, with no proxy and no certificate loading."""
-        quiet = urllib.request.HTTPSHandler(context=ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT))
-        return urllib.request.build_opener(urllib.request.ProxyHandler({}), quiet, _CannedHandler(self))
+        """Build the network module's own opener, with no proxy and no certificate loading, serving the canned answers first."""
+        built = _NETWORK_OPENER(proxies={}, context=ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT))
+        built.add_handler(_CannedHandler(self))
+        return built
 
 
 class _CannedHandler(urllib.request.BaseHandler):
