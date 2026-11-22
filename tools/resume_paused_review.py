@@ -28,6 +28,11 @@ changed selection; unreadable, invalid or inconsistent evidence is damaged.
 None of them is absence, and none selects another exchange. The snapshot
 carries the ownership generation and role natures as non-secret claim
 evidence, never the ownership token digest.
+
+Fix (Step 7): the snapshot also carries the record's marked claim binding
+(launch id, receiving pane, host, assignment binding, round, occurrence and
+issued generation), the non-secret evidence a takeover observation compares
+with the receipt; it holds no token or token digest.
 """
 
 # ruff: noqa: EM101, EM102, TRY003
@@ -63,7 +68,10 @@ if TYPE_CHECKING:
     from tools.resume_paused_routing import SavedExchange
     from tools.review_artifact_configuration import ReviewArtifactConfiguration
     from tools.review_exchange_models import Actor, ArtifactPaths, ReviewConfiguration
-    from tools.review_exchange_models_coordination import CoordinationRecord
+    from tools.review_exchange_models_coordination import (
+        CoordinationRecord,
+        MarkedClaimBinding,
+    )
     from tools.review_exchange_observer import ExchangeObservation
 
 # The observer compares a policy only against a coordination record; without
@@ -98,6 +106,7 @@ class ExchangeSnapshot:
     reviewer_nature: str | None = None
     reads: tuple[Path, ...] = ()
     account: ReadAccount = field(default_factory=ReadAccount)
+    marked_claim: MarkedClaimBinding | None = None
 
 
 class _BusyError(Exception):
@@ -290,6 +299,7 @@ def _observed(selection: _Selection, evidence: _Evidence) -> ExchangeSnapshot:
         _nature(natures.for_role(ReviewRole.REVIEWER)) if natures is not None else None,
         tuple(selection.reads.paths),
         selection.reads.account,
+        record.marked_claim if record is not None else None,
     )
 
 

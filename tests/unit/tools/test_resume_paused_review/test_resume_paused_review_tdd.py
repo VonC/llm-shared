@@ -16,6 +16,9 @@ bytes, which include every read the reused store and observer make.
 Fix (code review round 2): a malformed orphan answer, a malformed coordination
 record and an undecodable transcript are each read once and stay in the
 damaged snapshot's account, as the independent recorder confirms.
+
+Fix (Step 7): a declared marked claim binding rides in the snapshot unchanged,
+still without the ownership token digest.
 """
 
 from __future__ import annotations
@@ -36,6 +39,7 @@ from tests.unit.tools.test_resume_paused_artifacts.test_resume_paused_artifacts_
 )
 from tests.unit.tools.test_resume_paused_routing.test_resume_paused_routing_tdd import (
     PLAN,
+    REQUESTOR_PANE,
 )
 from tools import review_exchange_ownership_store as ownership_store
 from tools.llm_nature import LlmNature
@@ -57,7 +61,10 @@ from tools.review_exchange_models import (
     ReviewFamily,
     ReviewRole,
 )
-from tools.review_exchange_models_coordination import CoordinationRecord
+from tools.review_exchange_models_coordination import (
+    CoordinationRecord,
+    MarkedClaimEvidence,
+)
 from tools.review_exchange_models_envelope import (
     Envelope,
     render_envelope_markdown,
@@ -72,6 +79,7 @@ if TYPE_CHECKING:
     from pathlib import Path
 
     from tools.review_exchange_models import ArtifactPaths
+    from tools.review_exchange_models_coordination import MarkedClaimBinding
 
 LEASE = "2026-11-18T07:30:00+01:00"
 ISSUED_CAPABILITY = "scenario-resume-paused-token-000000000"
@@ -99,12 +107,15 @@ def declare_transcript(paths: ArtifactPaths, occurrences: int = 1) -> None:
     paths.transcript.write_text("".join(f"<!-- review-entry-id: {footer} -->\n" for footer in footers), encoding="utf-8")
 
 
-def declare_exchange(context: ReviewContext, paths: ArtifactPaths, *, round_number: int = 1, occurrences: int = 1) -> None:
-    """Declare the prior writer's coordination record and transcript footers."""
+def declare_exchange(
+    context: ReviewContext, paths: ArtifactPaths, *, round_number: int = 1, occurrences: int = 1, marked: MarkedClaimBinding | None = None,
+) -> None:
+    """Declare the prior writer's coordination record, with an optional marked claim, and transcript footers."""
     record = CoordinationRecord(
         context, POLICY, CoordinationStatus.ACTIVE, Actor.REQUESTOR, Actor.REQUESTOR, round_number, LEASE,
         role_natures=RoleNatureSnapshot(LlmNature.CLAUDE, LlmNature.CODEX),
         ownership_generation=GENERATION, ownership_token_digest=OwnershipService.digest(ISSUED_CAPABILITY),
+        marked_claim=marked,
     )
     title = f"Review exchange coordination for {context.identity.key}"
     paths.coordination.write_text(render_json_markdown(title, record.to_dict(), ""), encoding="utf-8")
@@ -154,6 +165,18 @@ def test_observed_exchange_accounts_every_read_and_exposes_no_secret(tmp_path: P
     assert (snapshot.kind, snapshot.state, snapshot.round_number, snapshot.occurrence) == (ExchangeObservationKind.OBSERVED, ArtifactState.REQUEST_PENDING, 1, 1)
     assert (snapshot.owner, snapshot.expected_next_actor, snapshot.ownership_generation) == (Actor.REQUESTOR, Actor.REQUESTOR, GENERATION)
     assert (snapshot.requestor_nature, snapshot.reviewer_nature, snapshot.identity) == ("claude", "codex", context.identity.key)
+    assert snapshot.marked_claim is None
+    assert OwnershipService.digest(ISSUED_CAPABILITY) not in repr(snapshot)
+
+
+def test_observed_exchange_carries_the_marked_claim_binding(tmp_path: Path) -> None:
+    """The current marked claim's non-secret binding rides in the snapshot, never the token digest (Step 7)."""
+    configuration, context, paths = exchange_checkout(tmp_path)
+    marked = MarkedClaimEvidence("a1" * 16, REQUESTOR_PANE, "claude", "b" * 64, 1, 1).issued(GENERATION)
+    declare_exchange(context, paths, marked=marked)
+    paths.request.write_text(request_text(context), encoding="utf-8")
+    snapshot = observe(configuration)
+    assert (snapshot.kind, snapshot.marked_claim) == (ExchangeObservationKind.OBSERVED, marked)
     assert OwnershipService.digest(ISSUED_CAPABILITY) not in repr(snapshot)
 
 

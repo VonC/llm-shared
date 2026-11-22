@@ -40,6 +40,13 @@ same checkouts and allows no input. The typed result lives in
 writes a file or parses command-line arguments (Step 8); Step 6 revalidates
 every action immediately before its send through ``plan_checkout``, which
 replans one checkout from a fresh observation with the same checkout gates.
+
+Fix (Step 7): ``marked_command`` renders the native marked command of one
+host and action kind, so the takeover rebuilds a requestor's marked input
+from its durable receipt with the planner's own spelling.
+
+Fix (Step 7 code review round 1): each checkout plan records the digest of
+the saved prompt it accepted, which the takeover's observation binds.
 """
 
 from __future__ import annotations
@@ -176,6 +183,11 @@ _NATIVE: Final = {
     (Host.CLAUDE, ActionKind.CONTINUE_REVIEWER): "/review-resume",
     (Host.CODEX, ActionKind.CONTINUE_REVIEWER): "$llm-shared:review-resume",
 }
+
+
+def marked_command(host: Host, kind: ActionKind, marker: Marker) -> str:
+    """Return the native command of this host and action kind followed by the rendered marker."""
+    return f"{_NATIVE[host, kind]} {MARKER_FLAG} {marker.render()}"
 
 
 def _root_of(pane: PaneRecord) -> CanonicalRoot | None:
@@ -342,7 +354,7 @@ class _CheckoutPlanner:
         base = CheckoutPlan(
             self.root, snapshot.state, CheckoutOutcome.PLANNED,
             title=prompt.title if prompt else None, author=prompt.author if prompt else None,
-            paused_at=prompt.snapshot if prompt else None,
+            paused_at=prompt.snapshot if prompt else None, digest=prompt.digest if prompt else None,
         )
         if snapshot.state is PromptState.ERROR:
             return _verdict(base, _Refusal(ErrorReason.CHECKOUT_UNREADABLE, snapshot.diagnostic))
@@ -485,7 +497,7 @@ class _CheckoutPlanner:
         """Render the native command with a fresh marker bound to the rebuilt assignment."""
         assignment = resolve_assignment(routing, prompt.digest, slot.target.pane_id, slot.role, live)
         marker = Marker(self.ports.launch_id(), slot.target.pane_id, slot.role, assignment.digest())
-        return f"{_NATIVE[slot.target.host, slot.kind]} {MARKER_FLAG} {marker.render()}"
+        return marked_command(slot.target.host, slot.kind, marker)
 
     def _refused(self, base: CheckoutPlan, examined: _Examined) -> CheckoutPlan:
         """Return the checkout refused by one slot: skipped with that slot's action, or failed."""
@@ -550,6 +562,7 @@ def _omitted(observation: PaneObservation, checkouts: tuple[CheckoutPlan, ...]) 
 __all__ = [
     "ExchangeObserver",
     "PlannerPorts",
+    "marked_command",
     "plan_checkout",
     "plan_run",
 ]

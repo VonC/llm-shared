@@ -17,6 +17,11 @@ reporting (Step 8), guarded delivery (Step 6) and takeover observation
 - ``CheckoutPlan`` and ``RunPlan``: one result per prompt-bearing checkout,
   with its duplicate evidence, and the omitted-pane count.
 
+Fix (Step 7 code review round 1): ``CheckoutPlan.digest`` records the digest
+of the saved prompt the plan accepted, so the takeover observes consumption
+of that exact prompt: an older receipt keeps it waiting, and a prompt changed
+since planning fails it, even before any receipt exists.
+
 The module holds values only: no IO, no input and no argument parsing.
 """
 
@@ -29,7 +34,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from tools.resume_paused_artifacts import PromptState
     from tools.resume_paused_evidence import DuplicateEvidence
-    from tools.resume_paused_models import CanonicalRoot, SessionRole
+    from tools.resume_paused_models import CanonicalRoot, PromptDigest, SessionRole
     from tools.resume_paused_profiles import CallerDecision, Host
 
 
@@ -134,7 +139,11 @@ class PlannedAction:
 
 @dataclass(frozen=True)
 class CheckoutPlan:
-    """The immutable classified plan of one prompt-bearing checkout."""
+    """The immutable classified plan of one prompt-bearing checkout.
+
+    ``digest`` is the accepted saved prompt's digest, ``None`` when no prompt
+    was read.
+    """
 
     root: CanonicalRoot
     prompt_state: PromptState
@@ -147,6 +156,7 @@ class CheckoutPlan:
     switched: bool = False
     actions: tuple[PlannedAction, ...] = ()
     duplicates: tuple[DuplicateEvidence, ...] = ()
+    digest: PromptDigest | None = None
 
 
 @dataclass(frozen=True)
