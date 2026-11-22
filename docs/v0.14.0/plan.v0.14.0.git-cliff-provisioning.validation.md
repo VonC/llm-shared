@@ -2236,9 +2236,26 @@ impaired.
 
 ### Analysis of Step 7 implementation state
 
-Not started. Step 7 is not implemented because no implementation work has
-begun: no evidence bundle, trust record, recorded review or admitted pin
-exists.
+Yes. Step 7 has been fully implemented.
+
+Code review round 1 found that a fresh Git checkout with `core.autocrlf=true`
+converted the bundle's three hashed files to CRLF, so `bundle.read` refused
+them. `.gitattributes` now unsets `text` for the bundle directory, a
+checkout through Git's filter with that setting keeps the approved digests and
+passes `require_admissible`, and the admission leaf checks the attribute.
+
+The harness ran by hand on llm-shared's commit `4eed876b` and the
+snapshot-tag fixture: 19 cases, every status 0, one case with differences
+(llm-shared's full history, 9 hunks), each hunk classified as intentional with
+its upstream release-note reason. The exit-path audit at the `v2.14.2` tag
+records its clone and read commands, the audited commit and the four
+categories, and excludes 69; the observed statuses are 0, 2, 1 and 101. The
+user approved the bundle on 2026-11-21: the harness recorded that review over
+the committed projection, and the step journal records it with its date,
+before the manifest edit. `manifest.ADMITTED_PINS` now holds the one pin
+2.14.2, default, and the admission leaf ties it to the committed bundle
+through `require_admissible`. The command printed by `pw scope day` reports
+`exit=0`, and the `rg` check shows the one admitted pin.
 
 ### Goal for Step 7
 
@@ -2263,27 +2280,192 @@ admit 2.14.2 as the tested default by the reviewed manifest edit.
 
 ### What was implemented for Step 7
 
-_(empty — no check has taken place yet.)_.
+The step delivers the plan's file list, the four committed bundle files, and
+one more updated test file.
+
+- **Evidence run**: `python -m tools.release_workflow.git_cliff.harness
+  --bundle tools\release_workflow\git_cliff\bundles\2.14.2 --pin 2.14.2
+  --baseline 2.7.0`, by hand from the project root with the project
+  interpreter, exit 0. It acquired 2.7.0 under the evidence-only exception of
+  2026-11-13 (6,597,713 bytes, `evidence-only-https` trust) and 2.14.2 from
+  its release metadata (`git-cliff-2.14.2-x86_64-pc-windows-msvc.zip`,
+  7,428,304 bytes, digest `6ece2112...c31131`, `upstream-digest` trust), then
+  froze llm-shared's commit `4eed876b`, its 13 recorded tags, the
+  `cliff.toml` bytes of the dev_workflow commit `f90bfc67` (digest
+  `b5e0d216...`) and the fixture hashes. It ran both versions on 14
+  llm-shared cases and 5 fixture cases: every status 0, 18 identical outputs.
+- **Classification**: the 9 hunks of llm-shared's full history are one
+  change. 59 commit lines dated before the `v0.14.0` tag, but not reachable
+  from it, move from the `v0.14.0` section (2.7.0, which orders commits by
+  date under `topo_order = false`) to Unreleased (2.14.2); their text is
+  unchanged. Each hunk is `intentional`, with the reason from git-cliff 2.14.1's
+  release notes, Bug Fixes: "(changelog) Assign commits to releases by graph
+  reachability" (#1601). The ancestry of the moved commits and the section
+  boundaries were checked by hand; the ranged cases `v0.13.0..v0.14.0` and
+  `v0.14.0..HEAD` are identical in both versions.
+- **Exit-path audit**: a shallow clone of the `v2.14.2` tag in a temporary
+  directory outside the repository, audited commit `5d996de8...`, with a
+  shallow clone of clap `v4.6.6` (the version in git-cliff's `Cargo.lock`)
+  and the standard library sources of rustc 1.98.1, the compiler commit
+  embedded in the 2.14.2 executable. The bundle records the eight commands
+  and, per category, the files and call sites read with a finding: the error
+  return ends with 1 (`process::exit` or the runtime's report of an `Err`
+  from `main`) and success with 0; clap's `Error::exit`, its only exit, gives
+  2 for a usage error and 0 for help; a helper's failure becomes an error
+  message, never the status, and the bundle's `cliff.toml` starts no helper;
+  the release profile unwinds, so a main-thread panic exits 101, and an
+  abnormal termination exits with a Windows status of `0xC0000000` or more.
+  `excludes_69` is true.
+- **Observed statuses**: the 2.14.2 evidence executable, its digest checked
+  against its entry record, run in the comparison's explicit environment:
+  success 0, usage error 2, failing render 1 (a template variable that does
+  not exist), panic 101 (an unknown `sort_commits` value reaching the
+  `expect` the audit names). They corroborate the audit; they do not prove
+  the exclusion of 69.
+- **User review**: the classification table, the audit, the observed
+  statuses and the listed files were presented to the user, who approved them
+  on 2026-11-21. `--review approved` then wrote the `review` member: decision
+  `approved`, reviewer `user`, date `2026-11-21`, `covered_sha256`
+  `51862d50267598f7a3325f46fd494b448b2636a42cd0acf765081f573f384862`, the
+  digest of the committed projection. The step journal records the same
+  decision with its date.
+- **Manifest**: `ADMITTED_PINS` holds one `AdmittedPin`: version `2.14.2`,
+  default, triple `x86_64-pc-windows-msvc`, the asset name, size and digest
+  above, member `git-cliff-2.14.2/git-cliff.exe` and evidence
+  `tools/release_workflow/git_cliff/bundles/2.14.2`, still passed through
+  `validate_pins` where it is defined. The module docstring and the constant's
+  comment say how it was admitted.
+- **Tests**: the new leaf `test_git_cliff_acceptance/` holds
+  `test_git_cliff_admission_tdd.py`: the shipped manifest is exactly that
+  pin and its default; the committed bundle passes `require_admissible`
+  against the shipped manifest at its default location, with the user's
+  dated approval covering the recomputed projection; the listed digests equal
+  the committed files; the pin's identity is the bundle's 2.14.2 candidate,
+  with `upstream-digest` trust; the 2.7.0 record stays `evidence-only-https`
+  and no admitted pin carries its version or digest; `version = 2.7.0` is a
+  configuration error listing `tested: 2.14.2`. The schemas leaf proves the
+  shipped rule's default `2.14.2` and its `tested: 2.14.2` refusal; the
+  configuration leaf proves an omitted key yields the defaulted 2.14.2 with
+  the usual source information, a declared 2.14.2 is kept as written, and
+  `version = 2.15.0` reports `tested: 2.14.2`. The tests failed at the empty
+  table before the manifest edit (8 failures) and pass after it.
+- **Plan variance, file list**: `test_git_cliff_manifest_tdd.py` is updated
+  although the plan does not list it: its test of the shipped empty tuple
+  would fail. The `tested: none` proof now uses a synthetic empty table, and
+  a new test proves the shipped table valid, defaulting to 2.14.2 and listing
+  it.
+- **Plan variance, line counts**: `manifest.py` went from 180 lines (the plan
+  estimated about 110) to 195 (+15, advisory +12); the admission test has 149
+  lines with the round 1 checkout test (advisory 120); `test_schemas_tdd.py` 189 to 200 (+11, advisory +5);
+  `test_configuration_tdd.py` 327 to 341 (+14, advisory +10);
+  `test_git_cliff_manifest_tdd.py` 188 to 200. Every file stays below 650.
+- **Native check record**: unchanged and still valid; `manifest.py` is not
+  one of the sources it covers.
+- **Code review round 1, checkout bytes**: `.gitattributes` gains
+  `tools/release_workflow/git_cliff/bundles/** -text`, so Git converts no line
+  ending in a bundle directory, in either direction: the committed blob, every
+  checkout and the digests `bundle.json` lists are the same bytes, even for a
+  future `cliff.toml` copy that holds CRLF. The admission leaf adds a test that
+  the attribute line is present and that a CRLF conversion of each listed file
+  would change its digest; it failed without the line and passes with it. By
+  hand, outside pytest (the suite never starts Git): Git's checkout filter with
+  `core.autocrlf=true` wrote the staged bundle files with the approved digests
+  `b5e0d216`, `af14a2a0` and `4abba8ef` and no carriage return, while the same
+  blobs filtered under a path without the attribute gave the CRLF digests the
+  review reported; `read` and `require_admissible` accepted the checked-out
+  directory with its approval covering `51862d50...`.
 
 ### New types or classes introduced for Step 7
 
-_(empty — no check has taken place yet.)_.
+- No new production type: `manifest.ADMITTED_PINS` gains its first
+  `AdmittedPin` value.
+- Committed data: `tools/release_workflow/git_cliff/bundles/2.14.2/` with
+  `bundle.json`, `cliff.toml`, `trust.2.14.2.json` and `trust.2.7.0.json`,
+  and the `.gitattributes` line that keeps their bytes (code review round 1).
+- Tests: the package `test_git_cliff_acceptance` and its module
+  `test_git_cliff_admission_tdd.py`.
 
 ### Architecture check for Step 7
 
-_(empty — no check has taken place yet.)_.
+- **The manifest stays a pure table**: it still imports only `dataclasses`
+  and `re`, so the configuration schema that imports it at load time pulls no
+  other `git_cliff` module (the configuration leaf's import test still
+  passes).
+- **Admission by a reviewed edit only**: the harness wrote the bundle and the
+  review, never the manifest; the pin entered the manifest by a hand edit
+  that copies the bundle's identity, as the design's admission order
+  requires.
+- **Dependency direction**: `bundle_checks` reads the manifest's pins; no
+  production module imports `bundle` or `bundle_checks` outside the harness,
+  and the admission leaf joins the two only in tests.
+- **Evidence beside its consumer**: the bundle is data in the `git_cliff`
+  package, with no Python module in its directory, read only by the harness
+  and the tests.
+
+No, there is nothing that needs to be addressed: no DDD-Hexagonal violation or
+smell is visible in this step.
 
 ### Performance check for Step 7
 
-_(empty — no check has taken place yet.)_.
+- **Manifest**: one more pin validated once at import; a lookup stays one
+  dictionary access by table identity.
+- **Configuration**: an omitted `[git-cliff] version` now converts its
+  default through the same parser as a declared one, one constant-time call.
+- **Tests**: the admission leaf reads the bundle once per module through a
+  cached reader, then hashes its three listed files and reads the 2.7.0 trust
+  record once more, a few kilobytes in all.
+- **Evidence run**: outside pytest and outside every command path.
+
+No, there is no performance issue that needs to be addressed.
 
 ### Unit test coverage check for Step 7
 
-_(empty — no check has taken place yet.)_.
+The coverage gate measures `tools` only (`[tool.coverage.run] source`), with
+`*/tests/*` and `*/__init__.py` omitted, at `fail_under = 100`. The default
+walk skips the full stage, so this check reasons statically; the measured
+`--full=speed` proof follows before the review request.
+
+- **`tools/release_workflow/git_cliff/manifest.py`**:
+  `test_git_cliff_manifest/` keeps reaching every function and branch: the
+  synthetic tables, the empty table and its `tested: none`, the invariant
+  refusals, the identity cache and the shipped table, now with one pin. The
+  edit adds data, not a branch; covered.
+- **`tools/release_workflow/schemas.py`** and
+  **`tools/release_workflow/configuration.py`**: unchanged sources; their
+  leaves now assert the shipped default; covered.
+- **Admission leaf**: an acceptance test of the shipped manifest and the
+  committed bundle, without a coverage target of its own.
+- **Files outside the gate**: the bundle files and `.gitattributes` are data
+  with no symbols; every top-level name of the admission test module is used,
+  including `_BYTES_KEPT` by the checkout test of code review round 1.
+
+No, there is no unit-tested class below 100% that needs completing for Step 7.
+No, none of the top-level symbols of the files outside the gate is
+unreferenced.
 
 ### Feature integrity for Step 7
 
-_(empty — no check has taken place yet.)_.
+- **Configuration**: a project without `[git-cliff] version` now reads a
+  defaulted 2.14.2 instead of no value, a declared 2.14.2 is accepted, and
+  any other version is refused with `tested: 2.14.2` instead of
+  `tested: none`. No engine command reads that value yet: only provisioning
+  does, and no command path starts it before the Step 8 launcher.
+- **Provisioning**: unchanged; it now resolves a pin where it found none.
+- **Harness**: unchanged; the committed bundle reads back strictly and a
+  rerun from its inputs reproduces each recorded digest (checked by hand for
+  the differing case).
+- **Reporting or diagnostics**: no message changes; only the listing of
+  tested pins in a refusal now names 2.14.2.
+- **Compatibility or rollout note**: 2.7.0 stays outside the manifest, so a
+  project that declares it keeps failing configuration, as the evidence-only
+  exception requires.
+- **Checkouts (code review round 1)**: a Windows checkout that enables
+  automatic line-ending conversion keeps the bundle's bytes, so its digests
+  and the admission check hold on every checkout. The new attribute names
+  only the bundle directory; every other path keeps its line-ending behavior.
+
+No, there is no existing feature or reporting capability that appears
+impaired.
 
 ---
 
