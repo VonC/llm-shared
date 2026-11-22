@@ -9,6 +9,8 @@ duplicate evidence from every pane (excluded and caller panes included), and
 saved targets validated by full pane UUID, TUIOS session, checkout and host.
 Missing UUIDs and shell panes skip, another host fails, the switch swaps only
 a saved requestor pair, and a dry run classifies the same plan with no input.
+Step 7 code review round 1: each plan records the digest of the saved prompt
+it accepted, the new prompt's when an older receipt names other bytes.
 """
 
 from __future__ import annotations
@@ -140,6 +142,16 @@ def test_saved_requestor_pair_plans_resume_then_conditional_reviewer() -> None:
     assert Marker.parse(reviewer.command.split()[-1]).binding == binding(state, REVIEWER_PANE, SessionRole.REVIEWER)
 
 
+def test_a_plan_records_the_digest_of_the_prompt_it_accepted() -> None:
+    """The takeover binds the plan's accepted prompt: the plan carries that prompt's digest."""
+    world = World()
+    checkout = only(world.plan())
+    state = world.snapshots["c:\\work\\api"]
+    assert isinstance(state, CheckoutSnapshot)
+    assert state.prompt is not None
+    assert checkout.digest == state.prompt.digest
+
+
 def test_dry_run_plans_the_same_checkouts_without_input() -> None:
     """A preview classifies exactly what a run would, counts omitted panes and allows no input."""
     world = World()
@@ -242,9 +254,12 @@ def test_used_prompts_report_the_receipt_and_continue_only_the_resumed_pair(
 
 
 def test_prompt_replaced_since_its_receipt_is_planned_again() -> None:
-    """A receipt for other bytes lets the new prompt resume."""
-    world = World(snapshots={"c:\\work\\api": snapshot(receipt={"schema": 2, "digest": "c" * 64})})
-    assert verdict(world.plan()) == (CheckoutOutcome.PLANNED, None)
+    """A receipt for other bytes lets the new prompt resume; the plan records the new prompt's digest, not the receipt's."""
+    state = snapshot(receipt={"schema": 2, "digest": "c" * 64})
+    world = World(snapshots={"c:\\work\\api": state})
+    plan = world.plan()
+    assert state.prompt is not None
+    assert (verdict(plan), only(plan).digest) == ((CheckoutOutcome.PLANNED, None), state.prompt.digest)
 
 
 def contradicted(mapping: dict[str, object]) -> None:
