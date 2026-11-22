@@ -1,0 +1,637 @@
+{
+  "schema": 1,
+  "inputs": {
+    "pin": "2.14.2",
+    "baseline": "2.7.0",
+    "llm_shared_commit": "4eed876bb583ac58ed6f1ecd2b88c38d85425166",
+    "llm_shared_tags": [
+      {
+        "name": "v0.1.0",
+        "commit": "6b9363ddd40b434c9c3819df1aebaa8ea28b112b"
+      },
+      {
+        "name": "v0.2.0",
+        "commit": "d6c45f058b4030670c49f969d99cb731b49f65d9"
+      },
+      {
+        "name": "v0.3.0",
+        "commit": "4365775720da607ead0b6bc1fa9321bc0757a9ef"
+      },
+      {
+        "name": "v0.4.0",
+        "commit": "3b139b11340742b062f4410cd122522315ea386e"
+      },
+      {
+        "name": "v0.5.0",
+        "commit": "b1f1cdc5ca34bde3ac14bd39c207d21a966c52cd"
+      },
+      {
+        "name": "v0.6.0",
+        "commit": "fc87d22bf5b2d22a223114aada2a9d4b0580fb5c"
+      },
+      {
+        "name": "v0.7.0",
+        "commit": "2379e4570880b1e0e99068922ac360e1f6cee6d7"
+      },
+      {
+        "name": "v0.8.0",
+        "commit": "350f3c172cccf9bf905d7d25805c6d4a6e0a9baf"
+      },
+      {
+        "name": "v0.9.0",
+        "commit": "db749cf984693d6c0bb6ba2df33fadffc7327e89"
+      },
+      {
+        "name": "v0.10.0",
+        "commit": "014e4eaaf6b2dad015b818d302d78253ec82b991"
+      },
+      {
+        "name": "v0.12.0",
+        "commit": "9338390b6e6e5bc3bb791986041205926099eb6f"
+      },
+      {
+        "name": "v0.13.0",
+        "commit": "874778d8f60f31d76634244a2bff3365dec6e155"
+      },
+      {
+        "name": "v0.14.0",
+        "commit": "0de2496bd2e8f1ee7659ffef4da48d1955915404"
+      }
+    ],
+    "cliff_toml": {
+      "source": "tools/dev_workflow/cliff.toml",
+      "sha256": "b5e0d216f9ba793b8c45f39ca2b8d4ce13a802dcf78487391f4ab044e31b85af",
+      "dev_workflow_commit": "f90bfc6774f2b5f73dc872607583006b82fcf806"
+    },
+    "flags": [
+      "-c",
+      "<cliff.toml>",
+      "-w",
+      "<worktree>",
+      "-s",
+      "footer"
+    ],
+    "environment": [
+      "HOME",
+      "SystemRoot",
+      "TEMP",
+      "TMP",
+      "USERPROFILE"
+    ],
+    "fixture": {
+      "head": "7673b2a8beab29fc04c3dbf79f97bc822796ba1b",
+      "tags": [
+        {
+          "name": "v0.1.0",
+          "object": "7f793197086df50592069fb36305e3041a3333f6"
+        },
+        {
+          "name": "v0.2.0-SNAPSHOT",
+          "object": "32aea001abb251a4b2e9e5320a2eea1d410894a6"
+        },
+        {
+          "name": "v0.2.0",
+          "object": "95c9820f23e4c10ebae6b5c9a39ef76ceb9af955"
+        },
+        {
+          "name": "v0.3.0-SNAPSHOT",
+          "object": "df26fb2ac805a3ebafdfe77244b86561e172b41b"
+        }
+      ]
+    },
+    "ranges": [
+      {
+        "repository": "llm-shared",
+        "range": null
+      },
+      {
+        "repository": "llm-shared",
+        "range": "v0.1.0..v0.2.0"
+      },
+      {
+        "repository": "llm-shared",
+        "range": "v0.2.0..v0.3.0"
+      },
+      {
+        "repository": "llm-shared",
+        "range": "v0.3.0..v0.4.0"
+      },
+      {
+        "repository": "llm-shared",
+        "range": "v0.4.0..v0.5.0"
+      },
+      {
+        "repository": "llm-shared",
+        "range": "v0.5.0..v0.6.0"
+      },
+      {
+        "repository": "llm-shared",
+        "range": "v0.6.0..v0.7.0"
+      },
+      {
+        "repository": "llm-shared",
+        "range": "v0.7.0..v0.8.0"
+      },
+      {
+        "repository": "llm-shared",
+        "range": "v0.8.0..v0.9.0"
+      },
+      {
+        "repository": "llm-shared",
+        "range": "v0.9.0..v0.10.0"
+      },
+      {
+        "repository": "llm-shared",
+        "range": "v0.10.0..v0.12.0"
+      },
+      {
+        "repository": "llm-shared",
+        "range": "v0.12.0..v0.13.0"
+      },
+      {
+        "repository": "llm-shared",
+        "range": "v0.13.0..v0.14.0"
+      },
+      {
+        "repository": "llm-shared",
+        "range": "v0.14.0..HEAD"
+      },
+      {
+        "repository": "fixture",
+        "range": null
+      },
+      {
+        "repository": "fixture",
+        "range": "v0.1.0..v0.2.0-SNAPSHOT"
+      },
+      {
+        "repository": "fixture",
+        "range": "v0.2.0-SNAPSHOT..v0.2.0"
+      },
+      {
+        "repository": "fixture",
+        "range": "v0.2.0..v0.3.0-SNAPSHOT"
+      },
+      {
+        "repository": "fixture",
+        "range": "v0.3.0-SNAPSHOT..HEAD"
+      }
+    ],
+    "candidates": [
+      {
+        "version": "2.7.0",
+        "asset": "git-cliff-2.7.0-x86_64-pc-windows-msvc.zip",
+        "size": 6597713,
+        "sha256": "3afecbfb8b2a1145f6321fa6fc6bf0fabb8dff5dd7fa1bfa46bafa9f7484f47c",
+        "trust": "evidence-only-https",
+        "executable_sha256": "3c404cde9dce9092d2708970bb98eed2d8e9eb243e247b01504a523690baeff9"
+      },
+      {
+        "version": "2.14.2",
+        "asset": "git-cliff-2.14.2-x86_64-pc-windows-msvc.zip",
+        "size": 7428304,
+        "sha256": "6ece2112b3f4af462190ecbea4aeb1315fff6af415629b597f84319073c31131",
+        "trust": "upstream-digest",
+        "executable_sha256": "c65ba98a7323a10e1ce524f0c952c432ff7057a25eff8690eb19bb5c31825a9c"
+      }
+    ]
+  },
+  "outputs": [
+    {
+      "repository": "llm-shared",
+      "range": null,
+      "results": {
+        "2.7.0": {
+          "sha256": "e6cbc9bf62ec623ff98b3028b1ff590e365936c0d119d602f141567768478d86",
+          "status": 0
+        },
+        "2.14.2": {
+          "sha256": "6b608ef9f97bb0271a75bf0709ced8984775aedc9ca9892ab8ee3a0a09660090",
+          "status": 0
+        }
+      },
+      "hunks": [
+        "@@ -2,6 +2,22 @@\n \n ### 🚀 Features\n \n+- *(release)* Accept operation tokens per handler\n+- *(release)* Make status 3 a public status\n+- *(release)* Verify a held operation lock\n+- *(release)* Add typed Git release observations\n+- *(release)* Add the version source model\n+- *(release)* Add the version.txt anchor adapter\n+- *(release)* Add declared pattern sources\n+- *(release)* Validate version configuration\n+- *(release)* Combine detectors and claims\n+- *(release)* Add the recoverable version transition\n+- *(release)* Add the python and uv version adapter\n+- *(release)* Add the npm version adapter\n+- *(release)* Add the maven version adapter\n+- *(release)* Select release ranges from classified tags\n+- *(release)* Ship version and versions commands\n+- *(release)* Integrate authoritative version sources\n - *(release)* Add git-cliff pins and budget policy\n - *(release)* Contain Windows children in jobs\n - *(release)* Add the git-cliff cache and its lock",
+        "@@ -30,6 +46,44 @@\n \n ### 📚 Documentation\n \n+- *(feature)* Record pre-consolidation questions\n+- *(version-sources)* Add the item 2 draft\n+- *(version-sources)* Consolidate decisions\n+- *(version-sources)* Retain the review exchange\n+- *(design)* Record pre-consolidation questions\n+- *(version-sources)* Consolidate design decisions\n+- *(version-sources)* Retain the design review\n+- *(plan)* Record pre-consolidation questions\n+- *(version-sources)* Define lock evidence terms\n+- *(umbrella)* Keep brel off the application tests\n+- *(version-sources)* Consolidate plan decisions\n+- *(version-sources)* Retain the plan review\n+- *(design)* Record pre-consolidation questions\n+- *(version-sources)* Consolidate alias decisions\n+- *(version-sources)* Retain the alias review\n+- *(version-sources)* Require Git 2.44 for tag peeling\n+- *(version-sources)* Record step 1 validation\n+- *(version-sources)* Retain the step 1 code review\n+- *(version-sources)* Record step 2 validation\n+- *(version-sources)* Retain the step 2 code review\n+- *(version-sources)* Record step 3 validation\n+- *(version-sources)* Retain the step 3 code review\n+- *(version-sources)* Fix transcript Markdown\n+- *(version-sources)* Record step 4 validation\n+- *(version-sources)* Retain the step 4 code review\n+- *(version-sources)* Record step 5 validation\n+- *(version-sources)* Retain the step 5 code review\n+- *(version-sources)* Record step 6 validation\n+- *(version-sources)* Retain the step 6 code review\n+- *(version-sources)* Record step 7 validation\n+- *(version-sources)* Retain the step 7 code review\n+- *(version-sources)* Record step 8 validation\n+- *(version-sources)* Retain the step 8 code review\n+- *(wiki)* Document the version commands\n+- *(version-sources)* Record step 9 validation\n+- *(version-sources)* Retain the step 9 code review\n+- *(wiki)* Point the overview pages to the version commands\n+- *(umbrella)* Inventory the snapshot-tag readers to migrate\n - *(feature)* Record pre-consolidation questions\n - *(git-cliff-provisioning)* Add the item 3 draft\n - *(git-cliff-provisioning)* Consolidate decisions",
+        "@@ -59,12 +113,14 @@\n \n ### ⚡ Performance\n \n+- *(tests)* Scan Hypothesis constants at collection\n - *(tests)* Sample scope capture names from a pool\n - *(tests)* Check malformed audit marks directly\n - *(tests)* Check module-level audit marks directly\n \n ### 🧪 Testing\n \n+- *(release)* Run version acceptance end to end\n - *(release)* Record step 2 native checks\n - *(release)* Record step 4 native checks\n - *(release)* Record step 5 native checks",
+        "@@ -72,6 +128,9 @@\n \n ### ⚙️ Miscellaneous Tasks\n \n+- *(vscode)* Add versionless to cspell words\n+- *(vscode)* Add design words to cspell\n+- *(vscode)* Add a design word to cspell\n - *(umbrella)* Sync with main at v0.14.0\n \n ## [v0.14.0] - 2026-11-12 - 2026-11-12 -- Groundhog Shares the Stopwatch",
+        "@@ -150,22 +209,6 @@\n - *(review-resume)* Let Override take over a role\n - *(release)* Integrate explicit project identity\n - *(release)* Merge explicit project identity\n-- *(release)* Accept operation tokens per handler\n-- *(release)* Make status 3 a public status\n-- *(release)* Verify a held operation lock\n-- *(release)* Add typed Git release observations\n-- *(release)* Add the version source model\n-- *(release)* Add the version.txt anchor adapter\n-- *(release)* Add declared pattern sources\n-- *(release)* Validate version configuration\n-- *(release)* Combine detectors and claims\n-- *(release)* Add the recoverable version transition\n-- *(release)* Add the python and uv version adapter\n-- *(release)* Add the npm version adapter\n-- *(release)* Add the maven version adapter\n-- *(release)* Select release ranges from classified tags\n-- *(release)* Ship version and versions commands\n-- *(release)* Integrate authoritative version sources\n - *(copy-conversation)* Render session transcripts\n - *(copy-conversation)* Copy a trimmed session\n - *(copy-conversation)* Add the agent skill",
+        "@@ -282,44 +325,6 @@\n - *(release)* Document the foundation launchers\n - *(release-project-root)* Record step 6 validation\n - *(release)* Retain step 6 review exchange\n-- *(feature)* Record pre-consolidation questions\n-- *(version-sources)* Add the item 2 draft\n-- *(version-sources)* Consolidate decisions\n-- *(version-sources)* Retain the review exchange\n-- *(design)* Record pre-consolidation questions\n-- *(version-sources)* Consolidate design decisions\n-- *(version-sources)* Retain the design review\n-- *(plan)* Record pre-consolidation questions\n-- *(version-sources)* Define lock evidence terms\n-- *(umbrella)* Keep brel off the application tests\n-- *(version-sources)* Consolidate plan decisions\n-- *(version-sources)* Retain the plan review\n-- *(design)* Record pre-consolidation questions\n-- *(version-sources)* Consolidate alias decisions\n-- *(version-sources)* Retain the alias review\n-- *(version-sources)* Require Git 2.44 for tag peeling\n-- *(version-sources)* Record step 1 validation\n-- *(version-sources)* Retain the step 1 code review\n-- *(version-sources)* Record step 2 validation\n-- *(version-sources)* Retain the step 2 code review\n-- *(version-sources)* Record step 3 validation\n-- *(version-sources)* Retain the step 3 code review\n-- *(version-sources)* Fix transcript Markdown\n-- *(version-sources)* Record step 4 validation\n-- *(version-sources)* Retain the step 4 code review\n-- *(version-sources)* Record step 5 validation\n-- *(version-sources)* Retain the step 5 code review\n-- *(version-sources)* Record step 6 validation\n-- *(version-sources)* Retain the step 6 code review\n-- *(version-sources)* Record step 7 validation\n-- *(version-sources)* Retain the step 7 code review\n-- *(version-sources)* Record step 8 validation\n-- *(version-sources)* Retain the step 8 code review\n-- *(wiki)* Document the version commands\n-- *(version-sources)* Record step 9 validation\n-- *(version-sources)* Retain the step 9 code review\n-- *(wiki)* Point the overview pages to the version commands\n-- *(umbrella)* Inventory the snapshot-tag readers to migrate\n - *(copy-conversation)* Document the session copy\n - *(markdown)* Wrap code-like names, write bold with asterisks\n - *(markdown)* Keep Mermaid within Codex limits",
+        "@@ -376,7 +381,6 @@\n - *(tests)* Reuse CLI and repository initialization\n - *(tools)* Reduce import and scan overhead\n - *(review)* Build only the selected subcommand\n-- *(tests)* Scan Hypothesis constants at collection\n - *(copy-conversation)* Skip the PowerShell start\n - *(copy-conversation)* Copy while the skill loads\n - *(tests)* Prove the args-file spill with 3 paths",
+        "@@ -412,7 +416,6 @@\n - *(groundhog)* One random draw per lifecycle\n - *(lifecycle)* Add the CPU stability band\n - *(release)* Accept the assembled foundation\n-- *(release)* Run version acceptance end to end\n - *(rules)* Pin MD050 bold and no attribution\n - *(lifecycle)* Trim measured test overhead\n - *(suite)* Run two file-writing tests in memory",
+        "@@ -433,9 +436,6 @@\n - *(editor)* Recognize release boundary terms\n - *(editor)* Recognize release ownership terms\n - *(vscode)* Adjust active tab color\n-- *(vscode)* Add versionless to cspell words\n-- *(vscode)* Add design words to cspell\n-- *(vscode)* Add a design word to cspell\n - *(codex)* Refresh local plugin metadata\n - *(editor)* Add pytest hook dictionary words\n - *(vscode)* Add lifecycle gate vocabulary"
+      ]
+    },
+    {
+      "repository": "llm-shared",
+      "range": "v0.1.0..v0.2.0",
+      "results": {
+        "2.7.0": {
+          "sha256": "6105ef97950a4803740da344ab627ed071bd983116904ab4aff9e65a1fe96fa1",
+          "status": 0
+        },
+        "2.14.2": {
+          "sha256": "6105ef97950a4803740da344ab627ed071bd983116904ab4aff9e65a1fe96fa1",
+          "status": 0
+        }
+      },
+      "hunks": []
+    },
+    {
+      "repository": "llm-shared",
+      "range": "v0.2.0..v0.3.0",
+      "results": {
+        "2.7.0": {
+          "sha256": "633c09d55450848e08e90d46ae1370d467e9538d802d0c2e9d270325d205d342",
+          "status": 0
+        },
+        "2.14.2": {
+          "sha256": "633c09d55450848e08e90d46ae1370d467e9538d802d0c2e9d270325d205d342",
+          "status": 0
+        }
+      },
+      "hunks": []
+    },
+    {
+      "repository": "llm-shared",
+      "range": "v0.3.0..v0.4.0",
+      "results": {
+        "2.7.0": {
+          "sha256": "422486b8d10852541bf9087465b3d022282525516d7a5aef522a6ddddfb8ad46",
+          "status": 0
+        },
+        "2.14.2": {
+          "sha256": "422486b8d10852541bf9087465b3d022282525516d7a5aef522a6ddddfb8ad46",
+          "status": 0
+        }
+      },
+      "hunks": []
+    },
+    {
+      "repository": "llm-shared",
+      "range": "v0.4.0..v0.5.0",
+      "results": {
+        "2.7.0": {
+          "sha256": "45ad7e5f11e189736f71592ad2889113b6210ed65afdb52c26ed338d4986d641",
+          "status": 0
+        },
+        "2.14.2": {
+          "sha256": "45ad7e5f11e189736f71592ad2889113b6210ed65afdb52c26ed338d4986d641",
+          "status": 0
+        }
+      },
+      "hunks": []
+    },
+    {
+      "repository": "llm-shared",
+      "range": "v0.5.0..v0.6.0",
+      "results": {
+        "2.7.0": {
+          "sha256": "0431d1a609c7698588fabfa505f8dc2b892853a760a4cda4e8dde6d3496baebc",
+          "status": 0
+        },
+        "2.14.2": {
+          "sha256": "0431d1a609c7698588fabfa505f8dc2b892853a760a4cda4e8dde6d3496baebc",
+          "status": 0
+        }
+      },
+      "hunks": []
+    },
+    {
+      "repository": "llm-shared",
+      "range": "v0.6.0..v0.7.0",
+      "results": {
+        "2.7.0": {
+          "sha256": "c218582e6e64137483dd3e185aa729e10c88ea864129ca21990eea4bdc91fc6d",
+          "status": 0
+        },
+        "2.14.2": {
+          "sha256": "c218582e6e64137483dd3e185aa729e10c88ea864129ca21990eea4bdc91fc6d",
+          "status": 0
+        }
+      },
+      "hunks": []
+    },
+    {
+      "repository": "llm-shared",
+      "range": "v0.7.0..v0.8.0",
+      "results": {
+        "2.7.0": {
+          "sha256": "bd00cddc3ba2abefd00d491f8397084fc9e4cb16c41630c8353a8ac1b2209251",
+          "status": 0
+        },
+        "2.14.2": {
+          "sha256": "bd00cddc3ba2abefd00d491f8397084fc9e4cb16c41630c8353a8ac1b2209251",
+          "status": 0
+        }
+      },
+      "hunks": []
+    },
+    {
+      "repository": "llm-shared",
+      "range": "v0.8.0..v0.9.0",
+      "results": {
+        "2.7.0": {
+          "sha256": "ad94526349f97b5cb5c321ec651c53a1e0180e4d7efd20909d4404e2750f10f7",
+          "status": 0
+        },
+        "2.14.2": {
+          "sha256": "ad94526349f97b5cb5c321ec651c53a1e0180e4d7efd20909d4404e2750f10f7",
+          "status": 0
+        }
+      },
+      "hunks": []
+    },
+    {
+      "repository": "llm-shared",
+      "range": "v0.9.0..v0.10.0",
+      "results": {
+        "2.7.0": {
+          "sha256": "8b9e9f86db64e51896ce3927842d33d0bb337a921d8a6a10a526be3718af6364",
+          "status": 0
+        },
+        "2.14.2": {
+          "sha256": "8b9e9f86db64e51896ce3927842d33d0bb337a921d8a6a10a526be3718af6364",
+          "status": 0
+        }
+      },
+      "hunks": []
+    },
+    {
+      "repository": "llm-shared",
+      "range": "v0.10.0..v0.12.0",
+      "results": {
+        "2.7.0": {
+          "sha256": "2b93193ab82c6ba423a0a83b05e5d842df6ce635b94083a1839b19fef242355c",
+          "status": 0
+        },
+        "2.14.2": {
+          "sha256": "2b93193ab82c6ba423a0a83b05e5d842df6ce635b94083a1839b19fef242355c",
+          "status": 0
+        }
+      },
+      "hunks": []
+    },
+    {
+      "repository": "llm-shared",
+      "range": "v0.12.0..v0.13.0",
+      "results": {
+        "2.7.0": {
+          "sha256": "2f21fb021006042a174276f9afd878866be6092a64467a3f88a10ba89ae8fe5b",
+          "status": 0
+        },
+        "2.14.2": {
+          "sha256": "2f21fb021006042a174276f9afd878866be6092a64467a3f88a10ba89ae8fe5b",
+          "status": 0
+        }
+      },
+      "hunks": []
+    },
+    {
+      "repository": "llm-shared",
+      "range": "v0.13.0..v0.14.0",
+      "results": {
+        "2.7.0": {
+          "sha256": "d8997669de6c4c644115b125f93db270f02f37aa720958ce74b2d651b45378fa",
+          "status": 0
+        },
+        "2.14.2": {
+          "sha256": "d8997669de6c4c644115b125f93db270f02f37aa720958ce74b2d651b45378fa",
+          "status": 0
+        }
+      },
+      "hunks": []
+    },
+    {
+      "repository": "llm-shared",
+      "range": "v0.14.0..HEAD",
+      "results": {
+        "2.7.0": {
+          "sha256": "ef0a0653741124679266280973f884c6c2c3f2538da65b6dba48b706875aaec8",
+          "status": 0
+        },
+        "2.14.2": {
+          "sha256": "ef0a0653741124679266280973f884c6c2c3f2538da65b6dba48b706875aaec8",
+          "status": 0
+        }
+      },
+      "hunks": []
+    },
+    {
+      "repository": "fixture",
+      "range": null,
+      "results": {
+        "2.7.0": {
+          "sha256": "7947245a48d026c81c9809da9deeb41807fc0adbaf6894cce033807647e2c1d2",
+          "status": 0
+        },
+        "2.14.2": {
+          "sha256": "7947245a48d026c81c9809da9deeb41807fc0adbaf6894cce033807647e2c1d2",
+          "status": 0
+        }
+      },
+      "hunks": []
+    },
+    {
+      "repository": "fixture",
+      "range": "v0.1.0..v0.2.0-SNAPSHOT",
+      "results": {
+        "2.7.0": {
+          "sha256": "6e0a5bf7887c9eca7702a5d6cbd31b27abf60eedf0dae56439616a7f8ddbc33d",
+          "status": 0
+        },
+        "2.14.2": {
+          "sha256": "6e0a5bf7887c9eca7702a5d6cbd31b27abf60eedf0dae56439616a7f8ddbc33d",
+          "status": 0
+        }
+      },
+      "hunks": []
+    },
+    {
+      "repository": "fixture",
+      "range": "v0.2.0-SNAPSHOT..v0.2.0",
+      "results": {
+        "2.7.0": {
+          "sha256": "3732b49d2cc2ada4911b8f4f6ffe338a71915769744184b2c429e3d4df7b43eb",
+          "status": 0
+        },
+        "2.14.2": {
+          "sha256": "3732b49d2cc2ada4911b8f4f6ffe338a71915769744184b2c429e3d4df7b43eb",
+          "status": 0
+        }
+      },
+      "hunks": []
+    },
+    {
+      "repository": "fixture",
+      "range": "v0.2.0..v0.3.0-SNAPSHOT",
+      "results": {
+        "2.7.0": {
+          "sha256": "6c14dc4d862c9fcebecaf6d0759334026e7925ace5464dc1335217a3e9b3f6dd",
+          "status": 0
+        },
+        "2.14.2": {
+          "sha256": "6c14dc4d862c9fcebecaf6d0759334026e7925ace5464dc1335217a3e9b3f6dd",
+          "status": 0
+        }
+      },
+      "hunks": []
+    },
+    {
+      "repository": "fixture",
+      "range": "v0.3.0-SNAPSHOT..HEAD",
+      "results": {
+        "2.7.0": {
+          "sha256": "9c00be8cc8c2802cff5cdc09d5ddef67c21a45cda49c04192d01ed2c63b2a501",
+          "status": 0
+        },
+        "2.14.2": {
+          "sha256": "9c00be8cc8c2802cff5cdc09d5ddef67c21a45cda49c04192d01ed2c63b2a501",
+          "status": 0
+        }
+      },
+      "hunks": []
+    }
+  ],
+  "classification": [
+    {
+      "hunk": "llm-shared full history #1",
+      "kind": "intentional",
+      "reason": "Adds to Unreleased, Features, the 16 (release) lines that #5 removes from v0.14.0. git-cliff 2.14.1 release notes, Bug Fixes: (changelog) Assign commits to releases by graph reachability (#1601, e86c95e; git-cliff/src/lib.rs:388 at v2.14.2). With topo_order = false, 2.7.0 filed these commits, dated before the v0.14.0 tag but not reachable from it, under v0.14.0; 2.14.2 files them under Unreleased, as the identical v0.13.0..v0.14.0 and v0.14.0..HEAD cases already did."
+    },
+    {
+      "hunk": "llm-shared full history #2",
+      "kind": "intentional",
+      "reason": "Adds to Unreleased, Documentation, the 38 lines that #6 removes from v0.14.0. git-cliff 2.14.1 release notes, Bug Fixes: (changelog) Assign commits to releases by graph reachability (#1601, e86c95e; git-cliff/src/lib.rs:388 at v2.14.2). With topo_order = false, 2.7.0 filed these commits, dated before the v0.14.0 tag but not reachable from it, under v0.14.0; 2.14.2 files them under Unreleased, as the identical v0.13.0..v0.14.0 and v0.14.0..HEAD cases already did."
+    },
+    {
+      "hunk": "llm-shared full history #3",
+      "kind": "intentional",
+      "reason": "Adds to Unreleased the Performance line that #7 and the Testing line that #8 remove from v0.14.0. git-cliff 2.14.1 release notes, Bug Fixes: (changelog) Assign commits to releases by graph reachability (#1601, e86c95e; git-cliff/src/lib.rs:388 at v2.14.2). With topo_order = false, 2.7.0 filed these commits, dated before the v0.14.0 tag but not reachable from it, under v0.14.0; 2.14.2 files them under Unreleased, as the identical v0.13.0..v0.14.0 and v0.14.0..HEAD cases already did."
+    },
+    {
+      "hunk": "llm-shared full history #4",
+      "kind": "intentional",
+      "reason": "Adds to Unreleased, Miscellaneous Tasks, the 3 (vscode) lines that #9 removes from v0.14.0. git-cliff 2.14.1 release notes, Bug Fixes: (changelog) Assign commits to releases by graph reachability (#1601, e86c95e; git-cliff/src/lib.rs:388 at v2.14.2). With topo_order = false, 2.7.0 filed these commits, dated before the v0.14.0 tag but not reachable from it, under v0.14.0; 2.14.2 files them under Unreleased, as the identical v0.13.0..v0.14.0 and v0.14.0..HEAD cases already did."
+    },
+    {
+      "hunk": "llm-shared full history #5",
+      "kind": "intentional",
+      "reason": "Removes from v0.14.0, Features, the 16 lines that #1 adds to Unreleased. git-cliff 2.14.1 release notes, Bug Fixes: (changelog) Assign commits to releases by graph reachability (#1601, e86c95e; git-cliff/src/lib.rs:388 at v2.14.2). With topo_order = false, 2.7.0 filed these commits, dated before the v0.14.0 tag but not reachable from it, under v0.14.0; 2.14.2 files them under Unreleased, as the identical v0.13.0..v0.14.0 and v0.14.0..HEAD cases already did."
+    },
+    {
+      "hunk": "llm-shared full history #6",
+      "kind": "intentional",
+      "reason": "Removes from v0.14.0, Documentation, the 38 lines that #2 adds to Unreleased. git-cliff 2.14.1 release notes, Bug Fixes: (changelog) Assign commits to releases by graph reachability (#1601, e86c95e; git-cliff/src/lib.rs:388 at v2.14.2). With topo_order = false, 2.7.0 filed these commits, dated before the v0.14.0 tag but not reachable from it, under v0.14.0; 2.14.2 files them under Unreleased, as the identical v0.13.0..v0.14.0 and v0.14.0..HEAD cases already did."
+    },
+    {
+      "hunk": "llm-shared full history #7",
+      "kind": "intentional",
+      "reason": "Removes from v0.14.0, Performance, the line that #3 adds to Unreleased. git-cliff 2.14.1 release notes, Bug Fixes: (changelog) Assign commits to releases by graph reachability (#1601, e86c95e; git-cliff/src/lib.rs:388 at v2.14.2). With topo_order = false, 2.7.0 filed these commits, dated before the v0.14.0 tag but not reachable from it, under v0.14.0; 2.14.2 files them under Unreleased, as the identical v0.13.0..v0.14.0 and v0.14.0..HEAD cases already did."
+    },
+    {
+      "hunk": "llm-shared full history #8",
+      "kind": "intentional",
+      "reason": "Removes from v0.14.0, Testing, the line that #3 adds to Unreleased. git-cliff 2.14.1 release notes, Bug Fixes: (changelog) Assign commits to releases by graph reachability (#1601, e86c95e; git-cliff/src/lib.rs:388 at v2.14.2). With topo_order = false, 2.7.0 filed these commits, dated before the v0.14.0 tag but not reachable from it, under v0.14.0; 2.14.2 files them under Unreleased, as the identical v0.13.0..v0.14.0 and v0.14.0..HEAD cases already did."
+    },
+    {
+      "hunk": "llm-shared full history #9",
+      "kind": "intentional",
+      "reason": "Removes from v0.14.0, Miscellaneous Tasks, the 3 lines that #4 adds to Unreleased. git-cliff 2.14.1 release notes, Bug Fixes: (changelog) Assign commits to releases by graph reachability (#1601, e86c95e; git-cliff/src/lib.rs:388 at v2.14.2). With topo_order = false, 2.7.0 filed these commits, dated before the v0.14.0 tag but not reachable from it, under v0.14.0; 2.14.2 files them under Unreleased, as the identical v0.13.0..v0.14.0 and v0.14.0..HEAD cases already did."
+    }
+  ],
+  "audit": {
+    "revision": "5d996de8220d26c0cb8ff329d31791570cab262f",
+    "excludes_69": true,
+    "commands": [
+      "git clone --depth 1 --branch v2.14.2 https://github.com/orhun/git-cliff.git <temporary directory>/git-cliff-v2.14.2",
+      "git -C <temporary directory>/git-cliff-v2.14.2 rev-parse v2.14.2^{commit} (5d996de8220d26c0cb8ff329d31791570cab262f; annotated tag object 1ba9dcc408b92fcf92758f9156ef52067e1bdff1)",
+      "grep -rnE 'process::exit|ExitCode|std::process|exit\\(' --include=*.rs git-cliff git-cliff-core",
+      "grep -rnE 'set_hook|catch_unwind|abort\\(\\)|process::abort|panic = ' --include=*.rs --include=*.toml .",
+      "grep -nE '\\.unwrap\\(\\)|\\.expect\\(|panic!|unreachable!' git-cliff/src/lib.rs git-cliff/src/config_path.rs git-cliff/src/logger.rs git-cliff/src/args.rs",
+      "git clone --depth 1 --branch v4.6.6 https://github.com/clap-rs/clap.git <temporary directory>/clap-v4.6.6 (4a622b4340d5e1fffff60c0ecefdc6882f738159, the clap and clap_builder 4.6.6 of git-cliff's Cargo.lock)",
+      "grep -rnE 'process::exit|\\.exit\\(\\)' clap_builder/src",
+      "curl https://raw.githubusercontent.com/rust-lang/rust/48a229ceaefd4985c50990b14116b6d856af0985/{src/version,library/std/src/rt.rs,library/std/src/process.rs,library/std/src/sys/process/windows.rs} (rustc 1.98.1, the commit embedded in the 2.14.2 executable)"
+    ],
+    "categories": [
+      {
+        "name": "error return",
+        "references": [
+          "git-cliff/src/main.rs:16 fn main() -> Result<()>; its ? operators at :26 (logger::init), :47 (list_templates), :55 (init_config_from), :64 (git_cliff::run) and :75 (File::create) return the error to the Rust runtime",
+          "git-cliff/src/main.rs:82-96: write_changelog Ok gives 0, Err is logged and gives 1, then process::exit(exit_code) at :96, the only explicit exit in the git-cliff and git-cliff-core sources",
+          "git-cliff/src/lib.rs:584 run and :909 write_changelog return Result; git2 0.21.0, tera 1.20.1 and reqwest errors reach main through ? as git_cliff_core::error::Error",
+          "rustc 1.98.1 (48a229ce) library/std/src/process.rs:2718-2727: an Err returned by main prints Error: {err:?} and reports ExitCode::FAILURE; library/std/src/sys/process/windows.rs:809 defines FAILURE as EXIT_FAILURE, 1",
+          "Cargo.toml [profile.release] and .github/workflows/cd.yml:162: the Windows asset is built with cargo build --release --locked --target x86_64-pc-windows-msvc and the default features"
+        ],
+        "finding": "Every error git-cliff returns ends the process with status 1, through process::exit(1) or the runtime's report of the Err from main; success is 0. No path of the binary or core crates passes another value to process::exit or ExitCode."
+      },
+      {
+        "name": "argument-parsing errors",
+        "references": [
+          "git-cliff/src/main.rs:18 Opt::parse(), the clap derive parser of git-cliff/src/args.rs; git-cliff/Cargo.toml and Cargo.lock: clap and clap_builder 4.6.6",
+          "clap v4.6.6 (4a622b43) clap_builder/src/derive.rs:31-41: Parser::parse calls get_matches, then Error::exit for a conversion error; clap_builder/src/builder/command.rs:689 and :765 call Error::exit on a parse error",
+          "clap_builder/src/error/mod.rs:233-249: exit_code is USAGE_CODE for an error printed on standard error and SUCCESS_CODE for help or version, and exit calls std::process::exit(self.exit_code()); clap_builder/src/util/mod.rs:26 SUCCESS_CODE = 0, :32 USAGE_CODE = 2",
+          "grep of clap_builder/src: std::process::exit appears only at error/mod.rs:248",
+          "git-cliff/src/lib.rs:707-711: a check after parsing (-o and -p naming the same file) returns Error::ArgumentError to main, status 1"
+        ],
+        "finding": "An argument-parsing error exits 2, and --help or --version exits 0, through clap's Error::exit, the only process exit in clap_builder 4.6.6. Checks made after parsing return errors to main, status 1."
+      },
+      {
+        "name": "propagated helper statuses",
+        "references": [
+          "git-cliff-core/src/command.rs:11-53 run: a helper started with cmd /C that exits nonzero becomes IoError::other(\"command exited with {status:?}\"), returned as an Err; the status is only formatted into the message",
+          "git-cliff-core/src/repo.rs:774 and :1056: the only other std::process::Command uses, both inside #[cfg(test)] mod test (repo.rs:772-773)",
+          "git-cliff/src/lib.rs:35-45 check_new_version (update-informer 1.3.0, a default feature) discards every error through .ok().flatten()",
+          "git-cliff/src/lib.rs:648-654: a remote configuration read through reqwest propagates its errors with ?",
+          "the bundle's cliff.toml starts no command helper: its one replace_command preprocessor line is a comment"
+        ],
+        "finding": "No helper's status becomes git-cliff's exit status: a failing shell helper yields an error whose message holds the status, and main ends with 1. libgit2 runs in process and returns errors. The bundle's cliff.toml starts no helper."
+      },
+      {
+        "name": "panics and abnormal termination",
+        "references": [
+          "Cargo.toml:31-37 [profile.release] panic = \"unwind\"; the panic = \"abort\" of [profile.dev] (Cargo.toml:21-24) does not apply to the release build",
+          "rustc 1.98.1 (48a229ce) library/std/src/rt.rs:175-183: a panic of the main thread is caught and the program returns 101",
+          "grep of every .rs and .toml file: no panic::set_hook, catch_unwind or process::abort in git-cliff or git-cliff-core",
+          "git-cliff/src/lib.rs:720-721: .expect(\"Incorrect config value for 'sort_commits'\") panics on an unknown sort_commits value; other main-thread unwrap calls at lib.rs:429, :454, :484, :497, :543-548 and logger.rs:126",
+          "git-cliff-core/src/command.rs:35-39: expect(\"Failed to write to stdin\") runs in a spawned thread, whose panic ends that thread only",
+          "Windows: an abort (a panic while panicking) ends through __fastfail with 0xC0000409, a stack overflow with 0xC00000FD, an access violation with 0xC0000005, Ctrl+C with 0xC000013A; git-cliff has no console control handler (no ctrlc or signal-hook dependency)"
+        ],
+        "finding": "A main-thread panic exits 101, and an abnormal termination exits with an NTSTATUS value of 0xC0000000 or more; neither is 69. The reachable panic at lib.rs:721 was observed with status 101."
+      }
+    ]
+  },
+  "observed_statuses": [
+    {
+      "name": "success",
+      "command": "<git-cliff 2.14.2> -c <bundle>/cliff.toml -w <llm-shared checkout> -s footer -- v0.13.0..v0.14.0",
+      "status": 0
+    },
+    {
+      "name": "usage error",
+      "command": "<git-cliff 2.14.2> --no-such-option",
+      "status": 2
+    },
+    {
+      "name": "failing render",
+      "command": "<git-cliff 2.14.2> -c <bundle>/cliff.toml -w <llm-shared checkout> -s footer --body \"{{ undefined_variable }}\" -- v0.13.0..v0.14.0",
+      "status": 1
+    },
+    {
+      "name": "panic",
+      "command": "<git-cliff 2.14.2> -c <copy of cliff.toml with sort_commits = \"sideways\"> -w <llm-shared checkout> -s footer -- v0.13.0..v0.14.0",
+      "status": 101
+    }
+  ],
+  "files": {
+    "cliff.toml": "b5e0d216f9ba793b8c45f39ca2b8d4ce13a802dcf78487391f4ab044e31b85af",
+    "trust.2.14.2.json": "af14a2a0419bf6c617be1e87bacef8120a1990c578ab8eaeedc3b34f96208aa2",
+    "trust.2.7.0.json": "4abba8ef249e49634fad98df50625b0ba8b801eb719083458030a97cefeede7d"
+  },
+  "review": {
+    "decision": "approved",
+    "reviewer": "user",
+    "date": "2026-11-21",
+    "covered_sha256": "51862d50267598f7a3325f46fd494b448b2636a42cd0acf765081f573f384862"
+  }
+}

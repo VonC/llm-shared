@@ -1,0 +1,11 @@
+{
+  "schema": 1,
+  "version": "2.7.0",
+  "asset": "git-cliff-2.7.0-x86_64-pc-windows-msvc.zip",
+  "size": 6597713,
+  "sha256": "3afecbfb8b2a1145f6321fa6fc6bf0fabb8dff5dd7fa1bfa46bafa9f7484f47c",
+  "trust": "evidence-only-https",
+  "basis": "Evidence-only exception authorized by the user on 2026-11-13: certificate-verified HTTPS to the upstream GitHub release anchored the first download. This SHA-256 identifies those bytes for every repetition; it does not authenticate them, and this version is never a project pin.",
+  "source": "https://github.com/orhun/git-cliff/releases/download/v2.7.0/git-cliff-2.7.0-x86_64-pc-windows-msvc.zip",
+  "acquired": "2026-11-21T10:15:12+01:00"
+}
