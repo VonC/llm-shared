@@ -7537,3 +7537,847 @@ Human choice: Commit
 Outcome: continue-owning-workflow
 
 <!-- review-entry-id: human-confirmation-round-4 -->
+
+## Round 1 by requestor - Step 7
+
+- Recorded: 2026-11-21T11:25:23+01:00
+- Exchange: code/code/v0.14.0/git-cliff-provisioning
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: unrecorded
+- Implementation step: 7
+- Outcome: request
+
+### Review identity for step 7 git-cliff-provisioning (round 1)
+
+Umbrella draft: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+Implementation plan: docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.md
+Implementation step: 7
+Review round: 1
+
+### Code review evidence for step 7 git-cliff-provisioning (round 1)
+
+request_index_tree: 3445bcdc71b6268fe1491b342e58e78684ad2176
+resolved_validation_set:
+
+- `ghog day --full=speed --whole-suite` (sources: project)
+
+test_scope:
+{"fingerprint": "686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6", "group": null, "proof": "speed", "requirement": "docs/v0.14.0/feature-request.v0.14.0.git-cliff-provisioning.md", "scope": "whole"}
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: feat(release): add the approved 2.14.2 evidence
+group 1 path: tools/release_workflow/git_cliff/bundles/2.14.2/bundle.json
+group 1 path: tools/release_workflow/git_cliff/bundles/2.14.2/cliff.toml
+group 1 path: tools/release_workflow/git_cliff/bundles/2.14.2/trust.2.14.2.json
+group 1 path: tools/release_workflow/git_cliff/bundles/2.14.2/trust.2.7.0.json
+group 2: feat(release): admit git-cliff 2.14.2 as default
+group 2 path: tools/release_workflow/git_cliff/manifest.py
+group 3: test(release): tie the admitted pin to its bundle
+group 3 path: tests/unit/tools/release_workflow/test_git_cliff_acceptance/__init__.py
+group 3 path: tests/unit/tools/release_workflow/test_git_cliff_acceptance/test_git_cliff_admission_tdd.py
+group 3 path: tests/unit/tools/release_workflow/test_git_cliff_manifest/test_git_cliff_manifest_tdd.py
+group 3 path: tests/unit/tools/release_workflow/test_schemas/test_schemas_tdd.py
+group 3 path: tests/unit/tools/release_workflow/test_configuration/test_configuration_tdd.py
+group 4: docs(git-cliff-provisioning): record step 7 validation
+group 4 path: docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.validation.md
+staged path: docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.validation.md
+staged path: tests/unit/tools/release_workflow/test_configuration/test_configuration_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_acceptance/__init__.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_acceptance/test_git_cliff_admission_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_manifest/test_git_cliff_manifest_tdd.py
+staged path: tests/unit/tools/release_workflow/test_schemas/test_schemas_tdd.py
+staged path: tools/release_workflow/git_cliff/bundles/2.14.2/bundle.json
+staged path: tools/release_workflow/git_cliff/bundles/2.14.2/cliff.toml
+staged path: tools/release_workflow/git_cliff/bundles/2.14.2/trust.2.14.2.json
+staged path: tools/release_workflow/git_cliff/bundles/2.14.2/trust.2.7.0.json
+staged path: tools/release_workflow/git_cliff/manifest.py
+```
+
+### Validation scope for step 7 git-cliff-provisioning (round 1)
+
+Validation scope: the whole suite.
+
+### Requestor assessment for step 7 git-cliff-provisioning (round 1)
+
+Writer assessment for Step 7 of the git-cliff-provisioning plan, round 1: the
+step is fully implemented, and the implementation check records `Yes. Step 7
+has been fully implemented.` in the staged validation plan (the document
+status stays `No, it is not implemented.` while Step 8 is not started).
+
+Evidence, all on the staged tree:
+
+- Evidence run by hand: the harness exit 0, 19 cases, every status 0, one
+  differing case with 9 hunks; `require_complete` passed on the annotated
+  bundle before the user's review; the user approved on 2026-11-21 and the
+  harness's `--review approved` recorded it (`covered_sha256` `51862d50...`).
+- Red first: `ghog single` on the admission, schemas, configuration and
+  manifest tests failed at the empty pin table (exit 2, 8 failures; the three
+  tests that read only the bundle already passed).
+- Targeted: `ghog single` on the same files plus the manifest and
+  bundle-checks leaves, exit 0, after the manifest edit.
+- Default walk: `ghog day --whole-suite` exit 0 (check and 266 affected
+  tests); no source was reformatted.
+- Review validation, `ghog day --full=speed --whole-suite` (built-in default,
+  no `.review-validation`): exit 0 with `cov=100 outliers=0 excluded=0
+  proof=speed`, 8106 tests, slowest call 0.31 s (outside this step), on index
+  tree `3445bcdc71b6268fe1491b342e58e78684ad2176`, identical before and after
+  the walk. No budget was changed and no exclusion is accepted.
+- `rg -n '2\.14\.2' tools/release_workflow/git_cliff/manifest.py`: the one
+  admitted pin (lines 183 to 190) and three docstring mentions.
+- Line counts: `manifest.py` 195, `test_git_cliff_admission_tdd.py` 132,
+  `test_schemas_tdd.py` 200, `test_configuration_tdd.py` 341,
+  `test_git_cliff_manifest_tdd.py` 200; every Python file below 650; the
+  advisory overruns are recorded as variance in the validation plan.
+- Native check record: unchanged; `manifest.py` is not a covered source.
+- Markdown check and cSpell on the validation plan: clean.
+
+Architecture: the manifest stays a table importing only `dataclasses` and
+`re`; the harness never wrote it, and the pin entered by a hand edit copying
+the bundle's identity; no production module imports `bundle` or
+`bundle_checks` outside the harness. Performance: one more pin validated once
+at import, lookups unchanged. Feature integrity: an omitted `[git-cliff]
+version` now reads the defaulted 2.14.2, a declared 2.14.2 is accepted and
+other versions list `tested: 2.14.2`; no engine command reads that value
+before the Step 8 launcher; 2.7.0 stays a configuration error.
+
+Please check in particular: the classification reason against the bundle's
+hunks and the ranged cases; the audit's references and findings per category
+(and the stated limit on the Windows abnormal-termination statuses); the
+observed statuses against the audit; the admission leaf's use of
+`require_admissible` with the shipped defaults; and the manifest entry against
+the bundle's 2.14.2 candidate.
+
+### Implementation report for step 7 git-cliff-provisioning (round 1)
+
+Step 7, "Evidence run, user review and admission of 2.14.2", is the seventh
+of eight steps of the git-cliff-provisioning plan. It runs the Step 6 harness
+by hand, records the exit-path audit and the classification in the committed
+bundle, takes the user's review, and only then admits 2.14.2 in the manifest.
+No production module changes behavior beyond the configuration default that
+the admitted pin now gives.
+
+Evidence run (by hand, outside pytest, network):
+
+- Command, from the project root with the project interpreter:
+  `python -m tools.release_workflow.git_cliff.harness --bundle
+  tools\release_workflow\git_cliff\bundles\2.14.2 --pin 2.14.2 --baseline
+  2.7.0`, exit 0. 2.7.0 was acquired under the evidence-only exception of
+  2026-11-13 (`evidence-only-https` trust); 2.14.2 from its release metadata
+  (`upstream-digest` trust), 7,428,304 bytes, digest
+  `6ece2112b3f4af462190ecbea4aeb1315fff6af415629b597f84319073c31131`, the
+  identity the design names.
+- Frozen inputs: llm-shared commit `4eed876b` with its 13 reachable tags, the
+  `cliff.toml` bytes of the dev_workflow commit `f90bfc67` (copied into the
+  bundle, identical to `tools/dev_workflow/cliff.toml`), the fixture hashes,
+  both candidate identities with their executable digests.
+- Results: 19 cases (14 llm-shared, 5 fixture), every status 0, 18 identical
+  outputs; llm-shared's full history differs in 9 hunks.
+
+Classification (hand-written in `bundle.json`):
+
+- The 9 hunks are one change: 59 commit lines dated before the `v0.14.0` tag
+  but not reachable from it leave the `v0.14.0` section (2.7.0 orders commits
+  by date, `topo_order = false`) for Unreleased (2.14.2); their text is
+  unchanged. Pairs: #1 and #5 (16 Features lines), #2 and #6 (38
+  Documentation lines), #3 with #7 and #8 (one Performance and one Testing
+  line), #4 and #9 (3 Miscellaneous Tasks lines).
+- Each is `intentional`, citing git-cliff 2.14.1's release notes, Bug Fixes:
+  "(changelog) Assign commits to releases by graph reachability" (#1601,
+  e86c95e), implemented at `git-cliff/src/lib.rs:388` of `v2.14.2`.
+- Checked by hand: `git merge-base --is-ancestor` on seven moved commits
+  (none is an ancestor of `v0.14.0`); a rerun of the full history with both
+  executables reproduced both recorded digests and showed `v0.14.0` spanning
+  lines 77 to 449 in 2.7.0's output, which contains every removed line; the
+  ranged cases `v0.13.0..v0.14.0` and `v0.14.0..HEAD` are identical in both
+  versions.
+
+Exit-path audit (`audit` member):
+
+- Revision `5d996de8220d26c0cb8ff329d31791570cab262f` (annotated tag object
+  `1ba9dcc4`), shallow clone in a temporary directory outside the repository;
+  clap `v4.6.6` (commit `4a622b43`, the clap and clap_builder versions of
+  git-cliff's `Cargo.lock`); the standard library sources of rustc 1.98.1
+  (commit `48a229ce`, read from the executable). The eight commands are
+  recorded with placeholders for the temporary directory.
+- Error return: `main` returns `Result<()>`; an `Err` is reported by std as
+  `ExitCode::FAILURE` (1); `write_changelog` errors give `process::exit(1)`;
+  success 0; no other exit value in the git-cliff or git-cliff-core sources.
+- Argument-parsing errors: clap's `Error::exit` is its only process exit:
+  `USAGE_CODE` 2, `SUCCESS_CODE` 0 for help and version.
+- Propagated helper statuses: a failing `cmd /C` helper becomes an error
+  message, never the status; the only other `Command` uses are in test
+  modules; the update check discards its errors; the bundle's `cliff.toml`
+  starts no helper.
+- Panics and abnormal termination: the release profile is `panic =
+  "unwind"`, so a main-thread panic exits 101 (std `rt.rs`); aborts, stack
+  overflow, access violation and Ctrl+C give Windows statuses of
+  `0xC0000000` or more; no panic hook, `catch_unwind` or `process::abort`.
+- `excludes_69` is true.
+
+Observed statuses (`observed_statuses` member), the 2.14.2 evidence
+executable after a digest check against its entry record, in the comparison's
+explicit environment: success 0, usage error (`--no-such-option`) 2, failing
+render (`--body "{{ undefined_variable }}"`) 1, panic (a `cliff.toml` copy
+with `sort_commits = "sideways"`, reaching the `expect` at `lib.rs:721`) 101.
+
+User review:
+
+- `require_complete` passed on the annotated bundle; the classification
+  table, audit, observed statuses and listed files were then presented to the
+  user, who approved on 2026-11-21.
+- `python -m tools.release_workflow.git_cliff.harness --bundle
+  tools\release_workflow\git_cliff\bundles\2.14.2 --review approved` wrote
+  `review`: approved, `user`, `2026-11-21`, `covered_sha256`
+  `51862d50267598f7a3325f46fd494b448b2636a42cd0acf765081f573f384862`. The step
+  journal records the same decision with its date, before the manifest edit.
+
+Manifest, `tools/release_workflow/git_cliff/manifest.py`:
+
+- `ADMITTED_PINS` holds one `AdmittedPin`: `2.14.2`, default, triple
+  `x86_64-pc-windows-msvc`, asset `git-cliff-2.14.2-x86_64-pc-windows-msvc.zip`,
+  size 7,428,304, the digest above, member `git-cliff-2.14.2/git-cliff.exe`,
+  evidence `tools/release_workflow/git_cliff/bundles/2.14.2`; still passed
+  through `validate_pins`. Module docstring and constant comment updated.
+
+Tests:
+
+- New leaf `tests/unit/tools/release_workflow/test_git_cliff_acceptance/`
+  with `test_git_cliff_admission_tdd.py`: the shipped manifest is exactly
+  that pin and its default; the committed bundle passes `require_admissible`
+  with the shipped manifest and the default location; the review is the
+  user's dated approval of the recomputed projection; the listed digests
+  equal the committed files; the pin is the bundle's upstream-digest 2.14.2
+  candidate; the 2.7.0 record stays evidence-only and no pin carries its
+  version or digest; `version = 2.7.0` is a configuration error listing
+  `tested: 2.14.2`.
+- `test_schemas_tdd.py`: the shipped `version` rule defaults to 2.14.2 and
+  refuses 2.15.0 with `tested: 2.14.2`.
+- `test_configuration_tdd.py`: an omitted key yields the defaulted 2.14.2
+  with its source information; a declared 2.14.2 is kept as written;
+  `version = 2.15.0` reports `tested: 2.14.2`.
+- `test_git_cliff_manifest_tdd.py` (not in the plan's file list): its test of
+  the shipped empty tuple would fail; `tested: none` is now proven on a
+  synthetic empty table, and a new test proves the shipped table valid,
+  defaulting to 2.14.2 and listing it.
+
+Also staged: the validation plan's Step 7 sections.
+
+Writer notes: `.reviews/a.git-cliff-provisioning.step7.journal.md` and
+`.reviews/a.git-cliff-provisioning.step7.handoff.md`.
+
+### Change summary for step 7 git-cliff-provisioning (round 1)
+
+Staged paths (11), grouped in the root `a.commit` (four groups, checker
+`ready: true`):
+
+1. `feat(release): add the approved 2.14.2 evidence`:
+   `tools/release_workflow/git_cliff/bundles/2.14.2/bundle.json`,
+   `tools/release_workflow/git_cliff/bundles/2.14.2/cliff.toml`,
+   `tools/release_workflow/git_cliff/bundles/2.14.2/trust.2.14.2.json`,
+   `tools/release_workflow/git_cliff/bundles/2.14.2/trust.2.7.0.json`.
+2. `feat(release): admit git-cliff 2.14.2 as default`:
+   `tools/release_workflow/git_cliff/manifest.py`.
+3. `test(release): tie the admitted pin to its bundle`:
+   `tests/unit/tools/release_workflow/test_git_cliff_acceptance/__init__.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_acceptance/test_git_cliff_admission_tdd.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_manifest/test_git_cliff_manifest_tdd.py`,
+   `tests/unit/tools/release_workflow/test_schemas/test_schemas_tdd.py`,
+   `tests/unit/tools/release_workflow/test_configuration/test_configuration_tdd.py`.
+4. `docs(git-cliff-provisioning): record step 7 validation`:
+   `docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.validation.md`.
+
+Every staged file has LF line endings. The review transcript stays out of
+`a.commit`, for its residual commit after the review.
+
+### Writer response for step 7 git-cliff-provisioning (round 1)
+
+Writer response:
+
+Writer response:
+
+This is the first round of the Step 7 code review; there is no earlier
+reviewer feedback to answer.
+
+Choices worth checking, all recorded in the step notes and in the staged
+validation plan:
+
+- The classification, audit and observed statuses were written into
+  `bundle.json` through the `bundle` module's own `read`, `replace` and
+  `write` (LF, the harness's formatting), then read back and checked with
+  `require_complete` before the review; the harness's `--review approved` was
+  the only writer of the `review` member.
+- Each of the 9 hunks gets its own entry naming its pair, with one shared
+  upstream reason, because the bundle checks classify hunk by hunk.
+- The audit reads the standard library at the rustc commit embedded in the
+  executable, so the 101 and the `ExitCode::FAILURE` mapping rest on the
+  compiler that built the asset. The Windows abnormal-termination statuses
+  (`0xC0000409` for an abort, `0xC00000FD` for a stack overflow,
+  `0xC0000005`, `0xC000013A`) are standard platform values, not read in that
+  source; the observations corroborate the audit and do not prove the
+  exclusion of 69, as the design states.
+- The observation commands are recorded with placeholders (`<git-cliff
+  2.14.2>`, `<bundle>`, `<llm-shared checkout>`), so no local path enters the
+  bundle; the observations ran the evidence executable directly, outside the
+  containment layer, after checking its digest against its entry record.
+- `test_git_cliff_manifest_tdd.py` is updated outside the plan's file list,
+  since its shipped-empty test would break; the empty-table behavior keeps its
+  proof on a synthetic table.
+- The admission leaf reads the committed bundle once per module through a
+  cached reader and calls `require_admissible` with its defaults, so the
+  shipped manifest and the default bundle location are what it checks.
+- `manifest.py` is not a source the native check record covers, so the
+  record is unchanged.
+
+### Reviewer focus for step 7 git-cliff-provisioning (round 1)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-7-round-1 -->
+
+## Round 1 by reviewer - Step 7
+
+- Recorded: 2026-11-21T11:31:30+01:00
+- Exchange: code/code/v0.14.0/git-cliff-provisioning
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 7
+- Outcome: answer
+
+### Assessed index identity for step 7 git-cliff-provisioning (exchange 1) (round 1)
+
+Baseline index tree: 3445bcdc71b6268fe1491b342e58e78684ad2176
+
+Assessed index tree: 3ac5a87f6ba76cdb72bfdd27692a9b655e941af0
+
+### Implementation check for step 7 git-cliff-provisioning (exchange 1) (round 1)
+
+Result:
+
+No. Step 7 has NOT been fully implemented.
+
+The manifest admits the approved 2.14.2 candidate as the sole default and the configuration tests cover the default, explicit selection, and refusal of 2.7.0. The admission leaf calls `require_admissible(bundle)` with the shipped defaults. The approval and dated journal entry precede admission. The checkout conversion described below breaks the reader on the target platform.
+
+Validation plan effects:
+
+Updated and staged the Step 7 verdict, missing work and feature integrity paragraphs in the validation plan. The capture and attribution checks identified only those edits.
+
+### Pre-repair mandatory checks and coverage for step 7 git-cliff-provisioning (exchange 1) (round 1)
+
+The requestor reports 8,106 passing tests with the speed and coverage gates green on the received index. Static inspection found no uncovered production branch in the data-only manifest change. The 19 comparison cases report success. All nine hunks in the full-history case pair up as moves between release sections, consistent with the cited upstream graph-reachability change and the identical tagged ranges. The audit identifies the error, parser, helper and unwind paths. The observed 0, 2, 1 and 101 corroborate those paths. The listed abnormal Windows statuses are platform examples.
+
+### Resolved validation set and sources for step 7 git-cliff-provisioning (exchange 1) (round 1)
+
+`ghog day --full=speed --whole-suite` (project default). The round binds the whole-suite speed scope.
+
+### Resolver drift and direction for step 7 git-cliff-provisioning (exchange 1) (round 1)
+
+The current resolver returned the same command and project source as the request.
+
+### Repository state around validation for step 7 git-cliff-provisioning (exchange 1) (round 1)
+
+The request-time tree matched the received index. The evidence comparison flags only the validation plan and index, attributable to the staged Step 7 assessment. The umbrella digest matched before and after.
+
+### Repair inventory for step 7 git-cliff-provisioning (exchange 1) (round 1)
+
+Repairs made:
+
+- Assessment metadata only in `docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.validation.md`.
+
+Paths staged:
+
+- `docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.validation.md`
+- `tests/unit/tools/release_workflow/test_configuration/test_configuration_tdd.py`
+- `tests/unit/tools/release_workflow/test_git_cliff_acceptance/__init__.py`
+- `tests/unit/tools/release_workflow/test_git_cliff_acceptance/test_git_cliff_admission_tdd.py`
+- `tests/unit/tools/release_workflow/test_git_cliff_manifest/test_git_cliff_manifest_tdd.py`
+- `tests/unit/tools/release_workflow/test_schemas/test_schemas_tdd.py`
+- `tools/release_workflow/git_cliff/bundles/2.14.2/bundle.json`
+- `tools/release_workflow/git_cliff/bundles/2.14.2/cliff.toml`
+- `tools/release_workflow/git_cliff/bundles/2.14.2/trust.2.14.2.json`
+- `tools/release_workflow/git_cliff/bundles/2.14.2/trust.2.7.0.json`
+- `tools/release_workflow/git_cliff/manifest.py`
+
+### Commit plan assessment for step 7 git-cliff-provisioning (exchange 1) (round 1)
+
+The independent checker returned `valid`, `ready=true`, with all 11 staged files assigned once and zero diagnostics. The ordered subjects were:
+
+1. `feat(release): add the approved 2.14.2 evidence` (4 paths)
+2. `feat(release): admit git-cliff 2.14.2 as default` (1 paths)
+3. `test(release): tie the admitted pin to its bundle` (5 paths)
+4. `docs(git-cliff-provisioning): record step 7 validation` (1 paths)
+
+The grouping matches the received implementation. Refresh the validation group body when recording the checkout fix.
+
+### Findings and boundaries for step 7 git-cliff-provisioning (exchange 1) (round 1)
+
+Unresolved findings:
+
+- `tools/release_workflow/git_cliff/bundles/2.14.2/` lacks a Git attribute that preserves the bytes of the three files in `bundle.json`'s `files` map. With `core.autocrlf=true`, `git cat-file --filters` on each staged blob yields SHA-256 prefixes `dc56e564`, `5c008948` and `c7f21c0e` for `cliff.toml`, the pin trust record and the baseline trust record respectively. The approved hashes start with `b5e0d216`, `af14a2a0` and `4abba8ef`. All three match with conversion disabled. `bundle.read` hashes working-tree bytes, so admission fails immediately on a fresh CRLF checkout.
+
+Boundary-crossing work: None.
+
+### Writer instructions for step 7 git-cliff-provisioning (exchange 1) (round 1)
+
+Set path-scoped LF checkout attributes for the hashed bundle files. Exercise admission on Git checkout-filtered bytes with `core.autocrlf=true`, checking the three approved digests and `require_admissible`. The existing approved LF files already contain the required bytes.
+
+### Decision rationale for step 7 git-cliff-provisioning (exchange 1) (round 1)
+
+Changes requested. Identity, staged attribution, static production coverage and mechanical grouping passed. The checkout failure leaves the admission criterion and its validation incomplete.
+
+### Final reviewer decision for step 7 git-cliff-provisioning (exchange 1) (round 1)
+
+Decision: changes-requested. The writer must address the concrete instructions and publish another review round. This advisory answer does not authorize a commit.
+
+<!-- review-entry-id: answer-step-7-round-1 -->
+
+## Round 2 by requestor - Step 7
+
+- Recorded: 2026-11-21T11:48:13+01:00
+- Exchange: code/code/v0.14.0/git-cliff-provisioning
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 7
+- Outcome: request
+
+### Review identity for step 7 git-cliff-provisioning (round 2)
+
+Umbrella draft: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+Implementation plan: docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.md
+Implementation step: 7
+Review round: 2
+
+### Code review evidence for step 7 git-cliff-provisioning (round 2)
+
+request_index_tree: 1df956952cb44027f71a51e894ebd08d86e79b3f
+resolved_validation_set:
+
+- `ghog day --full=speed --whole-suite` (sources: project)
+
+test_scope:
+{"fingerprint": "686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6", "group": null, "proof": "speed", "requirement": "docs/v0.14.0/feature-request.v0.14.0.git-cliff-provisioning.md", "scope": "whole"}
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: feat(release): add the approved 2.14.2 evidence
+group 1 path: tools/release_workflow/git_cliff/bundles/2.14.2/bundle.json
+group 1 path: tools/release_workflow/git_cliff/bundles/2.14.2/cliff.toml
+group 1 path: tools/release_workflow/git_cliff/bundles/2.14.2/trust.2.14.2.json
+group 1 path: tools/release_workflow/git_cliff/bundles/2.14.2/trust.2.7.0.json
+group 1 path: .gitattributes
+group 2: feat(release): admit git-cliff 2.14.2 as default
+group 2 path: tools/release_workflow/git_cliff/manifest.py
+group 3: test(release): tie the admitted pin to its bundle
+group 3 path: tests/unit/tools/release_workflow/test_git_cliff_acceptance/__init__.py
+group 3 path: tests/unit/tools/release_workflow/test_git_cliff_acceptance/test_git_cliff_admission_tdd.py
+group 3 path: tests/unit/tools/release_workflow/test_git_cliff_manifest/test_git_cliff_manifest_tdd.py
+group 3 path: tests/unit/tools/release_workflow/test_schemas/test_schemas_tdd.py
+group 3 path: tests/unit/tools/release_workflow/test_configuration/test_configuration_tdd.py
+group 4: docs(git-cliff-provisioning): record step 7 validation
+group 4 path: docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.validation.md
+staged path: .gitattributes
+staged path: docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.validation.md
+staged path: tests/unit/tools/release_workflow/test_configuration/test_configuration_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_acceptance/__init__.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_acceptance/test_git_cliff_admission_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_manifest/test_git_cliff_manifest_tdd.py
+staged path: tests/unit/tools/release_workflow/test_schemas/test_schemas_tdd.py
+staged path: tools/release_workflow/git_cliff/bundles/2.14.2/bundle.json
+staged path: tools/release_workflow/git_cliff/bundles/2.14.2/cliff.toml
+staged path: tools/release_workflow/git_cliff/bundles/2.14.2/trust.2.14.2.json
+staged path: tools/release_workflow/git_cliff/bundles/2.14.2/trust.2.7.0.json
+staged path: tools/release_workflow/git_cliff/manifest.py
+```
+
+### Validation scope for step 7 git-cliff-provisioning (round 2)
+
+Validation scope: the whole suite.
+
+### Requestor assessment for step 7 git-cliff-provisioning (round 2)
+
+Writer assessment for Step 7 of the git-cliff-provisioning plan, round 2: the
+step is fully implemented, and the implementation check records `Yes. Step 7
+has been fully implemented.` in the staged validation plan (the document
+status stays `No, it is not implemented.` while Step 8 is not started).
+
+Evidence, all on the staged tree:
+
+- Evidence run by hand: the harness exit 0, 19 cases, every status 0, one
+  differing case with 9 hunks; `require_complete` passed on the annotated
+  bundle before the user's review; the user approved on 2026-11-21 and the
+  harness's `--review approved` recorded it (`covered_sha256` `51862d50...`).
+- Red first: `ghog single` on the admission, schemas, configuration and
+  manifest tests failed at the empty pin table (exit 2, 8 failures; the three
+  tests that read only the bundle already passed).
+- Targeted: `ghog single` on the same files plus the manifest and
+  bundle-checks leaves, exit 0, after the manifest edit.
+- Default walk: `ghog day --whole-suite` exit 0 (check and 266 affected
+  tests); no source was reformatted.
+- Review validation, `ghog day --full=speed --whole-suite` (built-in default,
+  no `.review-validation`): exit 0 with `cov=100 outliers=0 excluded=0
+  proof=speed`, 8107 tests, slowest call 0.31 s (outside this step), on index
+  tree `1df956952cb44027f71a51e894ebd08d86e79b3f`, identical before and after
+  the walk. No budget was changed and no exclusion is accepted.
+- `rg -n '2\.14\.2' tools/release_workflow/git_cliff/manifest.py`: the one
+  admitted pin (lines 183 to 190) and three docstring mentions.
+- Line counts: `manifest.py` 195, `test_git_cliff_admission_tdd.py` 149,
+  `test_schemas_tdd.py` 200, `test_configuration_tdd.py` 341,
+  `test_git_cliff_manifest_tdd.py` 200; every Python file below 650; the
+  advisory overruns are recorded as variance in the validation plan.
+- Native check record: unchanged; `manifest.py` is not a covered source.
+- Markdown check and cSpell on the validation plan and the transcript: clean.
+- Round 1 repair: the admission leaf's checkout test failed with the
+  `.gitattributes` line removed and passes with it (`ghog single` on the
+  leaf). By hand, Git's checkout filter with `core.autocrlf=true` wrote the
+  staged bundle files with the approved digests `b5e0d216`, `af14a2a0` and
+  `4abba8ef` (the same blobs under a path without the attribute give the
+  reported `dc56e564`, `5c008948` and `c7f21c0e`), and `read` plus
+  `require_admissible` accepted the checked-out directory.
+
+Architecture: the manifest stays a table importing only `dataclasses` and
+`re`; the harness never wrote it, and the pin entered by a hand edit copying
+the bundle's identity; no production module imports `bundle` or
+`bundle_checks` outside the harness. Performance: one more pin validated once
+at import, lookups unchanged. Feature integrity: an omitted `[git-cliff]
+version` now reads the defaulted 2.14.2, a declared 2.14.2 is accepted and
+other versions list `tested: 2.14.2`; no engine command reads that value
+before the Step 8 launcher; 2.7.0 stays a configuration error.
+
+Please check in particular the round 1 repair: the `-text` attribute (scope
+and choice over `eol=lf`), the checkout test's reach under the suite's
+process-free policy, the by-hand checkout evidence, the restored validation
+verdict, and `.gitattributes` in the evidence bundle group of `a.commit`.
+
+### Implementation report for step 7 git-cliff-provisioning (round 2)
+
+Step 7, "Evidence run, user review and admission of 2.14.2", is the seventh
+of eight steps of the git-cliff-provisioning plan. It runs the Step 6 harness
+by hand, records the exit-path audit and the classification in the committed
+bundle, takes the user's review, and only then admits 2.14.2 in the manifest.
+No production module changes behavior beyond the configuration default that
+the admitted pin now gives.
+
+Evidence run (by hand, outside pytest, network):
+
+- Command, from the project root with the project interpreter:
+  `python -m tools.release_workflow.git_cliff.harness --bundle
+  tools\release_workflow\git_cliff\bundles\2.14.2 --pin 2.14.2 --baseline
+  2.7.0`, exit 0. 2.7.0 was acquired under the evidence-only exception of
+  2026-11-13 (`evidence-only-https` trust); 2.14.2 from its release metadata
+  (`upstream-digest` trust), 7,428,304 bytes, digest
+  `6ece2112b3f4af462190ecbea4aeb1315fff6af415629b597f84319073c31131`, the
+  identity the design names.
+- Frozen inputs: llm-shared commit `4eed876b` with its 13 reachable tags, the
+  `cliff.toml` bytes of the dev_workflow commit `f90bfc67` (copied into the
+  bundle, identical to `tools/dev_workflow/cliff.toml`), the fixture hashes,
+  both candidate identities with their executable digests.
+- Results: 19 cases (14 llm-shared, 5 fixture), every status 0, 18 identical
+  outputs; llm-shared's full history differs in 9 hunks.
+
+Classification (hand-written in `bundle.json`):
+
+- The 9 hunks are one change: 59 commit lines dated before the `v0.14.0` tag
+  but not reachable from it leave the `v0.14.0` section (2.7.0 orders commits
+  by date, `topo_order = false`) for Unreleased (2.14.2); their text is
+  unchanged. Pairs: #1 and #5 (16 Features lines), #2 and #6 (38
+  Documentation lines), #3 with #7 and #8 (one Performance and one Testing
+  line), #4 and #9 (3 Miscellaneous Tasks lines).
+- Each is `intentional`, citing git-cliff 2.14.1's release notes, Bug Fixes:
+  "(changelog) Assign commits to releases by graph reachability" (#1601,
+  e86c95e), implemented at `git-cliff/src/lib.rs:388` of `v2.14.2`.
+- Checked by hand: `git merge-base --is-ancestor` on seven moved commits
+  (none is an ancestor of `v0.14.0`); a rerun of the full history with both
+  executables reproduced both recorded digests and showed `v0.14.0` spanning
+  lines 77 to 449 in 2.7.0's output, which contains every removed line; the
+  ranged cases `v0.13.0..v0.14.0` and `v0.14.0..HEAD` are identical in both
+  versions.
+
+Exit-path audit (`audit` member):
+
+- Revision `5d996de8220d26c0cb8ff329d31791570cab262f` (annotated tag object
+  `1ba9dcc4`), shallow clone in a temporary directory outside the repository;
+  clap `v4.6.6` (commit `4a622b43`, the clap and clap_builder versions of
+  git-cliff's `Cargo.lock`); the standard library sources of rustc 1.98.1
+  (commit `48a229ce`, read from the executable). The eight commands are
+  recorded with placeholders for the temporary directory.
+- Error return: `main` returns `Result<()>`; an `Err` is reported by std as
+  `ExitCode::FAILURE` (1); `write_changelog` errors give `process::exit(1)`;
+  success 0; no other exit value in the git-cliff or git-cliff-core sources.
+- Argument-parsing errors: clap's `Error::exit` is its only process exit:
+  `USAGE_CODE` 2, `SUCCESS_CODE` 0 for help and version.
+- Propagated helper statuses: a failing `cmd /C` helper becomes an error
+  message, never the status; the only other `Command` uses are in test
+  modules; the update check discards its errors; the bundle's `cliff.toml`
+  starts no helper.
+- Panics and abnormal termination: the release profile is `panic =
+  "unwind"`, so a main-thread panic exits 101 (std `rt.rs`); aborts, stack
+  overflow, access violation and Ctrl+C give Windows statuses of
+  `0xC0000000` or more; no panic hook, `catch_unwind` or `process::abort`.
+- `excludes_69` is true.
+
+Observed statuses (`observed_statuses` member), the 2.14.2 evidence
+executable after a digest check against its entry record, in the comparison's
+explicit environment: success 0, usage error (`--no-such-option`) 2, failing
+render (`--body "{{ undefined_variable }}"`) 1, panic (a `cliff.toml` copy
+with `sort_commits = "sideways"`, reaching the `expect` at `lib.rs:721`) 101.
+
+User review:
+
+- `require_complete` passed on the annotated bundle; the classification
+  table, audit, observed statuses and listed files were then presented to the
+  user, who approved on 2026-11-21.
+- `python -m tools.release_workflow.git_cliff.harness --bundle
+  tools\release_workflow\git_cliff\bundles\2.14.2 --review approved` wrote
+  `review`: approved, `user`, `2026-11-21`, `covered_sha256`
+  `51862d50267598f7a3325f46fd494b448b2636a42cd0acf765081f573f384862`. The step
+  journal records the same decision with its date, before the manifest edit.
+
+Manifest, `tools/release_workflow/git_cliff/manifest.py`:
+
+- `ADMITTED_PINS` holds one `AdmittedPin`: `2.14.2`, default, triple
+  `x86_64-pc-windows-msvc`, asset `git-cliff-2.14.2-x86_64-pc-windows-msvc.zip`,
+  size 7,428,304, the digest above, member `git-cliff-2.14.2/git-cliff.exe`,
+  evidence `tools/release_workflow/git_cliff/bundles/2.14.2`; still passed
+  through `validate_pins`. Module docstring and constant comment updated.
+
+Tests:
+
+- New leaf `tests/unit/tools/release_workflow/test_git_cliff_acceptance/`
+  with `test_git_cliff_admission_tdd.py`: the shipped manifest is exactly
+  that pin and its default; the committed bundle passes `require_admissible`
+  with the shipped manifest and the default location; the review is the
+  user's dated approval of the recomputed projection; the listed digests
+  equal the committed files; the pin is the bundle's upstream-digest 2.14.2
+  candidate; the 2.7.0 record stays evidence-only and no pin carries its
+  version or digest; `version = 2.7.0` is a configuration error listing
+  `tested: 2.14.2`.
+- `test_schemas_tdd.py`: the shipped `version` rule defaults to 2.14.2 and
+  refuses 2.15.0 with `tested: 2.14.2`.
+- `test_configuration_tdd.py`: an omitted key yields the defaulted 2.14.2
+  with its source information; a declared 2.14.2 is kept as written;
+  `version = 2.15.0` reports `tested: 2.14.2`.
+- `test_git_cliff_manifest_tdd.py` (not in the plan's file list): its test of
+  the shipped empty tuple would fail; `tested: none` is now proven on a
+  synthetic empty table, and a new test proves the shipped table valid,
+  defaulting to 2.14.2 and listing it.
+
+Code review round 1 repair, checkout bytes:
+
+- `.gitattributes` gains a comment and the line
+  `tools/release_workflow/git_cliff/bundles/** -text`. Git then converts no
+  line ending in a bundle directory, in either direction, so the committed
+  blob, every checkout and the digests `bundle.json` lists stay the same
+  bytes; `git check-attr` reports `text: unset` for all four bundle files.
+- The admission leaf adds
+  `test_git_keeps_the_bytes_of_the_listed_files_on_every_checkout`: the
+  attribute line is present in `.gitattributes`, each listed file holds no
+  carriage return, and its CRLF conversion would change its digest. It failed
+  with the line removed and passes with it.
+- By hand, outside pytest: `git -c core.autocrlf=true checkout-index
+  --prefix=<scratch>/` of `.gitattributes` and the four staged bundle files
+  wrote `cliff.toml`, `trust.2.14.2.json` and `trust.2.7.0.json` with SHA-256
+  prefixes `b5e0d216`, `af14a2a0` and `4abba8ef` (the approved digests) and no
+  carriage return; the same blobs through `git -c core.autocrlf=true cat-file
+  --filters` under a path without the attribute gave `dc56e564`, `5c008948`
+  and `c7f21c0e`, the digests the round 1 answer reported. `bundle.read` and
+  `require_admissible` (shipped manifest, default location) accepted the
+  checked-out directory, its review still covering `51862d50...`.
+- The validation plan's Step 7 sections are back to `Yes`, with the repair in
+  the analysis, implementation, new data, coverage and feature-integrity
+  entries; the reviewer's missing-work section is removed since its two items
+  are done. `a.commit` adds `.gitattributes` to the bundle group and the
+  repair to the test and validation bodies.
+
+Also staged: the validation plan's Step 7 sections.
+
+Writer notes: `.reviews/a.git-cliff-provisioning.step7.journal.md` and
+`.reviews/a.git-cliff-provisioning.step7.handoff.md`.
+
+### Change summary for step 7 git-cliff-provisioning (round 2)
+
+Staged paths (12), grouped in the root `a.commit` (four groups, checker
+`ready: true`); round 2 adds `.gitattributes` to group 1:
+
+1. `feat(release): add the approved 2.14.2 evidence`:
+   `tools/release_workflow/git_cliff/bundles/2.14.2/bundle.json`,
+   `tools/release_workflow/git_cliff/bundles/2.14.2/cliff.toml`,
+   `tools/release_workflow/git_cliff/bundles/2.14.2/trust.2.14.2.json`,
+   `tools/release_workflow/git_cliff/bundles/2.14.2/trust.2.7.0.json`,
+   `.gitattributes`.
+2. `feat(release): admit git-cliff 2.14.2 as default`:
+   `tools/release_workflow/git_cliff/manifest.py`.
+3. `test(release): tie the admitted pin to its bundle`:
+   `tests/unit/tools/release_workflow/test_git_cliff_acceptance/__init__.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_acceptance/test_git_cliff_admission_tdd.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_manifest/test_git_cliff_manifest_tdd.py`,
+   `tests/unit/tools/release_workflow/test_schemas/test_schemas_tdd.py`,
+   `tests/unit/tools/release_workflow/test_configuration/test_configuration_tdd.py`.
+4. `docs(git-cliff-provisioning): record step 7 validation`:
+   `docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.validation.md`.
+
+Changed since round 1: `.gitattributes` (new attribute line), the admission
+test module (one test and its docstring), the validation plan (the reviewer's
+round 1 edits replaced by the repaired verdict), and the bodies of groups 1, 3
+and 4. Every staged file has LF line endings. The review transcript stays out
+of `a.commit`, for its residual commit after the review.
+
+### Writer response for step 7 git-cliff-provisioning (round 2)
+
+Writer response:
+
+Writer response:
+
+The round 1 finding is accepted: with `core.autocrlf=true`, Git converted the
+bundle's three hashed files to CRLF on checkout and `bundle.read` refused
+them. I reproduced the reviewer's three CRLF digests before the repair.
+
+- Attribute: `tools/release_workflow/git_cliff/bundles/** -text` rather than
+  `eol=lf`. Unsetting `text` stops every line-ending conversion in both
+  directions, so the bytes recorded in a bundle are the bytes committed and
+  checked out, whatever they hold. `eol=lf` protects today's LF files too, but
+  it would normalize a future `cliff.toml` copy that holds CRLF on commit, and
+  that copy would then lose the digest the harness recorded for it. The
+  pattern covers the whole bundle directory, `bundle.json` included, so later
+  bundles need no new line.
+- Test: the suite never starts Git (its repository fixtures declare a
+  non-executable Git port, and the design keeps these tests process-free), so
+  the admission leaf cannot run Git's checkout filter. It checks the attribute
+  line and that each listed file would change its digest under a CRLF
+  conversion, so removing the line fails the test (shown red, then green).
+- Admission on Git checkout-filtered bytes, as asked, ran by hand outside
+  pytest: `checkout-index` with `core.autocrlf=true` wrote the approved digests,
+  and `read` plus `require_admissible` accepted that checked-out directory.
+- The reviewer's validation-plan edits were the right verdict for round 1;
+  with both missing-work items done, I restored `Yes`, recorded the repair in
+  each affected section and removed the missing-work section.
+- `a.commit`: `.gitattributes` joins the evidence bundle group, since its line
+  exists to keep that bundle's bytes; the group order and subjects are
+  unchanged.
+
+No disagreement.
+
+### Reviewer focus for step 7 git-cliff-provisioning (round 2)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-7-round-2 -->
+
+## Round 2 by reviewer - Step 7
+
+- Recorded: 2026-11-21T11:51:54+01:00
+- Exchange: code/code/v0.14.0/git-cliff-provisioning
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 7
+- Outcome: answer
+
+### Assessed index identity for step 7 git-cliff-provisioning (exchange 1) (round 2)
+
+Baseline index tree: 1df956952cb44027f71a51e894ebd08d86e79b3f
+
+Assessed index tree: 1df956952cb44027f71a51e894ebd08d86e79b3f
+
+### Implementation check for step 7 git-cliff-provisioning (exchange 1) (round 2)
+
+Result:
+
+Yes. Step 7 has been fully implemented.
+
+The approved evidence covers the sole default pin, git-cliff 2.14.2. The three listed hashes survive a checkout with `core.autocrlf=true`. The raw-byte Git attribute applies to the evidence bundle directory and preserves both LF and CRLF input as recorded by the harness.
+
+Validation plan effects:
+
+The staged Step 7 validation now records the repair, checkout proof and completed verdict. It addresses both missing-work items.
+
+### Pre-repair mandatory checks and coverage for step 7 git-cliff-provisioning (exchange 1) (round 2)
+
+I applied Git's actual checkout filter to each of the four staged bundle blobs with `core.autocrlf=true`, then read the resulting files from a temporary directory. The three listed SHA-256 prefixes were `b5e0d216`, `af14a2a0` and `4abba8ef`. `require_admissible` accepted the result with its shipped defaults and approval digest `51862d50267598f7a3325f46fd494b448b2636a42cd0acf765081f573f384862`. The process-free unit test guards the attribute declaration and the hash sensitivity of these three files. The requestor reports 8,107 passing tests, 100% measured coverage and zero speed outliers. Static assessment found the manifest data exercised by the admission, manifest and configuration tests.
+
+### Resolved validation set and sources for step 7 git-cliff-provisioning (exchange 1) (round 2)
+
+`ghog day --full=speed --whole-suite` (project source).
+
+### Resolver drift and direction for step 7 git-cliff-provisioning (exchange 1) (round 2)
+
+The current resolver and the request agree on command, source and whole-suite scope.
+
+### Repository state around validation for step 7 git-cliff-provisioning (exchange 1) (round 2)
+
+Both captures matched the request-time index `1df956952cb44027f71a51e894ebd08d86e79b3f`. Validation-state comparison passed and the umbrella digest matched.
+
+### Repair inventory for step 7 git-cliff-provisioning (exchange 1) (round 2)
+
+Repairs made: None.
+
+Paths staged: None.
+
+### Commit plan assessment for step 7 git-cliff-provisioning (exchange 1) (round 2)
+
+The independent checker returned `valid` and `ready=true` for 12 staged paths with zero diagnostics. The conventional subjects and dependency order match the staged work.
+
+1. `feat(release): add the approved 2.14.2 evidence`
+  - `tools/release_workflow/git_cliff/bundles/2.14.2/bundle.json`
+  - `tools/release_workflow/git_cliff/bundles/2.14.2/cliff.toml`
+  - `tools/release_workflow/git_cliff/bundles/2.14.2/trust.2.14.2.json`
+  - `tools/release_workflow/git_cliff/bundles/2.14.2/trust.2.7.0.json`
+  - `.gitattributes`
+2. `feat(release): admit git-cliff 2.14.2 as default`
+  - `tools/release_workflow/git_cliff/manifest.py`
+3. `test(release): tie the admitted pin to its bundle`
+  - `tests/unit/tools/release_workflow/test_git_cliff_acceptance/__init__.py`
+  - `tests/unit/tools/release_workflow/test_git_cliff_acceptance/test_git_cliff_admission_tdd.py`
+  - `tests/unit/tools/release_workflow/test_git_cliff_manifest/test_git_cliff_manifest_tdd.py`
+  - `tests/unit/tools/release_workflow/test_schemas/test_schemas_tdd.py`
+  - `tests/unit/tools/release_workflow/test_configuration/test_configuration_tdd.py`
+4. `docs(git-cliff-provisioning): record step 7 validation`
+  - `docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.validation.md`
+
+### Findings and boundaries for step 7 git-cliff-provisioning (exchange 1) (round 2)
+
+Unresolved findings: None.
+
+Boundary-crossing work: None.
+
+### Writer instructions for step 7 git-cliff-provisioning (exchange 1) (round 2)
+
+Present the advisory recommendation at the human commit gate.
+
+### Decision rationale for step 7 git-cliff-provisioning (exchange 1) (round 2)
+
+Recommend `commit-ready`. Exchange identity, implementation completeness, validation and coverage, staged scope and commit grouping all passed. The checkout proof closes the outstanding finding.
+
+### Final reviewer decision for step 7 git-cliff-provisioning (exchange 1) (round 2)
+
+Decision: commit-ready (advisory). The evidence floor is complete, but this recommendation does not authorize a commit; authority remains at the durable human gate.
+
+<!-- review-entry-id: answer-step-7-round-2 -->
+
+## Round 2 by human - Step 7 - human-confirmation
+
+- Recorded: 2026-11-22T01:37:15+01:00
+- Exchange: code/code/v0.14.0/git-cliff-provisioning
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 7
+- Outcome: human-confirmation
+
+Human choice: Commit
+Outcome: continue-owning-workflow
+
+<!-- review-entry-id: human-confirmation-round-2 -->
