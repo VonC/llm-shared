@@ -7,6 +7,9 @@ them never imports the version source package, whatever earlier tests loaded.
 Step 1 of v0.14.0 git-cliff-provisioning ships the git-cliff domain last: its
 fixed `[git-cliff]` section conflicts with no family, and `git_cliff_domain`
 builds the `version` rule of any pin table with that table's default.
+
+Step 7 admits 2.14.2: the shipped `version` rule now defaults to it and
+refuses another version with `tested: 2.14.2`.
 """
 
 from __future__ import annotations
@@ -79,7 +82,15 @@ def test_git_cliff_section_is_fixed_and_conflicts_with_no_family() -> None:
     assert registry.fixed["git-cliff"] is owner
     assert registry.section("git-cliff:x") is None
     assert registry.section("source:git-cliff") is not None
-    assert owner.rules["version"].default is None
+
+
+def test_the_shipped_version_rule_defaults_to_the_admitted_pin() -> None:
+    """Since Step 7 admitted 2.14.2, the shipped rule defaults to it and lists it when refusing another version."""
+    rule = SchemaRegistry().fixed["git-cliff"].rules["version"]
+    assert rule.default == "2.14.2"
+    assert rule.parse("2.14.2") == "2.14.2"
+    with pytest.raises(PinError, match=r"^not a tested git-cliff pin; tested: 2\.14\.2$"):
+        rule.parse("2.15.0")
 
 
 def test_git_cliff_domain_carries_the_synthetic_default() -> None:

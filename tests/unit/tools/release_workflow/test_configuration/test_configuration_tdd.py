@@ -1,10 +1,13 @@
 """Prove strict, read-only parsing, domain defaults and managed path validation.
 
 Step 1 of v0.14.0 git-cliff-provisioning: `[git-cliff]` is a known section
-whose only key is `version`; the shipped empty pin table gives it no default
-and tests no pin, a synthetic table gives an omitted key a default with the
-usual source information, and loading configuration imports the manifest and
-no other `git_cliff` module.
+whose only key is `version`; a synthetic table gives an omitted key a default
+with the usual source information, and loading configuration imports the
+manifest and no other `git_cliff` module.
+
+Step 7 admits 2.14.2 into the shipped pin table, which gave no default and
+tested no pin until then: an omitted key now yields the defaulted 2.14.2 with
+that source information, and `version = 2.15.0` reports `tested: 2.14.2`.
 """
 
 from __future__ import annotations
@@ -279,14 +282,25 @@ def test_git_cliff_is_a_known_section_without_an_executable_key(tmp_path: Path, 
 
 
 @pytest.mark.parametrize("text", ["", "[git-cliff]\n"])
-def test_shipped_empty_table_gives_no_value_and_tests_no_pin(tmp_path: Path, text: str) -> None:
-    """Until admission, an omitted key yields no value and a declared one is refused."""
+def test_shipped_table_defaults_an_omitted_version_to_the_admitted_pin(tmp_path: Path, text: str) -> None:
+    """Since Step 7, an omitted key yields the defaulted 2.14.2, and an untested version lists it."""
     if text:
         write(tmp_path, text)
-    assert dict(load_configuration(project(tmp_path)).sections["git-cliff"]) == {}
-    write(tmp_path, "[git-cliff]\nversion = 2.14.2\n")
-    with pytest.raises(ConfigurationError, match=r"\[git-cliff\] version='2\.14\.2': not a tested git-cliff pin; tested: none$"):
+    value = load_configuration(project(tmp_path)).sections["git-cliff"]["version"]
+    source = tmp_path / ".release.ini"
+    assert (value.source, value.section, value.key, value.raw, value.value, value.defaulted) == (source, "git-cliff", "version", "2.14.2", "2.14.2", True)
+    write(tmp_path, "[git-cliff]\nversion = 2.15.0\n")
+    with pytest.raises(ConfigurationError) as caught:
         load_configuration(project(tmp_path))
+    assert str(caught.value) == f"{source} [git-cliff] version='2.15.0': not a tested git-cliff pin; tested: 2.14.2"
+    assert caught.value.exit_code == INVALID_INPUT
+
+
+def test_shipped_table_admits_a_declared_2_14_2(tmp_path: Path) -> None:
+    """A project that declares the admitted pin gets it as written, not defaulted."""
+    write(tmp_path, "[git-cliff]\nversion = 2.14.2\n")
+    value = load_configuration(project(tmp_path)).sections["git-cliff"]["version"]
+    assert (value.raw, value.value, value.defaulted) == ("2.14.2", "2.14.2", False)
 
 
 def test_synthetic_pin_default_and_untested_pin(tmp_path: Path) -> None:

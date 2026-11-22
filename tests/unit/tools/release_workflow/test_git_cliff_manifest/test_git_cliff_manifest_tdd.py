@@ -1,10 +1,14 @@
 """Prove the tested-pin manifest: admission, pin text, invariants and the URL.
 
-Step 1 of v0.14.0 git-cliff-provisioning ships the manifest with an empty
-admitted tuple until Step 7 admits 2.14.2 (design Q01): every declared version
-is refused with `tested: none` and no default exists. Synthetic tables prove
+Step 1 of v0.14.0 git-cliff-provisioning shipped the manifest with an empty
+admitted tuple (design Q01). An empty table still refuses every declared
+version with `tested: none` and has no default. Synthetic tables prove
 admission, the default, the invariant check and that each table is validated
 and indexed once, so a later lookup is one dictionary access.
+
+Step 7 admits 2.14.2: the shipped table is valid, defaults to it and lists it
+when refusing another version; the admission leaf
+`test_git_cliff_acceptance` ties its identity to the committed bundle.
 
 Code review round 1 of Step 1 found that a cache key made of the table hashed
 every pin on each lookup; an instrumented table now proves that warm
@@ -111,13 +115,21 @@ def test_a_well_formed_absent_version_lists_the_tested_pins() -> None:
         admitted("2.15.0", _PINS)
 
 
-def test_the_shipped_empty_tuple_refuses_with_tested_none_and_has_no_default() -> None:
-    """Until admission, no version is tested and the domain has no default."""
-    assert ADMITTED_PINS == ()
-    assert validate_pins(ADMITTED_PINS) == ()
-    assert default_version(ADMITTED_PINS) is None
+def test_an_empty_table_refuses_with_tested_none_and_has_no_default() -> None:
+    """Without an admitted pin, no version is tested and the domain has no default."""
+    empty: tuple[AdmittedPin, ...] = ()
+    assert validate_pins(empty) == ()
+    assert default_version(empty) is None
     with pytest.raises(PinError, match=r"^not a tested git-cliff pin; tested: none$"):
-        parse_pin("2.14.2", pins=ADMITTED_PINS)
+        parse_pin("2.14.2", pins=empty)
+
+
+def test_the_shipped_table_is_valid_and_defaults_to_its_admitted_pin() -> None:
+    """Since Step 7, the shipped table passes its own invariants, defaults to 2.14.2 and lists it."""
+    assert validate_pins(ADMITTED_PINS) is ADMITTED_PINS
+    assert default_version(ADMITTED_PINS) == "2.14.2"
+    with pytest.raises(PinError, match=r"^not a tested git-cliff pin; tested: 2\.14\.2$"):
+        parse_pin("2.15.0", pins=ADMITTED_PINS)
 
 
 @pytest.mark.parametrize(("pins", "message"), [
