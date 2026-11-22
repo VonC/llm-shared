@@ -9,7 +9,11 @@ input proof within the 100-second fake-clock budget, and never retyped; a
 redundant clear is skipped, an unconfirmed one stops the resume, and the
 requestor always precedes its conditional reviewer. Code review round 2:
 each proof's prover is built for the remaining budget, and a log read that
-spends it starts no proof.
+spends it starts no proof. Step 7: every resume report goes through the
+takeover's ``received`` with its checkout before the reviewer is decided.
+Step 7 code review round 1: the worker hands the takeover its plan's
+accepted prompt digest, and its own report of a Claude reviewer whose
+requestor was refused or unconfirmed carries ``limits=claude-wait-scope``.
 """
 
 from __future__ import annotations
@@ -46,16 +50,19 @@ from tests.unit.tools.test_resume_paused_delivery.delivery_world import (
 from tools.resume_paused_artifacts import PromptState
 from tools.resume_paused_delivery import deliver_run
 from tools.resume_paused_delivery_model import (
+    CLAUDE_WAIT_SCOPE,
     ActionReport,
     ClearOutcome,
     DeliveryOutcome,
     LogKind,
     PairDelivery,
     Phase,
+    ReceiverState,
     Refusal,
     UnpinnedProfiles,
 )
 from tools.resume_paused_guard import GuardState
+from tools.resume_paused_models import PromptDigest
 from tools.resume_paused_plan_model import (
     ActionKind,
     CheckoutOutcome,
@@ -77,7 +84,9 @@ if TYPE_CHECKING:
 
 SELECTOR = f"session:{SESSION} name:Claude*api"
 WEB_COMMAND = f"/resume-session --resume-paused 03.rp1.{WEB_PANE}.requestor.b3"
+CLAUDE_REVIEWER_COMMAND = f"/review-resume --resume-paused 04.rp1.{WEB_PANE}.reviewer.b4"
 NOT_READY = replace(IDLE, ready=False)
+DIGEST = PromptDigest.of(b"the saved prompt the plan read")
 
 
 @dataclass
@@ -96,11 +105,25 @@ class RecordingCheck:
 
 @dataclass
 class RecordingTakeover:
-    """Takeover recording what it was handed, delivering the reviewer when asked."""
+    """Takeover recording what it was handed, delivering the reviewer when asked.
+
+    Step 7: ``received`` records each resume report with the worker's checkout
+    and returns it marked consumed, so a test sees the observed report reach
+    the reviewer decision. Code review round 1: it also records the worker's
+    accepted prompt digest.
+    """
 
     deliver: bool = False
     checks: tuple[RecordingCheck, ...] = ()
     handed: list[tuple[ActionReport | None, PlannedAction]] = field(default_factory=list[tuple[ActionReport | None, PlannedAction]])
+    received_reports: list[tuple[str, ActionReport]] = field(default_factory=list[tuple[str, ActionReport]])
+    digests: list[PromptDigest | None] = field(default_factory=list[PromptDigest | None])
+
+    def received(self, pair: PairDelivery, report: ActionReport) -> ActionReport:
+        """Record the resume report with its checkout and the plan's digest, and return it observed as consumed."""
+        self.received_reports.append((pair.root.key, report))
+        self.digests.append(pair.digest)
+        return replace(report, receiver=ReceiverState.CONSUMED)
 
     def reviewer(self, pair: PairDelivery, resumed: ActionReport | None, action: PlannedAction) -> ActionReport:
         """Record the hand-over, then deliver or report pending."""
@@ -378,7 +401,33 @@ def test_a_reviewer_is_never_attempted_after_an_unconfirmed_resume() -> None:
     assert [(report.outcome, report.reason) for report in delivery.reports] == [
         (DeliveryOutcome.UNCONFIRMED, "acceptance-unproved"), (DeliveryOutcome.REFUSED, "requestor-not-accepted"),
     ]
-    assert takeover.handed == []
+    assert (takeover.handed, [report.outcome for _, report in takeover.received_reports]) == ([], [DeliveryOutcome.UNCONFIRMED])
+    assert delivery.reports[1].notes == ()
+
+
+@pytest.mark.parametrize("unaccepted", [DeliveryOutcome.REFUSED, DeliveryOutcome.UNCONFIRMED])
+def test_a_claude_reviewer_of_an_unaccepted_requestor_carries_the_wait_scope_limits(unaccepted: DeliveryOutcome) -> None:
+    """The worker's own report of a Claude reviewer whose requestor was refused or unconfirmed discloses the limits."""
+    refused = unaccepted is DeliveryOutcome.REFUSED
+    takeover = RecordingTakeover()
+    world = World(takeover=takeover, checks=(RecordingCheck(refuse_at=Phase.RESUME),) if refused else ())
+    world.transport.observations = [observation(record(), record(WEB_PANE, name="Claude review"))]
+    (delivery,) = world.deliver(checkout(action(), action(WEB_PANE, CLAUDE_REVIEWER_COMMAND, kind=ActionKind.REVIEWER)))
+    requestor, reviewer = delivery.reports
+    assert (requestor.outcome, reviewer.outcome, reviewer.reason, reviewer.notes) == (unaccepted, DeliveryOutcome.REFUSED, "requestor-not-accepted", (CLAUDE_WAIT_SCOPE,))
+    assert (reviewer.action.host, takeover.handed) == (Host.CLAUDE, [])
+
+
+def test_every_resume_report_is_observed_before_its_reviewer_is_decided() -> None:
+    """Step 7's seam: the resume report goes through ``received`` with its checkout and plan digest, and the reviewer gets the observed one."""
+    takeover = RecordingTakeover()
+    world = World(takeover=takeover)
+    (delivery,) = world.deliver(replace(paired(world), digest=DIGEST))
+    ((root, report),) = takeover.received_reports
+    ((resumed, _),) = takeover.handed
+    assert (root, report.outcome, report.receiver, takeover.digests) == (API.key, DeliveryOutcome.ACCEPTED, ReceiverState.UNOBSERVED, [DIGEST])
+    assert resumed is not None
+    assert (resumed.receiver, delivery.reports[0].receiver) == (ReceiverState.CONSUMED, ReceiverState.CONSUMED)
 
 
 def test_a_later_continuation_goes_to_the_takeover_without_a_resume() -> None:
