@@ -6,9 +6,13 @@ admitted it (design Q01). Its digest is the one GitHub publishes, copied at
 admission, so provisioning never calls the GitHub API; the download URL is
 derived from the pin and keeps the upstream `vX.Y.Z` tag spelling.
 
-Step 1 of v0.14.0 git-cliff-provisioning ships the empty admitted tuple: the
-`[git-cliff]` domain then has no default and refuses every declared version
-with `tested: none`, until Step 7 admits 2.14.2 after its reviewed evidence.
+Step 1 of v0.14.0 git-cliff-provisioning shipped the empty admitted tuple:
+the `[git-cliff]` domain had no default and refused every declared version
+with `tested: none`. Step 7 admits 2.14.2 as the default, after the user
+approved its evidence bundle `git_cliff/bundles/2.14.2/` on 2026-11-21: the
+entry copies the bundle's 2.14.2 identity (asset, size and the digest GitHub
+publishes), and the 2.7.0 baseline of that bundle, trusted for evidence
+only, never enters the table.
 
 The configuration schema imports this module at load time, so it imports only
 `dataclasses` and `re` and holds no network, filesystem or process code.
@@ -173,8 +177,19 @@ def download_url(pin: AdmittedPin) -> str:
     return asset_url(pin.version, pin.asset)
 
 
-# Empty until Step 7 admits 2.14.2 with its reviewed evidence bundle.
-ADMITTED_PINS: tuple[AdmittedPin, ...] = validate_pins(())
+# Admitted by Step 7 with the user-approved evidence bundle it names.
+ADMITTED_PINS: tuple[AdmittedPin, ...] = validate_pins((
+    AdmittedPin(
+        version="2.14.2",
+        default=True,
+        triple=PLATFORM_TRIPLE,
+        asset="git-cliff-2.14.2-x86_64-pc-windows-msvc.zip",
+        size=7_428_304,
+        sha256="6ece2112b3f4af462190ecbea4aeb1315fff6af415629b597f84319073c31131",
+        member="git-cliff-2.14.2/git-cliff.exe",
+        evidence="tools/release_workflow/git_cliff/bundles/2.14.2",
+    ),
+))
 
 
 # eof
