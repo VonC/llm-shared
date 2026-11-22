@@ -64,6 +64,15 @@ remaining-time callable, so every nested read of a proof is bounded by the
 time left when it starts (``tools.resume_paused_budget``), and the injected
 checks stop before each check once the budget is spent.
 
+Fix (Step 7): every resume report goes through ``Takeover.received``, which
+observes an accepted receiver under its own post-acceptance bound before any
+conditional reviewer is decided; the worker names its checkout as
+``PairDelivery.root``.
+
+Fix (Step 7 code review round 1): the worker names its plan's accepted
+prompt as ``PairDelivery.digest``, and its own report of a Claude reviewer
+whose requestor was not accepted carries ``limits=claude-wait-scope``.
+
 Nothing here writes an artifact, parses arguments or reads a conversation.
 """
 
@@ -81,6 +90,7 @@ from tools.resume_paused_delivery_checks import TargetContext, target_refusal
 from tools.resume_paused_delivery_model import (
     ACTION_BUDGET,
     CALL_BOUND_SECONDS,
+    CLAUDE_WAIT_SCOPE,
     ActionReport,
     CheckoutDelivery,
     ClearOutcome,
@@ -107,6 +117,7 @@ if TYPE_CHECKING:
     )
     from tools.resume_paused_evidence import PaneObservation
     from tools.resume_paused_input import PaneRecord
+    from tools.resume_paused_models import CanonicalRoot, PromptDigest
     from tools.resume_paused_plan_model import (
         CheckoutPlan,
         PlannedAction,
@@ -511,6 +522,16 @@ class _CheckoutWorker:
         self._plan = plan
         self._slots = slots
 
+    @property
+    def root(self) -> CanonicalRoot:
+        """Return the checkout whose guard this worker holds."""
+        return self._plan.root
+
+    @property
+    def digest(self) -> PromptDigest | None:
+        """Return the digest of the saved prompt this checkout's plan accepted."""
+        return self._plan.digest
+
     def run(self) -> CheckoutDelivery:
         """Take the checkout's guard without waiting and run the protected sequence while holding it."""
         with self.ports.guard.acquire(self._plan.root) as lease:
@@ -519,17 +540,18 @@ class _CheckoutWorker:
             return CheckoutDelivery(self._plan.root, lease.state, self._sequence())
 
     def _sequence(self) -> tuple[ActionReport, ...]:
-        """Resume first; each conditional reviewer goes to the takeover only after an accepted resume."""
+        """Resume and observe its receiver first; each conditional reviewer goes to the takeover only after an accepted resume."""
         reports: list[ActionReport] = []
         resumed: ActionReport | None = None
         for action in self._plan.actions:
             if action.command is None:
                 reports.append(ActionReport(action, DeliveryOutcome.REFUSED, action.skip.value if action.skip else "not-planned"))
             elif not action.conditional:
-                resumed = self.deliver(action, Phase.RESUME)
+                resumed = self.ports.takeover.received(self, self.deliver(action, Phase.RESUME))
                 reports.append(resumed)
             elif resumed is not None and resumed.outcome is not DeliveryOutcome.ACCEPTED:
-                reports.append(ActionReport(action, DeliveryOutcome.REFUSED, "requestor-not-accepted"))
+                notes = (CLAUDE_WAIT_SCOPE,) if action.host is Host.CLAUDE else ()
+                reports.append(ActionReport(action, DeliveryOutcome.REFUSED, "requestor-not-accepted", notes=notes))
             else:
                 reports.append(self.ports.takeover.reviewer(self, resumed, action))
         return tuple(reports)

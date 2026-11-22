@@ -27,6 +27,18 @@ Step 8's composition and reporting share one model:
   each conditional reviewer under the same held guard; ``NoTakeover`` keeps
   every conditional reviewer pending until Step 7 exists.
 
+Fix (Step 7): after its acceptance, every resume goes through
+``Takeover.received``, which observes that receiver under its own 120-second
+bound and records what it saw in ``ActionReport.receiver`` and
+``ActionReport.generation`` (``ReceiverState``). ``PairDelivery.root`` names
+the checkout the takeover reads, so the takeover's own durable reads need no
+other argument.
+
+Fix (Step 7 code review round 1): ``PairDelivery.digest`` names the saved
+prompt the checkout's plan accepted, which the takeover's observation binds.
+``CLAUDE_WAIT_SCOPE`` lives here so the worker's own report of a Claude
+reviewer whose requestor was not accepted carries it too.
+
 The module holds values and protocols only: no IO and no input.
 """
 
@@ -44,13 +56,14 @@ if TYPE_CHECKING:
     from tools.resume_paused_evidence import PaneObservation, ScreenProbe
     from tools.resume_paused_guard import GuardLease
     from tools.resume_paused_input import InputProver, PaneRecord
-    from tools.resume_paused_models import CanonicalRoot
+    from tools.resume_paused_models import CanonicalRoot, PromptDigest
     from tools.resume_paused_plan_model import PlannedAction
     from tools.resume_paused_profiles import Clock, Host
     from tools.resume_paused_transport import AskOutcome, Selection
 
 ACTION_BUDGET: Final = timedelta(seconds=100)
 CALL_BOUND_SECONDS: Final = 30.0
+CLAUDE_WAIT_SCOPE: Final = "limits=claude-wait-scope"
 
 
 class GuardState(StrEnum):
@@ -88,6 +101,22 @@ class ClearOutcome(StrEnum):
     UNCONFIRMED = "unconfirmed"
 
 
+class ReceiverState(StrEnum):
+    """What the post-acceptance observation of one receiver saw (Step 7).
+
+    ``CLAIMED`` means durable records prove this launch's current marked
+    claim, ``CONSUMED`` that its schema 3 receipt consumed the prompt, and
+    ``COMPLETION_UNCONFIRMED`` that the bound passed with neither, which is
+    still a success; only ``FAILED`` fails the action.
+    """
+
+    UNOBSERVED = "unobserved"
+    CONSUMED = "consumed"
+    CLAIMED = "claimed"
+    COMPLETION_UNCONFIRMED = "completion-unconfirmed"
+    FAILED = "failed"
+
+
 @dataclass(frozen=True)
 class Refusal:
     """Why one send must not happen; ``failed`` marks a classification failure, otherwise an expected skip."""
@@ -98,7 +127,12 @@ class Refusal:
 
 @dataclass(frozen=True)
 class ActionReport:
-    """The outcome of one planned action, with its clear, any recovery Enter and report-only notes."""
+    """The outcome of one planned action, with its clear, any recovery Enter and report-only notes.
+
+    ``receiver`` and ``generation`` record the Step 7 observation of an
+    accepted receiver: its state and, once claimed, the claim's ownership
+    generation (non-secret).
+    """
 
     action: PlannedAction
     outcome: DeliveryOutcome
@@ -107,6 +141,8 @@ class ActionReport:
     clear: ClearOutcome = ClearOutcome.NONE
     recovery: tuple[Phase, ...] = ()
     notes: tuple[str, ...] = ()
+    receiver: ReceiverState = ReceiverState.UNOBSERVED
+    generation: int | None = None
 
 
 @dataclass(frozen=True)
@@ -263,13 +299,27 @@ class GuardPort(Protocol):
 class PairDelivery(Protocol):
     """What Step 7 may do under the held guard: deliver one more planned action with extra checks."""
 
+    @property
+    def root(self) -> CanonicalRoot:
+        """Return the checkout whose guard is held."""
+        ...
+
+    @property
+    def digest(self) -> PromptDigest | None:
+        """Return the digest of the saved prompt the checkout's plan accepted, ``None`` when none was read."""
+        ...
+
     def deliver(self, action: PlannedAction, phase: Phase, checks: tuple[PreSendCheck, ...] = ()) -> ActionReport:
         """Deliver one planned action, running the extra checks before each of its sends."""
         ...
 
 
 class Takeover(Protocol):
-    """Step 7: observe the resumed requestor's takeover and decide each conditional reviewer."""
+    """Step 7: observe each accepted receiver and decide each conditional reviewer."""
+
+    def received(self, pair: PairDelivery, report: ActionReport) -> ActionReport:
+        """Return the resume's report with its post-acceptance observation; other reports stay unchanged."""
+        ...
 
     def reviewer(self, pair: PairDelivery, resumed: ActionReport | None, action: PlannedAction) -> ActionReport:
         """Return the conditional reviewer's outcome; ``resumed`` is ``None`` for a later continuation."""
@@ -277,10 +327,15 @@ class Takeover(Protocol):
 
 
 class NoTakeover:
-    """``Takeover`` before Step 7: every conditional reviewer stays pending."""
+    """``Takeover`` without Step 7 composition: no receiver is observed and every conditional reviewer stays pending."""
+
+    def received(self, pair: PairDelivery, report: ActionReport) -> ActionReport:
+        """Return the report unobserved."""
+        del pair
+        return report
 
     def reviewer(self, pair: PairDelivery, resumed: ActionReport | None, action: PlannedAction) -> ActionReport:
-        """Report the reviewer pending; no takeover is observed yet."""
+        """Report the reviewer pending; no takeover is observed."""
         del pair, resumed
         return ActionReport(action, DeliveryOutcome.PENDING, "takeover-unobserved")
 
@@ -318,6 +373,7 @@ class DeliveryPorts:
 __all__ = [
     "ACTION_BUDGET",
     "CALL_BOUND_SECONDS",
+    "CLAUDE_WAIT_SCOPE",
     "ActionReport",
     "AgentLog",
     "CheckoutDelivery",
@@ -337,6 +393,7 @@ __all__ = [
     "PreSendCheck",
     "ProfileGate",
     "ProverFactory",
+    "ReceiverState",
     "Refusal",
     "Remaining",
     "SendStep",
