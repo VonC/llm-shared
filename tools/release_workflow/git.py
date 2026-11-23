@@ -23,6 +23,14 @@ optional input bytes for Git's input stream, such as the one `fast-import`
 stream of the evidence fixture. They are passed through
 `subprocess.run(input=...)`, which then owns standard input, so no `stdin` is
 set beside them; a call without input keeps the existing stdin rule.
+
+Step 8 of v0.14.0 git-cliff-provisioning: `worktree_presence` tells, from one
+`rev-parse --is-inside-work-tree` call through `run`, whether a directory is
+inside a worktree (`true`), in Git metadata without one, a bare repository or
+a `.git` directory (`false`), or in no repository (exit 128 whose stderr,
+untranslated under `LC_ALL=C`, starts with `fatal: not a git repository`).
+Every other answer, such as a dubious ownership refusal, is a
+`GitCommandError`, never an absence. Only `gcliff` asks it.
 """
 
 from __future__ import annotations
@@ -31,6 +39,7 @@ import os
 import re
 import subprocess
 from dataclasses import dataclass
+from enum import Enum
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -60,6 +69,19 @@ _COMMAND_LINE_LIMIT = 32_767
 _USAGE_STATUS = 129
 _TAG_FIELDS = ("%(refname:strip=2)", "%(objecttype)", "%(objectname)", "%(*objecttype)", "%(*objectname)", "%(contents)")
 _TAG_FORMAT = "".join(f"{name}%00" for name in _TAG_FIELDS)
+_NO_REPOSITORY_STATUS = 128
+_NO_REPOSITORY = "fatal: not a git repository"
+
+
+class WorktreePresence(Enum):
+    """Where a directory stands for Git: inside a worktree, in metadata without one, or in no repository."""
+
+    INSIDE = "inside"
+    NO_WORKTREE = "no-worktree"
+    NO_REPOSITORY = "no-repository"
+
+
+_PRESENCE_ANSWERS = {"true\n": WorktreePresence.INSIDE, "false\n": WorktreePresence.NO_WORKTREE}
 
 
 class GitCommandError(GitPolicyError):
@@ -270,6 +292,20 @@ class GitExecutionContext:
             msg = "Git did not report three absolute project metadata paths"
             raise GitPolicyError(msg)
         return Path(lines[0]), Path(lines[1]), Path(lines[2])
+
+    def worktree_presence(self, *, cwd: Path) -> WorktreePresence:
+        """Tell whether a directory is inside a worktree, in Git metadata without one, or in no repository, from one call.
+
+        Raises:
+            GitCommandError: Git answered anything else, such as a dubious ownership refusal.
+        """
+        result = self.run(["rev-parse", "--is-inside-work-tree"], cwd=cwd, check=False)
+        answer = _PRESENCE_ANSWERS.get(result.stdout) if result.returncode == 0 else None
+        if answer is not None:
+            return answer
+        if result.returncode == _NO_REPOSITORY_STATUS and result.stderr.startswith(_NO_REPOSITORY):
+            return WorktreePresence.NO_REPOSITORY
+        raise GitCommandError(result)
 
     def index(self, *, cwd: Path, directory: str | None = None) -> tuple[str, ...]:
         """Return tracked names without exposing NUL-delimited command output."""

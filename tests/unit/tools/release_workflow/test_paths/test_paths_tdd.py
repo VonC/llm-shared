@@ -11,22 +11,32 @@ both native probes still run and their setup duration is recorded.
 Textual escapes and file ancestors reuse the same validated boundary matrix,
 removing three repository copies and six native probes from those cases.
 Linked Git-file rejection shares one native validated identity for both targets.
+
+Step 8 of v0.14.0 git-cliff-provisioning adds `find_worktree`, used only by
+`gcliff`: the configuration inspection first, then one presence query; a
+plain directory, a bare repository and a `.git` directory give None, inside
+a worktree it returns what `discover_project` returns, and every other
+failure is a discovery failure. The `discover_project` cases stay unchanged.
 """
 
 from __future__ import annotations
 
+import subprocess
 from typing import TYPE_CHECKING
 
 import pytest
 
+from tools.release_workflow.git import GitCommandError, WorktreePresence
 from tools.release_workflow.paths import (
     ProjectPathError,
     authorize_path,
     discover_project,
+    find_worktree,
     validate_project,
 )
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
     from pathlib import Path
 
     from tests.unit.tools.release_workflow.git_test_support import GitSandbox
@@ -169,6 +179,56 @@ def test_linked_gitfile_is_not_a_managed_destination(name: str, linked_identity:
     """Protect a linked worktree's pointer file as both target and ancestor."""
     with pytest.raises(ProjectPathError, match="Git metadata"):
         authorize_path(linked_identity, name)
+
+
+def test_find_worktree_returns_what_discovery_returns(git_sandbox: GitSandbox) -> None:
+    """Step 8 of git-cliff-provisioning: from a nested folder, `find_worktree` gives the identity `discover_project` gives."""
+    git = context(git_sandbox)
+    found = find_worktree(git_sandbox.home / "B" / "sub", git)
+    assert found == discover_project(git_sandbox.home / "B" / "sub", git)
+    assert found is not None
+    assert found.root == (git_sandbox.home / "B").resolve()
+
+
+@pytest.mark.parametrize("place", ["plain", "bare.git", "B/.git"])
+def test_a_directory_without_a_worktree_finds_none(place: str, git_sandbox: GitSandbox) -> None:
+    """A plain directory, a bare repository and a `.git` directory are no worktree: None, not a failure."""
+    directory = git_sandbox.home / place
+    directory.mkdir(exist_ok=True)
+    if place == "bare.git":
+        git_sandbox.declare_presence(directory, WorktreePresence.NO_WORKTREE)
+    assert find_worktree(directory, context(git_sandbox)) is None
+
+
+def _recorded(calls: list[str], name: str, method: Callable[..., object]) -> Callable[..., object]:
+    """Wrap one Git observation so its calls are listed in order."""
+    def observe(self: GitExecutionContext, *, cwd: Path) -> object:
+        calls.append(name)
+        return method(self, cwd=cwd)
+    return observe
+
+
+def test_find_worktree_inspects_the_configuration_before_the_presence(git_sandbox: GitSandbox, monkeypatch: pytest.MonkeyPatch) -> None:
+    """The existing configuration inspection runs once, first; the metadata is read only inside a worktree."""
+    calls: list[str] = []
+    git = context(git_sandbox)
+    for name in ("inspect_config", "worktree_presence", "metadata"):
+        monkeypatch.setattr(type(git), name, _recorded(calls, name, getattr(type(git), name)))
+    find_worktree(git_sandbox.home / "B", git)
+    find_worktree(git_sandbox.home, git)
+    assert calls == ["inspect_config", "worktree_presence", "metadata", "inspect_config", "worktree_presence"]
+
+
+def test_a_rejected_configuration_or_another_git_failure_is_a_discovery_failure(git_sandbox: GitSandbox) -> None:
+    """A rejected configuration, or a refusal such as a dubious ownership, fails with the discovery context."""
+    selected = git_sandbox.home / "chosen.cfg"
+    selected.write_text("", encoding="utf-8")
+    with pytest.raises(ProjectPathError, match=r"Cannot discover project from .*GIT_CONFIG selector"):
+        find_worktree(git_sandbox.home / "B", context(git_sandbox, GIT_CONFIG=str(selected)))
+    refusal = subprocess.CompletedProcess(["git"], 128, "", "fatal: detected dubious ownership in repository at 'B'\n")
+    git_sandbox.declare_presence(git_sandbox.home / "B", GitCommandError(refusal))
+    with pytest.raises(ProjectPathError, match=r"Cannot discover project from .*dubious ownership"):
+        find_worktree(git_sandbox.home / "B", context(git_sandbox))
 
 
 # eof
