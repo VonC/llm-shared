@@ -8381,3 +8381,1497 @@ Human choice: Commit
 Outcome: continue-owning-workflow
 
 <!-- review-entry-id: human-confirmation-round-2 -->
+
+## Round 1 by requestor - Step 8
+
+- Recorded: 2026-11-22T12:12:48+01:00
+- Exchange: code/code/v0.14.0/git-cliff-provisioning
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: unrecorded
+- Implementation step: 8
+- Outcome: request
+
+### Review identity for step 8 git-cliff-provisioning (round 1)
+
+Umbrella draft: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+Implementation plan: docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.md
+Implementation step: 8
+Review round: 1
+
+### Code review evidence for step 8 git-cliff-provisioning (round 1)
+
+request_index_tree: e758993d997e2500c0b3df211d6322265095d811
+resolved_validation_set:
+
+- `ghog day --full=speed --whole-suite` (sources: project)
+- `ghog day --full=cov --whole-suite` (sources: plan)
+
+test_scope:
+{"fingerprint": "686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6", "group": null, "proof": "speed", "requirement": "docs/v0.14.0/feature-request.v0.14.0.git-cliff-provisioning.md", "scope": "whole"}
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: feat(release): observe worktree presence for gcliff
+group 1 path: tools/release_workflow/git.py
+group 1 path: tools/release_workflow/paths.py
+group 1 path: tests/unit/tools/release_workflow/repository_simulation.py
+group 1 path: tests/unit/tools/release_workflow/test_git/test_git_tdd.py
+group 1 path: tests/unit/tools/release_workflow/test_paths/test_paths_tdd.py
+group 2: feat(release): add the gcliff launcher
+group 2 path: tools/release_workflow/invocation.py
+group 2 path: tools/release_workflow/bootstrap.py
+group 2 path: tools/release_workflow/git_cliff/launcher.py
+group 2 path: tools/release_workflow/git_cliff/__init__.py
+group 2 path: bin/gcliff.bat
+group 2 path: bin/gcliff.doskey
+group 2 path: .gitattributes
+group 3: test(release): drive gcliff through the simulation
+group 3 path: tests/unit/tools/release_workflow/launcher_simulation.py
+group 3 path: tests/unit/tools/release_workflow/gcliff_simulation.py
+group 3 path: tests/unit/tools/release_workflow/git_cliff_children_fake.py
+group 3 path: tests/unit/tools/release_workflow/test_git_cliff_launcher/__init__.py
+group 3 path: tests/unit/tools/release_workflow/test_git_cliff_launcher/test_git_cliff_launcher_tdd.py
+group 3 path: tests/unit/tools/release_workflow/test_launchers/test_gcliff_source_tdd.py
+group 3 path: tests/unit/tools/release_workflow/test_bootstrap/test_bootstrap_tdd.py
+group 3 path: tests/unit/tools/release_workflow/test_invocation/test_invocation_tdd.py
+group 4: test(release): accept gcliff on the shipped manifest
+group 4 path: tests/unit/tools/release_workflow/test_git_cliff_acceptance/test_git_cliff_acceptance_tdd.py
+group 4 path: tests/unit/tools/release_workflow/test_git_cliff_acceptance/test_gcliff_acceptance_tdd.py
+group 5: test(release): record the final native checks
+group 5 path: tests/unit/tools/release_workflow/git_cliff_native_checks.py
+group 5 path: tests/unit/tools/release_workflow/git_cliff_native_launcher.py
+group 5 path: tests/unit/tools/release_workflow/test_git_cliff_native_evidence/native_checks.v1.json
+group 5 path: tests/unit/tools/release_workflow/test_git_cliff_native_evidence/test_git_cliff_native_evidence_tdd.py
+group 6: docs(wiki): document git-cliff provisioning
+group 6 path: wiki/reference/git-cliff-provisioning.md
+group 6 path: wiki/reference/aliases-and-launchers.md
+group 6 path: wiki/reference/automation-and-direct-invocation.md
+group 6 path: wiki/README.md
+group 7: docs(git-cliff-provisioning): record step 8 validation
+group 7 path: docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.validation.md
+group 7 path: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+staged path: .gitattributes
+staged path: bin/gcliff.bat
+staged path: bin/gcliff.doskey
+staged path: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+staged path: docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.validation.md
+staged path: tests/unit/tools/release_workflow/gcliff_simulation.py
+staged path: tests/unit/tools/release_workflow/git_cliff_children_fake.py
+staged path: tests/unit/tools/release_workflow/git_cliff_native_checks.py
+staged path: tests/unit/tools/release_workflow/git_cliff_native_launcher.py
+staged path: tests/unit/tools/release_workflow/launcher_simulation.py
+staged path: tests/unit/tools/release_workflow/repository_simulation.py
+staged path: tests/unit/tools/release_workflow/test_bootstrap/test_bootstrap_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git/test_git_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_acceptance/test_gcliff_acceptance_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_acceptance/test_git_cliff_acceptance_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_launcher/__init__.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_launcher/test_git_cliff_launcher_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_native_evidence/native_checks.v1.json
+staged path: tests/unit/tools/release_workflow/test_git_cliff_native_evidence/test_git_cliff_native_evidence_tdd.py
+staged path: tests/unit/tools/release_workflow/test_invocation/test_invocation_tdd.py
+staged path: tests/unit/tools/release_workflow/test_launchers/test_gcliff_source_tdd.py
+staged path: tests/unit/tools/release_workflow/test_paths/test_paths_tdd.py
+staged path: tools/release_workflow/bootstrap.py
+staged path: tools/release_workflow/git.py
+staged path: tools/release_workflow/git_cliff/__init__.py
+staged path: tools/release_workflow/git_cliff/launcher.py
+staged path: tools/release_workflow/invocation.py
+staged path: tools/release_workflow/paths.py
+staged path: wiki/README.md
+staged path: wiki/reference/aliases-and-launchers.md
+staged path: wiki/reference/automation-and-direct-invocation.md
+staged path: wiki/reference/git-cliff-provisioning.md
+```
+
+### Validation scope for step 8 git-cliff-provisioning (round 1)
+
+Validation scope: the whole suite.
+
+### Requestor assessment for step 8 git-cliff-provisioning (round 1)
+
+Writer assessment for Step 8 of the git-cliff-provisioning plan, round 1: the
+step is fully implemented. The implementation check records `Yes. Step 8 has
+been fully implemented.` in the staged validation plan, whose document status
+now reads `Yes, it is implemented.` since every step reads Yes, and the
+umbrella row of item 3 is completed with its requirement and validation plan.
+
+Evidence, on the staged tree:
+
+- Red first: `ghog single` on the Git, paths, invocation, bootstrap, source
+  contract, launcher and acceptance tests failed at the first boundary
+  (exit 5, `WorktreePresence` missing from `tools.release_workflow.git`).
+- Targeted: the same targets green (exit 0, 278 tests) after the
+  implementation; later additions green in focus.
+- Native recorder by hand, outside pytest:
+  `python -m tests.unit.tools.release_workflow.git_cliff_native_checks
+  --milestone final --output
+  tests\unit\tools\release_workflow\test_git_cliff_native_evidence\native_checks.v1.json`,
+  exit 0, 15 of 15 checks passed on the final covered sources, plus the
+  recorder timeout demonstration; the validator accepts the record (`ghog
+  single` on the evidence leaf after the last walk).
+- By hand: the first `bin\gcliff.bat --version` from a directory outside any
+  worktree downloaded, verified and published 2.14.2 into this checkout's
+  ignored cache with the downloading and ready lines, then printed
+  `git-cliff 2.14.2`; the next call reused it silently; `--frobnicate`
+  returned git-cliff's usage status 2; `--tag 50^%` returned 69 with the
+  `cliff.toml` diagnostic; `git status` stayed clean.
+- Default walk `ghog day --whole-suite`: exit 0 on the final tree.
+- Review validation `ghog day --full=speed --whole-suite` (built-in default,
+  no `.review-validation`): exit 0 with `cov=100 outliers=0 excluded=0
+  proof=speed`, 8204 tests, slowest call 0.31 s (outside this step), on index
+  tree `e758993d997e2500c0b3df211d6322265095d811`, identical before and after
+  the walk. No budget was changed and no exclusion is accepted.
+- Plan's final coverage proof `ghog day --full=cov --whole-suite` (passed as a
+  plan validation command): exit 0 on the same tree, reusing that speed proof
+  (`proof=speed reused=all`); an earlier full run on the tree before the last
+  two test additions reported 8201 tests with `cov=100`.
+- `rg -n 'gcliff' senv.doskey`: no match. `rg -n 'returning 1'
+  bin/gcliff.bat`: no match. `test_codepage_tdd.py` is unchanged and passes.
+- Line counts: every Python file below 550; advisory overruns recorded as
+  variance in the validation plan.
+- Markdown check and cSpell: clean on the four wiki pages, the validation
+  plan and the umbrella draft.
+
+Architecture: the launcher is an entry adapter composing the configuration
+reader, the manifest, the Git adapter, the path policy and the provisioning
+service; selection depends on the caller's directory only; the bootstrap
+keeps its tables at module level and its single status set; `paths` imports
+only `WorktreePresence` from `git`. Performance: constant work per call, one
+Git process for the presence. Feature integrity: the release launchers,
+discovery for every other caller and the engine commands are unchanged.
+
+Please check in particular: the launcher's 69 boundary (every path before the
+child, the refused and unconfirmed child, the console filter failure) and
+that the invocation guard is released on each; `find_worktree` against
+`discover_project`; the bootstrap's status tables and the unchanged cross-site
+contract; the derivation of `bin/gcliff.bat`; the final native check's
+method (silent pipe, handle scan of the launcher) and its observations; and
+the acceptance rows against the plan's ownership map.
+
+### Implementation report for step 8 git-cliff-provisioning (round 1)
+
+Step 8, "The gcliff launcher, integrated acceptance, final native checks and
+documentation", is the last of eight steps of the git-cliff-provisioning plan.
+It ships `gcliff`, the typed worktree presence it needs, the integrated
+acceptance tests, the final native check record and the reference
+documentation.
+
+Worktree presence and discovery:
+
+- `git.py`: `WorktreePresence` (`INSIDE`, `NO_WORKTREE`, `NO_REPOSITORY`) and
+  `GitExecutionContext.worktree_presence(*, cwd)`, one `rev-parse
+  --is-inside-work-tree` call through `run` with `check=False`: `true\n` is
+  inside, `false\n` (a bare repository or a `.git` directory) is no worktree,
+  exit 128 whose stderr starts with `fatal: not a git repository` is no
+  repository (the controlled environment sets `LC_ALL=C`), and every other
+  answer raises `GitCommandError`.
+- `paths.py`: `find_worktree(start, git)` inspects the configuration, asks the
+  presence once and, inside a worktree, returns the identity through
+  `_discovered`, the helper `discover_project` now also uses, so the
+  configuration is inspected once per call. `discover_project` keeps its
+  behavior; its tests are unchanged.
+
+Entry kind and bootstrap:
+
+- `invocation.py`: `gcliff-batch` joins `ENTRY_KINDS`; `validate_arguments`
+  applies the batch guard to it as to every `-batch` kind.
+- `bootstrap.py`: `_ENGINES` maps the kind to
+  `tools.release_workflow.git_cliff.launcher`, `_UNNORMALIZED_KINDS` holds it,
+  and `_unnormalized` calls a `Launcher` protocol with the arguments, the
+  original cwd, the tooling root and the verified identity. `_FAILURE_STATUS`
+  gives `gcliff-batch` 69 for readiness and invocation failures and for an
+  execution failure before the launcher or escaping it; every other kind keeps
+  `(2, 1)`. `InvocationError.kind` carries the kind once recognized, so a
+  repeated `--entry-kind` in gcliff arguments is 69 while a release kind keeps
+  2. `main` keeps its one status set literal, which the cross-site contract of
+  `test_codepage_tdd.py` reads.
+
+Launcher (`tools/release_workflow/git_cliff/launcher.py`):
+
+- `main(arguments, *, original_cwd, tooling_root, runtime, environment=None,
+  seams=None)`: the batch guard (diagnostic naming `cliff.toml`), the Git
+  context from the caller's environment and directory, `find_worktree`, the
+  whole configuration and `configured_pin` inside a worktree or
+  `default_version` outside one, `admitted` from the seam's pin table,
+  `provisioning_budget`, then `provision(..., caller="gcliff")`.
+- The run: `invocation.run(arguments, policy=Policy.PASSTHROUGH,
+  cwd=original_cwd, environment=environment, output="inherit")` inside the
+  console filter, inside `with invocation:`; with `environment=None` the
+  child inherits the process environment as is. The child's status is
+  returned unchanged.
+- Every failure before the child, a refused creation, an unconfirmed end, an
+  interruption or a filter that cannot register writes one `gcliff: <detail>`
+  line and returns `GCLIFF_UNAVAILABLE = 69`.
+- `LauncherSeams(provisioning, console=ignore_console_interrupts,
+  pins=ADMITTED_PINS)` and `production_seams(runtime)`; `main` binds the
+  production seams with the verified runtime's interpreter when none is given.
+
+Batch file and alias:
+
+- `bin/gcliff.bat` is `bin/release_workflow.bat` with three changes:
+  `set "_release_status=69"` followed by a comment line, `--entry-kind
+  gcliff-batch`, and `goto cleanup` in place of the five normalization lines.
+  It was derived by a script from the release launcher and written with CRLF;
+  `.gitattributes` gives it `text eol=crlf`; the index holds LF.
+- `bin/gcliff.doskey`: `gcliff="%LLM_SHARED_DIR%\bin\gcliff.bat" $*`, one
+  line; `senv.doskey` is unchanged.
+
+Tests:
+
+- Launcher leaf `test_git_cliff_launcher/` (29 cases): every launcher case of
+  the plan through the launcher simulation, with the provisioning world as the
+  fake provisioning seam and fake child launcher and a fake kernel for the
+  console filter; plus status 101, an interruption, a filter that cannot
+  register, a manifest admitting no pin, `main` without seams and the
+  production seams.
+- `test_launchers/test_gcliff_source_tdd.py`: the derivation equality, the
+  69 assignment before the record checks, no normalization, the code page
+  restore after a readiness error and after a child return, the alias
+  fragment, `senv.doskey` without a gcliff macro, the attribute line.
+- Bootstrap, invocation, Git and paths leaves: the plan's cases.
+- Acceptance leaf: `test_git_cliff_acceptance_tdd.py` and
+  `test_gcliff_acceptance_tdd.py`, every Step 8 row of the ownership map
+  against the shipped manifest; rows that download use a synthetic 2.14.2
+  table through the launcher seams, since no test downloads the published
+  asset.
+- Support: `launcher_simulation.py` (gcliff entry with seams,
+  `worktree_presence` routed to the sandbox), `gcliff_simulation.py` (new,
+  the scenario builder), `repository_simulation.py` (declared presences),
+  `git_cliff_children_fake.py` (a `gcliff --version` run inherits standard
+  input, so it is a run, not a probe).
+
+Final native record:
+
+- Milestone `final`: the 14 checks of Steps 2, 4 and 5 on the final sources
+  and the new `guard-held-by-gcliff-run-after-launcher-killed`
+  (`git_cliff_native_launcher.py`, 17.4 s of a 120 s bound), all passed.
+- That check runs the warm-up `bin\gcliff.bat --version`, then the production
+  launcher with `--from-context <named pipe>` on a pipe the recorder serves
+  and never writes, so git-cliff waits on its own file object and no handle
+  the launcher shares has a pending read. It finds git-cliff and its launcher
+  (the interpreter that created it) in a process snapshot, scans the
+  launcher's handle values for the job (`IsProcessInJob`, duplicate kept) and
+  the guard (the handle naming the executable), kills the launcher, then
+  observes git-cliff alive, its handle of the guard's value naming the
+  executable, the rename refused, and the rename allowed once the job ended
+  git-cliff and during a guard-free control run. The rename is undone at
+  once, so the production entry stays valid.
+- The validator requires both the Step 5 stand-in check and the new check at
+  `final`, and binds the launcher, the batch file and the modules on its path.
+
+Documentation: `wiki/reference/git-cliff-provisioning.md` (new), the
+git-cliff launcher section of `aliases-and-launchers.md`, the provisioning
+availability and the statuses 2 and 69 in
+`automation-and-direct-invocation.md`, and the link in `wiki/README.md`.
+
+Also staged: the validation plan's Step 8 sections and document status, and
+the umbrella row of item 3.
+
+Writer notes: `.reviews/a.git-cliff-provisioning.step8.journal.md` and
+`.reviews/a.git-cliff-provisioning.step8.handoff.md`.
+
+### Change summary for step 8 git-cliff-provisioning (round 1)
+
+Staged paths (32), grouped in the root `a.commit` (seven groups, checker
+`ready: true`):
+
+1. `feat(release): observe worktree presence for gcliff`:
+   `tools/release_workflow/git.py`, `tools/release_workflow/paths.py`,
+   `tests/unit/tools/release_workflow/repository_simulation.py`,
+   `tests/unit/tools/release_workflow/test_git/test_git_tdd.py`,
+   `tests/unit/tools/release_workflow/test_paths/test_paths_tdd.py`.
+2. `feat(release): add the gcliff launcher`:
+   `tools/release_workflow/invocation.py`, `tools/release_workflow/bootstrap.py`,
+   `tools/release_workflow/git_cliff/launcher.py`,
+   `tools/release_workflow/git_cliff/__init__.py`, `bin/gcliff.bat`,
+   `bin/gcliff.doskey`, `.gitattributes`.
+3. `test(release): drive gcliff through the simulation`:
+   `tests/unit/tools/release_workflow/launcher_simulation.py`,
+   `tests/unit/tools/release_workflow/gcliff_simulation.py`,
+   `tests/unit/tools/release_workflow/git_cliff_children_fake.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_launcher/__init__.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_launcher/test_git_cliff_launcher_tdd.py`,
+   `tests/unit/tools/release_workflow/test_launchers/test_gcliff_source_tdd.py`,
+   `tests/unit/tools/release_workflow/test_bootstrap/test_bootstrap_tdd.py`,
+   `tests/unit/tools/release_workflow/test_invocation/test_invocation_tdd.py`.
+4. `test(release): accept gcliff on the shipped manifest`:
+   `tests/unit/tools/release_workflow/test_git_cliff_acceptance/test_git_cliff_acceptance_tdd.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_acceptance/test_gcliff_acceptance_tdd.py`.
+5. `test(release): record the final native checks`:
+   `tests/unit/tools/release_workflow/git_cliff_native_checks.py`,
+   `tests/unit/tools/release_workflow/git_cliff_native_launcher.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_native_evidence/native_checks.v1.json`,
+   `tests/unit/tools/release_workflow/test_git_cliff_native_evidence/test_git_cliff_native_evidence_tdd.py`.
+6. `docs(wiki): document git-cliff provisioning`:
+   `wiki/reference/git-cliff-provisioning.md`,
+   `wiki/reference/aliases-and-launchers.md`,
+   `wiki/reference/automation-and-direct-invocation.md`, `wiki/README.md`.
+7. `docs(git-cliff-provisioning): record step 8 validation`:
+   `docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.validation.md`,
+   `docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md`.
+
+Every staged file has LF line endings in the index (`bin/gcliff.bat` checks
+out with CRLF through its attribute). The review transcript stays out of
+`a.commit`, for its residual commit after the review.
+
+### Writer response for step 8 git-cliff-provisioning (round 1)
+
+Writer response:
+
+Writer response:
+
+This is the first round of the Step 8 code review; there is no earlier
+reviewer feedback to answer.
+
+Choices worth checking, all recorded in the step notes and in the staged
+validation plan:
+
+- The plan says the inherited-guard check after a killed launcher "now starts
+  `bin\gcliff.bat` ... instead of the stand-in caller". The final milestone
+  keeps the Step 5 stand-in check, as part of "every check of Steps 2, 4 and
+  5", and adds the production check under its own name; the validator
+  requires both at `final`.
+- `_FAILURE_STATUS` gives 69 to an execution failure of `gcliff-batch` too
+  (an interruption or an unexpected error before the launcher, or an error
+  escaping it): no git-cliff status is known then, and the design reserves 69
+  for every failure before git-cliff starts. The plan names readiness and
+  invocation failures explicitly.
+- A refused child creation and an unconfirmed end are reported as 69 with the
+  containment diagnostic: the first means git-cliff never started, the second
+  that its status is unknown.
+- `LauncherSeams` carries the pin table, so the acceptance rows that download
+  can use a synthetic 2.14.2 archive the fake worker delivers; every other row
+  selects from the shipped manifest. The configuration domain always uses the
+  shipped manifest.
+- The launcher passes its `environment` argument unchanged to the run: in
+  production it is None, so git-cliff inherits the process environment as is,
+  never an uppercased copy of `os.environ`.
+- The final native check keeps git-cliff alive on a named pipe it reads
+  (`--from-context`), not on its standard input, because the launcher shares
+  the standard input file object and the recorder queries the names of the
+  launcher's handles. It kills the launcher's interpreter directly; the venv
+  redirector above it then exits on its own.
+- Test-side files outside the plan's list: `gcliff_simulation.py`,
+  `git_cliff_native_launcher.py` (the service module had 412 lines),
+  `repository_simulation.py`, `git_cliff_children_fake.py`; `.gitattributes`
+  gains the batch file's line.
+
+### Reviewer focus for step 8 git-cliff-provisioning (round 1)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-8-round-1 -->
+
+## Round 1 by reviewer - Step 8
+
+- Recorded: 2026-11-22T20:58:21+01:00
+- Exchange: code/code/v0.14.0/git-cliff-provisioning
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 8
+- Outcome: answer
+
+### Assessed index identity for step 8 git-cliff-provisioning (exchange 1) (round 1)
+
+Baseline index tree: e758993d997e2500c0b3df211d6322265095d811
+
+Assessed index tree: 78226956f62aa7863036aa5da800f367c2b6de00
+
+### Implementation check for step 8 git-cliff-provisioning (exchange 1) (round 1)
+
+Result:
+
+No. Step 8 has NOT been fully implemented.
+
+The production entry point, alias, project discovery, pin selection and reference pages are present. The final recorder can stop an unrelated launcher, three paths can return the wrong status, and the AC6 acceptance test can miss regressions.
+
+Validation plan effects:
+
+The reviewer changed and staged only the Step 8 assessment, missing-work items, coverage discussion and integrity conclusions in `docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.validation.md`. The umbrella digest was identical before and after.
+
+### Pre-repair mandatory checks and coverage for step 8 git-cliff-provisioning (exchange 1) (round 1)
+
+Static review of the request-time tree and its tests. Writer-reported results were 8,204 passing tests, 100% measured coverage, no duration outliers and 15 passing final native checks. Reviewer inspection found the behavioral coverage gaps below. No reviewer test walk or native recorder was needed or run.
+
+### Resolved validation set and sources for step 8 git-cliff-provisioning (exchange 1) (round 1)
+
+Project default `ghog day --full=speed --whole-suite`, followed by the plan addition `ghog day --full=cov --whole-suite`. The request binds both to whole-suite scope.
+
+### Resolver drift and direction for step 8 git-cliff-provisioning (exchange 1) (round 1)
+
+None. The project has no `.review-validation` override. The speed default and the plan's final coverage command both resolve under the whole-suite requirement. Their order and sources match the request.
+
+### Repository state around validation for step 8 git-cliff-provisioning (exchange 1) (round 1)
+
+The before/after validation comparison flagged exactly the validation plan as tracked and reported no untracked or ignored side effects. Its pre-edit blob matched the index. Patch attribution and hunk inspection confirmed every edit was in Step 8. The staged comparison preserves all 32 paths and the protected umbrella digest.
+
+### Repair inventory for step 8 git-cliff-provisioning (exchange 1) (round 1)
+
+Repairs made: None.
+
+Paths staged: None.
+
+### Commit plan assessment for step 8 git-cliff-provisioning (exchange 1) (round 1)
+
+Independent commit-plan checks before and after the metadata edit returned ready, exit 0, 7 groups, 32 paths and zero diagnostics. Position, subject and ordered path membership match the request for every group.
+
+1. `feat(release): observe worktree presence for gcliff` (5 paths)
+2. `feat(release): add the gcliff launcher` (7 paths)
+3. `test(release): drive gcliff through the simulation` (8 paths)
+4. `test(release): accept gcliff on the shipped manifest` (2 paths)
+5. `test(release): record the final native checks` (4 paths)
+6. `docs(wiki): document git-cliff provisioning` (4 paths)
+7. `docs(git-cliff-provisioning): record step 8 validation` (2 paths)
+
+### Findings and boundaries for step 8 git-cliff-provisioning (exchange 1) (round 1)
+
+Unresolved findings:
+
+- High. `tests/unit/tools/release_workflow/git_cliff_native_launcher.py:156` returns the first system-wide match for the cached executable. The caller at line 250 starts its own batch process but never checks that its selected launcher belongs to that process. A simultaneous legitimate invocation can lose its launcher, and the recorded observations can describe the wrong run. Establish ownership before destructive operations and fail safely on ambiguity. Cover competing candidates with simulated identities before refreshing native evidence.
+- `tools/release_workflow/bootstrap.py:219` captures cwd and configures streams while the entry kind is still unset. For a valid gcliff call, an OSError there returns the release readiness status 2 and an interruption returns 1. Determine the applicable status before either fallible operation. Inject failures at both boundaries and preserve the existing release behavior.
+- `tools/release_workflow/git_cliff/launcher.py:128` handles failures from leaving the console context as launch failures even after the invocation returned its outcome. Handler removal at `windows_child.py:616` can raise through the checked native binding. Preserve the confirmed exit status and test removal failure after a distinct child status as well as registration failure before the child.
+- `bin/gcliff.bat:65` expands an inherited environment variable named `ERRORLEVEL` in preference to cmd's dynamic exit status. An inherited value of 0 can hide a failed child. Preserve the actual exit status across cleanup and cover caller-defined ERRORLEVEL for successful and failing children while preserving the environment contract.
+- `tests/unit/tools/release_workflow/test_git_cliff_acceptance/test_git_cliff_acceptance_tdd.py:205` runs already-imported command and configuration functions after deleting provisioning entries from the module cache. Eager imports during command initialization escape observation. Comparing output with an invalid budget also misses a lookup whose result is discarded. Exercise fresh command imports and observe budget-key access during the specified operations. The separate configuration fresh-import test already covers that import boundary.
+
+Boundary-crossing work: None.
+
+### Writer instructions for step 8 git-cliff-provisioning (exchange 1) (round 1)
+
+Address the five findings in the reviewed step and add the specified regression cases. Refresh final native evidence after the recorder verifies process ownership, run the required writer validation, and reconcile the validation document and umbrella completion claim with the resulting evidence before submitting the new staged tree.
+
+### Decision rationale for step 8 git-cliff-provisioning (exchange 1) (round 1)
+
+Exact request identity and baseline index passed. Implementation completeness failed on recorder ownership and status propagation. Validation and coverage evidence failed on the native attribution and behavioral test gaps despite the writer's green suite. Staged attribution passed. Five current findings remain open in this first round. Mechanical commit grouping passed. Disposition is changes-requested.
+
+### Final reviewer decision for step 8 git-cliff-provisioning (exchange 1) (round 1)
+
+Decision: changes-requested. The writer must address the concrete instructions and publish another review round. This advisory answer does not authorize a commit.
+
+<!-- review-entry-id: answer-step-8-round-1 -->
+
+## Round 2 by requestor - Step 8
+
+- Recorded: 2026-11-22T21:53:29+01:00
+- Exchange: code/code/v0.14.0/git-cliff-provisioning
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 8
+- Outcome: request
+
+### Review identity for step 8 git-cliff-provisioning (round 2)
+
+Umbrella draft: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+Implementation plan: docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.md
+Implementation step: 8
+Review round: 2
+
+### Code review evidence for step 8 git-cliff-provisioning (round 2)
+
+request_index_tree: 49e106ef77109426c899a0888bfa4d1e883da801
+resolved_validation_set:
+
+- `ghog day --full=speed --whole-suite` (sources: project)
+- `ghog day --full=cov --whole-suite` (sources: plan)
+
+test_scope:
+{"fingerprint": "686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6", "group": null, "proof": "speed", "requirement": "docs/v0.14.0/feature-request.v0.14.0.git-cliff-provisioning.md", "scope": "whole"}
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: feat(release): observe worktree presence for gcliff
+group 1 path: tools/release_workflow/git.py
+group 1 path: tools/release_workflow/paths.py
+group 1 path: tests/unit/tools/release_workflow/repository_simulation.py
+group 1 path: tests/unit/tools/release_workflow/test_git/test_git_tdd.py
+group 1 path: tests/unit/tools/release_workflow/test_paths/test_paths_tdd.py
+group 2: feat(release): add the gcliff launcher
+group 2 path: tools/release_workflow/invocation.py
+group 2 path: tools/release_workflow/bootstrap.py
+group 2 path: tools/release_workflow/git_cliff/launcher.py
+group 2 path: tools/release_workflow/git_cliff/__init__.py
+group 2 path: bin/gcliff.bat
+group 2 path: bin/gcliff.doskey
+group 2 path: .gitattributes
+group 3: test(release): drive gcliff through the simulation
+group 3 path: tests/unit/tools/release_workflow/launcher_simulation.py
+group 3 path: tests/unit/tools/release_workflow/gcliff_simulation.py
+group 3 path: tests/unit/tools/release_workflow/git_cliff_children_fake.py
+group 3 path: tests/unit/tools/release_workflow/test_git_cliff_launcher/__init__.py
+group 3 path: tests/unit/tools/release_workflow/test_git_cliff_launcher/test_git_cliff_launcher_tdd.py
+group 3 path: tests/unit/tools/release_workflow/test_launchers/test_gcliff_source_tdd.py
+group 3 path: tests/unit/tools/release_workflow/test_bootstrap/test_bootstrap_tdd.py
+group 3 path: tests/unit/tools/release_workflow/test_invocation/test_invocation_tdd.py
+group 4: test(release): accept gcliff on the shipped manifest
+group 4 path: tests/unit/tools/release_workflow/test_git_cliff_acceptance/test_git_cliff_acceptance_tdd.py
+group 4 path: tests/unit/tools/release_workflow/test_git_cliff_acceptance/test_gcliff_acceptance_tdd.py
+group 5: test(release): record the final native checks
+group 5 path: tests/unit/tools/release_workflow/git_cliff_native_ownership.py
+group 5 path: tests/unit/tools/release_workflow/test_git_cliff_native_ownership/__init__.py
+group 5 path: tests/unit/tools/release_workflow/test_git_cliff_native_ownership/test_git_cliff_native_ownership_tdd.py
+group 5 path: tests/unit/tools/release_workflow/git_cliff_native_checks.py
+group 5 path: tests/unit/tools/release_workflow/git_cliff_native_launcher.py
+group 5 path: tests/unit/tools/release_workflow/test_git_cliff_native_evidence/native_checks.v1.json
+group 5 path: tests/unit/tools/release_workflow/test_git_cliff_native_evidence/test_git_cliff_native_evidence_tdd.py
+group 6: docs(wiki): document git-cliff provisioning
+group 6 path: wiki/reference/git-cliff-provisioning.md
+group 6 path: wiki/reference/aliases-and-launchers.md
+group 6 path: wiki/reference/automation-and-direct-invocation.md
+group 6 path: wiki/README.md
+group 7: docs(git-cliff-provisioning): record step 8 validation
+group 7 path: docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.validation.md
+group 7 path: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+staged path: .gitattributes
+staged path: bin/gcliff.bat
+staged path: bin/gcliff.doskey
+staged path: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+staged path: docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.validation.md
+staged path: tests/unit/tools/release_workflow/gcliff_simulation.py
+staged path: tests/unit/tools/release_workflow/git_cliff_children_fake.py
+staged path: tests/unit/tools/release_workflow/git_cliff_native_checks.py
+staged path: tests/unit/tools/release_workflow/git_cliff_native_launcher.py
+staged path: tests/unit/tools/release_workflow/git_cliff_native_ownership.py
+staged path: tests/unit/tools/release_workflow/launcher_simulation.py
+staged path: tests/unit/tools/release_workflow/repository_simulation.py
+staged path: tests/unit/tools/release_workflow/test_bootstrap/test_bootstrap_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git/test_git_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_acceptance/test_gcliff_acceptance_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_acceptance/test_git_cliff_acceptance_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_launcher/__init__.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_launcher/test_git_cliff_launcher_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_native_evidence/native_checks.v1.json
+staged path: tests/unit/tools/release_workflow/test_git_cliff_native_evidence/test_git_cliff_native_evidence_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_native_ownership/__init__.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_native_ownership/test_git_cliff_native_ownership_tdd.py
+staged path: tests/unit/tools/release_workflow/test_invocation/test_invocation_tdd.py
+staged path: tests/unit/tools/release_workflow/test_launchers/test_gcliff_source_tdd.py
+staged path: tests/unit/tools/release_workflow/test_paths/test_paths_tdd.py
+staged path: tools/release_workflow/bootstrap.py
+staged path: tools/release_workflow/git.py
+staged path: tools/release_workflow/git_cliff/__init__.py
+staged path: tools/release_workflow/git_cliff/launcher.py
+staged path: tools/release_workflow/invocation.py
+staged path: tools/release_workflow/paths.py
+staged path: wiki/README.md
+staged path: wiki/reference/aliases-and-launchers.md
+staged path: wiki/reference/automation-and-direct-invocation.md
+staged path: wiki/reference/git-cliff-provisioning.md
+```
+
+### Validation scope for step 8 git-cliff-provisioning (round 2)
+
+Validation scope: the whole suite.
+
+### Requestor assessment for step 8 git-cliff-provisioning (round 2)
+
+Writer assessment for Step 8 of the git-cliff-provisioning plan, round 2: the
+step is fully implemented. The five round 1 findings are repaired, and the new
+implementation check records `Yes. Step 8 has been fully implemented.` in the
+staged validation plan, with the repairs listed and the missing-work section
+removed; the document status stays `Yes, it is implemented.` and the umbrella
+row of item 3 stays completed.
+
+Evidence, on the staged tree:
+
+- Targeted: `ghog single` on the bootstrap, launcher, launchers, acceptance,
+  native ownership, native evidence, version acceptance and configuration
+  leaves, exit 0 (400 tests) before the recorder; the evidence and ownership
+  leaves again after it.
+- Native recorder by hand, outside pytest, after the last edit of a covered
+  source: `python -m tests.unit.tools.release_workflow.git_cliff_native_checks
+  --milestone final --output
+  tests\unit\tools\release_workflow\test_git_cliff_native_evidence\native_checks.v1.json`,
+  exit 0, 16 of 16 checks passed, among them the ownership-bound launcher
+  check (10.4 s) and the inherited `ERRORLEVEL` check (22.8 s); recorder
+  timeout demonstration within its bound.
+- By hand: `bin\gcliff.bat --frobnicate` with an inherited `ERRORLEVEL=0`
+  returned 2; `--version` with `ERRORLEVEL=7` returned 0; a `get_env`
+  template showed git-cliff receiving `seen=7`.
+- Default walk `ghog day --whole-suite`: exit 0 after the repairs and the
+  recorder.
+- Review validation `ghog day --full=speed --whole-suite` (built-in default):
+  exit 0 with `cov=100 outliers=0 excluded=0 proof=speed`, 8229 tests, slowest
+  call 0.31 s (outside this step), on index tree
+  `49e106ef77109426c899a0888bfa4d1e883da801`, identical before and after the
+  walk. No budget was changed and no exclusion is accepted.
+- Plan validation `ghog day --full=cov --whole-suite`: exit 0 on the same
+  tree, reusing that speed proof (`proof=speed reused=all`).
+- `rg -n 'gcliff' senv.doskey` and `rg -n 'returning 1' bin/gcliff.bat`: no
+  match. `test_codepage_tdd.py` is unchanged and passes.
+- Line counts: every Python file below 550 (the largest new or changed:
+  `test_git_cliff_acceptance_tdd.py` 407, `git_cliff_native_launcher.py` 382,
+  `test_bootstrap_tdd.py` 381); advisory overruns recorded as variance.
+- Markdown check and cSpell: clean on the validation plan and the wiki pages.
+
+Please check in particular: `owned_run` and how the launcher check builds its
+table and opens the processes before ending anything; `requested_kind` and
+the early-failure statuses; `_run` after a filter removal failure; the
+`ERRORLEVEL` deletion's place in `bin/gcliff.bat` and the new native check;
+and the collection-time fresh import with its watched budget name.
+
+### Implementation report for step 8 git-cliff-provisioning (round 2)
+
+Step 8, "The gcliff launcher, integrated acceptance, final native checks and
+documentation", is the last of eight steps of the git-cliff-provisioning plan.
+It ships `gcliff`, the typed worktree presence it needs, the integrated
+acceptance tests, the final native check record and the reference
+documentation.
+
+Worktree presence and discovery:
+
+- `git.py`: `WorktreePresence` (`INSIDE`, `NO_WORKTREE`, `NO_REPOSITORY`) and
+  `GitExecutionContext.worktree_presence(*, cwd)`, one `rev-parse
+  --is-inside-work-tree` call through `run` with `check=False`: `true\n` is
+  inside, `false\n` (a bare repository or a `.git` directory) is no worktree,
+  exit 128 whose stderr starts with `fatal: not a git repository` is no
+  repository (the controlled environment sets `LC_ALL=C`), and every other
+  answer raises `GitCommandError`.
+- `paths.py`: `find_worktree(start, git)` inspects the configuration, asks the
+  presence once and, inside a worktree, returns the identity through
+  `_discovered`, the helper `discover_project` now also uses, so the
+  configuration is inspected once per call. `discover_project` keeps its
+  behavior; its tests are unchanged.
+
+Entry kind and bootstrap:
+
+- `invocation.py`: `gcliff-batch` joins `ENTRY_KINDS`; `validate_arguments`
+  applies the batch guard to it as to every `-batch` kind.
+- `bootstrap.py`: `_ENGINES` maps the kind to
+  `tools.release_workflow.git_cliff.launcher`, `_UNNORMALIZED_KINDS` holds it,
+  and `_unnormalized` calls a `Launcher` protocol with the arguments, the
+  original cwd, the tooling root and the verified identity. `_FAILURE_STATUS`
+  gives `gcliff-batch` 69 for readiness and invocation failures and for an
+  execution failure before the launcher or escaping it; every other kind keeps
+  `(2, 1)`. Since round 1, `requested_kind` reads the kind of a well-formed
+  prefix before the cwd capture and the stream setup, so a failure of either,
+  or a repeated `--entry-kind` in gcliff arguments, is 69 for gcliff while a
+  release kind or a malformed prefix keeps 2 or 1. `main` keeps its one status
+  set literal, which the cross-site contract of `test_codepage_tdd.py` reads.
+
+Launcher (`tools/release_workflow/git_cliff/launcher.py`):
+
+- `main(arguments, *, original_cwd, tooling_root, runtime, environment=None,
+  seams=None)`: the batch guard (diagnostic naming `cliff.toml`), the Git
+  context from the caller's environment and directory, `find_worktree`, the
+  whole configuration and `configured_pin` inside a worktree or
+  `default_version` outside one, `admitted` from the seam's pin table,
+  `provisioning_budget`, then `provision(..., caller="gcliff")`.
+- The run: `invocation.run(arguments, policy=Policy.PASSTHROUGH,
+  cwd=original_cwd, environment=environment, output="inherit")` inside the
+  console filter, inside `with invocation:`; with `environment=None` the
+  child inherits the process environment as is. The child's status is
+  returned unchanged; since round 1, also when leaving the filter fails after
+  git-cliff ended, which writes its `gcliff:` line.
+- Every failure before the child, a refused creation, an unconfirmed end, an
+  interruption or a filter that cannot register writes one `gcliff: <detail>`
+  line and returns `GCLIFF_UNAVAILABLE = 69`.
+- `LauncherSeams(provisioning, console=ignore_console_interrupts,
+  pins=ADMITTED_PINS)` and `production_seams(runtime)`; `main` binds the
+  production seams with the verified runtime's interpreter when none is given.
+
+Batch file and alias:
+
+- `bin/gcliff.bat` is `bin/release_workflow.bat` with four changes:
+  `set "_release_status=69"` followed by a comment line, `--entry-kind
+  gcliff-batch`, `goto cleanup` in place of the five normalization lines, and
+  (round 1) a comment line and `set "ERRORLEVEL="` between the child and the
+  status capture, inside `setlocal`.
+  It was derived by a script from the release launcher and written with CRLF;
+  `.gitattributes` gives it `text eol=crlf`; the index holds LF.
+- `bin/gcliff.doskey`: `gcliff="%LLM_SHARED_DIR%\bin\gcliff.bat" $*`, one
+  line; `senv.doskey` is unchanged.
+
+Tests:
+
+- Launcher leaf `test_git_cliff_launcher/` (30 cases): every launcher case of
+  the plan through the launcher simulation, with the provisioning world as the
+  fake provisioning seam and fake child launcher and a fake kernel for the
+  console filter; plus status 101, an interruption, a filter that cannot
+  register, a filter removal failing after a status-3 run (round 1), a
+  manifest admitting no pin, `main` without seams and the production seams.
+- `test_launchers/test_gcliff_source_tdd.py`: the derivation equality (four
+  changes), the 69 assignment before the record checks, no normalization, the
+  `ERRORLEVEL` deletion only after the child, the code page restore after a
+  readiness error and after a child return, the alias fragment, `senv.doskey`
+  without a gcliff macro, the attribute line.
+- Bootstrap leaf: the plan's cases, plus (round 1) fault injection at the cwd
+  capture and the stream setup for gcliff, a release kind and a malformed
+  prefix, and `requested_kind`. Invocation, Git and paths leaves: the plan's
+  cases.
+- Acceptance leaf: `test_git_cliff_acceptance_tdd.py` and
+  `test_gcliff_acceptance_tdd.py`, every Step 8 row of the ownership map
+  against the shipped manifest; rows that download use a synthetic 2.14.2
+  table through the launcher seams, since no test downloads the published
+  asset. Round 1: the operations free of git-cliff run on command modules
+  imported fresh at collection (27 modules, about 0.09 s of CPU, more than one
+  test lifecycle may spend), each in its own case, with the budget variable's
+  name watched in the command environment and in `os.environ`, and a control
+  case for the watch.
+- Support: `launcher_simulation.py` (gcliff entry with seams,
+  `worktree_presence` routed to the sandbox, `patch_git` for a given context
+  class), `gcliff_simulation.py` (new, the scenario builder),
+  `repository_simulation.py` (declared presences), `git_cliff_children_fake.py`
+  (a `gcliff --version` run inherits standard input, so it is a run, not a
+  probe).
+
+Final native record:
+
+- Milestone `final`: the 14 checks of Steps 2, 4 and 5 on the final sources
+  and two new checks in `git_cliff_native_launcher.py`, all 16 passed:
+  `guard-held-by-gcliff-run-after-launcher-killed` (10.4 s of a 120 s bound)
+  and `gcliff-status-with-inherited-errorlevel` (22.8 s of 120 s).
+- The launcher check runs the warm-up `bin\gcliff.bat --version`, then the
+  production launcher with `--from-context <named pipe>` on a pipe the
+  recorder serves and never writes, so git-cliff waits on its own file object
+  and no handle the launcher shares has a pending read. Since round 1 it takes
+  git-cliff and its launcher from `git_cliff_native_ownership.owned_run`, the
+  one run whose chain of older parents reaches the check's own `cmd.exe`, and
+  opens each checked against its recorded creation time. It scans the
+  launcher's handle values for the job (`IsProcessInJob`, duplicate kept) and
+  the guard (the handle naming the executable), kills the launcher, then
+  observes git-cliff alive, its handle of the guard's value naming the
+  executable, the rename refused, and the rename allowed once the job ended
+  git-cliff and during a guard-free control run of its own child. The rename
+  is undone at once, so the production entry stays valid.
+- The `ERRORLEVEL` check builds a one-release context from this git-cliff's
+  own `--context` output, then runs `bin\gcliff.bat` with `ERRORLEVEL=0` and
+  `--frobnicate` (status 2), and with `ERRORLEVEL=7` and a template printing
+  `get_env(name="ERRORLEVEL")` (status 0, output `seen=7`).
+- The validator requires the Step 5 stand-in check and both new checks at
+  `final`, and binds the launcher, the batch file, the ownership rule and the
+  modules on their path.
+
+Documentation: `wiki/reference/git-cliff-provisioning.md` (new), the
+git-cliff launcher section of `aliases-and-launchers.md`, the provisioning
+availability and the statuses 2 and 69 in
+`automation-and-direct-invocation.md`, and the link in `wiki/README.md`.
+
+Also staged: the validation plan's Step 8 sections and document status, and
+the umbrella row of item 3.
+
+Writer notes: `.reviews/a.git-cliff-provisioning.step8.journal.md` and
+`.reviews/a.git-cliff-provisioning.step8.handoff.md`.
+
+### Change summary for step 8 git-cliff-provisioning (round 2)
+
+Staged paths (35), grouped in the root `a.commit` (seven groups, checker
+`ready: true`). Round 2 adds three paths to group 5 and amends the messages of
+groups 2 to 5 for the repairs; boundaries and order are unchanged.
+
+1. `feat(release): observe worktree presence for gcliff`:
+   `tools/release_workflow/git.py`, `tools/release_workflow/paths.py`,
+   `tests/unit/tools/release_workflow/repository_simulation.py`,
+   `tests/unit/tools/release_workflow/test_git/test_git_tdd.py`,
+   `tests/unit/tools/release_workflow/test_paths/test_paths_tdd.py`.
+2. `feat(release): add the gcliff launcher`:
+   `tools/release_workflow/invocation.py`, `tools/release_workflow/bootstrap.py`,
+   `tools/release_workflow/git_cliff/launcher.py`,
+   `tools/release_workflow/git_cliff/__init__.py`, `bin/gcliff.bat`,
+   `bin/gcliff.doskey`, `.gitattributes`.
+3. `test(release): drive gcliff through the simulation`:
+   `tests/unit/tools/release_workflow/launcher_simulation.py`,
+   `tests/unit/tools/release_workflow/gcliff_simulation.py`,
+   `tests/unit/tools/release_workflow/git_cliff_children_fake.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_launcher/__init__.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_launcher/test_git_cliff_launcher_tdd.py`,
+   `tests/unit/tools/release_workflow/test_launchers/test_gcliff_source_tdd.py`,
+   `tests/unit/tools/release_workflow/test_bootstrap/test_bootstrap_tdd.py`,
+   `tests/unit/tools/release_workflow/test_invocation/test_invocation_tdd.py`.
+4. `test(release): accept gcliff on the shipped manifest`:
+   `tests/unit/tools/release_workflow/test_git_cliff_acceptance/test_git_cliff_acceptance_tdd.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_acceptance/test_gcliff_acceptance_tdd.py`.
+5. `test(release): record the final native checks`:
+   `tests/unit/tools/release_workflow/git_cliff_native_ownership.py` (new),
+   `tests/unit/tools/release_workflow/test_git_cliff_native_ownership/__init__.py` (new),
+   `tests/unit/tools/release_workflow/test_git_cliff_native_ownership/test_git_cliff_native_ownership_tdd.py` (new),
+   `tests/unit/tools/release_workflow/git_cliff_native_checks.py`,
+   `tests/unit/tools/release_workflow/git_cliff_native_launcher.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_native_evidence/native_checks.v1.json`,
+   `tests/unit/tools/release_workflow/test_git_cliff_native_evidence/test_git_cliff_native_evidence_tdd.py`.
+6. `docs(wiki): document git-cliff provisioning`:
+   `wiki/reference/git-cliff-provisioning.md`,
+   `wiki/reference/aliases-and-launchers.md`,
+   `wiki/reference/automation-and-direct-invocation.md`, `wiki/README.md`.
+7. `docs(git-cliff-provisioning): record step 8 validation`:
+   `docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.validation.md`,
+   `docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md`.
+
+Every staged file has LF line endings in the index (`bin/gcliff.bat` checks
+out with CRLF through its attribute). The review transcript stays out of
+`a.commit`, for its residual commit after the review.
+
+### Writer response for step 8 git-cliff-provisioning (round 2)
+
+Writer response:
+
+Writer response:
+
+All five round 1 findings are accepted and repaired; none is disputed. The
+reviewer's staged validation plan edits (the No verdict, the missing work and
+the integrity notes) were the starting point of the new implementation check,
+which records Yes again with the repairs and removes the missing-work section
+now that each item is done.
+
+1. High, final native check ownership: the check no longer takes the first
+   system-wide run of the executable. `git_cliff_native_ownership.owned_run`
+   picks the one run whose chain of parents, each created no later than its
+   child, reaches the check's own `cmd.exe` by PID and creation time; none yet
+   keeps it waiting, two own runs or a run started by the root itself stop it
+   with `OwnershipError` before anything is ended. The run and its launcher
+   are then opened and checked against their recorded creation times before
+   the launcher is killed or the job ended. Competing candidates are covered
+   with simulated tables in the new unit leaf (a foreign run of the same image
+   listed first or last, foreign runs only, two own runs, a run without a
+   launcher, a reused root PID, a parent newer than its child, a missing
+   parent, an unreadable creation time, a parent cycle). The record was
+   refreshed with this recorder: 16 checks passed.
+2. Early bootstrap failures: `requested_kind` reads the kind of a well-formed
+   prefix before the cwd capture, so an `OSError` there or in the stream setup
+   is 69 for a gcliff call and 2 for a release kind, and an interruption is 69
+   or 1; a malformed prefix keeps the release statuses. `InvocationError.kind`
+   is gone, since the requested kind now covers the repeated `--entry-kind`
+   too. Fault injection covers both boundaries for both kinds.
+3. Console filter removal: `_run` keeps the outcome once git-cliff ended; a
+   failure leaving the filter then writes its `gcliff:` line and returns
+   git-cliff's status. The launcher leaf adds removal failing after a status-3
+   run, beside the existing registration failure (69, no run).
+4. Inherited `ERRORLEVEL`: `bin/gcliff.bat` runs `set "ERRORLEVEL="` between
+   the child and the capture, inside its `setlocal`. A probe showed that this
+   deletion leaves cmd's dynamic status unchanged, also when no such variable
+   exists. The child still inherits the caller's variable, and `endlocal`
+   restores it for the caller. The source contract checks the order. A new
+   final native check runs the production batch file with `ERRORLEVEL=0` and a
+   usage error (2), then with `ERRORLEVEL=7` and a `get_env` template (0, and
+   git-cliff printed `seen=7`). The release launchers read `%ERRORLEVEL%` the
+   same way; that pre-existing behavior of items 1 and 2 is outside this step
+   and left unchanged.
+5. Operations free of git-cliff: a fresh import of the release package costs
+   about 0.09 s of CPU (27 modules), more than one test lifecycle may spend, so
+   the command entry points and the modules they import lazily are imported
+   fresh once at collection, the originals restored at once. `version`,
+   `versions check` and a configuration load each run on those fresh modules,
+   so their eager imports are the fresh package's and a lazy import loads
+   anew; the budget variable's name is watched in the command environment (a
+   name object recording every comparison, the case-insensitive `upper()` one
+   included) and in `os.environ`, and none is recorded. A control test shows
+   the watch recording a budget resolution, a discarded lookup and an
+   `os.environ` lookup.
+
+### Reviewer focus for step 8 git-cliff-provisioning (round 2)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-8-round-2 -->
+
+## Round 2 by reviewer - Step 8
+
+- Recorded: 2026-11-22T21:57:33+01:00
+- Exchange: code/code/v0.14.0/git-cliff-provisioning
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 8
+- Outcome: answer
+
+### Assessed index identity for step 8 git-cliff-provisioning (exchange 1) (round 2)
+
+Baseline index tree: 49e106ef77109426c899a0888bfa4d1e883da801
+
+Assessed index tree: cf33b030b02431a89c63a32d5e1f79dac1f79642
+
+### Implementation check for step 8 git-cliff-provisioning (exchange 1) (round 2)
+
+Result:
+
+No. Step 8 has NOT been fully implemented.
+
+The writer repaired all three reported production status paths. Process identity and import isolation improved. The native recorder and AC6 test still leave the two gaps below.
+
+Validation plan effects:
+
+Only Step 8 rows in `docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.validation.md` were edited and staged by the reviewer. They record the remaining work, behavioral coverage gaps and improved process isolation. The protected umbrella digest matched.
+
+### Pre-repair mandatory checks and coverage for step 8 git-cliff-provisioning (exchange 1) (round 2)
+
+Writer evidence on the matching request tree reports 8,229 tests, 100% coverage, zero duration outliers, final coverage proof and 16 passed native checks. Reviewer assessed the staged code, regression cases and native evidence statically. The reviewer did not repeat a suite or run the native recorder.
+
+### Resolved validation set and sources for step 8 git-cliff-provisioning (exchange 1) (round 2)
+
+`ghog day --full=speed --whole-suite` (project) then `ghog day --full=cov --whole-suite` (plan). The mandatory scope is the bound whole suite.
+
+### Resolver drift and direction for step 8 git-cliff-provisioning (exchange 1) (round 2)
+
+None. The current project default, whole-suite requirement and step 8 coverage command match the request in order and source. No project override is present.
+
+### Repository state around validation for step 8 git-cliff-provisioning (exchange 1) (round 2)
+
+Pre-edit validation blob matched the writer's staged blob. Validation-state comparison flagged only the reviewer's expected step 8 edit, with no untracked or ignored side effects. Patch attribution succeeded and all changed hunks were within the reviewed step. All 35 paths retained their original group membership.
+
+### Repair inventory for step 8 git-cliff-provisioning (exchange 1) (round 2)
+
+Repairs made: None.
+
+Paths staged: None.
+
+### Commit plan assessment for step 8 git-cliff-provisioning (exchange 1) (round 2)
+
+Independent checks returned ready before and after the metadata edit. Positions, subjects, ordered path membership and staged inventory match the request, with no diagnostics.
+
+1. `feat(release): observe worktree presence for gcliff` (5 paths)
+2. `feat(release): add the gcliff launcher` (7 paths)
+3. `test(release): drive gcliff through the simulation` (8 paths)
+4. `test(release): accept gcliff on the shipped manifest` (2 paths)
+5. `test(release): record the final native checks` (7 paths)
+6. `docs(wiki): document git-cliff provisioning` (4 paths)
+7. `docs(git-cliff-provisioning): record step 8 validation` (2 paths)
+
+### Findings and boundaries for step 8 git-cliff-provisioning (exchange 1) (round 2)
+
+Unresolved findings:
+
+- The native guard check at `tests/unit/tools/release_workflow/git_cliff_native_launcher.py:335` accepts the first matching descendant of its own batch process. A valid cache hit also starts a guarded `--version` process before the actual passthrough run (`tools/release_workflow/git_cliff/provisioning.py:216`). Both processes have the same image and launcher parent. If the snapshot catches the probe, the recorder may fail on an already-exited process or exercise the probe instead of the child waiting on its unique pipe. Gate the observation on positive readiness from that invocation's pipe, retaining the new ownership checks. Exercise the probe-to-run transition and failure to reach readiness, then refresh final native evidence.
+- `tests/unit/tools/release_workflow/test_git_cliff_acceptance/test_git_cliff_acceptance_tdd.py:317` imports the fresh command package at collection. The process-environment watcher is first installed inside the parametrized test, after import. A command module could read and discard the budget variable during normal startup and all three AC6 cases would still pass. Cover the import interval with the watcher and prove it observes a discarded import-time lookup. The current tests already cover eager provisioning imports and lookups during command execution.
+
+Boundary-crossing work: None.
+
+### Writer instructions for step 8 git-cliff-provisioning (exchange 1) (round 2)
+
+Close the two evidence gaps, refresh the native record, rerun writer validation and reconcile the completion metadata with the results before submitting another round.
+
+### Decision rationale for step 8 git-cliff-provisioning (exchange 1) (round 2)
+
+Exact identity passed. Implementation completeness and validation evidence remain open for the two acceptance boundaries above. Staged attribution passed. The three status findings are closed, and the two evidence findings are partially resolved. Ordered commit grouping passed. Changes requested.
+
+### Final reviewer decision for step 8 git-cliff-provisioning (exchange 1) (round 2)
+
+Decision: changes-requested. The writer must address the concrete instructions and publish another review round. This advisory answer does not authorize a commit.
+
+<!-- review-entry-id: answer-step-8-round-2 -->
+
+## Round 3 by requestor - Step 8
+
+- Recorded: 2026-11-23T00:25:33+01:00
+- Exchange: code/code/v0.14.0/git-cliff-provisioning
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 8
+- Outcome: request
+
+### Review identity for step 8 git-cliff-provisioning (round 3)
+
+Umbrella draft: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+Implementation plan: docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.md
+Implementation step: 8
+Review round: 3
+
+### Code review evidence for step 8 git-cliff-provisioning (round 3)
+
+request_index_tree: 7a727d1b38074448e10ab31f781e299e549b510a
+resolved_validation_set:
+
+- `ghog day --full=speed --whole-suite` (sources: project)
+- `ghog day --full=cov --whole-suite` (sources: plan)
+
+test_scope:
+{"fingerprint": "686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6", "group": null, "proof": "speed", "requirement": "docs/v0.14.0/feature-request.v0.14.0.git-cliff-provisioning.md", "scope": "whole"}
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: feat(release): observe worktree presence for gcliff
+group 1 path: tools/release_workflow/git.py
+group 1 path: tools/release_workflow/paths.py
+group 1 path: tests/unit/tools/release_workflow/repository_simulation.py
+group 1 path: tests/unit/tools/release_workflow/test_git/test_git_tdd.py
+group 1 path: tests/unit/tools/release_workflow/test_paths/test_paths_tdd.py
+group 2: feat(release): add the gcliff launcher
+group 2 path: tools/release_workflow/invocation.py
+group 2 path: tools/release_workflow/bootstrap.py
+group 2 path: tools/release_workflow/git_cliff/launcher.py
+group 2 path: tools/release_workflow/git_cliff/__init__.py
+group 2 path: bin/gcliff.bat
+group 2 path: bin/gcliff.doskey
+group 2 path: .gitattributes
+group 3: test(release): drive gcliff through the simulation
+group 3 path: tests/unit/tools/release_workflow/launcher_simulation.py
+group 3 path: tests/unit/tools/release_workflow/gcliff_simulation.py
+group 3 path: tests/unit/tools/release_workflow/git_cliff_children_fake.py
+group 3 path: tests/unit/tools/release_workflow/test_git_cliff_launcher/__init__.py
+group 3 path: tests/unit/tools/release_workflow/test_git_cliff_launcher/test_git_cliff_launcher_tdd.py
+group 3 path: tests/unit/tools/release_workflow/test_launchers/test_gcliff_source_tdd.py
+group 3 path: tests/unit/tools/release_workflow/test_bootstrap/test_bootstrap_tdd.py
+group 3 path: tests/unit/tools/release_workflow/test_invocation/test_invocation_tdd.py
+group 4: test(release): accept gcliff on the shipped manifest
+group 4 path: tests/unit/tools/release_workflow/test_git_cliff_acceptance/test_git_cliff_acceptance_tdd.py
+group 4 path: tests/unit/tools/release_workflow/test_git_cliff_acceptance/test_gcliff_acceptance_tdd.py
+group 5: test(release): record the final native checks
+group 5 path: tests/unit/tools/release_workflow/git_cliff_native_ownership.py
+group 5 path: tests/unit/tools/release_workflow/test_git_cliff_native_ownership/__init__.py
+group 5 path: tests/unit/tools/release_workflow/test_git_cliff_native_ownership/test_git_cliff_native_ownership_tdd.py
+group 5 path: tests/unit/tools/release_workflow/git_cliff_native_checks.py
+group 5 path: tests/unit/tools/release_workflow/git_cliff_native_launcher.py
+group 5 path: tests/unit/tools/release_workflow/test_git_cliff_native_evidence/native_checks.v1.json
+group 5 path: tests/unit/tools/release_workflow/test_git_cliff_native_evidence/test_git_cliff_native_evidence_tdd.py
+group 6: docs(wiki): document git-cliff provisioning
+group 6 path: wiki/reference/git-cliff-provisioning.md
+group 6 path: wiki/reference/aliases-and-launchers.md
+group 6 path: wiki/reference/automation-and-direct-invocation.md
+group 6 path: wiki/README.md
+group 7: docs(git-cliff-provisioning): record step 8 validation
+group 7 path: docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.validation.md
+group 7 path: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+staged path: .gitattributes
+staged path: bin/gcliff.bat
+staged path: bin/gcliff.doskey
+staged path: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+staged path: docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.validation.md
+staged path: tests/unit/tools/release_workflow/gcliff_simulation.py
+staged path: tests/unit/tools/release_workflow/git_cliff_children_fake.py
+staged path: tests/unit/tools/release_workflow/git_cliff_native_checks.py
+staged path: tests/unit/tools/release_workflow/git_cliff_native_launcher.py
+staged path: tests/unit/tools/release_workflow/git_cliff_native_ownership.py
+staged path: tests/unit/tools/release_workflow/launcher_simulation.py
+staged path: tests/unit/tools/release_workflow/repository_simulation.py
+staged path: tests/unit/tools/release_workflow/test_bootstrap/test_bootstrap_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git/test_git_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_acceptance/test_gcliff_acceptance_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_acceptance/test_git_cliff_acceptance_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_launcher/__init__.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_launcher/test_git_cliff_launcher_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_native_evidence/native_checks.v1.json
+staged path: tests/unit/tools/release_workflow/test_git_cliff_native_evidence/test_git_cliff_native_evidence_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_native_ownership/__init__.py
+staged path: tests/unit/tools/release_workflow/test_git_cliff_native_ownership/test_git_cliff_native_ownership_tdd.py
+staged path: tests/unit/tools/release_workflow/test_invocation/test_invocation_tdd.py
+staged path: tests/unit/tools/release_workflow/test_launchers/test_gcliff_source_tdd.py
+staged path: tests/unit/tools/release_workflow/test_paths/test_paths_tdd.py
+staged path: tools/release_workflow/bootstrap.py
+staged path: tools/release_workflow/git.py
+staged path: tools/release_workflow/git_cliff/__init__.py
+staged path: tools/release_workflow/git_cliff/launcher.py
+staged path: tools/release_workflow/invocation.py
+staged path: tools/release_workflow/paths.py
+staged path: wiki/README.md
+staged path: wiki/reference/aliases-and-launchers.md
+staged path: wiki/reference/automation-and-direct-invocation.md
+staged path: wiki/reference/git-cliff-provisioning.md
+```
+
+### Validation scope for step 8 git-cliff-provisioning (round 3)
+
+Validation scope: the whole suite.
+
+### Requestor assessment for step 8 git-cliff-provisioning (round 3)
+
+Writer assessment for Step 8 of the git-cliff-provisioning plan, round 3: the
+step is fully implemented. Both round 2 findings are repaired, and the new
+implementation check records `Yes. Step 8 has been fully implemented.` in the
+staged validation plan, with the round 2 repairs and both recorder runs listed
+and the missing-work section removed; the document status stays
+`Yes, it is implemented.` and the umbrella row of item 3 stays completed.
+
+Evidence, on the staged tree:
+
+- Targeted: `ghog single` on the native ownership and acceptance leaves, exit
+  0, after the repairs; the native evidence and ownership leaves again after
+  the recorder.
+- Probe by hand before the change: `GetNamedPipeClientProcessId` on the
+  silent pipe failed with error 1168 before git-cliff 2.14.2 opened it, then
+  named exactly that git-cliff process.
+- Native recorder by hand, outside pytest, after the last edit of a covered
+  source: the first run passed 15 of 16 checks (the unchanged Step 5 stand-in
+  check observed the rename still refused after its job ended, in a run slower
+  overall, as the writer response details); the immediate rerun,
+  `python -m tests.unit.tools.release_workflow.git_cliff_native_checks
+  --milestone final --output
+  tests\unit\tools\release_workflow\test_git_cliff_native_evidence\native_checks.v1.json`,
+  exit 0, passed all 16 (launcher check 10.9 s, `ERRORLEVEL` check 11.6 s,
+  stand-in run check 16.4 s), and is the committed record.
+- Default walk `ghog day --whole-suite`: exit 0 after the repairs.
+- Review validation `ghog day --full=speed --whole-suite` (built-in default):
+  exit 0 with `cov=100 outliers=0 excluded=0 proof=speed`, 8234 tests, slowest
+  call 0.31 s (outside this step), on index tree
+  `7a727d1b38074448e10ab31f781e299e549b510a`, identical before and after the
+  walk. No budget was changed and no exclusion is accepted.
+- Plan validation `ghog day --full=cov --whole-suite`: exit 0 on the same
+  tree, reusing that speed proof (`proof=speed reused=all`).
+- `rg -n 'gcliff' senv.doskey` and `rg -n 'returning 1' bin/gcliff.bat`: no
+  match. `test_codepage_tdd.py` is unchanged and passes.
+- Line counts: every Python file below 550 (the largest:
+  `test_git_cliff_acceptance_tdd.py` 453, `test_bootstrap_tdd.py` 381,
+  `git_cliff_native_launcher.py` 378); advisory overruns recorded as variance.
+- Markdown check and cSpell: clean on the validation plan.
+
+Please check in particular: `await_ready_run` and the pipe client as the only
+possible run, with the probe-to-run and never-ready cases; the control run's
+pipe check; the recorder's `TimeoutError` classification; `_watched_imports`
+around the collection-time import and its in-memory control module; and the
+account of the transient recorder failure and its rerun.
+
+### Implementation report for step 8 git-cliff-provisioning (round 3)
+
+Step 8, "The gcliff launcher, integrated acceptance, final native checks and
+documentation", is the last of eight steps of the git-cliff-provisioning plan.
+It ships `gcliff`, the typed worktree presence it needs, the integrated
+acceptance tests, the final native check record and the reference
+documentation.
+
+Worktree presence and discovery:
+
+- `git.py`: `WorktreePresence` (`INSIDE`, `NO_WORKTREE`, `NO_REPOSITORY`) and
+  `GitExecutionContext.worktree_presence(*, cwd)`, one `rev-parse
+  --is-inside-work-tree` call through `run` with `check=False`: `true\n` is
+  inside, `false\n` (a bare repository or a `.git` directory) is no worktree,
+  exit 128 whose stderr starts with `fatal: not a git repository` is no
+  repository (the controlled environment sets `LC_ALL=C`), and every other
+  answer raises `GitCommandError`.
+- `paths.py`: `find_worktree(start, git)` inspects the configuration, asks the
+  presence once and, inside a worktree, returns the identity through
+  `_discovered`, the helper `discover_project` now also uses, so the
+  configuration is inspected once per call. `discover_project` keeps its
+  behavior; its tests are unchanged.
+
+Entry kind and bootstrap:
+
+- `invocation.py`: `gcliff-batch` joins `ENTRY_KINDS`; `validate_arguments`
+  applies the batch guard to it as to every `-batch` kind.
+- `bootstrap.py`: `_ENGINES` maps the kind to
+  `tools.release_workflow.git_cliff.launcher`, `_UNNORMALIZED_KINDS` holds it,
+  and `_unnormalized` calls a `Launcher` protocol with the arguments, the
+  original cwd, the tooling root and the verified identity. `_FAILURE_STATUS`
+  gives `gcliff-batch` 69 for readiness and invocation failures and for an
+  execution failure before the launcher or escaping it; every other kind keeps
+  `(2, 1)`. Since round 1, `requested_kind` reads the kind of a well-formed
+  prefix before the cwd capture and the stream setup, so a failure of either,
+  or a repeated `--entry-kind` in gcliff arguments, is 69 for gcliff while a
+  release kind or a malformed prefix keeps 2 or 1. `main` keeps its one status
+  set literal, which the cross-site contract of `test_codepage_tdd.py` reads.
+
+Launcher (`tools/release_workflow/git_cliff/launcher.py`):
+
+- `main(arguments, *, original_cwd, tooling_root, runtime, environment=None,
+  seams=None)`: the batch guard (diagnostic naming `cliff.toml`), the Git
+  context from the caller's environment and directory, `find_worktree`, the
+  whole configuration and `configured_pin` inside a worktree or
+  `default_version` outside one, `admitted` from the seam's pin table,
+  `provisioning_budget`, then `provision(..., caller="gcliff")`.
+- The run: `invocation.run(arguments, policy=Policy.PASSTHROUGH,
+  cwd=original_cwd, environment=environment, output="inherit")` inside the
+  console filter, inside `with invocation:`; with `environment=None` the
+  child inherits the process environment as is. The child's status is
+  returned unchanged; since round 1, also when leaving the filter fails after
+  git-cliff ended, which writes its `gcliff:` line.
+- Every failure before the child, a refused creation, an unconfirmed end, an
+  interruption or a filter that cannot register writes one `gcliff: <detail>`
+  line and returns `GCLIFF_UNAVAILABLE = 69`.
+- `LauncherSeams(provisioning, console=ignore_console_interrupts,
+  pins=ADMITTED_PINS)` and `production_seams(runtime)`; `main` binds the
+  production seams with the verified runtime's interpreter when none is given.
+
+Batch file and alias:
+
+- `bin/gcliff.bat` is `bin/release_workflow.bat` with four changes:
+  `set "_release_status=69"` followed by a comment line, `--entry-kind
+  gcliff-batch`, `goto cleanup` in place of the five normalization lines, and
+  (round 1) a comment line and `set "ERRORLEVEL="` between the child and the
+  status capture, inside `setlocal`.
+  It was derived by a script from the release launcher and written with CRLF;
+  `.gitattributes` gives it `text eol=crlf`; the index holds LF.
+- `bin/gcliff.doskey`: `gcliff="%LLM_SHARED_DIR%\bin\gcliff.bat" $*`, one
+  line; `senv.doskey` is unchanged.
+
+Tests:
+
+- Launcher leaf `test_git_cliff_launcher/` (30 cases): every launcher case of
+  the plan through the launcher simulation, with the provisioning world as the
+  fake provisioning seam and fake child launcher and a fake kernel for the
+  console filter; plus status 101, an interruption, a filter that cannot
+  register, a filter removal failing after a status-3 run (round 1), a
+  manifest admitting no pin, `main` without seams and the production seams.
+- `test_launchers/test_gcliff_source_tdd.py`: the derivation equality (four
+  changes), the 69 assignment before the record checks, no normalization, the
+  `ERRORLEVEL` deletion only after the child, the code page restore after a
+  readiness error and after a child return, the alias fragment, `senv.doskey`
+  without a gcliff macro, the attribute line.
+- Bootstrap leaf: the plan's cases, plus (round 1) fault injection at the cwd
+  capture and the stream setup for gcliff, a release kind and a malformed
+  prefix, and `requested_kind`. Invocation, Git and paths leaves: the plan's
+  cases.
+- Acceptance leaf: `test_git_cliff_acceptance_tdd.py` and
+  `test_gcliff_acceptance_tdd.py`, every Step 8 row of the ownership map
+  against the shipped manifest; rows that download use a synthetic 2.14.2
+  table through the launcher seams, since no test downloads the published
+  asset. Round 1: the operations free of git-cliff run on command modules
+  imported fresh at collection (27 modules, about 0.09 s of CPU, more than one
+  test lifecycle may spend), each in its own case, with the budget variable's
+  name watched in the command environment and in `os.environ`, and a control
+  case for the watch. Round 2: `os.environ` is watched during that
+  collection-time import too, restored right after it, and the cases require
+  no recorded read; a control module served from memory looks the variable up
+  while it is imported, and the watch records it.
+- Support: `launcher_simulation.py` (gcliff entry with seams,
+  `worktree_presence` routed to the sandbox, `patch_git` for a given context
+  class), `gcliff_simulation.py` (new, the scenario builder),
+  `repository_simulation.py` (declared presences), `git_cliff_children_fake.py`
+  (a `gcliff --version` run inherits standard input, so it is a run, not a
+  probe).
+
+Final native record:
+
+- Milestone `final`: the 14 checks of Steps 2, 4 and 5 on the final sources
+  and two new checks in `git_cliff_native_launcher.py`, all 16 passed in the
+  committed run: `guard-held-by-gcliff-run-after-launcher-killed` (10.9 s of a
+  120 s bound) and `gcliff-status-with-inherited-errorlevel` (11.6 s of
+  120 s). The run before it, right after the round 2 repairs, failed one Step 5
+  stand-in check transiently; see the writer response.
+- The launcher check runs the warm-up `bin\gcliff.bat --version`, then the
+  production launcher with `--from-context <named pipe>` on a pipe the
+  recorder serves and never writes, so git-cliff waits on its own file object
+  and no handle the launcher shares has a pending read. Since round 2 it waits
+  until that pipe names its client (`GetNamedPipeClientProcessId`), which only
+  the run does, never the guarded reuse probe the same launcher starts first;
+  then, as since round 1, `git_cliff_native_ownership.owned_run` must find that
+  client descending from the check's own `cmd.exe` through older parents, and
+  the check opens the run and its launcher checked against their recorded
+  creation times. A run that never opens the pipe is `NotReadyError`, recorded
+  `timed-out`. It scans the
+  launcher's handle values for the job (`IsProcessInJob`, duplicate kept) and
+  the guard (the handle naming the executable), kills the launcher, then
+  observes git-cliff alive, its handle of the guard's value naming the
+  executable, the rename refused, and the rename allowed once the job ended
+  git-cliff and during a guard-free control run, checked through its own
+  pipe's client. The rename is undone at once, so the production entry stays
+  valid.
+- The `ERRORLEVEL` check builds a one-release context from this git-cliff's
+  own `--context` output, then runs `bin\gcliff.bat` with `ERRORLEVEL=0` and
+  `--frobnicate` (status 2), and with `ERRORLEVEL=7` and a template printing
+  `get_env(name="ERRORLEVEL")` (status 0, output `seen=7`).
+- The validator requires the Step 5 stand-in check and both new checks at
+  `final`, and binds the launcher, the batch file, the ownership rule and the
+  modules on their path.
+
+Documentation: `wiki/reference/git-cliff-provisioning.md` (new), the
+git-cliff launcher section of `aliases-and-launchers.md`, the provisioning
+availability and the statuses 2 and 69 in
+`automation-and-direct-invocation.md`, and the link in `wiki/README.md`.
+
+Also staged: the validation plan's Step 8 sections and document status, and
+the umbrella row of item 3.
+
+Writer notes: `.reviews/a.git-cliff-provisioning.step8.journal.md` and
+`.reviews/a.git-cliff-provisioning.step8.handoff.md`.
+
+### Change summary for step 8 git-cliff-provisioning (round 3)
+
+Staged paths (35), grouped in the root `a.commit` (seven groups, checker
+`ready: true`). Round 3 keeps the round 2 membership and amends the messages
+of groups 4 and 5 for the repairs; boundaries and order are unchanged.
+
+1. `feat(release): observe worktree presence for gcliff`:
+   `tools/release_workflow/git.py`, `tools/release_workflow/paths.py`,
+   `tests/unit/tools/release_workflow/repository_simulation.py`,
+   `tests/unit/tools/release_workflow/test_git/test_git_tdd.py`,
+   `tests/unit/tools/release_workflow/test_paths/test_paths_tdd.py`.
+2. `feat(release): add the gcliff launcher`:
+   `tools/release_workflow/invocation.py`, `tools/release_workflow/bootstrap.py`,
+   `tools/release_workflow/git_cliff/launcher.py`,
+   `tools/release_workflow/git_cliff/__init__.py`, `bin/gcliff.bat`,
+   `bin/gcliff.doskey`, `.gitattributes`.
+3. `test(release): drive gcliff through the simulation`:
+   `tests/unit/tools/release_workflow/launcher_simulation.py`,
+   `tests/unit/tools/release_workflow/gcliff_simulation.py`,
+   `tests/unit/tools/release_workflow/git_cliff_children_fake.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_launcher/__init__.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_launcher/test_git_cliff_launcher_tdd.py`,
+   `tests/unit/tools/release_workflow/test_launchers/test_gcliff_source_tdd.py`,
+   `tests/unit/tools/release_workflow/test_bootstrap/test_bootstrap_tdd.py`,
+   `tests/unit/tools/release_workflow/test_invocation/test_invocation_tdd.py`.
+4. `test(release): accept gcliff on the shipped manifest`:
+   `tests/unit/tools/release_workflow/test_git_cliff_acceptance/test_git_cliff_acceptance_tdd.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_acceptance/test_gcliff_acceptance_tdd.py`.
+5. `test(release): record the final native checks`:
+   `tests/unit/tools/release_workflow/git_cliff_native_ownership.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_native_ownership/__init__.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_native_ownership/test_git_cliff_native_ownership_tdd.py`,
+   `tests/unit/tools/release_workflow/git_cliff_native_checks.py`,
+   `tests/unit/tools/release_workflow/git_cliff_native_launcher.py`,
+   `tests/unit/tools/release_workflow/test_git_cliff_native_evidence/native_checks.v1.json`,
+   `tests/unit/tools/release_workflow/test_git_cliff_native_evidence/test_git_cliff_native_evidence_tdd.py`.
+6. `docs(wiki): document git-cliff provisioning`:
+   `wiki/reference/git-cliff-provisioning.md`,
+   `wiki/reference/aliases-and-launchers.md`,
+   `wiki/reference/automation-and-direct-invocation.md`, `wiki/README.md`.
+7. `docs(git-cliff-provisioning): record step 8 validation`:
+   `docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.validation.md`,
+   `docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md`.
+
+Every staged file has LF line endings in the index (`bin/gcliff.bat` checks
+out with CRLF through its attribute). The review transcript stays out of
+`a.commit`, for its residual commit after the review.
+
+### Writer response for step 8 git-cliff-provisioning (round 3)
+
+Writer response:
+
+Writer response:
+
+Both round 2 findings are accepted and repaired; none is disputed. The
+reviewer's staged validation plan edits (the No verdict and the missing work)
+were the starting point of the new implementation check, which records Yes
+again with the round 2 repairs and removes the missing-work section.
+
+1. Run and reuse probe: on a valid entry the launcher first runs the guarded
+   `--version` reuse probe, which has the same image and the same launcher
+   parent as the run. The check now takes its run only once its own pipe
+   names that client: `GetNamedPipeClientProcessId` fails (error 1168) until
+   a process opens the pipe, which the probe never does, and then names
+   exactly the process that opened it, checked by hand against git-cliff 2.14.2
+   before the change. `await_ready_run` waits for that client, then
+   `owned_run(..., run=client)` must find it descending from the check's own
+   `cmd.exe`, or the check stops with `OwnershipError` before ending
+   anything; no client within the bound raises `NotReadyError`, a
+   `TimeoutError` that the recorder now records `timed-out`. Its clock and
+   sleep are injected, so the unit leaf covers the probe-to-run transition, a
+   probe still listed beside the run (where `owned_run` without the client
+   would refuse two runs), a run that never opens its pipe and a pipe client
+   outside the check's own tree. The control run, which also waits on a
+   silent pipe, checks that pipe's client before its rename attempt.
+2. Import-time budget reads: the collection-time fresh import now runs inside
+   `_watched_imports`, with `os.environ` replaced by the watch and restored in
+   `finally` right after it; the parametrized tests require that no read was
+   recorded during that import. A control module, served from memory by a
+   meta-path finder (the pytest temporary directory is an in-memory
+   filesystem the import system cannot read), looks the budget variable up
+   and discards it while it is imported, and the watch records that lookup.
+
+Native record: the first rerun after these repairs passed 15 of 16 checks.
+The Step 5 stand-in check `guard-held-by-git-cliff-run-after-caller-killed`,
+unchanged since its earlier passing runs, observed the rename still refused
+after its job had ended (`after_child: refused`, every other observation as
+expected), in a run slower overall (another guard check took 15.4 s instead
+of about 5 s): a transient outside holder of the freshly written stand-in,
+such as an antivirus scan, is the likely cause. The immediate rerun passed all
+16 checks, that one in 16.4 s of its 60 s bound, and is the committed record.
+Both runs are in the step journal.
+
+### Reviewer focus for step 8 git-cliff-provisioning (round 3)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-8-round-3 -->
+
+## Round 3 by reviewer - Step 8
+
+- Recorded: 2026-11-23T00:28:03+01:00
+- Exchange: code/code/v0.14.0/git-cliff-provisioning
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 8
+- Outcome: answer
+
+### Assessed index identity for step 8 git-cliff-provisioning (exchange 1) (round 3)
+
+Baseline index tree: 7a727d1b38074448e10ab31f781e299e549b510a
+
+Assessed index tree: 7a727d1b38074448e10ab31f781e299e549b510a
+
+### Implementation check for step 8 git-cliff-provisioning (exchange 1) (round 3)
+
+Result:
+
+Yes. Step 8 has been fully implemented.
+
+The recorder now obtains the client PID from its own named pipe and requires a matching executable and process ancestry before it acts. The regression cases cover the preceding probe, a lingering probe, a client outside the batch tree and readiness timeout. The fresh command imports now run with budget reads observed, with a discarded import-time lookup as a positive control. Both round 2 findings are closed.
+
+Validation plan effects:
+
+The staged step 8 rows already record the correct Yes verdict and both repairs. The reviewer made no tracked changes. The umbrella digest matched.
+
+### Pre-repair mandatory checks and coverage for step 8 git-cliff-provisioning (exchange 1) (round 3)
+
+The writer reports 8,234 tests, 100% coverage and zero duration outliers for the request tree. The staged final native record contains 16 passed observations, each matching its expectation within its bound. The writer disclosed an earlier run in which one pre-existing stand-in check saw a refused rename after job exit. The cause remains unconfirmed. That check passed on the rerun. Reviewer evidence was static and the reviewer did not repeat the suite or the native recorder.
+
+### Resolved validation set and sources for step 8 git-cliff-provisioning (exchange 1) (round 3)
+
+Whole-suite `ghog day --full=speed --whole-suite` (project), followed by `ghog day --full=cov --whole-suite` (plan). The writer recorded a green speed walk and reuse of that proof for coverage.
+
+### Resolver drift and direction for step 8 git-cliff-provisioning (exchange 1) (round 3)
+
+None. The built-in speed default, whole-suite requirement and step 8 final coverage command match the request. There is no project override.
+
+### Repository state around validation for step 8 git-cliff-provisioning (exchange 1) (round 3)
+
+Baseline and assessed trees both equal `7a727d1b38074448e10ab31f781e299e549b510a`. The ordered validation-state comparison was acceptable with zero changed paths. The protected umbrella's digest matched.
+
+### Repair inventory for step 8 git-cliff-provisioning (exchange 1) (round 3)
+
+Repairs made: None.
+
+Paths staged: None.
+
+### Commit plan assessment for step 8 git-cliff-provisioning (exchange 1) (round 3)
+
+The independent checker returned ready, exit 0, with 35 staged paths in seven groups and zero diagnostics. All positions, subjects and ordered path lists match the request. The changes since round 2 belong to the acceptance tests, native checks and step validation groups.
+
+1. `feat(release): observe worktree presence for gcliff` (5 paths)
+2. `feat(release): add the gcliff launcher` (7 paths)
+3. `test(release): drive gcliff through the simulation` (8 paths)
+4. `test(release): accept gcliff on the shipped manifest` (2 paths)
+5. `test(release): record the final native checks` (7 paths)
+6. `docs(wiki): document git-cliff provisioning` (4 paths)
+7. `docs(git-cliff-provisioning): record step 8 validation` (2 paths)
+
+### Findings and boundaries for step 8 git-cliff-provisioning (exchange 1) (round 3)
+
+Unresolved findings: None.
+
+Boundary-crossing work: None.
+
+### Writer instructions for step 8 git-cliff-provisioning (exchange 1) (round 3)
+
+No further implementation work was identified for step 8. The requestor owns the convergence decision.
+
+### Decision rationale for step 8 git-cliff-provisioning (exchange 1) (round 3)
+
+All six readiness criteria pass. Identity and index match, the implementation covers the step, the writer's validation and the reviewed regression evidence support the acceptance rows, staged scope is attributable, all carried findings are closed and the commit plan is accurate. The reviewer made no substantive repairs. The recommendation is advisory.
+
+### Final reviewer decision for step 8 git-cliff-provisioning (exchange 1) (round 3)
+
+Decision: commit-ready (advisory). The evidence floor is complete, but this recommendation does not authorize a commit; authority remains at the durable human gate.
+
+<!-- review-entry-id: answer-step-8-round-3 -->
+
+## Round 3 by human - Step 8 - human-confirmation
+
+- Recorded: 2026-11-23T01:32:46+01:00
+- Exchange: code/code/v0.14.0/git-cliff-provisioning
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 8
+- Outcome: human-confirmation
+
+Human choice: Commit
+Outcome: continue-owning-workflow
+
+<!-- review-entry-id: human-confirmation-round-3 -->
