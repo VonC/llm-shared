@@ -1,6 +1,6 @@
 """Requestor answer-wait transport contract for marked review continuation.
 
-Step 4 of v0.14.0 resume-paused applies confirmed design Q25=A: every Claude
+Step 4 of v0.15.0 resume-paused applies confirmed design Q25=A: every Claude
 requestor starts each ``wait-answer`` through a host background mechanism, as
 one recognized invocation form, ends its turn and resumes from the completion
 notification, on every requestor route. A foreground or moved wait stays in

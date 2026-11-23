@@ -1,6 +1,6 @@
 r"""Launcher wiring and public entry point of the receiver validator.
 
-Step 4 of v0.14.0 resume-paused ships ``bin\resume_paused_validate.bat`` as
+Step 4 of v0.15.0 resume-paused ships ``bin\resume_paused_validate.bat`` as
 the agent-callable read-only validator, separate from the human-only bulk
 command. Following the review launcher smoke-test convention, the launcher's
 source is checked for self-location, Python selection and argument forwarding,

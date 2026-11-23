@@ -1,6 +1,6 @@
 """Pure synthetic host, pane and session builders for resume-paused tests.
 
-Step 1 of v0.14.0 resume-paused shares these builders with later unit and
+Step 1 of v0.15.0 resume-paused shares these builders with later unit and
 acceptance tests. They build declared process listings, Codex release layouts
 and session files, and Claude transcript records without touching a real host,
 a real pane or the filesystem. Scenario assertions stay in each test.

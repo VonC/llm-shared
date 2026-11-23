@@ -3,7 +3,7 @@
 This adapter reuses the strict artifact parsers, atomic backfill service, and
 ownership store. A stale selection or unresolved role conflict cannot claim.
 
-Fix (v0.14.0 resume-paused, Step 4): ``claim_selected`` accepts an optional
+Fix (v0.15.0 resume-paused, Step 4): ``claim_selected`` accepts an optional
 marked claim verifier. It runs under the transition lock right after the
 round and occurrence recheck, before any backfill or ownership write; a
 refusal leaves every artifact unchanged. Its evidence makes the claim issue a

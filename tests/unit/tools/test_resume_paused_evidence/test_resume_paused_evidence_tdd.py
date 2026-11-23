@@ -1,6 +1,6 @@
 """Duplicate-resume evidence, pane activity and session journal index tests.
 
-Step 5 of v0.14.0 resume-paused: one ``list-agents --all-sessions --json``
+Step 5 of v0.15.0 resume-paused: one ``list-agents --all-sessions --json``
 call yields both the pane records and their activity; input eligibility
 protects busy, blocked, question and draft panes, letting only a supported
 fresh Codex idle capture override stale working status; counted commands are

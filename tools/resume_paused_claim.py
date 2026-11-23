@@ -1,6 +1,6 @@
 """Marked claim adaptation for the resume-paused receiving workflows.
 
-Step 4 of v0.14.0 resume-paused connects a marked resume to the existing
+Step 4 of v0.15.0 resume-paused connects a marked resume to the existing
 locked selected claim (design Q04=A). ``marked_claim_verifier`` returns the
 callable that ``claim_selected`` runs under the transition lock, before any
 backfill or ownership write. It parses the raw marker again, requires the

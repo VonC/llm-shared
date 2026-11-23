@@ -1,6 +1,6 @@
 """Verified missing-reviewer activation tests of the resume-paused takeover.
 
-Step 7 of v0.14.0 resume-paused: ``MarkedTakeover.reviewer`` decides from
+Step 7 of v0.15.0 resume-paused: ``MarkedTakeover.reviewer`` decides from
 fresh durable records and panes, on initial activation and later
 continuation alike: an exact active reviewer is left alone; a requestor
 receipt without its current marked claim, a competing pickup, an unknown wait,

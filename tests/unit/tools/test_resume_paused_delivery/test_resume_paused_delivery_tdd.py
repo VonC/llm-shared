@@ -1,6 +1,6 @@
 """Example tests of the guarded delivery of resume-paused: run, guard, checks, Claude and pairs.
 
-Step 6 of v0.14.0 resume-paused: a dry run delivers nothing; each planned
+Step 6 of v0.15.0 resume-paused: a dry run delivers nothing; each planned
 checkout runs under its own nonblocking guard, released on every exit, and
 independent checkouts run concurrently while a pane never has two operations.
 Every send is preceded by fresh checks; an unpinned profile refuses all

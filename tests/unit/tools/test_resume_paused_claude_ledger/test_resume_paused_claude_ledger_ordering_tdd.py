@@ -1,6 +1,6 @@
 """Claude lifecycle ledger ordering tests.
 
-Step 1 of v0.14.0 resume-paused (code review round 3): one regression group
+Step 1 of v0.15.0 resume-paused (code review round 3): one regression group
 per finding. R3-1: the requestor exception covers one start record, so an
 earlier or later start sharing its task id stays pending, with or without a
 terminal record. R3-2: a pinned leaf recorded at or after its turn's final

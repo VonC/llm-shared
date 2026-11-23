@@ -1,6 +1,6 @@
 """Pure consumption and requestor-takeover proofs of the human-launched bulk resume.
 
-Step 7 of v0.14.0 resume-paused keeps command acceptance, prompt consumption
+Step 7 of v0.15.0 resume-paused keeps command acceptance, prompt consumption
 and ownership restoration separate (design, "Takeover observation and later
 reviewer continuation"). Every proof here is computed from one fresh
 ``Durable`` read of the records receivers write: the checkout's saved pause

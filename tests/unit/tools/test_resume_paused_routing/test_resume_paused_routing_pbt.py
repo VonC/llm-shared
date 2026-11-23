@@ -1,6 +1,6 @@
 """Exhaustive and generated strictness properties of the saved-routing schema.
 
-Step 2 of v0.14.0 resume-paused: every key of every routing object is
+Step 2 of v0.15.0 resume-paused: every key of every routing object is
 required, every scalar value refuses a wrong type, and any added key at any
 object is refused. The finite key and value domains are exhaustive
 parametrizations, so every case runs and fails on its own; added key names

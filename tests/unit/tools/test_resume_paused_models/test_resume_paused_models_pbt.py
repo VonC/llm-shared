@@ -1,6 +1,6 @@
 """Generated Windows root spellings share one canonical key.
 
-Step 2 of v0.14.0 resume-paused: separator choice, repeated separators, letter
+Step 2 of v0.15.0 resume-paused: separator choice, repeated separators, letter
 case, a trailing separator and the extended-length prefix are aliases of one
 checkout root, and the canonical display parses back to itself.
 """

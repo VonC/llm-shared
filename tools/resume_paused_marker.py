@@ -1,6 +1,6 @@
 """Compact resume marker, canonical assignment binding and compact result.
 
-Step 4 of v0.14.0 resume-paused defines the consent a bulk launch delivers to
+Step 4 of v0.15.0 resume-paused defines the consent a bulk launch delivers to
 one receiving pane: the native command followed by ``--resume-paused`` and one
 marker ``<launch_id>.rp1.<pane_uuid>.<role>.<binding>``. The random launch id
 leads, so a host's truncated logged prefix keeps it; ``rp1`` is the version;

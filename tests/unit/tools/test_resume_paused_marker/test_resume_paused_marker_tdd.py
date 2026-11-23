@@ -1,6 +1,6 @@
 """Marker grammar, assignment binding and compact result tests.
 
-Step 4 of v0.14.0 resume-paused: a marked resume command carries one compact
+Step 4 of v0.15.0 resume-paused: a marked resume command carries one compact
 versioned marker, launch id first, then the receiving pane UUID, its resolved
 role and the SHA-256 of the canonical UTF-8 JSON assignment. The receiver
 rebuilds that assignment from its prompt digest, saved routing, its own pane

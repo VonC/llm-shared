@@ -1,6 +1,6 @@
 """Typed host-profile observations and fail-closed profile policy for resume-paused.
 
-Step 1 of v0.14.0 resume-paused defines the shared vocabulary of the read-only
+Step 1 of v0.15.0 resume-paused defines the shared vocabulary of the read-only
 host evidence adapters: verdicts, classified reasons, byte accounting, process
 identity, the pinned-profile registry, caller classification and the Q21 boot
 comparison. The shipped registry pins no profile: until disposable validation

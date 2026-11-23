@@ -1,6 +1,6 @@
 """Declared evidence world for the resume-paused planner tests.
 
-Step 5 of v0.14.0 resume-paused: snapshots are parsed from prompt and receipt
+Step 5 of v0.15.0 resume-paused: snapshots are parsed from prompt and receipt
 bytes in memory, never read from files; live panes, activity, command
 histories, screen probes, exchange observations and the session journal are
 declared. ``World.plan`` runs the real planner with deterministic launch ids,

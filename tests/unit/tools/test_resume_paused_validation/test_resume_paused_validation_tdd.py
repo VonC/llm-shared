@@ -1,6 +1,6 @@
 """Read-only receiver validation and the fenced marked receiving sequence.
 
-Step 4 of v0.14.0 resume-paused: the validator parses the marker, reads the
+Step 4 of v0.15.0 resume-paused: the validator parses the marker, reads the
 saved pause, observes the live exchange, rebuilds the assignment, checks the
 consumption stage, proves the receiving pane from live discovery and its
 complete typed input through the host prover, and returns typed non-secret

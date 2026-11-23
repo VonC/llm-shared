@@ -1,6 +1,6 @@
 """Versioned saved-routing model of resume-paused pauses.
 
-Step 2 of v0.14.0 resume-paused defines the routing JSON, schema
+Step 2 of v0.15.0 resume-paused defines the routing JSON, schema
 ``resume-paused-routing`` version 1, the sole routing source of bulk launch.
 Its object holds exactly these keys:
 

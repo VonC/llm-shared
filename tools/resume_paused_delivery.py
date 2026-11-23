@@ -1,6 +1,6 @@
 """Guarded, deadline-driven pane delivery of the human-launched bulk resume.
 
-Step 6 of v0.14.0 resume-paused executes the Step 5 plan, one safe action at
+Step 6 of v0.15.0 resume-paused executes the Step 5 plan, one safe action at
 a time per checkout, while independent checkouts progress concurrently:
 
 1. ``deliver_run`` delivers nothing for a dry run or a run-wide refusal; it

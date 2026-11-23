@@ -1,6 +1,6 @@
 """Profile registry, caller classification and boot-boundary policy tests.
 
-Step 1 of v0.14.0 resume-paused: the shipped registry pins nothing, a pinned
+Step 1 of v0.15.0 resume-paused: the shipped registry pins nothing, a pinned
 profile needs version, OS build and digest to agree, recognized agent callers
 are rejected inside and outside TUIOS, and the Q21 comparison only detects a
 net backward clock movement.

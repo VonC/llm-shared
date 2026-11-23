@@ -1,6 +1,6 @@
 r"""Human-only bulk resume of paused agent sessions: parse, compose and render.
 
-Step 8 of v0.14.0 resume-paused ships the ``resume_paused`` command, launched
+Step 8 of v0.15.0 resume-paused ships the ``resume_paused`` command, launched
 through ``bin\resume_paused.bat``. This module only parses the documented
 arguments, composes the Step 1 to 7 readers, planner, delivery and takeover
 into one run, and renders the run's result:

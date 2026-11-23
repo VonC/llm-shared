@@ -9,7 +9,7 @@ Fix: ``amend-request`` is a protocol operation with the ``publish-request``
 arguments (content, summary and optional scope capture), so the per-command
 grammar keeps the pending-request correction command.
 
-Fix (v0.14.0 resume-paused, Step 4): ``claim`` accepts the raw
+Fix (v0.15.0 resume-paused, Step 4): ``claim`` accepts the raw
 ``--resume-paused-marker`` of a marked resume and the Codex identity carried
 from its first validation, ``--carried-session`` and ``--carried-launch-id``.
 """

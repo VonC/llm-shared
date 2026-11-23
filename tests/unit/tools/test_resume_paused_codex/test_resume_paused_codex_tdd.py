@@ -1,6 +1,6 @@
 """Codex loaded-image identity and session-file input proof tests.
 
-Step 1 of v0.14.0 resume-paused: the image contract accepts only a pinned
+Step 1 of v0.15.0 resume-paused: the image contract accepts only a pinned
 release whose process linkage, allocation walk, class 44 identity, digest,
 manifest and OS build agree, and rechecks them before input. The input proof
 needs exactly one session file whose latest typed input is the delivered

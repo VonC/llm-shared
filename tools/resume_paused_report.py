@@ -1,6 +1,6 @@
 """Compact result reporting of the human-only bulk resume.
 
-Step 8 of v0.14.0 resume-paused renders one launch's plan and deliveries
+Step 8 of v0.15.0 resume-paused renders one launch's plan and deliveries
 (design, "Reporting and exit semantics") as text, kept apart from argument
 parsing and composition (``tools.resume_paused``):
 

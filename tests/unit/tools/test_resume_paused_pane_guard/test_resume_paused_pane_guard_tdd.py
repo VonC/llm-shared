@@ -1,6 +1,6 @@
 """Design Q27=B all-pane idle guard tests over declared listings, captures and screen readings.
 
-Step 7 of v0.14.0 resume-paused: before a Claude reviewer send, every live
+Step 7 of v0.15.0 resume-paused: before a Claude reviewer send, every live
 Claude pane of the checkout (its subdirectories included, the requestor and
 the target included) must rest in TUIOS and read idle under the pinned
 Claude screen profile. A busy non-target pane, a busy requestor, a running

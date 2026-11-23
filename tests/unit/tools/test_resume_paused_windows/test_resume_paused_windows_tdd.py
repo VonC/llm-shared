@@ -1,6 +1,6 @@
 """Windows process helpers and the query-only Win32 binding tests.
 
-Step 1 of v0.14.0 resume-paused: the pure helpers resolve direct children and
+Step 1 of v0.15.0 resume-paused: the pure helpers resolve direct children and
 ancestry from one listing. The ``Win32Api`` tests observe this test process
 itself with query-only rights, start no process and send no input: its own
 image must pass the class 44 identity query, and invalid handles fail closed.

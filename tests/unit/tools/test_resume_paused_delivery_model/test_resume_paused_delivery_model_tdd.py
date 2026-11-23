@@ -1,6 +1,6 @@
 """Example tests of the delivery vocabulary and its default ports.
 
-Step 6 of v0.14.0 resume-paused: a checkout fails on an unavailable guard or a
+Step 6 of v0.15.0 resume-paused: a checkout fails on an unavailable guard or a
 failed action, never on contention or a pending reviewer; the fixed action
 budget is 100 seconds; until a profile is pinned every pane is unsupported,
 and without Step 7's composed takeover every conditional reviewer stays

@@ -5,7 +5,7 @@ never enters coordination. Only its SHA-256 digest is stored, so a displaced
 session can observe the newer generation without recovering its replacement
 secret.
 
-Fix (v0.14.0 resume-paused, Step 4): a claim may carry marked resume
+Fix (v0.15.0 resume-paused, Step 4): a claim may carry marked resume
 evidence. It always issues a new generation and records the evidence with
 that generation; every other newly issued claim clears an earlier binding,
 while an idempotent current-owner claim keeps it.

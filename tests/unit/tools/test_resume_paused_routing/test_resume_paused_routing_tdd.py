@@ -1,6 +1,6 @@
 """Saved-routing schema tests: strict parsing, explicit unknowns and contradictions.
 
-Step 2 of v0.14.0 resume-paused: the versioned routing object parses into typed
+Step 2 of v0.15.0 resume-paused: the versioned routing object parses into typed
 targets and one exact exchange, renders back to the same canonical JSON, keeps
 an explicit unknown as an unresolved part without failing the pause, and
 refuses contradictions between its parts. The builders here also serve the
@@ -35,7 +35,7 @@ SESSION = "llm-shared_resume-paused"
 REQUESTOR_PANE = "77e5f39c-0536-4cbb-a057-f4a1f5c715b0"
 REVIEWER_PANE = "2fd92f30-1111-4222-8333-444455556666"
 THIRD_PANE = "5b1c0d2e-3f40-4a5b-8c6d-7e8f90a1b2c3"
-PLAN = "docs/v0.14.0/plan.v0.14.0.resume-paused.md"
+PLAN = "docs/v0.15.0/plan.v0.15.0.resume-paused.md"
 ROOT = Path("C:\\work\\checkout")
 
 
@@ -156,7 +156,7 @@ def test_malformed_or_contradictory_routing_is_refused(change: Callable[[dict[st
 @pytest.mark.parametrize(
     ("exchange", "identity"),
     [
-        (SavedExchange(ReviewFamily.CODE, PLAN, "2", None, 1, 1), ExchangeIdentity(ReviewFamily.CODE, "code", "v0.14.0", "resume-paused")),
+        (SavedExchange(ReviewFamily.CODE, PLAN, "2", None, 1, 1), ExchangeIdentity(ReviewFamily.CODE, "code", "v0.15.0", "resume-paused")),
         (SavedExchange(ReviewFamily.SPECIFICATION, "docs/design.v0.14.0.x.md", None, "docs/draft.md", 2, None), ExchangeIdentity(ReviewFamily.SPECIFICATION, "design-specification", "v0.14.0", "x")),
     ],
 )

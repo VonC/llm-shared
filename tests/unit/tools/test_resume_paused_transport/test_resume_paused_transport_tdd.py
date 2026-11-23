@@ -1,6 +1,6 @@
 """Example tests of the shell-free TUIOS transport of resume-paused.
 
-Step 6 of v0.14.0 resume-paused: the ask and the recovery Enter are exact
+Step 6 of v0.15.0 resume-paused: the ask and the recovery Enter are exact
 argument lists, the marked command stays one inert argument after ``--``,
 spaces in live names become the documented ``*`` wildcard, and the selector
 must resolve to exactly the validated pane UUID among every listed pane. No

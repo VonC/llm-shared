@@ -1,6 +1,6 @@
 """Claude transcript parsing tests.
 
-Step 1 of v0.14.0 resume-paused: parsing keeps structure and never content,
+Step 1 of v0.15.0 resume-paused: parsing keeps structure and never content,
 distinguishes typed input from notifications, and classifies review-exchange
 commands and the marked resume input in memory.
 

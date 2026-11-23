@@ -1,6 +1,6 @@
 """Pause routing capture and manual artifact reader contract tests.
 
-Step 3 of v0.14.0 resume-paused: the canonical pause instruction and template
+Step 3 of v0.15.0 resume-paused: the canonical pause instruction and template
 write the saved routing as one ``resume-paused-routing`` JSON block followed by
 the readable table rendered from it. The instruction's worked example is the
 Step 2 rendering of its own JSON, its row grammar accepts every cell the Step 2

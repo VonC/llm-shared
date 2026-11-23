@@ -1,6 +1,6 @@
 """Example tests of the nonblocking per-checkout guard of resume-paused.
 
-Step 6 of v0.14.0 resume-paused: the guard file is named by the canonical
+Step 6 of v0.15.0 resume-paused: the guard file is named by the canonical
 checkout digest in the temporary guard folder, a held guard is an immediate
 skip, and every exit releases an acquired guard. Policy cases use a declared
 lock primitive; the native cases lock a real empty file through two

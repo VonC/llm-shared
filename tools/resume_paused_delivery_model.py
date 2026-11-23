@@ -1,6 +1,6 @@
 """Typed vocabulary and ports of the guarded bulk delivery.
 
-Step 6 of v0.14.0 resume-paused separates the values and injected ports of
+Step 6 of v0.15.0 resume-paused separates the values and injected ports of
 delivery from the state machine that uses them
 (``tools.resume_paused_delivery``), so Step 7's takeover observation and
 Step 8's composition and reporting share one model:

@@ -1,6 +1,6 @@
 """Consumption and requestor-takeover proof tests over declared durable records.
 
-Step 7 of v0.14.0 resume-paused: each proof is computed from one declared
+Step 7 of v0.15.0 resume-paused: each proof is computed from one declared
 ``Durable`` read, the receipt parsed from declared bytes and the exchange
 carrying a declared marked claim. A removed, replaced or unreadable pause
 fails; no receipt yet waits; another launch's receipt fails; an exchange that

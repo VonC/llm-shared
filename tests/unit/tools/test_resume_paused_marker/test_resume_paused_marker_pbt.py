@@ -1,6 +1,6 @@
 """Generated marker and result-line properties.
 
-Step 4 of v0.14.0 resume-paused: every well-formed marker renders and parses
+Step 4 of v0.15.0 resume-paused: every well-formed marker renders and parses
 back to itself, and a one-character change of a rendered marker either is
 refused or names a different marker, never the same consent. Result lines
 round-trip over their whole grammar.

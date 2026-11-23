@@ -1,6 +1,6 @@
 """Read-only checkout planner tests: global refusals, classification and targets.
 
-Step 5 of v0.14.0 resume-paused: a recognized agent caller, failed discovery
+Step 5 of v0.15.0 resume-paused: a recognized agent caller, failed discovery
 and unmatched ``--except`` or ``--switch-roles`` names refuse the whole run
 before any checkout is read. Every other prompt-bearing checkout gets one
 typed result: used prompts (with the later reviewer continuation of a saved

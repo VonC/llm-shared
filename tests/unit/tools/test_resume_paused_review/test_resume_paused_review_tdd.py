@@ -1,6 +1,6 @@
 """Exact-exchange observation tests over declared review artifacts.
 
-Step 2 of v0.14.0 resume-paused: the saved exchange is observed through its
+Step 2 of v0.15.0 resume-paused: the saved exchange is observed through its
 exact paths and the nonblocking observation lock, never through a review core
 or a write. A busy lock, a changing record, another occurrence, round or step,
 and damaged evidence are each reported as such, and the snapshot carries the
@@ -95,7 +95,7 @@ def exchange_checkout(tmp_path: Path) -> tuple[ReviewArtifactConfiguration, Revi
     document = root / PLAN
     document.parent.mkdir(parents=True)
     document.write_text("# Plan\n", encoding="utf-8")
-    identity = ExchangeIdentity(ReviewFamily.CODE, "code", "v0.14.0", "resume-paused")
+    identity = ExchangeIdentity(ReviewFamily.CODE, "code", "v0.15.0", "resume-paused")
     configuration = ReviewArtifactConfiguration.load(root, tracked_directory=no_tracking)
     context = ReviewContext(identity, document, None, "2")
     return configuration, context, derive_artifact_paths(root, context, configuration=configuration)

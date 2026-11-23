@@ -1,6 +1,6 @@
 """Exact-byte pause prompt, usage receipt and routing readers for resume-paused.
 
-Step 2 of v0.14.0 resume-paused reads one checkout's saved pause without any
+Step 2 of v0.15.0 resume-paused reads one checkout's saved pause without any
 write: the artifact-home declaration through ``ReviewArtifactConfiguration.load``
 (never ``prepare_home`` or a legacy-file move), the home's existing ignore
 file, the prompt's exact bytes and the usage receipt. ``CheckoutSnapshot``

@@ -1,6 +1,6 @@
 """Post-acceptance receiver observation tests of the resume-paused takeover.
 
-Step 7 of v0.14.0 resume-paused: ``MarkedTakeover.received`` observes each
+Step 7 of v0.15.0 resume-paused: ``MarkedTakeover.received`` observes each
 accepted receiver for its own 120-second bound on a fake clock, with backoff
 from half a second capped at five seconds that never extends the bound, and
 re-reads every piece of evidence at every look. A requestor settles on its

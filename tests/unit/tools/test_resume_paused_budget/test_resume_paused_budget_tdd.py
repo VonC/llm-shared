@@ -1,6 +1,6 @@
 """Example tests of the budget-bounded proof readers of resume-paused.
 
-Step 6 of v0.14.0 resume-paused, code review round 3: each reader asks the
+Step 6 of v0.15.0 resume-paused, code review round 3: each reader asks the
 send's remaining-time source at the moment of its own call. With time left
 it reads, a capture bounded by what is left (at most the 30-second call
 bound); once the budget is spent it reads nothing and reports the evidence

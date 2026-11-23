@@ -1,6 +1,6 @@
 """Declared world of the resume-paused takeover tests.
 
-Step 7 of v0.14.0 resume-paused: the saved pause and its receipt are parsed
+Step 7 of v0.15.0 resume-paused: the saved pause and its receipt are parsed
 from declared bytes (``planner_world.snapshot``); exchange observations carry
 a declared marked claim; panes, activity, histories, screens, result lines and
 the Claude ledger decision are declared. Snapshots and exchange observations
