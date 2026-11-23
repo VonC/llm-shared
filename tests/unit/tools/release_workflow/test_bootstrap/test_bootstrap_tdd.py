@@ -7,6 +7,12 @@ Step 4 of v0.14.0 git-cliff-provisioning: the internal `git-cliff-worker`
 entry kind passes the same readiness gate, loads the download worker instead
 of the command dispatcher and returns its status (0, 75 or 65) unchanged; the
 release kinds still turn 65 and 75 into 1.
+
+Step 8 of v0.14.0 git-cliff-provisioning: the `gcliff-batch` kind loads the
+gcliff launcher with the bootstrap facts and returns its status unchanged (0,
+1, 2, 3, 69 and 101 alike); its readiness, invocation and execution failures
+before the launcher runs, and an error escaping it, are 69, tested apart from
+the release kinds, which keep 2 and 1.
 """
 
 from __future__ import annotations
@@ -197,9 +203,13 @@ def test_engine_status_boundary(status: int, public: int, monkeypatch: pytest.Mo
     assert (f"native status {status}; returning 1" in diagnostic) == (status != public)
 
 
-@pytest.mark.parametrize("kind", ["explicit-batch", "alias-batch", "explicit-native", "git-cliff-worker"])
-def test_each_entry_kind_imports_its_own_module(kind: str, monkeypatch: pytest.MonkeyPatch) -> None:
-    """The release kinds load the command dispatcher; the worker kind loads the download worker."""
+@pytest.mark.parametrize(("kind", "module"), [
+    ("explicit-batch", "tools.release_workflow.cli"), ("alias-batch", "tools.release_workflow.cli"),
+    ("explicit-native", "tools.release_workflow.cli"), ("git-cliff-worker", "tools.release_workflow.git_cliff.download_worker"),
+    ("gcliff-batch", "tools.release_workflow.git_cliff.launcher"),
+])
+def test_each_entry_kind_imports_its_own_module(kind: str, module: str, monkeypatch: pytest.MonkeyPatch) -> None:
+    """The release kinds load the command dispatcher, the worker kind the download worker, the gcliff kind its launcher."""
     imported: list[str] = []
 
     def passed(_root: Path) -> bootstrap.Identity:
@@ -215,8 +225,118 @@ def test_each_entry_kind_imports_its_own_module(kind: str, monkeypatch: pytest.M
     monkeypatch.setattr(bootstrap, "check", passed)
     monkeypatch.setattr(bootstrap.importlib, "import_module", imported_module)
     assert bootstrap.main(["--entry-kind", kind, "--"]) == 0
-    worker = kind == "git-cliff-worker"
-    assert imported == ["tools.release_workflow.git_cliff.download_worker" if worker else "tools.release_workflow.cli"]
+    assert imported == [module]
+
+
+_GCLIFF = ["--entry-kind", "gcliff-batch", "--"]
+_UNAVAILABLE = 69
+
+
+def test_a_gcliff_readiness_failure_is_69_with_the_setup_message(monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
+    """Step 8 of git-cliff-provisioning: a readiness failure of `gcliff-batch` is 69, not 2, and names the setup remedy."""
+    def failed_check(_root: Path) -> None:
+        msg = "readiness failed"
+        raise ValueError(msg)
+
+    monkeypatch.setattr(bootstrap, "check", failed_check)
+    assert bootstrap.main(_GCLIFF) == _UNAVAILABLE
+    diagnostic = capsys.readouterr().err
+    assert "readiness failed" in diagnostic
+    assert "Run this checkout's setup" in diagnostic
+    assert bootstrap.main(["--entry-kind", "alias-batch", "--"]) == _ERROR
+
+
+@pytest.mark.parametrize("reserved", [["--entry-kind", "alias-batch"], ["--entry-kind=explicit-native"]])
+def test_a_reserved_entry_kind_in_gcliff_arguments_is_69(reserved: list[str], capsys: pytest.CaptureFixture[str]) -> None:
+    """A git-cliff argument cannot repeat the reserved prefix: 69 for `gcliff-batch`, while a release kind keeps 2."""
+    assert bootstrap.main([*_GCLIFF, "--version", *reserved]) == _UNAVAILABLE
+    assert "Release invocation failed:" in capsys.readouterr().err
+    assert bootstrap.main(["--entry-kind", "explicit-batch", "--", *reserved]) == _ERROR
+
+
+@pytest.mark.parametrize("failure", [KeyboardInterrupt(), TypeError("unexpected readiness bug")])
+def test_a_gcliff_execution_failure_before_its_launcher_is_69(failure: BaseException, monkeypatch: pytest.MonkeyPatch,
+                                                             capsys: pytest.CaptureFixture[str]) -> None:
+    """An interruption or an unexpected error before the launcher runs is 69: git-cliff never started."""
+    def failed(_root: Path) -> None:
+        raise failure
+
+    monkeypatch.setattr(bootstrap, "check", failed)
+    assert bootstrap.main(_GCLIFF) == _UNAVAILABLE
+    assert "Release execution failed:" in capsys.readouterr().err
+
+
+@pytest.mark.parametrize("status", [0, 1, 2, 3, 69, 101])
+def test_the_gcliff_kind_returns_the_launcher_status_unchanged(status: int, monkeypatch: pytest.MonkeyPatch,
+                                                               capsys: pytest.CaptureFixture[str]) -> None:
+    """After readiness, the launcher gets the git-cliff arguments and the bootstrap facts; its status is never normalized."""
+    verified = RuntimeIdentity(Path.cwd(), "venvs/prepared")
+    received: list[tuple[list[str], Path, Path, bootstrap.Identity]] = []
+
+    def passed(_root: Path) -> bootstrap.Identity:
+        return verified
+
+    def launcher_main(arguments: list[str], *, original_cwd: Path, tooling_root: Path, runtime: bootstrap.Identity) -> int:
+        received.append((arguments, original_cwd, tooling_root, runtime))
+        return status
+
+    def imported_launcher(_name: str) -> SimpleNamespace:
+        return SimpleNamespace(main=launcher_main)
+
+    monkeypatch.setattr(sys, "path", list(sys.path))
+    monkeypatch.setattr(bootstrap, "check", passed)
+    monkeypatch.setattr(bootstrap.importlib, "import_module", imported_launcher)
+    assert bootstrap.main([*_GCLIFF, "--version"]) == status
+    ((arguments, original_cwd, tooling_root, runtime),) = received
+    assert (arguments, original_cwd, runtime) == (["--version"], Path.cwd(), verified)
+    assert tooling_root == Path(bootstrap.__file__).resolve().parents[2]
+    assert capsys.readouterr().err == ""
+
+
+@pytest.mark.parametrize("boundary", ["cwd", "streams"])
+@pytest.mark.parametrize(("failure", "release_status"), [(OSError("access denied"), _ERROR), (KeyboardInterrupt(), 1)])
+def test_a_failure_before_the_entry_is_parsed_keeps_the_status_of_its_kind(*, boundary: str, failure: BaseException, release_status: int,
+                                                                           monkeypatch: pytest.MonkeyPatch,
+                                                                           capsys: pytest.CaptureFixture[str]) -> None:
+    """Code review round 1 of Step 8: a valid gcliff call whose cwd capture or stream setup fails is 69; a release kind keeps 2 or 1."""
+    def failed(*_arguments: object) -> None:
+        raise failure
+
+    if boundary == "cwd":
+        monkeypatch.setattr(bootstrap.Path, "cwd", failed)
+    else:
+        monkeypatch.setattr(bootstrap, "configure_streams", failed)
+    assert bootstrap.main([*_GCLIFF, "--version"]) == _UNAVAILABLE
+    assert bootstrap.main(["--entry-kind", "explicit-batch", "--", "version"]) == release_status
+    assert bootstrap.main(["--entry-kind", "gcliff-batch"]) == release_status
+    expected = "interrupted" if isinstance(failure, KeyboardInterrupt) else "access denied"
+    assert capsys.readouterr().err.count(expected) == len(("gcliff", "release", "malformed"))
+
+
+def test_the_requested_kind_needs_a_well_formed_prefix() -> None:
+    """The kind is read only from `--entry-kind <known kind> --`, never from the user arguments."""
+    assert bootstrap.requested_kind([*_GCLIFF, "--entry-kind=alias-batch"]) == "gcliff-batch"
+    malformed = [[], ["--entry-kind", "gcliff-batch"], ["--entry-kind", "unknown", "--"], ["--kind", "gcliff-batch", "--"],
+                 ["--entry-kind", "gcliff-batch", "-"]]
+    assert [bootstrap.requested_kind(arguments) for arguments in malformed] == [None] * len(malformed)
+
+
+def test_an_error_escaping_the_gcliff_launcher_is_69(monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
+    """The final boundary of `gcliff-batch` reports 69: no git-cliff status is known."""
+    def passed(_root: Path) -> bootstrap.Identity:
+        return RuntimeIdentity(_root, "venvs/prepared")
+
+    def broken(*_arguments: object, **_facts: object) -> int:
+        msg = "launcher bug"
+        raise RuntimeError(msg)
+
+    def imported_launcher(_name: str) -> SimpleNamespace:
+        return SimpleNamespace(main=broken)
+
+    monkeypatch.setattr(bootstrap, "check", passed)
+    monkeypatch.setattr(bootstrap.importlib, "import_module", imported_launcher)
+    assert bootstrap.main(_GCLIFF) == _UNAVAILABLE
+    assert "launcher bug" in capsys.readouterr().err
 
 
 @pytest.mark.parametrize("status", [0, 2, 65, 75])

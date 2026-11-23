@@ -7,10 +7,19 @@ Step 1 of v0.14.0 version-sources routes the five typed release observations
 to the sandbox's declared release history too. Step 9 makes `patch_git`
 public, so the version command tests that call `cli.main` directly use the
 same simulated Git as the launcher cases.
+
+Step 8 of v0.14.0 git-cliff-provisioning runs the `gcliff-batch` entry too:
+the bootstrap's import of the gcliff launcher gets the production `main`
+bound to the run's environment and the given launcher seams (the fake
+provisioning world, the console filter on a fake kernel, the pin table), and
+`worktree_presence` goes to the sandbox like the other Git observations. Since
+code review round 1, `patch_git` also patches a given `GitExecutionContext`
+class, such as the one of a freshly imported release package.
 """
 
 from __future__ import annotations
 
+import functools
 import io
 import json
 import subprocess
@@ -28,6 +37,7 @@ from tests.unit.tools.release_workflow.test_support import (
 )
 from tools.release_workflow import bootstrap, cli
 from tools.release_workflow.git import GitExecutionContext
+from tools.release_workflow.git_cliff import launcher as gcliff
 from tools.release_workflow.results import OperationResult
 from tools.release_workflow.runtime_identity import RuntimeIdentity
 
@@ -36,9 +46,11 @@ if TYPE_CHECKING:
     from pathlib import Path
 
     from tests.unit.tools.release_workflow.repository_simulation import GitSandbox
-    from tools.release_workflow.git import TagRecord
+    from tools.release_workflow.git import TagRecord, WorktreePresence
     from tools.release_workflow.git_environment import ConfigEntry
     from tools.release_workflow.invocation import InvocationContext
+
+_LAUNCHER = "tools.release_workflow.git_cliff.launcher"
 
 
 def probe(context: InvocationContext) -> OperationResult:
@@ -68,8 +80,8 @@ HANDLERS = {"probe": cli.Handler(probe), "required": cli.Handler(probe, requires
             "fail": cli.Handler(failure), "wait": cli.Handler(interrupt)}
 
 
-def patch_git(patch: pytest.MonkeyPatch, sandbox: GitSandbox) -> None:
-    """Supply typed repository facts to the selected runtime's Git context."""
+def patch_git(patch: pytest.MonkeyPatch, sandbox: GitSandbox, context_type: type[GitExecutionContext] = GitExecutionContext) -> None:
+    """Supply typed repository facts to the selected runtime's Git context, of `context_type` (a freshly imported class too)."""
     def observations(context: GitExecutionContext) -> GitExecutionContext:
         return replace(sandbox.verified_git, executable=context.executable,
                        environment=context.environment, original_cwd=context.original_cwd)
@@ -86,15 +98,20 @@ def patch_git(patch: pytest.MonkeyPatch, sandbox: GitSandbox) -> None:
     def index(context: GitExecutionContext, *, cwd: Path, directory: str | None = None) -> tuple[str, ...]:
         return observations(context).index(cwd=cwd, directory=directory)
 
-    patch.setattr(GitExecutionContext, "read_version", read_version)
-    patch.setattr(GitExecutionContext, "effective_config", effective_config)
-    patch.setattr(GitExecutionContext, "metadata", project_metadata)
-    patch.setattr(GitExecutionContext, "index", index)
-    _patch_release_observations(patch, observations)
+    def worktree_presence(context: GitExecutionContext, *, cwd: Path) -> WorktreePresence:
+        return observations(context).worktree_presence(cwd=cwd)
+
+    patch.setattr(context_type, "read_version", read_version)
+    patch.setattr(context_type, "effective_config", effective_config)
+    patch.setattr(context_type, "metadata", project_metadata)
+    patch.setattr(context_type, "index", index)
+    patch.setattr(context_type, "worktree_presence", worktree_presence)
+    _patch_release_observations(patch, observations, context_type)
 
 
 def _patch_release_observations(patch: pytest.MonkeyPatch,
-                                observations: Callable[[GitExecutionContext], GitExecutionContext]) -> None:
+                                observations: Callable[[GitExecutionContext], GitExecutionContext],
+                                context_type: type[GitExecutionContext]) -> None:
     """Route the typed release observations to the sandbox's declared history."""
     def tag_records(context: GitExecutionContext, *, cwd: Path, merged: str | None = None) -> tuple[TagRecord, ...]:
         return observations(context).tag_records(cwd=cwd, merged=merged)
@@ -111,11 +128,11 @@ def _patch_release_observations(patch: pytest.MonkeyPatch,
     def listing(context: GitExecutionContext, *, cwd: Path) -> tuple[str, ...]:
         return observations(context).listing(cwd=cwd)
 
-    patch.setattr(GitExecutionContext, "tag_records", tag_records)
-    patch.setattr(GitExecutionContext, "independent_commits", independent_commits)
-    patch.setattr(GitExecutionContext, "tag_names", tag_names)
-    patch.setattr(GitExecutionContext, "commit_count", commit_count)
-    patch.setattr(GitExecutionContext, "listing", listing)
+    patch.setattr(context_type, "tag_records", tag_records)
+    patch.setattr(context_type, "independent_commits", independent_commits)
+    patch.setattr(context_type, "tag_names", tag_names)
+    patch.setattr(context_type, "commit_count", commit_count)
+    patch.setattr(context_type, "listing", listing)
 
 
 @dataclass(frozen=True)
@@ -128,8 +145,9 @@ class ToolingSimulation:
     def run(self, arguments: Sequence[str], *, sandbox: GitSandbox, cwd: Path,  # noqa: PLR0913 - explicit boundary inputs
             environment: Mapping[str, str] | None = None, entry: str = "explicit-native",
             payload: bytes = b"", console: bool = False,
-            handlers: Mapping[str, cli.Handler] | None = HANDLERS) -> subprocess.CompletedProcess[bytes]:
-        """Execute production bootstrap with scoped interpreter facts and streams."""
+            handlers: Mapping[str, cli.Handler] | None = HANDLERS,
+            launcher: gcliff.LauncherSeams | None = None) -> subprocess.CompletedProcess[bytes]:
+        """Execute production bootstrap with scoped interpreter facts and streams; `launcher` seams serve the gcliff entry."""
         # Load genuine standalone helper classes before substituting the selected
         # checkout path. In particular the private identity remains a distinct
         # class, so dispatch must normalize it without rereading the record.
@@ -150,6 +168,8 @@ class ToolingSimulation:
 
         def import_engine(name: str) -> object:
             """Declare engine availability without substituting a successful import for absence."""
+            if name == _LAUNCHER and launcher is not None:
+                return SimpleNamespace(main=functools.partial(gcliff.main, environment=source, seams=launcher))
             if name != "tools.release_workflow.cli":
                 return original_import(name)
             if not (self.root / "tools/release_workflow/cli.py").is_file():

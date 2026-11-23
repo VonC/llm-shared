@@ -42,6 +42,9 @@ their version from the cache path they work in (`<version>/<attempt or
 triple>/...`), so two candidates share one world; a world can be built in the
 evidence namespace; and `run_output` gives the status and output of each
 unscripted git-cliff run from its request.
+
+Step 8 sorts a `gcliff --version` run, which inherits standard input, as a
+run rather than a probe, whose standard input is closed.
 """
 
 from __future__ import annotations
@@ -148,10 +151,13 @@ class Launched:
 
 
 def _role(request: ChildRequest) -> str:
-    """Sort a request: the download worker, the metadata worker, the version probe, or a git-cliff run."""
+    """Sort a request: the download worker, the metadata worker, the version probe, or a git-cliff run.
+
+    The probe is `--version` with standard input closed; a `gcliff --version` run inherits it, so it is a run.
+    """
     if "git-cliff-worker" in request.arguments:
         return "metadata" if "metadata" in request.arguments else "worker"
-    return "probe" if request.arguments == ("--version",) else "run"
+    return "probe" if request.arguments == ("--version",) and request.stdin == "closed" else "run"
 
 
 def _version(path: Path) -> str:
