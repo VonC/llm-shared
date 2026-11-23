@@ -1,6 +1,6 @@
 """Pure exact-exchange observation boundary for resume-paused (design Q09=A).
 
-Step 2 of v0.14.0 resume-paused observes the one review exchange that a saved
+Step 2 of v0.15.0 resume-paused observes the one review exchange that a saved
 routing names, through the existing read-only pieces only: an already loaded
 ``ReviewArtifactConfiguration``, ``derive_artifact_paths``, the nonblocking
 ``observe_transition`` lock, ``ReviewExchangeObserver`` and the transcript

@@ -1,6 +1,6 @@
 """Query-only Windows process and loaded-image observations for resume-paused.
 
-Step 1 of v0.14.0 resume-paused keeps Windows access behind one injected
+Step 1 of v0.15.0 resume-paused keeps Windows access behind one injected
 protocol. ``Win32Api`` binds the calls validated by the 2026-11-12 disposable
 probes: ``PROCESS_QUERY_INFORMATION`` only, an allocation-metadata walk, the
 native image name and the class 44 loaded-image identity query. It never reads

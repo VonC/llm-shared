@@ -9,7 +9,7 @@ Fix: with a running native observer, the global wait spaces quiet rescans up
 to about 30 seconds instead of rescanning the artifact home every poll
 interval; without one it keeps polling every interval.
 
-Fix (v0.14.0 resume-paused, Step 4): a ``claim`` carrying a resume-paused
+Fix (v0.15.0 resume-paused, Step 4): a ``claim`` carrying a resume-paused
 marker passes its verifier to the locked selected claim, which records the
 marked binding with the issued generation or refuses before any write.
 """

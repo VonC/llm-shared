@@ -1,6 +1,6 @@
 """Instruction contract of both marked receiving workflows.
 
-Step 4 of v0.14.0 resume-paused: ``resume-session`` reads usage receipts of
+Step 4 of v0.15.0 resume-paused: ``resume-session`` reads usage receipts of
 schemas 1 to 3 for reuse detection and writes schema 3 only on a marked
 resume; it and ``review-resume`` run the read-only validator before each
 protected write, emit the compact result first, ask no fallback consent

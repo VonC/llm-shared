@@ -1,6 +1,6 @@
 """Claude transcript graph tests.
 
-Step 1 of v0.14.0 resume-paused (code review round 2, R2-1 and R2-2): creation
+Step 1 of v0.15.0 resume-paused (code review round 2, R2-1 and R2-2): creation
 order comes from the parent links alone. A record is below another only
 through its parent chain, its turn is the nearest input above it, a parent
 loop is counted, and tool-call identifiers keep their multiplicity.

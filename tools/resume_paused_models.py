@@ -1,6 +1,6 @@
 """Shared strict values of resume-paused pause artifacts.
 
-Step 2 of v0.14.0 resume-paused defines the values that the bulk reader, the
+Step 2 of v0.15.0 resume-paused defines the values that the bulk reader, the
 routing schema and the later receiving validator share: canonical Windows
 checkout roots, prompt digests, agent ids, full pane UUIDs, offset timestamps
 and single-line text. The module performs no IO. The versioned routing schema

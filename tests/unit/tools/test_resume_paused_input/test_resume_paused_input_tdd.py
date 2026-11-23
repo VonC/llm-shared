@@ -1,6 +1,6 @@
 """Live pane discovery and host complete-input proof for marked receivers.
 
-Step 4 of v0.14.0 resume-paused: TUIOS agent records parse strictly into full
+Step 4 of v0.15.0 resume-paused: TUIOS agent records parse strictly into full
 pane UUIDs, session strings, checkouts and host evidence; host identification
 follows the design's strong-evidence-first rule. The Claude prover requires the
 marked command as the latest typed input of the transcript named by the pane's

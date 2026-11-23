@@ -3,7 +3,7 @@
 Transcript initialization reads its family template through
 `template_text.read_template`, the template-reading function shared with the
 request and answer renderers. Ownership claims forward optional marked resume
-evidence (v0.14.0 resume-paused, Step 4) to the ownership store unchanged.
+evidence (v0.15.0 resume-paused, Step 4) to the ownership store unchanged.
 """
 
 # ruff: noqa: EM101, EM102, TRY003

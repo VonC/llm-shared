@@ -1,6 +1,6 @@
 """Canonical checkout root, digest, id, timestamp and text value tests.
 
-Step 2 of v0.14.0 resume-paused: checkout roots compare by Windows rules and
+Step 2 of v0.15.0 resume-paused: checkout roots compare by Windows rules and
 refuse ambiguous spellings, digests and pane UUIDs normalize their case, agent
 ids keep the grammar pauses write, timestamps carry an offset, and routing
 text stays on one line.

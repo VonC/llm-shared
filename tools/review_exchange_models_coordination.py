@@ -4,7 +4,7 @@ Step 3 adds a monotonic ownership generation and token digest while retaining
 legacy parsing for records that predate role-nature or ownership evidence. A
 plaintext ownership token is never represented by this durable model.
 
-Fix (v0.14.0 resume-paused, Step 4): an optional ``marked_claim`` records the
+Fix (v0.15.0 resume-paused, Step 4): an optional ``marked_claim`` records the
 non-secret evidence of a marked resume claim, launch id, receiving pane, host,
 assignment binding, round and occurrence, with the generation it was issued
 with. It must equal the record's ownership generation, so it rides through

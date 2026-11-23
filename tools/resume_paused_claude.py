@@ -1,6 +1,6 @@
 """Allowlisted Claude transcript parsing for the resume-paused lifecycle ledger.
 
-Step 1 of v0.14.0 resume-paused reads Claude transcripts into classified
+Step 1 of v0.15.0 resume-paused reads Claude transcripts into classified
 structural facts only: record and attachment types, tool names, call/result
 linkage, task ids and statuses, origin kinds, timestamps, recorded ``cwd`` and
 typed matches for the marked resume input and review-exchange operations. It

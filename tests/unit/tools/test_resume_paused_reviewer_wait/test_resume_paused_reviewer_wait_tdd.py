@@ -1,6 +1,6 @@
 """Reviewer-wait classification tests over declared panes, histories, screens and ledger decisions.
 
-Step 7 of v0.14.0 resume-paused: the leave-alone check needs the reviewer to
+Step 7 of v0.15.0 resume-paused: the leave-alone check needs the reviewer to
 own the current claim generation and the reviewer pane to agree; a marked
 reviewer entry since the receipt, undated or malformed is an uncertain prior
 delivery; positive no-wait evidence needs a resting pane, a readable

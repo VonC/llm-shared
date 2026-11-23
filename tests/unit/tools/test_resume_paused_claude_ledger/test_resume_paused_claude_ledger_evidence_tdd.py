@@ -1,6 +1,6 @@
 """Claude lifecycle ledger evidence-completeness tests.
 
-Step 1 of v0.14.0 resume-paused (code review round 4): one regression group
+Step 1 of v0.15.0 resume-paused (code review round 4): one regression group
 per finding. R4-1: every transcript read since boot needs a complete
 generation, not only the bound one. Another writer's transcript without a
 first marker, opened by a resume marker or restarted later is pending; a clear

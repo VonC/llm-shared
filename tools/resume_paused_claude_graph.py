@@ -1,6 +1,6 @@
 """Parent-link graph of one Claude transcript for the resume-paused ledger.
 
-Step 1 of v0.14.0 resume-paused. ``TranscriptGraph`` answers the ordering
+Step 1 of v0.15.0 resume-paused. ``TranscriptGraph`` answers the ordering
 questions the lifecycle ledger asks about the records of one transcript:
 which record was created below which, which input a record belongs to, which
 records sit on a parent loop, and whether each tool call has its own result

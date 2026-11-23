@@ -1,6 +1,6 @@
 """Test-only receiver harness for marked resume-paused workflows.
 
-Step 4 of v0.14.0 resume-paused (plan Q02=A) shares one harness between the
+Step 4 of v0.15.0 resume-paused (plan Q02=A) shares one harness between the
 receiver unit tests and the later acceptance tests. ``ReceiverCheckout``
 declares a checkout with a prepared review exchange, a routed pause prompt and
 the markers bound to it. ``ReceiverHarness`` runs the marked receiving

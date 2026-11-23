@@ -6,7 +6,7 @@ service and exposed only after their complete coordination replacement is
 durable. Read-only discovery uses the same lock without creating files or
 waiting behind an in-progress publication.
 
-Fix (v0.14.0 resume-paused, Step 4): a claim forwards optional marked resume
+Fix (v0.15.0 resume-paused, Step 4): a claim forwards optional marked resume
 evidence to the ownership service, so the binding is persisted in the same
 coordination replacement as the generation it was issued with.
 """

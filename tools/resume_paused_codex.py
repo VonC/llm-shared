@@ -1,6 +1,6 @@
 """Codex loaded-image identity and session-file input proof for resume-paused.
 
-Step 1 of v0.14.0 resume-paused implements the two Codex evidence contracts of
+Step 1 of v0.15.0 resume-paused implements the two Codex evidence contracts of
 the consolidated design. ``CodexImageProver`` runs the query-only loaded-image
 sequence on a pane shell's single direct Codex child and accepts only a pinned
 release whose layout, manifest, digest and OS build all agree. ``prove_codex_input``

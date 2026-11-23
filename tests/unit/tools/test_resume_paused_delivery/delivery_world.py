@@ -7,7 +7,7 @@ per-host factories, and a test may declare its own factory, such as one
 building the concrete Codex prover. Round 3: a factory receives the send's
 remaining-time callable; the default ones record the time left at each proof.
 
-Step 6 of v0.14.0 resume-paused: a fake clock that only moves when the
+Step 6 of v0.15.0 resume-paused: a fake clock that only moves when the
 delivery waits or a declared transport effect spends time, a transport whose
 listings and captures are declared in order (the last one repeats), a
 declared agent log, input provers, profiles and guard. ``World.deliver`` runs

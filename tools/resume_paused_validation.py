@@ -1,6 +1,6 @@
 r"""Read-only, agent-callable validation of one marked resume receiver.
 
-Step 4 of v0.14.0 resume-paused gives both receiving workflows, resume-session
+Step 4 of v0.15.0 resume-paused gives both receiving workflows, resume-session
 and review-resume, one validator to call immediately before each protected
 write: receipt replacement, session journal write, backfill and ownership
 claim (design Q11, Q13). It is separate from the human-only bulk command and

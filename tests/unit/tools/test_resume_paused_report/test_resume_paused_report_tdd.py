@@ -1,4 +1,4 @@
-"""Unit tests of the compact result reporting of resume_paused (Step 8 of v0.14.0 resume-paused).
+"""Unit tests of the compact result reporting of resume_paused (Step 8 of v0.15.0 resume-paused).
 
 Plans and deliveries are declared as plain values: preview lines carry the
 exact marked command, clear and takeover condition, notes and the Claude

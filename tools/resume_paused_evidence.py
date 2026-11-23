@@ -1,6 +1,6 @@
 """Duplicate-resume evidence and safe input eligibility for resume-paused.
 
-Step 5 of v0.14.0 resume-paused classifies, read-only, whether a checkout is
+Step 5 of v0.15.0 resume-paused classifies, read-only, whether a checkout is
 already being resumed and whether one pane may receive input:
 
 - ``observe_panes`` runs ``tuios list-agents --all-sessions --json`` once, as

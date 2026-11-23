@@ -1,6 +1,6 @@
 """Marked claim binding: strict durable model and ownership threading.
 
-Step 4 of v0.14.0 resume-paused records a marked claim's non-secret evidence,
+Step 4 of v0.15.0 resume-paused records a marked claim's non-secret evidence,
 launch id, receiving pane, host, assignment binding, round and occurrence, in
 the coordination record together with the ownership generation it was issued
 with. The binding parses strictly, must equal the record's generation, rides

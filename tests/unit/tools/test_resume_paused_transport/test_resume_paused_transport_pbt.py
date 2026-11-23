@@ -1,6 +1,6 @@
 """Property tests of the selector wildcard and the inert command argument.
 
-Step 6 of v0.14.0 resume-paused: whatever plain live name a pane carries, its
+Step 6 of v0.15.0 resume-paused: whatever plain live name a pane carries, its
 selector has no space and resolves to that pane alone; a name holding another
 glob character never gets a selector; and any command text, shell
 metacharacters included, is the single last argument after ``--``. Each word

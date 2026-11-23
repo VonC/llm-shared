@@ -1,6 +1,6 @@
 """Read-only checkout planner of the human-launched bulk resume.
 
-Step 5 of v0.14.0 resume-paused builds, from read-only evidence, the one
+Step 5 of v0.15.0 resume-paused builds, from read-only evidence, the one
 classified plan that a preview reports and a later delivery executes, so both
 share every decision and no target is guessed. ``plan_run``:
 

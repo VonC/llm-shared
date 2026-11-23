@@ -1,6 +1,6 @@
 """Marked claims under the transition lock: binding recomputation and refusals.
 
-Step 4 of v0.14.0 resume-paused threads the raw marker through the locked
+Step 4 of v0.15.0 resume-paused threads the raw marker through the locked
 selected claim. Under the transition lock, the verifier parses the marker,
 rebuilds the assignment from the current prompt, saved routing and locked
 exchange round and occurrence, compares the binding and the claimant host,

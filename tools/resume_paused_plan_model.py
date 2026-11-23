@@ -1,6 +1,6 @@
 """Immutable plan vocabulary of the human-launched bulk resume.
 
-Step 5 of v0.14.0 resume-paused separates the typed result of planning from
+Step 5 of v0.15.0 resume-paused separates the typed result of planning from
 the planner that builds it (``tools.resume_paused_planner``), so preview
 reporting (Step 8), guarded delivery (Step 6) and takeover observation
 (Step 7) share one model:

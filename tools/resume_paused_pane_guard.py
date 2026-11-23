@@ -1,6 +1,6 @@
 """Design Q27=B all-pane idle guard of a Claude reviewer activation.
 
-Step 7 of v0.14.0 resume-paused. Claude 2.1.325 runs a local shell command
+Step 7 of v0.15.0 resume-paused. Claude 2.1.325 runs a local shell command
 before it records the command's input, so a running local command can sit
 behind a transcript that looks closed. Before every Claude reviewer send,
 initial activation or later continuation, ``AllPaneIdleGuard`` therefore

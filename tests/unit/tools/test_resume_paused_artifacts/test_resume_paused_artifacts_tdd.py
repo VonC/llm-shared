@@ -1,6 +1,6 @@
 """Read-only pause prompt, usage receipt and routing-block tests.
 
-Step 2 of v0.14.0 resume-paused: a checkout snapshot applies the resume-session
+Step 2 of v0.15.0 resume-paused: a checkout snapshot applies the resume-session
 state table to exact prompt and receipt bytes, reads routing only from one
 versioned JSON block whose rendered table must agree with it and with the
 prompt header, and keeps the grammar the installed ``tuitp`` parses. Every

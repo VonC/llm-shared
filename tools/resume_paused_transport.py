@@ -1,6 +1,6 @@
 """Shell-free TUIOS transport of the human-launched bulk resume.
 
-Step 6 of v0.14.0 resume-paused types into panes only through two argument
+Step 6 of v0.15.0 resume-paused types into panes only through two argument
 lists, run directly without a shell, so no shell or MSYS layer can rewrite a
 leading ``/`` or interpret a metacharacter of the marked command:
 

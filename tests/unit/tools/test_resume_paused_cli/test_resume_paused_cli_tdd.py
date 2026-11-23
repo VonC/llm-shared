@@ -1,4 +1,4 @@
-"""Unit tests of the human-only resume_paused command line (Step 8 of v0.14.0 resume-paused).
+"""Unit tests of the human-only resume_paused command line (Step 8 of v0.15.0 resume-paused).
 
 The parser accepts only the documented flags; the help states the human-only
 contract and defines ``limits=claude-wait-scope``; the caller is classified

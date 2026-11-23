@@ -1,6 +1,6 @@
 """Example tests of the fresh pre-send checks of resume-paused delivery.
 
-Step 6 of v0.14.0 resume-paused: before every send, the planned full pane
+Step 6 of v0.15.0 resume-paused: before every send, the planned full pane
 UUID must still be listed once, in its session, with its host and checkout,
 unprotected and eligible; the recovery Enter tolerates only the pane's own
 unsubmitted command. ``PlanRecheck`` replans the checkout through the real

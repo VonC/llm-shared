@@ -1,6 +1,6 @@
 """Single-checkout replanning tests of the read-only planner.
 
-Step 6 of v0.14.0 resume-paused replans one checkout from a fresh
+Step 6 of v0.15.0 resume-paused replans one checkout from a fresh
 observation immediately before each send. ``plan_checkout`` returns exactly
 what the whole-run planner returns for that checkout, reads only that
 checkout, reflects fresh activity, and returns ``None`` when the checkout has

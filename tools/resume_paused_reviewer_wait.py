@@ -1,6 +1,6 @@
 """Reviewer-wait classification before a counterpart activation of the bulk resume.
 
-Step 7 of v0.14.0 resume-paused decides, read-only and from fresh evidence,
+Step 7 of v0.15.0 resume-paused decides, read-only and from fresh evidence,
 whether a missing reviewer may receive its marked ``review-resume``:
 
 - ``reviewer_active``: the exact active-reviewer leave-alone check, applied

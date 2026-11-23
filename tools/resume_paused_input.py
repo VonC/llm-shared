@@ -1,6 +1,6 @@
 """Live pane discovery and host complete-input proof for marked resume receivers.
 
-Step 4 of v0.14.0 resume-paused supplies the evidence the receiving validator
+Step 4 of v0.15.0 resume-paused supplies the evidence the receiving validator
 needs about the receiving pane, read-only and through injected ports:
 
 - ``TuiosDiscovery`` runs ``tuios list-agents --all-sessions --json`` as an

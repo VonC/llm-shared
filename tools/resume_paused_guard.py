@@ -1,6 +1,6 @@
 """Nonblocking per-checkout OS execution guard of the human-launched bulk resume.
 
-Step 6 of v0.14.0 resume-paused serializes cooperating invocations per
+Step 6 of v0.15.0 resume-paused serializes cooperating invocations per
 checkout (design Q07=A): before any clear or resume reaches a checkout's
 panes, the delivery takes that checkout's guard and holds it across every
 revalidation and send of the protected sequence.

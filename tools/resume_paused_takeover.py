@@ -1,6 +1,6 @@
 """Takeover observation and verified missing-reviewer activation of the bulk resume.
 
-Step 7 of v0.14.0 resume-paused implements the Step 6 ``Takeover`` seam
+Step 7 of v0.15.0 resume-paused implements the Step 6 ``Takeover`` seam
 (design, "Takeover observation and later reviewer continuation"):
 
 1. ``MarkedTakeover.received`` observes every accepted resume's receiver

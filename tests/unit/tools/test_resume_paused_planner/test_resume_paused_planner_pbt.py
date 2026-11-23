@@ -1,6 +1,6 @@
 """Generated planner properties: discovery order and exclusion scope.
 
-Step 5 of v0.14.0 resume-paused: the plan of a run never depends on the order
+Step 5 of v0.15.0 resume-paused: the plan of a run never depends on the order
 in which TUIOS lists its panes, launch ids included, and no combination of
 ``--except`` names can lift checkout-wide duplicate protection: a checkout
 with a counted resume command after its pause never plans a command, whichever

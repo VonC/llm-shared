@@ -1,6 +1,6 @@
 """Generated counted-command classification properties.
 
-Step 5 of v0.14.0 resume-paused: for every native prefix, letter case and
+Step 5 of v0.15.0 resume-paused: for every native prefix, letter case and
 selection form, ``review-resume`` selects exactly the role heading its
 arguments, whatever explanatory later clauses say; the other role as an
 alternative in the same clause, or in a second selection form anywhere, makes

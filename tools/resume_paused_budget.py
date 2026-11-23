@@ -1,6 +1,6 @@
 """Budget-bounded readers for the acceptance proofs of the guarded delivery.
 
-Step 6 of v0.14.0 resume-paused, code review round 3: every send of the
+Step 6 of v0.15.0 resume-paused, code review round 3: every send of the
 delivery has a fixed 100-second budget, and an acceptance proof reads several
 pieces of evidence in turn (Codex: the pane's version evidence, a pane
 capture, the session files; Claude: the transcript listing and the

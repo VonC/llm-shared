@@ -1,6 +1,6 @@
 """Generated duplicate-key, round-trip and robustness properties of pause artifacts.
 
-Step 2 of v0.14.0 resume-paused: a routing block refuses a repeated key in any
+Step 2 of v0.15.0 resume-paused: a routing block refuses a repeated key in any
 object; generated routing survives its JSON and readable-table renderings
 inside a prompt; arbitrary routing text never escapes the routing reading; and
 the prompt and receipt parsers fail only with ``ArtifactError`` on arbitrary

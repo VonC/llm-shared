@@ -1,6 +1,6 @@
 """Fake TUIOS, host adapters and receiving agents of the resume-paused acceptance tests.
 
-Step 8 of v0.14.0 resume-paused validates the whole installed workflow at the
+Step 8 of v0.15.0 resume-paused validates the whole installed workflow at the
 process boundary without live TUIOS. ``FakeTuios`` is the argument-list runner
 behind the real ``TuiosTransport``: it answers ``list-agents --json``,
 ``capture-pane``, ``ask-agent`` (resolving the ``session:S name:N`` glob

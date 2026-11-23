@@ -1,6 +1,6 @@
 """Plan vocabulary tests: run failure and input permission.
 
-Step 5 of v0.14.0 resume-paused: a run fails on any run-wide refusal or any
+Step 5 of v0.15.0 resume-paused: a run fails on any run-wide refusal or any
 checkout error, while expected skips and planned checkouts succeed; input is
 allowed only in a normal run without a run-wide refusal, never in a dry run,
 whatever the checkouts hold.

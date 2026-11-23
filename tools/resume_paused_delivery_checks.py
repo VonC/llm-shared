@@ -1,6 +1,6 @@
 """Fresh pre-send checks of the guarded bulk delivery.
 
-Step 6 of v0.14.0 resume-paused revalidates every send, under the held
+Step 6 of v0.15.0 resume-paused revalidates every send, under the held
 checkout guard, from one fresh observation taken immediately before it:
 
 - ``target_refusal`` (always applied by the delivery): the planned full pane

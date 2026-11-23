@@ -1,6 +1,6 @@
 """Claude lifecycle ledger tests.
 
-Step 1 of v0.14.0 resume-paused: absence is proved only from complete,
+Step 1 of v0.15.0 resume-paused: absence is proved only from complete,
 classified, closed and matched transcripts bound to the pane's session,
 version and process generation.
 

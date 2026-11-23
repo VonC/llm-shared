@@ -1,6 +1,6 @@
 """Example tests of Codex delivery, its single recovery Enter and the screen readings.
 
-Step 6 of v0.14.0 resume-paused: a Codex send needs a pre-input capture
+Step 6 of v0.15.0 resume-paused: a Codex send needs a pre-input capture
 proving the input box empty. When the command is not accepted, one Enter may
 follow only after two identical captures show exactly this send's command
 unsubmitted, the fresh recovery checks pass and budget remains; an edit, a

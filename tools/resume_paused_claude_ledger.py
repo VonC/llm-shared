@@ -1,6 +1,6 @@
 """Claude lifecycle ledger: positive absence of recorded host-managed waiting work.
 
-Step 1 of v0.14.0 resume-paused. ``ClaudeLedger`` proves absence only when
+Step 1 of v0.15.0 resume-paused. ``ClaudeLedger`` proves absence only when
 every in-scope transcript is complete, classified under the pinned profile,
 closed and matched; any gap reports pending with counted reasons. No profile is
 shipped, so no real pane can reach a proof.
