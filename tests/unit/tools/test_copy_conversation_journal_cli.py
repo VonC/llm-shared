@@ -39,7 +39,11 @@ def test_cli_appends_exact_copied_text_and_reports_path(
     args, path, copied = mission_copy
     assert cli.main(args) == 0
     assert copied == ["Example:\n\n20261115 hello"]
-    assert path.read_bytes() == copied[0].encode() + b"\n~~~~~~~~~~~~~~~~\n"
+    assert path.read_bytes() == (
+        b"Dimanche 15 novembre 2026\n=========================\n\n"
+        + copied[0].encode()
+        + b"\n~~~~~~~~~~~~~~~~\n"
+    )
     summary = capsys.readouterr().out
     assert f"Mission folder: {path.parent.parent}." in summary
     assert f"Appended to: {path}." in summary

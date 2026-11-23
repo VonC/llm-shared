@@ -467,6 +467,22 @@ def _get_arg_parser() -> argparse.ArgumentParser:
     return parser
 
 
+def _append_mission(journal: Path | None, copy: str) -> str:
+    """Append after copying and return the destination summary.
+
+    Raises:
+        CopyConversationError: The clipboard is ready but journaling failed.
+    """
+    if journal is None:
+        return ""
+    try:
+        append_journal(journal, copy)
+    except (JournalError, OSError) as err:
+        msg = f"Clipboard ready; mission journal append failed at {journal}: {err}"
+        raise CopyConversationError(msg) from err
+    return f" Mission folder: {journal.parent.parent}. Appended to: {journal}."
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     """CLI entry point."""
     args = _get_arg_parser().parse_args(argv)
@@ -484,19 +500,13 @@ def main(argv: Sequence[str] | None = None) -> int:
         Path(args.output).write_text(copy, encoding="utf-8")
     if not args.no_clipboard:
         set_clipboard_text(copy)
-    if journal is not None:
-        try:
-            append_journal(journal, copy)
-        except (JournalError, OSError) as err:
-            msg = f"Clipboard ready; mission journal append failed at {journal}: {err}"
-            raise CopyConversationError(msg) from err
+    mission_destination = _append_mission(journal, copy)
     destination = (
         "Ready to paste from clipboard."
         if not args.no_clipboard
         else "Clipboard unchanged."
     )
-    if journal is not None:
-        destination += f" Mission folder: {journal.parent.parent}. Appended to: {journal}."
+    destination += mission_destination
     sys.stdout.write(
         f"copy-conversation ({host}): {transcript.name} rendered to "
         f"{result.source_lines} lines, {result.kept_lines} kept under "

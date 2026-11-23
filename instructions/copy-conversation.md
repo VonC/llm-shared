@@ -22,8 +22,38 @@ In Claude Code the skill runs the launcher itself while it loads and shows
 its result line: report that line and stop, with no command of your own.
 
 Otherwise run the launcher once, from PowerShell, in the current checkout.
+On Windows, first resolve `JOURNAL_MISSION` in that same shell call. Windows
+user settings added after Codex started may be absent from its inherited
+process environment. Preserve any process entry, even empty or invalid; only
+when the entry is absent consult the Windows user environment. If that user
+entry is present but empty, report the invalid setting and stop before copying:
+Windows PowerShell can remove an empty value when assigning it to a process.
+Never convert an empty setting into clipboard-only behavior.
+
+Use this preflight immediately before the single launcher invocation:
+
+```powershell
+if (-not [Environment]::GetEnvironmentVariables('Process').Contains('JOURNAL_MISSION')) {
+    $missionUserSettings = [Environment]::GetEnvironmentVariables('User')
+    if ($missionUserSettings.Contains('JOURNAL_MISSION')) {
+        $missionUserValue = [string]$missionUserSettings['JOURNAL_MISSION']
+        if ($missionUserValue.Length -eq 0) {
+            throw 'JOURNAL_MISSION must name an absolute YYYYMM-NAME folder.'
+        }
+        [Environment]::SetEnvironmentVariable('JOURNAL_MISSION', $missionUserValue, 'Process')
+    }
+}
+# Invoke the launcher below here, in this same shell call, exactly once.
+```
+
+Do not consult the machine setting, change persistent environment settings,
+or run the launcher once to discover whether journaling was enabled. With no
+process or user entry, leave the variable absent. Outside Windows, use the
+inherited process environment as it stands. Claude's automatic invocation
+above is already complete; do not invoke it a second time for this preflight.
+
 `<LLM_SHARED_DIR>` is the absolute parent of the `instructions` folder that
-holds this file; this one command needs no `run_commands.md` read and no
+holds this file; this preflight and command need no `run_commands.md` read and no
 `senv.bat` call:
 
 ```text
@@ -70,7 +100,23 @@ it is today. Both the month subfolder and daily filename use that journal
 day, including at month/year boundaries. The optional `YYYYMMDD` argument
 still controls trimming only; it does not override the journal day.
 
-The command creates the month subfolder and daily file if needed. It takes
+The command creates the month subfolder and daily file if needed. A newly
+created daily file begins with its journal date in French, with the weekday
+capitalized, underlined with as many `=` characters as the heading, followed
+by a blank line before the first conversation entry:
+
+```text
+Mardi 17 novembre 2026
+======================
+
+```
+
+The heading uses the date already selected for the destination filename,
+including the before-06:00 rule; it does not read the clock again. Add it only
+when creating the file, never on append to an existing file (even an empty
+one). The heading and first entry are written together under the file lock.
+
+The command takes
 exclusive access to the actual daily file on Windows, waits up to ten seconds
 if another writer holds it, appends and flushes, then releases the handle even
 on errors. POSIX uses a cooperative file lock. New files use UTF-8 without a
@@ -79,8 +125,9 @@ separates entries when needed. The copied text is followed by a newline when
 needed and a line containing exactly `~~~~~~~~~~~~~~~~`, ending in a newline.
 
 An absent variable preserves clipboard-only behavior; an empty or invalid
-value is an error. A new Windows user environment setting must reach the
-host's process environment before the command can see it. The underlying
+value is an error. The Windows preflight above forwards an otherwise missing
+user setting to the launcher without changing the host's persistent settings.
+The underlying
 CLI's `--no-clipboard` also disables automatic journaling, and `--output`
 cannot overwrite the selected journal file. Keep private mission paths and
 names in the user's environment, never hard-code them in shared sources.

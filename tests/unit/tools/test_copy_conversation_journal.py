@@ -21,23 +21,25 @@ if TYPE_CHECKING:
 
 
 @pytest.mark.parametrize(
-    ("instant", "relative"),
+    ("instant", "relative", "heading"),
     [
-        ("2026-11-16T05:59:59", "202611/project-a20261115.txt"),
-        ("2026-11-16T06:00:00", "202611/project-a20261116.txt"),
-        ("2026-12-01T00:00:00", "202611/project-a20261130.txt"),
-        ("2027-01-01T05:00:00", "202612/project-a20261231.txt"),
-        ("2024-03-01T05:00:00", "202402/project-a20240229.txt"),
+        ("2026-11-16T05:59:59", "202611/project-a20261115.txt", "Dimanche 15 novembre 2026"),
+        ("2026-11-16T06:00:00", "202611/project-a20261116.txt", "Lundi 16 novembre 2026"),
+        ("2026-12-01T00:00:00", "202611/project-a20261130.txt", "Lundi 30 novembre 2026"),
+        ("2027-01-01T05:00:00", "202612/project-a20261231.txt", "Jeudi 31 décembre 2026"),
+        ("2024-03-01T05:00:00", "202402/project-a20240229.txt", "Jeudi 29 février 2024"),
     ],
 )
-def test_day_boundary_and_lowercase_prefix(tmp_path: Path, instant: str, relative: str) -> None:
-    """The root's old month stays intact while the selected day crosses boundaries."""
+def test_day_boundary_and_lowercase_prefix(tmp_path: Path, instant: str, relative: str, heading: str) -> None:
+    """The filename and French heading agree across day, month and year boundaries."""
     root = tmp_path / "202401-PrOjEcT-A"
     root.mkdir()
     result = journal.journal_path({"JOURNAL_MISSION": str(root)}, datetime.fromisoformat(instant))
     assert result is not None
     assert result == root / relative
     assert not result.exists()
+    journal.append_journal(result, "first")
+    assert result.read_text(encoding="utf-8") == f"{heading}\n{'=' * len(heading)}\n\nfirst\n~~~~~~~~~~~~~~~~\n"
 
 
 def test_absent_environment_does_not_read_clock(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -55,6 +57,8 @@ def test_clock_is_captured_once(tmp_path: Path, monkeypatch: pytest.MonkeyPatch)
     samples = iter([datetime(2026, 12, 1, 5, 59, tzinfo=UTC)])
     monkeypatch.setattr(journal, "local_now", lambda: next(samples))
     assert journal.journal_path({"JOURNAL_MISSION": str(root)}) == root / "202611/demo20261130.txt"
+    journal.append_journal(root / "202611/demo20261130.txt", "copy")
+    assert (root / "202611/demo20261130.txt").read_text(encoding="utf-8").startswith("Lundi 30 novembre 2026\n")
 
 
 @pytest.mark.parametrize("value", ["", " ", "relative/202401-Demo", "invalid", "202401-"])
@@ -83,7 +87,17 @@ def test_append_preserves_payload_and_existing_bytes(tmp_path: Path, existing: b
     journal.append_journal(path, payload)
     boundary = b"\n" if existing and not existing.endswith(b"\n") else b""
     ending = b"" if payload.endswith("\n") else b"\n"
-    assert path.read_bytes() == existing + boundary + payload.encode() + ending + b"~~~~~~~~~~~~~~~~\n"
+    heading = b"" if existing else b"Lundi 16 novembre 2026\n======================\n\n"
+    assert path.read_bytes() == existing + heading + boundary + payload.encode() + ending + b"~~~~~~~~~~~~~~~~\n"
+
+
+@pytest.mark.parametrize("existing", [b"", b"Mardi 17 novembre 2026\n======================\n\nold\n~~~~~~~~~~~~~~~~\n"])
+def test_existing_file_never_gets_a_date_heading(tmp_path: Path, existing: bytes) -> None:
+    """Both an empty existing file and a dated journal retain their exact prefix."""
+    path = tmp_path / "demo20261117.txt"
+    path.write_bytes(existing)
+    journal.append_journal(path, "new")
+    assert path.read_bytes() == existing + b"new\n~~~~~~~~~~~~~~~~\n"
 
 
 def test_invalid_encoding_leaves_file_unchanged_and_releases_lock(tmp_path: Path) -> None:
@@ -94,14 +108,18 @@ def test_invalid_encoding_leaves_file_unchanged_and_releases_lock(tmp_path: Path
     with pytest.raises(journal.JournalError, match="not UTF-8"):
         journal.append_journal(path, "new")
     assert path.read_bytes() == original
-    with journal.locked_journal(path) as stream:
+    with journal.locked_journal(path) as (stream, _):
         assert stream.read() == original
 
 
-def test_partial_failure_rolls_back_and_releases_lock(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+@pytest.mark.parametrize("existing", [None, b"old"])
+def test_partial_failure_rolls_back_and_releases_lock(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, existing: bytes | None,
+) -> None:
     """Even a write that already changed the file restores the earlier content."""
-    path = tmp_path / "daily.txt"
-    path.write_bytes(b"old")
+    path = tmp_path / "demo20261117.txt"
+    if existing is not None:
+        path.write_bytes(existing)
 
     def fail_after_write(stream: BinaryIO, block: bytes) -> None:
         stream.write(block[:2])
@@ -111,9 +129,9 @@ def test_partial_failure_rolls_back_and_releases_lock(tmp_path: Path, monkeypatc
     monkeypatch.setattr(journal, "_write_all", fail_after_write)
     with pytest.raises(OSError, match="disk full"):
         journal.append_journal(path, "new")
-    assert path.read_bytes() == b"old"
-    with journal.locked_journal(path) as stream:
-        assert stream.read() == b"old"
+    assert path.read_bytes() == (existing or b"")
+    with journal.locked_journal(path) as (stream, _):
+        assert stream.read() == (existing or b"")
 
 
 def test_two_writers_wait_and_append_complete_entries(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -129,7 +147,7 @@ def test_two_writers_wait_and_append_complete_entries(tmp_path: Path, monkeypatc
     monkeypatch.setattr(journal.time, "sleep", wait_for_release)
     with ThreadPoolExecutor(max_workers=1) as executor:
         try:
-            with journal.locked_journal(path) as stream:
+            with journal.locked_journal(path) as (stream, _):
                 future = executor.submit(journal.append_journal, path, "second")
                 assert contended.wait(2), "second writer did not encounter the real lock"
                 journal._append_locked(stream, "first")

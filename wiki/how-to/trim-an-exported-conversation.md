@@ -94,7 +94,11 @@ leaves the clipboard alone.
 
 Set `JOURNAL_MISSION` in the agent's environment to an existing absolute
 folder named `YYYYMM-NAME`, for example `C:\notes\202401-Project-A`.
-Restart an already-running host if it has not inherited a new user setting.
+The Codex instruction checks the Windows user setting before its first
+invocation when the process has no entry. An existing process entry wins,
+including an invalid one. Direct CLI calls and Claude's automatic invocation
+still need the setting in their process environment; restart those hosts if
+they have not inherited it.
 Then invoke `copy-conversation` as usual. It also appends the copied block
 and a `~~~~~~~~~~~~~~~~` separator line to
 `<JOURNAL_MISSION>\YYYYMM\project-aYYYYMMDD.txt`.
@@ -104,12 +108,17 @@ Before 06:00 local time, the journal day is yesterday; at 06:00 it becomes
 today. Both the month subfolder and filename follow that day. The mission
 root stays as configured, and a supplied trimming date does not change the
 journal day. The command creates the month subfolder and file as needed.
+Only a newly created file starts with its journal date in French, for example
+`Mardi 17 novembre 2026`, an underline of `=` characters of the same length,
+then a blank line. The heading uses the filename's journal day. Existing
+files, including empty ones, receive only the new conversation entry.
 
 Use UTF-8 for existing journal files. Each append holds exclusive access to
 the daily file on Windows (a cooperative lock on POSIX), then flushes and
 closes it. The result names the destination. If it reports that the clipboard
 is ready but the append failed, inspect that destination before retrying.
-Unset `JOURNAL_MISSION` to return to clipboard-only copying. The underlying
+Remove `JOURNAL_MISSION` from both the process and Windows user settings to
+return to clipboard-only copying through the Codex instruction. The underlying
 CLI's `--no-clipboard` also skips journaling. This option does not change `tth`.
 
 ## Force the export format

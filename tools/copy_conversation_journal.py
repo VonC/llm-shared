@@ -14,7 +14,7 @@ import os
 import re
 import time
 from contextlib import contextmanager
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -27,7 +27,13 @@ _DAY_START_HOUR = 6
 _LOCK_TIMEOUT = 10.0
 _LOCK_INTERVAL = 0.1
 _SHARING_ERRORS = (32, 33)
+_ERROR_ALREADY_EXISTS = 183
 _SEPARATOR = b"~~~~~~~~~~~~~~~~\n"
+_WEEKDAYS = ("Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche")
+_MONTHS = (
+    "janvier", "février", "mars", "avril", "mai", "juin",
+    "juillet", "août", "septembre", "octobre", "novembre", "décembre",
+)
 
 
 class JournalError(Exception):
@@ -78,7 +84,7 @@ def check_output_path(output: str | None, journal: Path | None) -> None:
         raise JournalError(msg)
 
 
-def _open_windows(path: Path) -> BinaryIO:
+def _open_windows(path: Path) -> tuple[BinaryIO, bool]:
     """Atomically create/open the actual file with exclusive Windows sharing."""
     import msvcrt  # noqa: PLC0415 - Windows-only descriptor ownership
     from ctypes import wintypes  # noqa: PLC0415 - Windows-only API
@@ -92,6 +98,7 @@ def _open_windows(path: Path) -> BinaryIO:
     kernel32.CloseHandle.argtypes = (wintypes.HANDLE,)
     # GENERIC_READ | GENERIC_WRITE, no sharing, OPEN_ALWAYS, normal attributes.
     handle = kernel32.CreateFileW(str(path), 0xC0000000, 0, None, 4, 0x80, None)
+    opened_existing = ctypes.get_last_error() == _ERROR_ALREADY_EXISTS
     if handle == ctypes.c_void_p(-1).value:
         raise ctypes.WinError(ctypes.get_last_error())  # type: ignore[attr-defined]
     try:
@@ -100,18 +107,23 @@ def _open_windows(path: Path) -> BinaryIO:
         kernel32.CloseHandle(handle)
         raise
     try:
-        return os.fdopen(descriptor, "r+b", buffering=0)
+        return os.fdopen(descriptor, "r+b", buffering=0), not opened_existing
     except BaseException:
         os.close(descriptor)
         raise
 
 
 if os.name != "nt":
-    def _open_posix(path: Path) -> BinaryIO:
+    def _open_posix(path: Path) -> tuple[BinaryIO, bool]:
         """Open/create and take a cooperative POSIX lock without truncating."""
         import fcntl  # noqa: PLC0415 - POSIX-only API
 
-        descriptor = os.open(path, os.O_RDWR | os.O_CREAT, 0o600)
+        try:
+            descriptor = os.open(path, os.O_RDWR | os.O_CREAT | os.O_EXCL, 0o600)
+            created = True
+        except FileExistsError:
+            descriptor = os.open(path, os.O_RDWR)
+            created = False
         try:
             try:
                 fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
@@ -120,14 +132,14 @@ if os.name != "nt":
                     msg = "Journal lock is busy"
                     raise BlockingIOError(errno.EAGAIN, msg) from err
                 raise
-            return os.fdopen(descriptor, "r+b", buffering=0)
+            return os.fdopen(descriptor, "r+b", buffering=0), created
         except BaseException:
             os.close(descriptor)
             raise
 
 
 @contextmanager
-def locked_journal(path: Path) -> Generator[BinaryIO]:
+def locked_journal(path: Path) -> Generator[tuple[BinaryIO, bool]]:
     """Wait briefly for exclusive access; closing releases even after failure.
 
     Raises:
@@ -137,7 +149,7 @@ def locked_journal(path: Path) -> Generator[BinaryIO]:
     deadline = time.monotonic() + _LOCK_TIMEOUT
     while True:
         try:
-            stream = opener(path)
+            stream, created = opener(path)
             break
         except OSError as err:
             busy = (
@@ -152,7 +164,7 @@ def locked_journal(path: Path) -> Generator[BinaryIO]:
                 raise JournalError(msg) from err
             time.sleep(min(_LOCK_INTERVAL, remaining))
     with stream:
-        yield stream
+        yield stream, created
 
 
 def _write_all(stream: BinaryIO, block: bytes) -> None:
@@ -168,7 +180,7 @@ def _write_all(stream: BinaryIO, block: bytes) -> None:
     os.fsync(stream.fileno())
 
 
-def _append_locked(stream: BinaryIO, copy: str) -> None:
+def _append_locked(stream: BinaryIO, copy: str, heading: bytes = b"") -> None:
     """Validate encoding and append, restoring the old size on caught errors.
 
     Raises:
@@ -183,7 +195,7 @@ def _append_locked(stream: BinaryIO, copy: str) -> None:
     boundary = b"\n" if existing and not existing.endswith(b"\n") else b""
     payload = copy.encode("utf-8")
     ending = b"" if payload.endswith(b"\n") else b"\n"
-    block = boundary + payload + ending + _SEPARATOR
+    block = heading + boundary + payload + ending + _SEPARATOR
     try:
         _write_all(stream, block)
     except (OSError, KeyboardInterrupt) as err:
@@ -200,8 +212,14 @@ def _append_locked(stream: BinaryIO, copy: str) -> None:
 def append_journal(path: Path, copy: str) -> None:
     """Append one exact copy and separator under the actual daily file lock."""
     path.parent.mkdir(exist_ok=True)
-    with locked_journal(path) as stream:
-        _append_locked(stream, copy)
+    with locked_journal(path) as (stream, created):
+        heading = b""
+        if created:
+            stamp = path.stem[-8:]
+            day = date(int(stamp[:4]), int(stamp[4:6]), int(stamp[6:]))
+            title = f"{_WEEKDAYS[day.weekday()]} {day.day} {_MONTHS[day.month - 1]} {day.year}"
+            heading = f"{title}\n{'=' * len(title)}\n\n".encode()
+        _append_locked(stream, copy, heading)
 
 
 # eof
