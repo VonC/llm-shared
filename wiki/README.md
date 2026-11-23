@@ -251,6 +251,7 @@ Exact descriptions of commands, formats, files, and supported behavior.
 - 🤖 [Markdown checker](reference/markdown-checker.md)
 - 🤖 [Skills catalog](reference/skills-catalog.md)
 - 🔁 [pw launcher](reference/pw-launcher.md)
+- 🔁 [resume_paused bulk resume command](reference/resume-paused.md)
 - 📝 [Artifact files and naming conventions](reference/artifact-files.md)
 - 🤖 [Independent review mode contract](reference/independent-review-mode-contract.md)
 - 📝 [Question decision scanner and progress](reference/question-decisions.md)

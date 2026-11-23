@@ -116,13 +116,12 @@ The handoff also records automatic resume routing: the intended resumed agent
 and review roles, observed TUIOS session and pane identities, checkout and
 supporting evidence. The pause captures these from existing state and recorded
 user direction without asking you to select panes. Unavailable values are
-marked unknown without losing the rest of the checkpoint. This prepares the
-handoff for the planned v0.14.0 `resume_paused` command, whose target selection
-must use that saved information and validate it against live panes, without
-pane-selection arguments or follow-up questions. Missing or stale routing is
-reported without input to unresolved targets. Bulk resume and its matching
-authorization changes are not implemented by this documentation change;
-the manual `resume-session` procedure below describes the current workflow.
+marked unknown without losing the rest of the checkpoint. The human-only
+[`resume_paused` command](#resume-every-waiting-pane-at-once) selects its
+targets from that saved information and validates it against live panes,
+without pane-selection arguments or follow-up questions. Missing or stale
+routing is reported without input to unresolved targets. The manual
+`resume-session` procedure below keeps working for one checkout at a time.
 
 Before leaving, check the reported file exists and that the saved next action
 matches where you intended to stop. The agent fills the
@@ -216,6 +215,37 @@ For an independent review, a bare `resume` invokes
 recover the broader saved task context; it still performs that review's
 ownership checks before continuing the exchange. Neither command approves a
 pending commit or review decision.
+
+## Resume every waiting pane at once
+
+Run `bin\resume_paused.bat` yourself from a terminal, inside a TUIOS pane or
+outside TUIOS, to resume every paused session whose pane waits in TUIOS. It
+is a shell command for humans, not an LLM command: agents must never run it,
+not even with `--dry-run` or `--help`, and refuse to when asked. Preview
+first; nothing is typed:
+
+```text
+C:\path\to\llm-shared\bin\resume_paused.bat --dry-run
+```
+
+Each checkout holding a resume prompt gets one line with the exact marked
+command for each saved target, then the count of panes left alone. When the
+preview is right, run it again without `--dry-run`. One launch resumes each
+saved target with a marker bound to it; the receiving `resume-session` or
+`review-resume` validates that marker and proceeds with no consent question.
+For a paused review pair, the requestor resumes first; its reviewer is
+activated only after its takeover is proved and no reviewer wait can still be
+running. Otherwise the reviewer is reported `PENDING`, and a later launch
+activates only that missing reviewer.
+
+Add `--clear` to clear each resumed conversation first, `--except NAME` to
+leave sessions, pane labels or checkout folders alone, and
+`--switch-roles NAME` to swap a saved requestor and reviewer pair. Exit status
+0 means success, expected skips or pending reviewers; 1 a failure, which is
+never retried by retyping; 2 invalid arguments. No host profile is pinned yet,
+so a real launch currently fails closed with no input. The
+[resume_paused reference](../reference/resume-paused.md) lists every argument,
+status and disclosed limit.
 
 ## Use the canonical files when discovery is unavailable
 
