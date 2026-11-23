@@ -1,10 +1,10 @@
-# Design v0.14.0: resume paused agent panes
+# Design v0.15.0: resume paused agent panes
 
-Reference requirement: [resume-paused feature request](feature-request.v0.14.0.resume-paused.md).
-The requirement's [29 confirmed decisions](feature-request.v0.14.0.resume-paused.md#requirement-clarifications-for-resume-paused)
+Reference requirement: [resume-paused feature request](feature-request.v0.15.0.resume-paused.md).
+The requirement's [29 confirmed decisions](feature-request.v0.15.0.resume-paused.md#requirement-clarifications-for-resume-paused)
 govern this design, including their later amendments.
 
-## Context for v0.14.0 resume-paused
+## Context for v0.15.0 resume-paused
 
 Persistent TUIOS sessions retain idle agent panes after a pause. A person
 currently visits each pane to resume it. The proposed shared command turns
@@ -31,7 +31,7 @@ shell escapes. Tests use an injected fake TUIOS runner. The command creates
 no panes, claims no review role, and changes no prompt, receipt, journal or
 exchange artifact. Receiving agents perform their normal authorized writes.
 
-The [deferred senv checklist](feature-request.v0.14.0.resume-paused.md#deferred-senv-integration-follow-up)
+The [deferred senv checklist](feature-request.v0.15.0.resume-paused.md#deferred-senv-integration-follow-up)
 remains unchecked. A separate senv effort must assess reusing the supported
 shared interface from `tuitp` after this delivery is implemented and validated.
 The implementation plan, validation plan and completion handoff must retain
@@ -77,7 +77,7 @@ individual primitives, without establishing supported profiles.
 | Independent reviewer read-only help observation on 2026-11-14, Claude 2.1.325 | `claude --version` reported 2.1.325; `claude --help` describes `--no-session-persistence` and `--output-format` as working only with `--print`. This is help-text evidence, not runtime validation of interactive flag handling, parent-task coverage or a supported profile. |
 | [Program status](../../tools/program_status.py) | OSC 7501 reports provide app state. They are supplementary evidence, not proof that an input was accepted. |
 
-The [draft](draft.v0.14.0.resume-paused.md) supplies observed TUIOS delivery
+The [draft](draft.v0.15.0.resume-paused.md) supplies observed TUIOS delivery
 behavior. Its agent-run experiment is historical evidence. No live bulk
 delivery, supported Codex screen profile or new-conversation command has been
 validated by writing this design.

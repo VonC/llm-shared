@@ -2,9 +2,9 @@
 
 - Type: feature-request
 - Test group: whole suite
-- Target version: v0.14.0
+- Target version: v0.15.0
 - Topic: resume-paused
-- Source: [resume-paused draft](draft.v0.14.0.resume-paused.md)
+- Source: [resume-paused draft](draft.v0.15.0.resume-paused.md)
 - Deferred follow-up: [senv tuitp integration](#deferred-senv-integration-follow-up)
 
 ## Draft revision that introduces resume-paused
@@ -25,7 +25,7 @@ from a terminal or shell; agents never launch it, even when asked. No review
 role-isolation exception is introduced. Q20=A enforces this by refusing every
 invocation, including `--dry-run`, from a recognized agent caller pane.
 
-## Current behavior before the v0.14.0 resume-paused change
+## Current behavior before the v0.15.0 resume-paused change
 
 - `pause-session` saves `a.session-resume.local.md` in each checkout's
   artifact home. `resume-session` consumes it and records its SHA-256 in
@@ -183,7 +183,7 @@ read-only bulk command, not an interactive migration at launch. A conversion
 proposal must preserve the task, establish complete routing without guessing,
 and account for prompt digest and receipt eligibility before any rewrite.
 Consumed or ambiguous handoffs can still be resumed manually and paused again.
-The [design's migration study](design.v0.14.0.resume-paused.md#legacy-routing-migration-study)
+The [design's migration study](design.v0.15.0.resume-paused.md#legacy-routing-migration-study)
 records proposals; it does not add a converter to the confirmed delivery.
 
 Carry pause capture, saved-routing consumption, live identity validation and

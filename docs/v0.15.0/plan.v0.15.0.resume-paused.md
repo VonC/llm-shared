@@ -1,10 +1,10 @@
-# v0.14.0 resume-paused implementation plan
+# v0.15.0 resume-paused implementation plan
 
 Implement the human-launched resume workflow through shared artifact parsing, independently validated receivers and guarded pane delivery.
 
 ## Plan goal and scope for resume-paused
 
-Implement [the requirement](feature-request.v0.14.0.resume-paused.md) and [the consolidated design](design.v0.14.0.resume-paused.md) beside [the canonical draft](draft.v0.14.0.resume-paused.md). The numbered steps below cover both Claude and Codex on Windows with Python 3.12 compatibility.
+Implement [the requirement](feature-request.v0.15.0.resume-paused.md) and [the consolidated design](design.v0.15.0.resume-paused.md) beside [the canonical draft](draft.v0.15.0.resume-paused.md). The numbered steps below cover both Claude and Codex on Windows with Python 3.12 compatibility.
 
 - **Step 1 goal**: Establish usable read-only evidence for both hosts before enabling any delivery.
 - **Step 2 goal**: Provide strict shared inputs and a pure exact-exchange observation boundary.
@@ -17,7 +17,7 @@ Implement [the requirement](feature-request.v0.14.0.resume-paused.md) and [the c
 
 Implement the documented `resume_paused [--dry-run] [--clear] [--except NAME[,NAME...]] [--switch-roles NAME[,NAME...]]` interface. Agents must never launch the bulk CLI, including preview or at a person's request. Tests use injected fake TUIOS; the separate receiving validator is agent-callable and read-only.
 
-The [deferred senv integration checklist](feature-request.v0.14.0.resume-paused.md#deferred-senv-integration-follow-up) remains unchecked and must appear in validation and completion handoffs. This delivery preserves installed `tuitp` grammar through fixtures; it does not validate full eligible-session startup/restoration coverage. No automatic legacy routing converter, live delivery experiment, claim-history file or authorization/continuation artifact belongs to this implementation.
+The [deferred senv integration checklist](feature-request.v0.15.0.resume-paused.md#deferred-senv-integration-follow-up) remains unchecked and must appear in validation and completion handoffs. This delivery preserves installed `tuitp` grammar through fixtures; it does not validate full eligible-session startup/restoration coverage. No automatic legacy routing converter, live delivery experiment, claim-history file or authorization/continuation artifact belongs to this implementation.
 
 ## File-based IO cost clarification for resume-paused
 
@@ -64,8 +64,8 @@ recounted on 2026-11-14 at HEAD `06e0bba1`.
 | `instructions/code-review-requestor.md` (existing, to be updated) | 320 | Non-Python; no Python size band |
 | `README.md` (existing, to be updated) | 110 | Non-Python; no Python size band |
 | `wiki/how-to/pause-and-resume-a-session.md` (existing, to be updated) | 231 | Non-Python; no Python size band |
-| `docs/v0.14.0/feature-request.v0.14.0.resume-paused.md` (plan-writing edit already applied) | 597 | Non-Python; IO clarification takes it to 601; no implementation edit planned |
-| `docs/v0.14.0/design.v0.14.0.resume-paused.md` (plan-writing edit already applied) | 721 | Non-Python; IO clarification takes it to 725; no implementation edit planned |
+| `docs/v0.15.0/feature-request.v0.15.0.resume-paused.md` (plan-writing edit already applied) | 597 | Non-Python; IO clarification takes it to 601; no implementation edit planned |
+| `docs/v0.15.0/design.v0.15.0.resume-paused.md` (plan-writing edit already applied) | 721 | Non-Python; IO clarification takes it to 725; no implementation edit planned |
 
 No existing Python file scheduled for modification is over 650. `tools/review_exchange_store.py` is the sole risk-band mutation target; ownership behavior belongs in its existing ownership-store delegate. Advisory additions are roughly 5–40 lines for forwarding modules, 20–100 for coordination/claim support and 100–400 per new responsibility module or test scenario file. These estimates never impose a lower mandatory ceiling.
 
@@ -145,7 +145,7 @@ A bare Qxx in a framing line means the consolidated design decision table; requi
 - **Issues**: Neither host profile is validated. The consolidated design supplies a Codex loaded-image identity contract and a Claude generation-ledger candidate; both still require disposable validation.
 - **Fix intent**: Implement injected read-only host evidence adapters and document supported version/layout signatures with sanitized synthetic fixtures.
 - **Expected outcome**: Both hosts have explicit supported profiles or implementation stops for design review before delivery work.
-- **Framing**: [Design](design.v0.14.0.resume-paused.md), Clearing and delivery confirmation; Q06, Q08, Q14–Q17, Q27 and Q28. Apply the shared execution command checklist and ready-to-run commands above.
+- **Framing**: [Design](design.v0.15.0.resume-paused.md), Clearing and delivery confirmation; Q06, Q08, Q14–Q17, Q27 and Q28. Apply the shared execution command checklist and ready-to-run commands above.
 - **Complexity impact**: Read cost follows the selected evidence bytes; return only typed allowlisted facts.
 - **Feature preservation**: Preserve legacy manual consent/readability, review-role isolation and existing ownership fencing while adding only the behavior assigned here.
 
@@ -158,7 +158,7 @@ A bare Qxx in a framing line means the consolidated design decision table; requi
 - `tools/resume_paused_claude.py` (new, to be created).
 - `tools/resume_paused_codex.py` (new, to be created).
 - `tools/resume_paused_windows.py` (new, to be created).
-- `docs/v0.14.0/resume-paused.profile-evidence.md` (existing, to be updated with sanitized validation outcomes).
+- `docs/v0.15.0/resume-paused.profile-evidence.md` (existing, to be updated with sanitized validation outcomes).
 - `tests/unit/tools/test_resume_paused_profiles/__init__.py` (new, to be created).
 - `tests/unit/tools/test_resume_paused_profiles/test_resume_paused_profiles_tdd.py` (new, to be created).
 
@@ -272,7 +272,7 @@ Current sizes for the Q28=A follow-up (2026-11-17): `tools/resume_paused_profile
 - **Issues**: Session artifacts currently have instruction-defined formats; normal artifact-home preparation and review-core construction can mutate state.
 - **Fix intent**: Add exact-byte prompt/receipt and versioned JSON routing readers; reuse side-effect-free configuration/path resolution, validated observer and nonblocking observation locks.
 - **Expected outcome**: A canonical checkout snapshot distinguishes unused, used, malformed and unresolved inputs without creating directories or claiming roles.
-- **Framing**: [Design](design.v0.14.0.resume-paused.md), Discovery and evidence model; saved routing; Q01 and Q09; legacy routing study; existing tuitp compatibility. Apply the shared execution command checklist and ready-to-run commands above.
+- **Framing**: [Design](design.v0.15.0.resume-paused.md), Discovery and evidence model; saved routing; Q01 and Q09; legacy routing study; existing tuitp compatibility. Apply the shared execution command checklist and ready-to-run commands above.
 - **Complexity impact**: Keep responsibilities bounded; account for exact-path reads and fresh evidence as described in the shared complexity section.
 - **Feature preservation**: Preserve legacy manual consent/readability, review-role isolation and existing ownership fencing while adding only the behavior assigned here.
 
@@ -285,7 +285,7 @@ Current sizes for the Q28=A follow-up (2026-11-17): `tools/resume_paused_profile
 - `tools/resume_paused_models.py` (new, to be created).
 - `tools/resume_paused_artifacts.py` (new, to be created).
 - `tools/resume_paused_review.py` (new, to be created).
-- `docs/v0.14.0/resume-paused.legacy-routing-study.md` (new, to be created).
+- `docs/v0.15.0/resume-paused.legacy-routing-study.md` (new, to be created).
 - `tests/unit/tools/test_resume_paused_artifacts/__init__.py` (new, to be created).
 - `tests/unit/tools/test_resume_paused_artifacts/test_resume_paused_artifacts_tdd.py` (new, to be created).
 - `tests/unit/tools/test_resume_paused_artifacts/test_resume_paused_artifacts_pbt.py` (new, to be created).
@@ -324,7 +324,7 @@ All non-Python file baselines are recorded above; new non-Python files start at 
 - **Issues**: The pause template has only a prose routing table, and existing readers describe schema 1/2 only.
 - **Fix intent**: Update canonical pause instructions/templates to capture JSON routing from read-only evidence and make the status and list receipt readers schema-3 aware.
 - **Expected outcome**: Historical authorship and intended assignments remain separate; unresolved targets are explicit and never guessed.
-- **Framing**: [Design](design.v0.14.0.resume-paused.md), Saved routing and role resolution; Q01, Q03 and Q10; compatible mixed-install release. Apply the shared execution command checklist and ready-to-run commands above.
+- **Framing**: [Design](design.v0.15.0.resume-paused.md), Saved routing and role resolution; Q01, Q03 and Q10; compatible mixed-install release. Apply the shared execution command checklist and ready-to-run commands above.
 - **Complexity impact**: Keep responsibilities bounded; account for exact-path reads and fresh evidence as described in the shared complexity section.
 - **Feature preservation**: Preserve legacy manual consent/readability, review-role isolation and existing ownership fencing while adding only the behavior assigned here.
 
@@ -374,7 +374,7 @@ All non-Python file baselines are recorded above; new non-Python files start at 
 - **Issues**: Inherited pane variables cannot establish receiver identity, and marked consent must not outlive a changed latest input or claim generation.
 - **Fix intent**: Provide an agent-callable read-only validator separate from the human-only CLI, then connect its fresh results to receiving instructions and the existing locked selected claim.
 - **Expected outcome**: A valid marker authorizes only its bound overrides; mismatch stops before protected writes without fallback consent questions.
-- **Framing**: [Design](design.v0.14.0.resume-paused.md), Target-bound consent; takeover observation; Q02–Q04, Q11 and Q13–Q15. Apply the shared execution command checklist and ready-to-run commands above.
+- **Framing**: [Design](design.v0.15.0.resume-paused.md), Target-bound consent; takeover observation; Q02–Q04, Q11 and Q13–Q15. Apply the shared execution command checklist and ready-to-run commands above.
 - **Complexity impact**: Keep responsibilities bounded; account for exact-path reads and fresh evidence as described in the shared complexity section.
 - **Feature preservation**: Preserve legacy manual consent/readability, review-role isolation and existing ownership fencing while adding only the behavior assigned here.
 
@@ -483,7 +483,7 @@ All non-Python file baselines are recorded above; new non-Python files start at 
 - **Issues**: Filtering selected panes too early would hide duplicate evidence; eligibility must protect caller, active turns, questions and drafts.
 - **Fix intent**: Collect all panes first, aggregate by canonical root, apply global argument validation, then resolve saved assignments and per-checkout actions.
 - **Expected outcome**: Preview and execution share the same classified plan, with no guessed target or mutation.
-- **Framing**: [Design](design.v0.14.0.resume-paused.md), Discovery; duplicate protection and safe eligibility; saved role switching; Q08 and Q10; reporting. Apply the shared execution command checklist and ready-to-run commands above.
+- **Framing**: [Design](design.v0.15.0.resume-paused.md), Discovery; duplicate protection and safe eligibility; saved role switching; Q08 and Q10; reporting. Apply the shared execution command checklist and ready-to-run commands above.
 - **Complexity impact**: Use map-based discovery/grouping and explicit fresh evidence costs from the shared complexity section.
 - **Feature preservation**: Preserve legacy manual consent/readability, review-role isolation and existing ownership fencing while adding only the behavior assigned here.
 
@@ -532,7 +532,7 @@ All non-Python file baselines are recorded above; new non-Python files start at 
 - **Issues**: Transport success does not prove command submission, and concurrent human invocations can race.
 - **Fix intent**: Add nonblocking per-checkout OS guards outside artifact homes, shell-free TUIOS transport and a deadline-driven clear/delivery state machine.
 - **Expected outcome**: Every input is freshly eligible and targets exactly one current full pane identity; uncertain submission never causes retyping.
-- **Framing**: [Design](design.v0.14.0.resume-paused.md), Clearing and delivery confirmation; Q05–Q07; 100-second action and 60-second stall limits. Apply the shared execution command checklist and ready-to-run commands above.
+- **Framing**: [Design](design.v0.15.0.resume-paused.md), Clearing and delivery confirmation; Q05–Q07; 100-second action and 60-second stall limits. Apply the shared execution command checklist and ready-to-run commands above.
 - **Complexity impact**: Keep responsibilities bounded; account for exact-path reads and fresh evidence as described in the shared complexity section.
 - **Feature preservation**: Preserve legacy manual consent/readability, review-role isolation and existing ownership fencing while adding only the behavior assigned here.
 
@@ -579,7 +579,7 @@ All non-Python file baselines are recorded above; new non-Python files start at 
 - **Issues**: Receipt alone cannot prove requestor ownership; waiter state and prior uncertain reviewer delivery cannot be guessed.
 - **Fix intent**: Observe exact schema-3 receipt/current marked claim and host result evidence under a separate fixed deadline for every receiver.
 - **Expected outcome**: Only proven requestor takeover and positive no-wait evidence permit a missing counterpart action.
-- **Framing**: [Design](design.v0.14.0.resume-paused.md), Takeover observation and later reviewer continuation; design Q04, Q12–Q17, Q22–Q24 and Q27. Apply the shared execution command checklist and ready-to-run commands above.
+- **Framing**: [Design](design.v0.15.0.resume-paused.md), Takeover observation and later reviewer continuation; design Q04, Q12–Q17, Q22–Q24 and Q27. Apply the shared execution command checklist and ready-to-run commands above.
 - **Complexity impact**: Keep responsibilities bounded; account for exact-path reads and fresh evidence as described in the shared complexity section.
 - **Feature preservation**: Preserve legacy manual consent/readability, review-role isolation and existing ownership fencing while adding only the behavior assigned here.
 
@@ -671,7 +671,7 @@ Do not infer completion of a recorded start from its parent's termination.
 - **Issues**: All readers and receivers must ship together, and local format compatibility cannot establish deferred launcher integration.
 - **Fix intent**: Wire public arguments, self-locating Windows launcher, reporting/exit policy, documentation and end-to-end acceptance scenarios.
 - **Expected outcome**: Humans can preview or resume eligible panes with deterministic outcomes and clear compatibility limits.
-- **Framing**: [Requirement](feature-request.v0.14.0.resume-paused.md), Command contract; [Design](design.v0.14.0.resume-paused.md), reporting and exit semantics; acceptance examples and validation boundaries. Apply the shared execution command checklist and ready-to-run commands above.
+- **Framing**: [Requirement](feature-request.v0.15.0.resume-paused.md), Command contract; [Design](design.v0.15.0.resume-paused.md), reporting and exit semantics; acceptance examples and validation boundaries. Apply the shared execution command checklist and ready-to-run commands above.
 - **Complexity impact**: Keep responsibilities bounded; account for exact-path reads and fresh evidence as described in the shared complexity section.
 - **Feature preservation**: Preserve legacy manual consent/readability, review-role isolation and existing ownership fencing while adding only the behavior assigned here.
 
@@ -751,10 +751,10 @@ commit `29a964e9`.
 | Q02 | A: A shared test-only receiver harness calls the real validator and locked claim against temporary files, with evidence changes before every protected step and separate instruction-contract checks. Its proof covers that sequence and contract, not arbitrary live-agent compliance. | [Step 4](#step-4-implementation), [Step 8](#step-8-implementation). | Text-contract checks alone omit executable write-boundary regressions; a production writer or new authorization mechanism is outside this choice. |
 | Q03 | A: Start acceptance in separate CLI/safety, delivery and continuation modules using the shared support. Each starts at 0, below 550 safe to extend, with ceiling 650; eight steps remain unchanged. | [Step 8](#step-8-implementation). | A single growing scenario module mixes responsibilities and would need a later split. |
 | Q04 | A: Derive marked-claim binding from raw marker/current prompt/routing/locked exchange under the transition lock; validate Codex carried identity/launch id and reject mismatches without a claim write. Fresh pane/input proof remains a separate pre-claim validator call. | [Step 4](#step-4-implementation). | Caller-copied binding fields can drift from locked evidence; reading host session files inside claim would mix host validation with ownership mutation. |
-| Q05 | A: Deliver the Step 1 adapters and tests before the live matrix, with an empty supported-profile registry, so every real pane stays unsupported or pending. Track the live matrix and the Q27/Q28 code follow-up as validation-plan rows. Code completion and validation are reported as separate states, and live findings may still change adapter code, tests or profile data. Amended by the user on 2026-11-20, when Step 6 was launched: Steps 6 through 8 also proceed code-first against the empty registry, with injected fakes and fake clocks. No real pane receives input until both hosts have a pinned profile, and pinning still needs the live matrix and the Q28 follow-up. | [Step 1](#step-1-implementation), [validation plan Step 1](plan.v0.14.0.resume-paused.validation.md#step-1-validate-pane-tied-host-profiles-before-input). | B: Feasibility first delivers nothing while the matrix and its open questions last. C: Splitting Step 1 into 1A and 1B changes the eight-step structure that the validation plan, the step journal and Q03 rely on. |
-| Q06 | Effective outcome: keep the committed `.markdownlint-baseline.json` and repair the 11 `MD032` list-spacing findings of the two v0.14.0 review transcripts as whitespace only, under the user's explicit exception extended from Q07. The first choice, baseline allowance rows, proved impossible: `MD024` is mandatory, and the baseline acceptance test authorizes only `MD033` and the file-specific `MD038` row. | [Markdown gate and review transcripts](#markdown-gate-and-review-transcripts). | A: Baseline rows cannot allow mandatory `MD024`, and the acceptance test rejects new Markdown rule rows. C: Excluding transcripts from Markdown rules would suppress findings rather than fix their generation, and mandatory rules cannot be disabled by policy. |
+| Q05 | A: Deliver the Step 1 adapters and tests before the live matrix, with an empty supported-profile registry, so every real pane stays unsupported or pending. Track the live matrix and the Q27/Q28 code follow-up as validation-plan rows. Code completion and validation are reported as separate states, and live findings may still change adapter code, tests or profile data. Amended by the user on 2026-11-20, when Step 6 was launched: Steps 6 through 8 also proceed code-first against the empty registry, with injected fakes and fake clocks. No real pane receives input until both hosts have a pinned profile, and pinning still needs the live matrix and the Q28 follow-up. | [Step 1](#step-1-implementation), [validation plan Step 1](plan.v0.15.0.resume-paused.validation.md#step-1-validate-pane-tied-host-profiles-before-input). | B: Feasibility first delivers nothing while the matrix and its open questions last. C: Splitting Step 1 into 1A and 1B changes the eight-step structure that the validation plan, the step journal and Q03 rely on. |
+| Q06 | Effective outcome: keep the committed `.markdownlint-baseline.json` and repair the 11 `MD032` list-spacing findings of the two resume-paused review transcripts as whitespace only, under the user's explicit exception extended from Q07. The first choice, baseline allowance rows, proved impossible: `MD024` is mandatory, and the baseline acceptance test authorizes only `MD033` and the file-specific `MD038` row. | [Markdown gate and review transcripts](#markdown-gate-and-review-transcripts). | A: Baseline rows cannot allow mandatory `MD024`, and the acceptance test rejects new Markdown rule rows. C: Excluding transcripts from Markdown rules would suppress findings rather than fix their generation, and mandatory rules cannot be disabled by policy. |
 | Q07 | A: Clear repeated `MD024` headings with a one-time repair under an explicit human exception scoped to the exact lines, appending the exchange qualifier and keeping entry footers and the `## Round` prefix. Applied to 26 headings on 2026-11-15; design exchange 8's ten headings were repaired on 2026-11-17 under a separate exception. No exception carries over to a later repair. | [Markdown gate and review transcripts](#markdown-gate-and-review-transcripts). | B: A disclosed failing gate breaks tools that require exit 0 and hides new findings among known ones. C: Waiting for a renderer change stops this plan; that fix remains a separate effort. |
 
 ## Completion handoff and validation limits
 
-Map the requirement acceptance criteria to Step 8 scenarios and record profile feasibility, fake-run evidence and whole-suite scope separately from human live validation. Keep the [deferred senv checklist](feature-request.v0.14.0.resume-paused.md#deferred-senv-integration-follow-up) unchecked: its separate effort still owes eligible-layout coverage for both hosts/review pairs, startup and daemon restoration, opt-out/native modes and saved/live pane-identity continuity. Open that effort at completion and revisit it when launch-time behavior changes. Preserve [the design's compatibility limits](design.v0.14.0.resume-paused.md#existing-tuitp-compatibility-and-later-shared-integration). No claim of full topic integration may rely on grammar fixtures alone.
+Map the requirement acceptance criteria to Step 8 scenarios and record profile feasibility, fake-run evidence and whole-suite scope separately from human live validation. Keep the [deferred senv checklist](feature-request.v0.15.0.resume-paused.md#deferred-senv-integration-follow-up) unchecked: its separate effort still owes eligible-layout coverage for both hosts/review pairs, startup and daemon restoration, opt-out/native modes and saved/live pane-identity continuity. Open that effort at completion and revisit it when launch-time behavior changes. Preserve [the design's compatibility limits](design.v0.15.0.resume-paused.md#existing-tuitp-compatibility-and-later-shared-integration). No claim of full topic integration may rely on grammar fixtures alone.

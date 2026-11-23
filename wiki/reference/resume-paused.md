@@ -157,4 +157,4 @@ and pane-delivery behavior remains human evidence.
 Prompts and schema 3 receipts keep the lines the installed `tuitp` launcher
 reads. Its launch-time integration with this command is a separate, open
 follow-up: see the
-[deferred senv integration checklist](../../docs/v0.14.0/feature-request.v0.14.0.resume-paused.md#deferred-senv-integration-follow-up).
+[deferred senv integration checklist](../../docs/v0.15.0/feature-request.v0.15.0.resume-paused.md#deferred-senv-integration-follow-up).

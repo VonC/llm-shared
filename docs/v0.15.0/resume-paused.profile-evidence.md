@@ -6,7 +6,7 @@ Step 1 is **incomplete**. Read-only observations on 2026-11-10 and disposable
 experiments on 2026-11-12 through 2026-11-14 have not established a supported profile for either
 host. This document records the
 feasibility stop required by
-[Step 1 of the implementation plan](plan.v0.14.0.resume-paused.md#step-1-validate-pane-tied-host-profiles-before-input).
+[Step 1 of the implementation plan](plan.v0.15.0.resume-paused.md#step-1-validate-pane-tied-host-profiles-before-input).
 It does not authorize delivery or change a confirmed design decision.
 
 Q25=A adds a Step 1 obligation to validate the Claude requestor background
@@ -120,7 +120,7 @@ incomplete, adapter implementation has not started, and the validation plan
 is unchanged. Q01-Q26 remain as confirmed; no new review was opened.
 
 The user later selected
-[Q27=B](design.v0.14.0.resume-paused.md#design-decisions-for-resume-paused)
+[Q27=B](design.v0.15.0.resume-paused.md#design-decisions-for-resume-paused)
 on 2026-11-15, consolidated on 2026-11-17: the proposal above becomes the
 fifth disclosed limit, combined with an all-pane idle guard whose signature
 must reject a running local command. Recorded open work still blocks, and
@@ -211,7 +211,7 @@ boundaries remain unchanged, this tested Claude version cannot meet the
 current automatic-activation contract. Q01-Q25 remain unchanged.
 
 The user selected
-[Q26=A](design.v0.14.0.resume-paused.md#design-decisions-for-resume-paused)
+[Q26=A](design.v0.15.0.resume-paused.md#design-decisions-for-resume-paused)
 on 2026-11-14. Work of roots with no records in Q19's read set becomes a
 fourth disclosed limit, which qualifies the statement above that this tested
 version cannot meet the automatic-activation contract. Both plans now carry
@@ -651,7 +651,7 @@ Validation-plan wording is aligned; implementation statuses are unchanged.
 ## Codex independent version findings
 
 Both pre-input sources allowed by the
-[design](design.v0.14.0.resume-paused.md#clearing-and-delivery-confirmation-for-resume-paused)
+[design](design.v0.15.0.resume-paused.md#clearing-and-delivery-confirmation-for-resume-paused)
 were investigated across the five observed Codex panes.
 
 | Candidate | Observation | Feasibility result |
@@ -1075,5 +1075,5 @@ input and live pane bindings. None of those obligations was tested here.
 
 The supported input/result/clear signatures, actual lifecycle timing and
 groundhog gates remain outstanding. The separate
-[deferred senv integration checklist](feature-request.v0.14.0.resume-paused.md#deferred-senv-integration-follow-up)
+[deferred senv integration checklist](feature-request.v0.15.0.resume-paused.md#deferred-senv-integration-follow-up)
 also remains unchecked.
