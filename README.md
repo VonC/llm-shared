@@ -81,6 +81,11 @@ decisions remain pending. These are LLM commands. For invocation examples,
 templates, and recovery steps, see
 [pause and resume a working session](wiki/how-to/pause-and-resume-a-session.md).
 
+To resume every paused session waiting in a TUIOS pane at once, run
+`bin\resume_paused.bat` yourself from a terminal, `--dry-run` first. It is a
+human-only shell command: agents must never run it, not even to preview or
+show its help. See the [resume_paused reference](wiki/reference/resume-paused.md).
+
 ## 2. Goodies alongside the workflow
 
 Use these independently or add them to the development cycle.
