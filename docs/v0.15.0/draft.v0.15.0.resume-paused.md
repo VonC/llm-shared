@@ -2,8 +2,8 @@
 
 - Type: feature-request
 - Test group: whole suite
-- Target version: v0.14.0
-- Documentation layout: docs/v0.14.0/
+- Target version: v0.15.0
+- Documentation layout: docs/v0.15.0/
 - Slug: resume-paused
 - Deferred follow-up: [senv tuitp integration](#deferred-senv-integration-after-resume-paused)
 
@@ -263,7 +263,7 @@ This remains deferred integration work, not a claim of runtime compatibility.
   senv effort for `tuitp` integration. Revisit it at the resume-paused completion
   handoff and when next changing senv's launch-time resume behavior.
 
-The [requirement's deferred-work checklist](feature-request.v0.14.0.resume-paused.md#deferred-senv-integration-follow-up)
+The [requirement's deferred-work checklist](feature-request.v0.15.0.resume-paused.md#deferred-senv-integration-follow-up)
 is the detailed record. Carry that link into the design, implementation plan
 and completion handoff; retain it when consolidating questions. No target
 version or calendar reminder has been assigned to this later work.

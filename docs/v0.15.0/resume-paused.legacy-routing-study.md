@@ -3,8 +3,8 @@
 This study answers the request recorded with design Q01=B on 2026-11-09: can
 an older pause whose routing exists only as a readable table become a pause
 that bulk launch can route, and at what risk? It extends the
-[design's migration study](design.v0.14.0.resume-paused.md#legacy-routing-migration-study)
-with what Step 2 of [the implementation plan](plan.v0.14.0.resume-paused.md)
+[design's migration study](design.v0.15.0.resume-paused.md#legacy-routing-migration-study)
+with what Step 2 of [the implementation plan](plan.v0.15.0.resume-paused.md)
 now parses. It is a study, not an approved converter: no conversion runs in
 bulk discovery, preview or delivery, and none is implemented.
 
