@@ -260,6 +260,7 @@ Exact descriptions of commands, formats, files, and supported behavior.
 - 🤖 [Repository layout and AI entry points](reference/repository-layout.md)
 - 🤖 [Automation and direct-invocation ownership](reference/automation-and-direct-invocation.md)
 - 📊 [Version sources and release ranges](reference/version-sources.md)
+- 📊 [git-cliff provisioning and the gcliff launcher](reference/git-cliff-provisioning.md)
 
 ### Additional utilities reference
 
