@@ -6,6 +6,27 @@ Only a successful gate exposes the selected checkout to the release engine.
 Early diagnostics use UTF-8/LF; interruption remains an execution failure.
 The engine's public statuses are 0, 1, 2 and 3 (an incomplete restoration,
 since Step 1 of v0.14.0 version-sources); any other value becomes 1.
+
+Step 4 of v0.14.0 git-cliff-provisioning adds the internal `git-cliff-worker`
+entry kind (plan decision Q15). It passes the same readiness gate, then
+`_ENGINES` loads the download worker instead of the command dispatcher, and
+`_UNNORMALIZED_KINDS` returns the worker's own status (0, 75 or 65)
+unchanged. Both tables are module level, so `main` keeps its single status
+set, which the release kinds still apply.
+
+Step 8 adds the `gcliff-batch` kind: after the same gate, `_ENGINES` loads the
+gcliff launcher, which receives the git-cliff arguments with the original
+cwd, the tooling root and the verified identity, and `_UNNORMALIZED_KINDS`
+returns its status unchanged, git-cliff's own or 69. `_FAILURE_STATUS` gives,
+by kind, the status of a readiness or invocation failure and of an execution
+failure before the selected module returns: 69 and 69 for `gcliff-batch`,
+since git-cliff never started, 2 and 1 for every other kind.
+
+Since code review round 1 of Step 8, `requested_kind` reads the kind a
+well-formed prefix requests before any fallible step, so a valid gcliff call
+whose cwd capture or stream setup fails also returns 69, as does a reserved
+`--entry-kind` repeated in its arguments; a malformed prefix keeps the release
+statuses.
 """
 
 from __future__ import annotations
@@ -27,6 +48,19 @@ if TYPE_CHECKING:
 
 _X64_POINTER_BYTES = 8
 _ENTRY_PREFIX_LENGTH = 3
+_GCLIFF = "gcliff-batch"
+_ENGINES = {
+    "explicit-batch": "tools.release_workflow.cli",
+    "alias-batch": "tools.release_workflow.cli",
+    "explicit-native": "tools.release_workflow.cli",
+    "git-cliff-worker": "tools.release_workflow.git_cliff.download_worker",
+    _GCLIFF: "tools.release_workflow.git_cliff.launcher",
+}
+_UNNORMALIZED_KINDS = frozenset(("git-cliff-worker", _GCLIFF))
+# By entry kind: the status of a readiness or invocation failure, then of an execution failure, before the module returns.
+_GCLIFF_UNAVAILABLE = 69
+_FAILURE_STATUS: dict[str | None, tuple[int, int]] = {_GCLIFF: (_GCLIFF_UNAVAILABLE, _GCLIFF_UNAVAILABLE)}
+_RELEASE_FAILURE = (2, 1)
 
 
 class InvocationError(ValueError):
@@ -95,6 +129,22 @@ class Engine(Protocol):
         ...
 
 
+class Worker(Protocol):
+    """An internal worker receives only its own arguments and returns its own status."""
+
+    def main(self, arguments: list[str]) -> int:
+        """Run one worker attempt."""
+        ...
+
+
+class Launcher(Protocol):
+    """The gcliff launcher receives git-cliff's arguments and the bootstrap facts, and returns git-cliff's status or 69."""
+
+    def main(self, arguments: list[str], *, original_cwd: Path, tooling_root: Path, runtime: Identity) -> int:
+        """Run git-cliff once."""
+        ...
+
+
 def helper(name: str) -> ModuleType:
     """Load one exact sibling without changing the import search path."""
     sys.dont_write_bytecode = True
@@ -141,18 +191,25 @@ def check(root: Path) -> Identity:
     return identity
 
 
+def requested_kind(arguments: list[str]) -> str | None:
+    """Name the entry kind a well-formed prefix requests, without checking the user arguments; None otherwise."""
+    if (len(arguments) < _ENTRY_PREFIX_LENGTH or arguments[0] != "--entry-kind"
+            or arguments[1] not in _ENGINES or arguments[2] != "--"):
+        return None
+    return arguments[1]
+
+
 def entry(arguments: list[str]) -> tuple[str, list[str]]:
     """Require exactly one trusted prefix, outside the original user arguments."""
-    if (len(arguments) < _ENTRY_PREFIX_LENGTH or arguments[0] != "--entry-kind"
-            or arguments[1] not in {"explicit-batch", "alias-batch", "explicit-native"}
-            or arguments[2] != "--"):
+    kind = requested_kind(arguments)
+    if kind is None:
         msg = "Expected --entry-kind explicit-batch|alias-batch|explicit-native -- <arguments>"
         raise InvocationError(msg)
     supplied = arguments[3:]
     if any(argument == "--entry-kind" or argument.startswith("--entry-kind=") for argument in supplied):
         msg = "Duplicate reserved --entry-kind is forbidden in user arguments"
         raise InvocationError(msg)
-    return arguments[1], supplied
+    return kind, supplied
 
 
 def configure_streams() -> None:
@@ -163,35 +220,56 @@ def configure_streams() -> None:
 
 
 def main(argv: list[str] | None = None) -> int:
-    """Capture cwd first, then gate imports and normalize outer-boundary failure."""
+    """Capture cwd first, then gate imports and normalize outer-boundary failure.
+
+    The requested kind is read before the cwd capture, so its failure statuses apply from the first fallible step.
+    """
+    supplied = sys.argv[1:] if argv is None else argv
+    kind = requested_kind(supplied)
     try:
         original_cwd = Path.cwd()
         configure_streams()
-        kind, arguments = entry(sys.argv[1:] if argv is None else argv)
+        kind, arguments = entry(supplied)
         root = Path(__file__).resolve().parents[2]
         identity = check(root)
         sys.path.insert(0, str(root))
-        engine = cast("Engine", importlib.import_module("tools.release_workflow.cli"))
+        module = importlib.import_module(_ENGINES[kind])
     except InvocationError as exc:
         sys.stderr.write(f"Release invocation failed: {exc}\n")
-        return 2
+        return _FAILURE_STATUS.get(kind, _RELEASE_FAILURE)[0]
     except (OSError, ValueError, ImportError, RuntimeError) as exc:
         sys.stderr.write(f"Release readiness failed: {exc}. Run this checkout's setup to repair it.\n")
-        return 2
+        return _FAILURE_STATUS.get(kind, _RELEASE_FAILURE)[0]
     except (Exception, KeyboardInterrupt) as exc:  # noqa: BLE001 - pre-import process boundary
-        detail = "interrupted" if isinstance(exc, KeyboardInterrupt) else str(exc)
-        sys.stderr.write(f"Release execution failed: {detail}\n")
-        return 1
+        return _execution_failure(exc, kind)
     try:
-        status = engine.main(arguments, entry_kind=kind, original_cwd=original_cwd, tooling_root=root, runtime=identity)
+        if kind in _UNNORMALIZED_KINDS:
+            return _unnormalized(kind, module, arguments, (original_cwd, root, identity))
+        status = cast("Engine", module).main(arguments, entry_kind=kind, original_cwd=original_cwd, tooling_root=root, runtime=identity)
     except (Exception, KeyboardInterrupt) as exc:  # noqa: BLE001 - final process boundary
-        detail = "interrupted" if isinstance(exc, KeyboardInterrupt) else str(exc)
-        sys.stderr.write(f"Release execution failed: {detail}\n")
-        return 1
-    if status not in {0, 1, 2, 3}:
-        sys.stderr.write(f"Release operation exited with native status {status}; returning 1.\n")
-        return 1
-    return status
+        return _execution_failure(exc, kind)
+    return status if status in {0, 1, 2, 3} else _normalized(status)
+
+
+def _unnormalized(kind: str, module: ModuleType, arguments: list[str], facts: tuple[Path, Path, Identity]) -> int:
+    """Run the worker with its own arguments, or the gcliff launcher with the bootstrap facts, keeping their status."""
+    if kind == _GCLIFF:
+        original_cwd, root, identity = facts
+        return cast("Launcher", module).main(arguments, original_cwd=original_cwd, tooling_root=root, runtime=identity)
+    return cast("Worker", module).main(arguments)
+
+
+def _execution_failure(exc: BaseException, kind: str | None) -> int:
+    """Diagnose an interruption or an unexpected error and return the execution failure status of the kind."""
+    detail = "interrupted" if isinstance(exc, KeyboardInterrupt) else str(exc)
+    sys.stderr.write(f"Release execution failed: {detail}\n")
+    return _FAILURE_STATUS.get(kind, _RELEASE_FAILURE)[1]
+
+
+def _normalized(status: int) -> int:
+    """Diagnose a release status outside the public set and return 1."""
+    sys.stderr.write(f"Release operation exited with native status {status}; returning 1.\n")
+    return 1
 
 
 if __name__ == "__main__":  # pragma: no cover - thin launcher boundary

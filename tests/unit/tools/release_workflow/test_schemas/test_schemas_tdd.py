@@ -3,6 +3,13 @@
 Step 3 of v0.14.0 version-sources ships the version domain after tooling: its
 `source:` and `component:` families are owned, and a configuration without
 them never imports the version source package, whatever earlier tests loaded.
+
+Step 1 of v0.14.0 git-cliff-provisioning ships the git-cliff domain last: its
+fixed `[git-cliff]` section conflicts with no family, and `git_cliff_domain`
+builds the `version` rule of any pin table with that table's default.
+
+Step 7 admits 2.14.2: the shipped `version` rule now defaults to it and
+refuses another version with `tested: 2.14.2`.
 """
 
 from __future__ import annotations
@@ -17,7 +24,13 @@ from tests.unit.tools.release_workflow.version_support import (
     write_release_ini,
 )
 from tools.release_workflow.configuration import load_configuration
+from tools.release_workflow.git_cliff.manifest import (
+    PLATFORM_TRIPLE,
+    AdmittedPin,
+    PinError,
+)
 from tools.release_workflow.schemas import (
+    GIT_CLIFF_SCHEMA,
     SHIPPED_SCHEMAS,
     TOOLING_SCHEMA,
     VERSION_SCHEMA,
@@ -26,6 +39,7 @@ from tools.release_workflow.schemas import (
     SchemaRegistry,
     SectionSchema,
     ValueRule,
+    git_cliff_domain,
 )
 from tools.release_workflow.sources import settings
 
@@ -48,15 +62,50 @@ def _unload_sources(monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.delitem(sys.modules, name)
 
 
-def test_foundation_ships_tooling_then_version() -> None:
-    """The shipped tuple is exactly tooling then version; version owns two families."""
+def test_foundation_ships_tooling_version_then_git_cliff() -> None:
+    """The shipped tuple is tooling, version, git-cliff; version owns two families."""
     registry = SchemaRegistry()
-    assert SHIPPED_SCHEMAS == (TOOLING_SCHEMA, VERSION_SCHEMA)
+    assert SHIPPED_SCHEMAS == (TOOLING_SCHEMA, VERSION_SCHEMA, GIT_CLIFF_SCHEMA)
     assert registry.schemas == SHIPPED_SCHEMAS
     assert registry.section("tooling") is not None
     assert registry.section("version") is None
     owners = (registry.section("source:npm"), registry.section("component:frontend"))
     assert [owner.domain if owner else None for owner in owners] == ["version", "version"]
+
+
+def test_git_cliff_section_is_fixed_and_conflicts_with_no_family() -> None:
+    """`[git-cliff]` is owned exactly, with one `version` key; it claims no extension."""
+    registry = SchemaRegistry()
+    owner = registry.section("git-cliff")
+    assert owner is not None
+    assert (owner.domain, owner.definition.family, tuple(owner.rules)) == ("git-cliff", False, ("version",))
+    assert registry.fixed["git-cliff"] is owner
+    assert registry.section("git-cliff:x") is None
+    assert registry.section("source:git-cliff") is not None
+
+
+def test_the_shipped_version_rule_defaults_to_the_admitted_pin() -> None:
+    """Since Step 7 admitted 2.14.2, the shipped rule defaults to it and lists it when refusing another version."""
+    rule = SchemaRegistry().fixed["git-cliff"].rules["version"]
+    assert rule.default == "2.14.2"
+    assert rule.parse("2.14.2") == "2.14.2"
+    with pytest.raises(PinError, match=r"^not a tested git-cliff pin; tested: 2\.14\.2$"):
+        rule.parse("2.15.0")
+
+
+def test_git_cliff_domain_carries_the_synthetic_default() -> None:
+    """A synthetic table gives the rule its default and admits only its versions."""
+    pin = AdmittedPin(
+        version="2.14.2", default=True, triple=PLATFORM_TRIPLE, asset=f"git-cliff-2.14.2-{PLATFORM_TRIPLE}.zip",
+        size=1, sha256="a" * 64, member="git-cliff-2.14.2/git-cliff.exe", evidence="bundle",
+    )
+    domain = git_cliff_domain((pin,))
+    (section,) = domain.sections
+    (rule,) = section.rules
+    assert (domain.name, section.name, rule.key, rule.default) == ("git-cliff", "git-cliff", "version", "2.14.2")
+    assert rule.parse("2.14.2") == "2.14.2"
+    with pytest.raises(PinError, match=r"tested: 2\.14\.2$"):
+        rule.parse("2.15.0")
 
 
 @pytest.mark.parametrize("text", ["", "[tooling]\n"])

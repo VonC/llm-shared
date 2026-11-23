@@ -2,6 +2,9 @@
 
 Step 1 of v0.14.0 version-sources: the parsed operation tokens are copied into
 the context, and the batch-character rule still covers every one of them.
+
+Step 8 of v0.14.0 git-cliff-provisioning: the `gcliff-batch` entry kind is
+known, and the batch guard applies to its git-cliff arguments.
 """
 
 from __future__ import annotations
@@ -94,6 +97,15 @@ def test_batch_grammar_only(token: str) -> None:
     invocation.validate_arguments("explicit-native", (token,))
     with pytest.raises(ValueError, match="batch"):
         invocation.validate_arguments("explicit-batch", (token,))
+
+
+@pytest.mark.parametrize("token", ["a%b", "a^b", "a!b", 'a"b'])
+def test_the_gcliff_batch_kind_applies_the_batch_guard(token: str) -> None:
+    """Step 8 of git-cliff-provisioning: `gcliff-batch` is an entry kind, and its git-cliff arguments meet the batch guard."""
+    assert "gcliff-batch" in invocation.ENTRY_KINDS
+    invocation.validate_arguments("gcliff-batch", ("--unreleased", "-o", "CHANGELOG.md"))
+    with pytest.raises(ValueError, match="batch"):
+        invocation.validate_arguments("gcliff-batch", ("--tag", token))
 
 
 def test_operation_tokens_reach_context(git_sandbox: GitSandbox) -> None:

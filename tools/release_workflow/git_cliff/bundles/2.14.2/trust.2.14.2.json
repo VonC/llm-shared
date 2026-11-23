@@ -1,0 +1,11 @@
+{
+  "schema": 1,
+  "version": "2.14.2",
+  "asset": "git-cliff-2.14.2-x86_64-pc-windows-msvc.zip",
+  "size": 7428304,
+  "sha256": "6ece2112b3f4af462190ecbea4aeb1315fff6af415629b597f84319073c31131",
+  "trust": "upstream-digest",
+  "basis": "The SHA-256 GitHub publishes for this asset in its release metadata authenticated the download.",
+  "source": "https://github.com/orhun/git-cliff/releases/download/v2.14.2/git-cliff-2.14.2-x86_64-pc-windows-msvc.zip",
+  "acquired": "2026-11-21T10:16:54+01:00"
+}

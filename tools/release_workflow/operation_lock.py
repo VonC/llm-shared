@@ -8,6 +8,11 @@ records never own the operation; unknown records and retained handoffs survive.
 Step 1 of v0.14.0 version-sources adds `verify_held`: a lifecycle caller hands
 its held lock to another service, which checks that this process holds it for
 the declared project root and artifact home before any write.
+
+Step 1 of v0.14.0 git-cliff-provisioning moves the strict owner-record
+decoding into the shared `lock_records` module (plan decision Q02); the
+private helpers below delegate to it with the `owner` label, so behavior and
+messages are unchanged.
 """
 
 from __future__ import annotations
@@ -17,8 +22,9 @@ import os
 import secrets
 from contextlib import contextmanager
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING
 
+from tools.release_workflow.lock_records import decode_object, positive_integer, text
 from tools.release_workflow.managed_files import (
     ManagedWriteError,
     authorize_write,
@@ -76,42 +82,19 @@ class _Owner:
         }, ensure_ascii=True) + "\n").encode("utf-8")
 
 
-def _unique_fields(pairs: list[tuple[str, object]]) -> dict[str, object]:
-    """Reject ambiguous duplicate JSON owner fields instead of trusting the last."""
-    result: dict[str, object] = {}
-    for key, value in pairs:
-        if key in result:
-            msg = f"Duplicate owner field: {key}"
-            raise ValueError(msg)
-        result[key] = value
-    return result
-
-
 def _record(content: bytes) -> dict[str, object]:
     """Decode an object without accepting arbitrary JSON values as lock records."""
-    value: object = json.loads(content, object_pairs_hook=_unique_fields)
-    if not isinstance(value, dict):
-        msg = "Owner record is not an object"
-        raise TypeError(msg)
-    return cast("dict[str, object]", value)
+    return decode_object(content, label="owner")
 
 
 def _integer(record: dict[str, object], key: str) -> int:
     """Accept positive integers, rejecting booleans and numeric strings."""
-    value = record.get(key)
-    if type(value) is not int or value <= 0:
-        msg = f"Invalid owner {key}"
-        raise ValueError(msg)
-    return value
+    return positive_integer(record, key, label="owner")
 
 
 def _text(record: dict[str, object], key: str) -> str:
     """Require an explicitly present string even when an empty value is allowed."""
-    value = record.get(key)
-    if not isinstance(value, str):
-        msg = f"Invalid owner {key}"
-        raise TypeError(msg)
-    return value
+    return text(record, key, label="owner")
 
 
 def _owner(record: dict[str, object]) -> _Owner:

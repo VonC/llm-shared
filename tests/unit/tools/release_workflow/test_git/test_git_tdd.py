@@ -3,6 +3,17 @@
 Step 1 of v0.14.0 version-sources raises the Git floor to 2.44.0: an older
 Git is refused, and the error explains that range selection needs a tag of a
 tag peeled to its commit in its one tag listing.
+
+Step 6 of v0.14.0 git-cliff-provisioning (plan decision Q09): `run` takes
+optional input bytes, passed through `subprocess.run(input=...)` without also
+setting `stdin`; without them the existing stdin rule is unchanged. Both
+branches are checked without a process.
+
+Step 8 of v0.14.0 git-cliff-provisioning: `worktree_presence` classifies one
+`rev-parse --is-inside-work-tree` call: `true` is inside a worktree, `false`
+(a bare repository or a `.git` directory) is no worktree, and exit 128 whose
+stderr starts with `fatal: not a git repository` is no repository; every
+other answer raises `GitCommandError`.
 """
 
 from __future__ import annotations
@@ -14,7 +25,11 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from tools.release_workflow.git import GitCommandError, GitExecutionContext
+from tools.release_workflow.git import (
+    GitCommandError,
+    GitExecutionContext,
+    WorktreePresence,
+)
 from tools.release_workflow.git_environment import GitPolicyError
 
 if TYPE_CHECKING:
@@ -218,6 +233,26 @@ def test_inaccessible_path_entry_is_skipped(tmp_path: Path, monkeypatch: pytest.
     assert context.executable.parent.name == "installed"
 
 
+def test_input_bytes_reach_the_input_stream_without_a_stdin_setting(selected_git: tuple[GitExecutionContext, RecordingGit], tmp_path: Path) -> None:
+    """Given bytes go to `subprocess.run(input=...)`, which owns standard input, so no `stdin` is passed beside them."""
+    context, recorder = selected_git
+    context.run(["fast-import", "--quiet", "--done"], cwd=tmp_path, input=b"done\n")
+    arguments, kwargs = recorder.calls[-1]
+    assert arguments[-3:] == ["fast-import", "--quiet", "--done"]
+    assert kwargs["input"] == b"done\n"
+    assert "stdin" not in kwargs
+    assert (kwargs["capture_output"], kwargs["text"]) == (True, False)
+
+
+def test_without_input_the_stdin_rule_is_unchanged(selected_git: tuple[GitExecutionContext, RecordingGit], tmp_path: Path) -> None:
+    """A call without input bytes keeps the non-interactive closed standard input and passes no input."""
+    context, recorder = selected_git
+    context.run(["status"], cwd=tmp_path)
+    kwargs = recorder.calls[-1][1]
+    assert kwargs["stdin"] is subprocess.DEVNULL
+    assert "input" not in kwargs
+
+
 def test_interactive_policy_retains_stdin(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Interactive callers retain stdin while editors and pagers stay disabled."""
     installed = tmp_path / "installed"
@@ -227,6 +262,37 @@ def test_interactive_policy_retains_stdin(tmp_path: Path, monkeypatch: pytest.Mo
     monkeypatch.setattr(subprocess, "run", recorder)
     GitExecutionContext.create({"PATH": str(installed)}, original_cwd=tmp_path, non_interactive=False)
     assert recorder.calls[0][1]["stdin"] is None
+
+
+@pytest.mark.parametrize(("status", "stdout", "stderr", "presence"), [
+    (0, b"true\n", b"", WorktreePresence.INSIDE),
+    (0, b"false\n", b"", WorktreePresence.NO_WORKTREE),
+    (128, b"", b"fatal: not a git repository (or any of the parent directories): .git\n", WorktreePresence.NO_REPOSITORY),
+])
+def test_worktree_presence_comes_from_one_rev_parse_call(*, status: int, stdout: bytes, stderr: bytes, presence: WorktreePresence,  # noqa: PLR0913 - fixture matrix
+                                                         selected_git: tuple[GitExecutionContext, RecordingGit], tmp_path: Path) -> None:
+    """Step 8 of git-cliff-provisioning: inside a worktree, Git metadata without one (a bare repository or `.git`), or no repository."""
+    context, recorder = selected_git
+    recorder.result = subprocess.CompletedProcess([], status, stdout, stderr)
+    assert context.worktree_presence(cwd=tmp_path) is presence
+    arguments, kwargs = recorder.calls[-1]
+    assert arguments[-2:] == ["rev-parse", "--is-inside-work-tree"]
+    assert (len(recorder.calls), kwargs["cwd"]) == (2, tmp_path)
+
+
+@pytest.mark.parametrize(("status", "stdout", "stderr"), [
+    (128, b"", b"fatal: detected dubious ownership in repository at 'C:/shared/project'\n"),
+    (0, b"maybe\n", b""),
+    (1, b"", b""),
+])
+def test_any_other_presence_answer_is_a_git_failure(*, status: int, stdout: bytes, stderr: bytes,
+                                                    selected_git: tuple[GitExecutionContext, RecordingGit], tmp_path: Path) -> None:
+    """A refusal such as a dubious ownership, an unknown answer or another status is a `GitCommandError`, never an absence."""
+    context, recorder = selected_git
+    recorder.result = subprocess.CompletedProcess([], status, stdout, stderr)
+    with pytest.raises(GitCommandError) as caught:
+        context.worktree_presence(cwd=tmp_path)
+    assert (caught.value.result.returncode, caught.value.result.stderr) == (status, stderr.decode())
 
 
 # eof

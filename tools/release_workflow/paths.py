@@ -6,6 +6,13 @@ Destination checks visit only relevant ancestors and return a physical path;
 the write boundary must repeat authorization immediately before mutation.
 `authorize_in` holds that policy for a physical root, so version source
 detection, which knows the root but not the Git metadata, applies it too.
+
+Step 8 of v0.14.0 git-cliff-provisioning adds `find_worktree`, used only by
+`gcliff`: after the same configuration inspection, one presence query tells
+a directory in no worktree (a plain directory, a bare repository or a `.git`
+directory, which give None) from one inside a worktree, whose identity is
+then exactly what `discover_project` returns. Any other failure stays a
+discovery failure, and `discover_project` keeps its behavior.
 """
 
 from __future__ import annotations
@@ -14,6 +21,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from tools.release_workflow.git import WorktreePresence
 from tools.release_workflow.git_environment import GitPolicyError
 
 if TYPE_CHECKING:
@@ -50,6 +58,11 @@ def _directory(supplied: str | Path | None, git: GitExecutionContext) -> Path:
 def _metadata(directory: Path, git: GitExecutionContext) -> tuple[Path, Path, Path]:
     """Check configuration before trusting any worktree discovery result."""
     git.inspect_config(cwd=directory)
+    return _resolved_metadata(directory, git)
+
+
+def _resolved_metadata(directory: Path, git: GitExecutionContext) -> tuple[Path, Path, Path]:
+    """Read the worktree and Git metadata of an inspected directory as physical paths."""
     root, git_dir, common = (path.resolve(strict=True) for path in git.metadata(cwd=directory))
     return root, git_dir, common
 
@@ -85,9 +98,35 @@ def discover_project(start: str | Path, git: GitExecutionContext) -> ProjectIden
     """
     try:
         directory = _directory(start, git)
-        metadata = _metadata(directory, git)
-        root = _directory(metadata[0], git)
-        return _validated_identity(str(root), root, metadata)
+        git.inspect_config(cwd=directory)
+        return _discovered(directory, git)
+    except (OSError, RuntimeError, GitPolicyError, ProjectPathError) as exc:
+        msg = f"Cannot discover project from {start}: {exc}"
+        raise ProjectPathError(msg) from exc
+
+
+def _discovered(directory: Path, git: GitExecutionContext) -> ProjectIdentity:
+    """Validate the top-level of an inspected directory's worktree as its physical root."""
+    metadata = _resolved_metadata(directory, git)
+    root = _directory(metadata[0], git)
+    return _validated_identity(str(root), root, metadata)
+
+
+def find_worktree(start: str | Path, git: GitExecutionContext) -> ProjectIdentity | None:
+    """Find the worktree containing a directory for `gcliff`, or None when the directory is in no worktree.
+
+    The configuration is inspected first, as for discovery. A plain directory, a bare repository and a `.git`
+    directory have no worktree; inside one, the identity is what `discover_project` returns.
+
+    Raises:
+        ProjectPathError: A rejected configuration or any other Git failure, with the discovery context.
+    """
+    try:
+        directory = _directory(start, git)
+        git.inspect_config(cwd=directory)
+        if git.worktree_presence(cwd=directory) is not WorktreePresence.INSIDE:
+            return None
+        return _discovered(directory, git)
     except (OSError, RuntimeError, GitPolicyError, ProjectPathError) as exc:
         msg = f"Cannot discover project from {start}: {exc}"
         raise ProjectPathError(msg) from exc

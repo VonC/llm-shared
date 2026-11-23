@@ -9,6 +9,12 @@ observations are answered from it by reachability over the declared parents,
 without interpreting Git arguments, and each call is recorded. The tips query
 keeps the production command-line guard. A declared tag of a tag carries its
 inner tag's commit, as the production record parser reports it.
+
+Step 8 of v0.14.0 git-cliff-provisioning answers `worktree_presence` from the
+same facts: a directory of a declared worktree is inside it, except below its
+`.git` directory, which has no worktree; any other directory is in no
+repository. `GitSandbox.declare_presence` declares another answer for one
+directory, such as a bare repository, or the Git failure it raises.
 """
 
 from __future__ import annotations
@@ -20,9 +26,11 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from tools.release_workflow.git import (
+    GitCommandError,
     GitExecutionContext,
     GitRevisionNotFoundError,
     TagRecord,
+    WorktreePresence,
 )
 from tools.release_workflow.git_environment import (
     ConfigEntry,
@@ -85,11 +93,12 @@ class ReleaseHistory:
 
 @dataclass
 class RepositoryFacts:
-    """Independent index, effective configuration and release history for one scenario."""
+    """Independent index, effective configuration, release history and declared presences for one scenario."""
 
     indexes: dict[Path, tuple[str, ...]] = field(default_factory=dict[Path, tuple[str, ...]])
     configurations: dict[Path, tuple[ConfigEntry, ...]] = field(default_factory=dict[Path, tuple[ConfigEntry, ...]])
     history: ReleaseHistory = field(default_factory=ReleaseHistory)
+    presences: dict[Path, WorktreePresence | GitCommandError] = field(default_factory=dict[Path, WorktreePresence | GitCommandError])
 
 
 @dataclass(frozen=True)
@@ -134,6 +143,19 @@ class RepositoryObservations(GitExecutionContext):
         git_dir = Path(marker.read_text(encoding="utf-8").removeprefix("gitdir: ").strip()) if marker.is_file() else marker
         common = git_dir.parent.parent if marker.is_file() else git_dir
         return root, git_dir, common
+
+    def worktree_presence(self, *, cwd: Path) -> WorktreePresence:
+        """Answer a declared presence or failure, else inside a declared worktree outside its `.git`, or no repository."""
+        directory = cwd.resolve()
+        declared = self.facts.presences.get(directory)
+        if isinstance(declared, GitCommandError):
+            raise declared
+        if declared is not None:
+            return declared
+        root = self._root(directory)
+        if root is None:
+            return WorktreePresence.NO_REPOSITORY
+        return WorktreePresence.NO_WORKTREE if directory.relative_to(root).parts[:1] == (".git",) else WorktreePresence.INSIDE
 
     def tag_records(self, *, cwd: Path, merged: str | None = None) -> tuple[TagRecord, ...]:
         """Return the declared tags, or those reachable from the filter revision."""
@@ -200,6 +222,10 @@ class GitSandbox:
     def configure(self, source: Path, *entries: ConfigEntry) -> None:
         """Declare observations; production still validates each entry."""
         self.verified_git.facts.configurations[source] = tuple(entries)
+
+    def declare_presence(self, directory: Path, answer: WorktreePresence | GitCommandError) -> None:
+        """Declare the worktree presence of one directory, or the Git failure its query raises."""
+        self.verified_git.facts.presences[directory.resolve()] = answer
 
     def junction(self, name: str, target: Path) -> Path:
         """Create a directory link via Python, without starting a shell."""

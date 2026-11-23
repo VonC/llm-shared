@@ -17,6 +17,20 @@ peel a tag of a tag to its commit (older Git stops at the inner tag object,
 which no listing row explains once the inner ref is deleted). An older Git is
 refused at selection with that reason, and a record still dereferenced to a
 tag fails closed with it.
+
+Step 6 of v0.14.0 git-cliff-provisioning (plan decision Q09): `run` takes
+optional input bytes for Git's input stream, such as the one `fast-import`
+stream of the evidence fixture. They are passed through
+`subprocess.run(input=...)`, which then owns standard input, so no `stdin` is
+set beside them; a call without input keeps the existing stdin rule.
+
+Step 8 of v0.14.0 git-cliff-provisioning: `worktree_presence` tells, from one
+`rev-parse --is-inside-work-tree` call through `run`, whether a directory is
+inside a worktree (`true`), in Git metadata without one, a bare repository or
+a `.git` directory (`false`), or in no repository (exit 128 whose stderr,
+untranslated under `LC_ALL=C`, starts with `fatal: not a git repository`).
+Every other answer, such as a dubious ownership refusal, is a
+`GitCommandError`, never an absence. Only `gcliff` asks it.
 """
 
 from __future__ import annotations
@@ -25,6 +39,7 @@ import os
 import re
 import subprocess
 from dataclasses import dataclass
+from enum import Enum
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -54,6 +69,19 @@ _COMMAND_LINE_LIMIT = 32_767
 _USAGE_STATUS = 129
 _TAG_FIELDS = ("%(refname:strip=2)", "%(objecttype)", "%(objectname)", "%(*objecttype)", "%(*objectname)", "%(contents)")
 _TAG_FORMAT = "".join(f"{name}%00" for name in _TAG_FIELDS)
+_NO_REPOSITORY_STATUS = 128
+_NO_REPOSITORY = "fatal: not a git repository"
+
+
+class WorktreePresence(Enum):
+    """Where a directory stands for Git: inside a worktree, in metadata without one, or in no repository."""
+
+    INSIDE = "inside"
+    NO_WORKTREE = "no-worktree"
+    NO_REPOSITORY = "no-repository"
+
+
+_PRESENCE_ANSWERS = {"true\n": WorktreePresence.INSIDE, "false\n": WorktreePresence.NO_WORKTREE}
 
 
 class GitCommandError(GitPolicyError):
@@ -211,15 +239,24 @@ class GitExecutionContext:
             raise GitPolicyError(msg)
         return (int(match[1]), int(match[2]), int(match[3]))
 
-    def _execute(self, arguments: Sequence[str], *, cwd: Path, check: bool = True, lossless_stdout: bool = False) -> subprocess.CompletedProcess[str]:
+    def _spawn(self, command: list[str], directory: Path, stream: bytes | None) -> subprocess.CompletedProcess[bytes]:
+        """Start the pinned Git once: given bytes become its input stream, otherwise the stdin rule applies."""
+        environment = dict(self.environment.values)
+        if stream is not None:
+            return subprocess.run(  # noqa: S603 - pinned absolute executable, native trusted arguments
+                command, cwd=directory, env=environment, input=stream, shell=False, check=False, capture_output=True, text=False,
+            )
+        return subprocess.run(  # noqa: S603 - pinned absolute executable, native trusted arguments
+            command, cwd=directory, env=environment, stdin=subprocess.DEVNULL if self.non_interactive else None,
+            shell=False, check=False, capture_output=True, text=False,
+        )
+
+    def _execute(self, arguments: Sequence[str], *, cwd: Path, check: bool = True, lossless_stdout: bool = False,
+                 stream: bytes | None = None) -> subprocess.CompletedProcess[str]:
         """Own the sole subprocess boundary, including startup/config probes."""
         directory = _absolute_directory(cwd)
         try:
-            captured = subprocess.run(  # noqa: S603 - pinned absolute executable, native trusted arguments
-                [str(self.executable), *arguments], cwd=directory,
-                env=dict(self.environment.values), stdin=subprocess.DEVNULL if self.non_interactive else None,
-                shell=False, check=False, capture_output=True, text=False,
-            )
+            captured = self._spawn([str(self.executable), *arguments], directory, stream)
         except OSError as exc:
             msg = f"Cannot execute selected Git {self.executable}: {exc}"
             raise GitPolicyError(msg) from exc
@@ -255,6 +292,20 @@ class GitExecutionContext:
             msg = "Git did not report three absolute project metadata paths"
             raise GitPolicyError(msg)
         return Path(lines[0]), Path(lines[1]), Path(lines[2])
+
+    def worktree_presence(self, *, cwd: Path) -> WorktreePresence:
+        """Tell whether a directory is inside a worktree, in Git metadata without one, or in no repository, from one call.
+
+        Raises:
+            GitCommandError: Git answered anything else, such as a dubious ownership refusal.
+        """
+        result = self.run(["rev-parse", "--is-inside-work-tree"], cwd=cwd, check=False)
+        answer = _PRESENCE_ANSWERS.get(result.stdout) if result.returncode == 0 else None
+        if answer is not None:
+            return answer
+        if result.returncode == _NO_REPOSITORY_STATUS and result.stderr.startswith(_NO_REPOSITORY):
+            return WorktreePresence.NO_REPOSITORY
+        raise GitCommandError(result)
 
     def index(self, *, cwd: Path, directory: str | None = None) -> tuple[str, ...]:
         """Return tracked names without exposing NUL-delimited command output."""
@@ -318,14 +369,16 @@ class GitExecutionContext:
         output = self.run(["ls-files", "-z", "--cached", "--others", "--exclude-standard"], cwd=cwd).stdout
         return tuple(name for name in output.split("\0") if name and not name.endswith("/"))
 
-    def run(self, arguments: Sequence[str], *, cwd: Path, check: bool = True) -> subprocess.CompletedProcess[str]:
+    def run(self, arguments: Sequence[str], *, cwd: Path, check: bool = True,
+            input: bytes | None = None) -> subprocess.CompletedProcess[str]:  # noqa: A002 - the name `subprocess.run` gives these bytes
         """Run a trusted domain command with explicit output and literal paths.
 
         Callers select the command's machine format (for example `-z` or
         porcelain). Internal color/quoting settings are added only after the
         independent effective-configuration inspection used by root validation.
+        Given `input` bytes are Git's input stream, in place of the stdin rule.
         """
-        return self._execute([*_RUN_OPTIONS, *arguments], cwd=cwd, check=check)
+        return self._execute([*_RUN_OPTIONS, *arguments], cwd=cwd, check=check, stream=input)
 
 
 # eof

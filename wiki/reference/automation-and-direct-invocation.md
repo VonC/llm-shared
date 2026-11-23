@@ -89,6 +89,9 @@ the project operation lock, input transport and result rendering) and two
 operations: `version` and `versions`, described in
 [Version sources](version-sources.md). Any other operation name ends with
 status 2, `Release operation '<name>' is unavailable in this tooling checkout`.
+It also ships the provisioning of a pinned git-cliff and its `gcliff`
+launcher, `bin\gcliff.bat`, described in
+[git-cliff provisioning](git-cliff-provisioning.md).
 Changelog generation, release transactions, installation and upgrades, the
 move of existing build and `senv` callers, alias installation and consumer
 cutover belong to later items of the sibling release tooling effort.
@@ -161,6 +164,16 @@ only one that accepts `--text`.
 | `1` | the operation failed or was interrupted; any other child status becomes 1, with the original status in a diagnostic |
 | `2` | the invocation, the preflight or the runtime readiness failed; no operation ran |
 | `3` | a version transition's restoration is incomplete: a stop that requires recovery, never a failure to retry ([Version sources](version-sources.md#statuses-of-the-version-commands)) |
+
+An engine operation that needs git-cliff and cannot provision it ends with
+status 2, the setup class, with the stage diagnostic, before its first project
+write. `bin\gcliff.bat` follows another contract, since a git-cliff status is
+not a release status:
+
+| `gcliff` status | Meaning |
+| --- | --- |
+| git-cliff's own | git-cliff ran; its status is returned unchanged, whatever its value |
+| `69` | git-cliff did not start: runtime readiness, configuration, the batch argument rule, the budget variable, the platform, provisioning, or a child Windows refused to create ([git-cliff provisioning](git-cliff-provisioning.md#statuses-of-gcliff-and-of-the-engine-callers)) |
 
 Standard output carries operation data, standard error carries diagnostics;
 both are UTF-8 with LF line endings. The batch launchers switch the console

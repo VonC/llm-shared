@@ -183,6 +183,23 @@ input, or the native entry. The release automation contract, statuses and
 streams are in
 [Automation and direct invocation](automation-and-direct-invocation.md#release-foundation-invocation).
 
+## git-cliff launcher
+
+| Entry | Runs | Project used for the pin |
+| --- | --- | --- |
+| `bin\gcliff.bat <git-cliff arguments>` | the bootstrap with `--entry-kind gcliff-batch`, then this checkout's pinned git-cliff | the worktree containing the current directory; the manifest default outside any worktree or without `[git-cliff]` |
+
+`gcliff` is not a release operation. It passes git-cliff's arguments, working
+directory, standard streams and environment through, and returns git-cliff's
+own status unchanged; it returns 69 for any failure before git-cliff starts,
+a missing or invalid runtime record included. Its first call in a checkout
+downloads the pin, so `bin\gcliff.bat --version` is the warm-up. The same
+batch rule applies: an argument still holding `%`, `^`, `!` or `"` is refused
+with 69, and such values belong in `cliff.toml`. The alias fragment
+`bin\gcliff.doskey` holds the macro `gcliff="%LLM_SHARED_DIR%\bin\gcliff.bat" $*`;
+`senv.bat` does not load it yet. Pin selection, cache, proxy, budget variable,
+messages and statuses are in [git-cliff provisioning](git-cliff-provisioning.md).
+
 ## 📦 Dependency shortcuts
 
 | Alias | Runs | Purpose |

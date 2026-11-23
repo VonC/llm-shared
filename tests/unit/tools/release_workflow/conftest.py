@@ -3,6 +3,10 @@
 Step 6 (2026-11-02): integrated acceptance adds consumer projects A and B with
 version data, ignored output and legacy scratch, plus declared lock process
 facts; the transition mutex is uncontended, as in the lock contract tests.
+
+Step 6 of v0.14.0 git-cliff-provisioning: `GitExecutionContext._execute` takes
+the input bytes of `run` as `stream`, so the `read_only_git` stand-in accepts
+them too; no composition case feeds Git an input stream.
 """
 
 from __future__ import annotations
@@ -77,9 +81,9 @@ def git_sandbox(git_template: GitSandbox, tmp_path: Path) -> GitSandbox:
 @pytest.fixture
 def read_only_git(git_sandbox: GitSandbox, monkeypatch: pytest.MonkeyPatch) -> None:
     """Avoid process startup in composition cases that do not test Git itself."""
-    def execute(context: GitExecutionContext, arguments: Sequence[str], *, cwd: Path,
-                check: bool = True, lossless_stdout: bool = False) -> CompletedProcess[str]:
-        del lossless_stdout
+    def execute(context: GitExecutionContext, arguments: Sequence[str], *, cwd: Path,  # noqa: PLR0913 - the signature of the replaced method
+                check: bool = True, lossless_stdout: bool = False, stream: bytes | None = None) -> CompletedProcess[str]:
+        del lossless_stdout, stream
         return probe_result(git_sandbox, context, arguments, cwd=cwd, check=check)
 
     monkeypatch.setattr(GitExecutionContext, "_execute", execute)

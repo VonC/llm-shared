@@ -10,6 +10,14 @@ validator returns at once when no version section is declared, and otherwise
 imports the source settings module when it runs, so configuration loading
 without version sections never imports the adapter package, and no version
 module needs to import this one at load time.
+
+Step 1 of v0.14.0 git-cliff-provisioning ships the git-cliff domain last: one
+fixed `[git-cliff]` section whose only key, `version`, parses exact pins and
+admits only manifest versions. The rule needs its textual default when the
+schema is built, because the reader applies a default through the same
+converter as a supplied value, so this module imports the manifest at load
+time; the manifest imports only `dataclasses` and `re`, and no other
+`git_cliff` module is loaded with configuration.
 """
 
 from __future__ import annotations
@@ -17,8 +25,11 @@ from __future__ import annotations
 import re
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
+from functools import partial
 from types import MappingProxyType
 from typing import TYPE_CHECKING, Literal
+
+from tools.release_workflow.git_cliff import manifest
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -147,12 +158,26 @@ def _validate_version(sections: ConfigSections) -> None:
     settings.validate_settings(sections)
 
 
+def git_cliff_domain(pins: tuple[manifest.AdmittedPin, ...]) -> DomainSchema:
+    """Own `[git-cliff]`, whose `version` admits only the table's pins and defaults to its default.
+
+    Args:
+        pins: The shipped manifest table, or a synthetic one in tests.
+
+    Returns:
+        The git-cliff domain with one fixed section and one key.
+    """
+    rule = ValueRule("version", parse=partial(manifest.parse_pin, pins=pins), default=manifest.default_version(pins))
+    return DomainSchema("git-cliff", (SectionSchema("git-cliff", (rule,)),))
+
+
 TOOLING_SCHEMA = DomainSchema("tooling", (SectionSchema("tooling", (ValueRule("minimum-version"),)),))
 VERSION_SCHEMA = DomainSchema("version", (
     SectionSchema("source:", (ValueRule("form"), ValueRule("file", path_role="managed"), ValueRule("pattern")), family=True),
     SectionSchema("component:", (ValueRule("root", required=True, path_role="managed"),), family=True),
 ), validate=_validate_version)
-SHIPPED_SCHEMAS = (TOOLING_SCHEMA, VERSION_SCHEMA)
+GIT_CLIFF_SCHEMA = git_cliff_domain(manifest.ADMITTED_PINS)
+SHIPPED_SCHEMAS = (TOOLING_SCHEMA, VERSION_SCHEMA, GIT_CLIFF_SCHEMA)
 
 
 def _validate_section(domain: str, section: SectionSchema) -> None:
