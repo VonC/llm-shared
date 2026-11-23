@@ -7,8 +7,9 @@
 ## Invocation model
 
 The commit gates run the check: `group-commits-msg` before its go-ahead menu,
-and the code review requestor before its `Commit` choice. The AI runs it and
-asks; the human decides, word by word, what is accepted and what is replaced.
+and the code review requestor before its `Commit` choice. The AI runs it,
+automatically adds legitimate words it recommends keeping, and asks the human
+before replacing any word.
 Run it directly when a file needs checking outside a commit.
 
 📊 The person who approves a commit reads its files in VS Code, where the
@@ -50,7 +51,7 @@ the project shares it, or replaced in the text. On Windows, either decision
 also adds the original reported word to `%APPDATA%\Code\User\settings.json`
 under `cSpell.userWords`. This makes the original globally accepted for the
 user even when it was a misspelling corrected in this project. A replacement
-does not add the original to the project dictionary; an approved project
+does not add the original to the project dictionary; a recommended or user-chosen project
 addition belongs in both dictionaries so other clones share it.
 
 Because the check merges user and project settings, adding an original word
@@ -59,8 +60,9 @@ original findings, verifies each chosen replacement directly before user
 additions, and checks membership in each required dictionary independently.
 An empty spelling report alone cannot prove that the decisions were applied.
 The suggestions cSpell offers for code names are often useless
-(`collecteront` for `collectreport`), which is why the user, not the agent,
-picks between the two.
+(`collecteront` for `collectreport`). The agent can therefore recommend keeping
+an exact identifier and add it automatically. A recommendation to change the
+text still needs the user's decision; pending replacements stay unchanged.
 
 ## 🐢 A pinned cspell on the Node at hand
 

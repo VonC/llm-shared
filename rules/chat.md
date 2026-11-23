@@ -28,7 +28,8 @@
   applies to test classes too.
 - When writing Markdown, follow [`markdown.md`](markdown.md).
 - Before presenting any choice that commits, spell-check every new or
-  modified Markdown file and settle each reported word with the user,
+  modified Markdown file, automatically add words recommended for addition,
+  and ask the user before replacing words,
   following [`spelling.md`](spelling.md).
 - When writing or rewriting a file, follow
   [`preserve_code.md`](preserve_code.md).

@@ -75,19 +75,20 @@ self-locate and do not need an `senv.bat` pre-call.
    while a finding remains.
 
    Next, spell-check the same Markdown files, and only them, as
-   [`../rules/spelling.md`](../rules/spelling.md) requires: show the unknown words, then ask about each one with its
-   alternatives listed, letting the user choose between adding it to
-   `.vscode/settings.json` (`spellcheck.bat add-words`) and a replacement,
-   apply the choices, restage,
+   [`../rules/spelling.md`](../rules/spelling.md) requires: show the unknown
+   words, automatically add words recommended for addition to
+   `.vscode/settings.json` (`spellcheck.bat add-words`), and ask the user
+   before replacing words, listing the alternatives for each. Apply only
+   explicitly chosen replacements, leave unanswered ones pending, restage,
    and rerun the check until it reports no unknown word. A changed
    `.vscode/settings.json` joins the group of the files that needed its words:
    format `a.commit` again.
 
-   On Windows, every original reported word presented for the decision must
+   On Windows, every original reported word whose resolution is complete must
    reach `cSpell.userWords` in `%APPDATA%\Code\User\settings.json`, even when
    the user chooses a replacement. Retain the original findings and verify
    replacements directly before user additions can hide missed edits. Add to
-   project `cSpell.words` only the words approved for project addition. The
+   project `cSpell.words` only recommended or user-chosen additions. The
    current launcher updates only the project file, so perform the user edit
    separately and verify each required list independently, following the
    same spelling rule. Stage only project settings; keep user settings local.

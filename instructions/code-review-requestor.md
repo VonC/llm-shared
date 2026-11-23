@@ -252,14 +252,15 @@ Those fixes are polishing-only: restage the staged files, leave the transcript
 unstaged for its residual commit, and rerun the readiness checker. Never show
 `Commit` while a finding remains.
 Spell-check the same Markdown files as
-[`../rules/spelling.md`](../rules/spelling.md) requires, and settle every reported word with the user before the gate: an
-accepted word goes into `.vscode/settings.json` through
-`spellcheck.bat add-words`, staged as polishing; a refused one is replaced in
-place. On Windows, add every original reported word presented for the decision
+[`../rules/spelling.md`](../rules/spelling.md) requires: automatically add
+words recommended for addition to `.vscode/settings.json` through
+`spellcheck.bat add-words`, staged as polishing, and ask the user before
+replacing words. Apply only explicitly chosen replacements; leave unanswered
+ones pending. On Windows, add every original reported word whose resolution is complete
 to `cSpell.userWords` in `%APPDATA%\Code\User\settings.json`, even when
 replaced. Retain the original findings and verify replacements directly
 before user additions can hide missed edits. Add to project `cSpell.words`
-only the words approved for project addition. The current launcher updates
+only recommended or user-chosen additions. The current launcher updates
 only the project file: edit user settings separately, verify each required
 list independently, keep that file local, and stage only project settings.
 Follow the same spelling rule. Never show `Commit` while an unknown word or

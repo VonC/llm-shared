@@ -13,7 +13,7 @@ agent does at them.
 
 📊 Goal: every new or modified Markdown file of a commit reports no unknown
 word, with each finding either accepted in project settings or replaced.
-On Windows, every original reported word presented for a decision also goes
+On Windows, every original reported word whose resolution is complete also goes
 into user settings, even when replaced. Source code is not spell-checked.
 
 ## 🧰 Before the first check
@@ -56,7 +56,10 @@ into user settings, even when replaced. Source code is not spell-checked.
 
 3. Retain the original words and listed locations until all their decisions,
    edits and dictionary updates are verified, across later check runs too.
-   For each word, the agent asks one question that names the word, quotes
+   The agent automatically adds legitimate words it recommends keeping to
+   the project and Windows user dictionaries through steps 5 and 6, and
+   reports those additions without waiting for replacement decisions.
+   For each recommended replacement, the agent asks one question that names the word, quotes
    its line and lists its alternatives: add it to project settings or replace
    it with one of up to three alternatives, the cSpell suggestions that fit
    or a rewording of its own when none does. Choose one, or type your own
@@ -64,11 +67,13 @@ into user settings, even when replaced. Source code is not spell-checked.
    word to user `cSpell.userWords`: even a corrected misspelling becomes
    globally accepted for you.
 
-4. Apply each chosen replacement at every listed location. Inspect the edited
+4. Apply only replacements explicitly chosen by the user at every listed
+   location. Leave unanswered replacements pending and their text unchanged.
+   Inspect the edited
    text directly before user dictionary additions can hide missed replacements
    from subsequent spell checks.
 
-5. Add only the words approved for project addition in one call:
+5. Add recommended or user-chosen project additions in one call per available batch:
 
    ```powershell
    & "<LLM_SHARED_DIR>\bin\spellcheck.bat" add-words collectreport addfinalizer
@@ -79,7 +84,7 @@ into user settings, even when replaced. Source code is not spell-checked.
    files that needed the words.
 
 6. On Windows, edit `%APPDATA%\Code\User\settings.json` to add every original
-   reported word from the retained findings, including those replaced, to
+   reported word whose resolution is complete, including those replaced, to
    `cSpell.userWords`, preserving the existing settings and comments. Use the
    environment variable to resolve the path, never an expanded profile path;
    in PowerShell use `$env:APPDATA`. Follow the
@@ -87,8 +92,8 @@ into user settings, even when replaced. Source code is not spell-checked.
 
    Keep the exact original spelling and case, without duplicates; do not
    substitute the replacement word for the original finding. Read back user
-   settings for every original word and project settings for every
-   project-approved word independently, even when one list already contains
+   settings for every resolved original word and project settings for every
+   recommended or user-chosen addition independently, even when one list already contains
    it. If an update fails, report the failure and any partial change before
    continuing. Keep user settings local.
 
@@ -100,8 +105,11 @@ into user settings, even when replaced. Source code is not spell-checked.
 ## 🚫 What not to do
 
 - Do not skip a word because it sits in backticks or a code block.
+- Do not ask for confirmation of a recommended dictionary addition.
+- Do not apply a replacement or add its original word to user settings while
+  the user's decision is pending.
 - Do not add an ignore pattern or a `cspell:ignore` comment.
-- Do not leave a project-approved word only in user settings: the project
+- Do not leave a recommended or user-chosen addition only in user settings: the project
   list must also contain it so other clones share it.
 - Do not skip the Windows user settings update when a word was rephrased.
 

@@ -34,8 +34,9 @@ Before any choice that commits, every new or modified Markdown file (never
 source code) goes through `bin\spellcheck.bat check`, which reports the words VS Code's Code Spell
 Checker would underline. Each reported word, in backticks or not, is either
 accepted into the project's `.vscode/settings.json` (through `add-words`)
-or replaced, as the user chooses word by word. On Windows, every original
-reported word presented for that decision also goes into `cSpell.userWords`
+automatically when the agent recommends adding it, or replaced after an
+explicit user choice. On Windows, every original reported word whose
+resolution is complete also goes into `cSpell.userWords`
 in `%APPDATA%\Code\User\settings.json`, even when replaced. Verify text
 replacements directly before user additions can hide missed edits, and
 verify required membership in user and project dictionaries independently.

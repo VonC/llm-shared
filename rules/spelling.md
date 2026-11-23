@@ -37,19 +37,27 @@ llm-shared's `venvs` folder, which needs the npm registry once. Only a machine
 without a Node 20.18 or later is an operational error: install one with the
 senv tools (`dwl_inst_ver node 22`), never by hand.
 
-## Settle every reported word with the user
+## Add recommended words automatically; ask before replacing
 
 Every reported word is settled, inside backticks, a code block or plain text
 alike: either it is added to the project's `.vscode/settings.json`, or it is
 replaced in the text. On Windows, both choices also add the original reported
 word to `cSpell.userWords` in `%APPDATA%\Code\User\settings.json`, even when
-the word is rephrased. The user decides the project resolution word by word:
+the word is rephrased. When you recommend adding a legitimate word, add it
+automatically without asking for confirmation. When you recommend replacing
+a word, ask the user before changing the text. A replacement recommendation
+is not permission to apply it.
 
 1. Show the table the check printed. Retain each original reported word and
    all its listed locations until its decision, text edits and dictionary
    updates have been verified. Keep this record across later check runs.
-2. Ask one question per word, in groups of four with a blocking picker when
-   the host offers one (see [`interactive_menu.md`](interactive_menu.md)).
+2. Classify each finding in context and explain your recommendation. For a
+   legitimate word you recommend keeping (for example, a technical term or
+   an exact identifier), add it to the project and Windows user dictionaries
+   through steps 4 and 5 immediately, without waiting for answers about other
+   words. Report the additions made. For a word you recommend replacing, ask
+   one question per word, in batches supported by the host's blocking picker
+   (see [`interactive_menu.md`](interactive_menu.md)).
    Each question names the word, quotes the line it appears in, and gives
    every alternative its own option: `Add to project settings.json`, then
    `Replace with <alternative>` for each alternative, at least one and up to
@@ -61,12 +69,14 @@ the word is rephrased. The user decides the project resolution word by word:
    the original reported word to user settings, so even a corrected
    misspelling becomes globally accepted for that user. The user can type
    another replacement.
-3. Apply each chosen replacement at every listed location and inspect the
-   edited text to verify it matches the decision. Do this before adding the
+3. Apply only replacements explicitly chosen by the user at every listed
+   location; leave unanswered replacements pending and their text unchanged.
+   Inspect the edited text to verify it matches the decision. Do this before adding the
    original words to user settings, which would hide missed replacements
    from the next spell check.
-4. Add only the words approved for project addition to the project in one
-   call, from the project root:
+4. Add the words you recommend adding, plus any additions explicitly chosen
+   by the user, to the project in one call per available batch, from the
+   project root:
 
    ```powershell
    & "<LLM_SHARED_DIR>\bin\spellcheck.bat" add-words <word> [<word> ...]
@@ -76,29 +86,34 @@ the word is rephrased. The user decides the project resolution word by word:
    changes nothing else. The current launcher updates only the project file.
    The `.vscode/settings.json` change belongs to the commit: stage it with the
    files that needed the words. The user settings file stays local.
-5. On Windows, add every original reported word from the retained findings
+5. On Windows, add every original reported word whose resolution is complete
    to user `cSpell.userWords`, including those replaced in the text, following
    the next section. Do not substitute the replacement word for the original
    reported word. Verify user membership for every original word and project
-   membership for every word approved for project addition independently.
+   membership for every recommended or user-chosen project addition
+   independently. Keep originals awaiting a replacement decision out of
+   user settings until the chosen text edits have been verified.
 6. Restage the project changes and run the check again until it exits `0`.
    Settle any new findings through the same procedure. A clean check does
    not close an earlier finding whose decision or updates remain unverified.
 
 Never present the commit choice while an unknown word remains, and never
 make a word disappear another way: no `cSpell.ignoreRegExpList` pattern, no
-`cspell:ignore` or `cspell:disable` comment, and no choice made on the user's
-behalf. Edit user settings only for these original reported words and approved
-project additions, following the next section.
+`cspell:ignore` or `cspell:disable` comment. Never choose a replacement on the
+user's behalf. Edit user settings only for these resolved original reported
+words and recommended or user-chosen project additions, following the next
+section.
 
 ## Keep original reported words in Windows user settings
 
-Every original reported word presented for an add-or-rephrase decision must
+Every original reported word, once its resolution is complete, must
 be present in `cSpell.userWords` in `%APPDATA%\Code\User\settings.json`, even
 when the user chooses rephrasing and the original disappears from the text.
-Only a project-add decision adds that word to project `cSpell.words`.
+Only a recommended or user-chosen project addition adds that word to project
+`cSpell.words`.
 
-Every approved project addition must also be present in user settings,
+Every recommended or user-chosen project addition must also be present in
+user settings,
 whether added through the launcher or another edit. Check each required list
 independently: a word already present in the project may still be missing
 from user settings, or the reverse. Keep the exact original spelling and case,
@@ -120,9 +135,10 @@ unrelated settings, indentation, encoding and line endings. Create a missing
 file or list when needed. Never replace the user file with the project file,
 and never copy the user file into the repository or stage it.
 
-Read back user `cSpell.userWords` to verify every original reported word and
-approved project addition is present. Read back project `cSpell.words` to
-verify every project-approved word is present. Also verify the selected text
+Read back user `cSpell.userWords` to verify every resolved original reported
+word and project addition is present. Read back project `cSpell.words` to
+verify every recommended or user-chosen addition is present. Also verify the
+selected text
 replacements directly; a clean spell check alone proves neither membership
 nor completed replacements, because the check merges both settings levels.
 If APPDATA is missing or a required file cannot be read or updated, report

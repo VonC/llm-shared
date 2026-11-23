@@ -15,9 +15,9 @@ messages, ``a.commit`` groups and pull request descriptions.
 Fix: commits reached the history with words VS Code's Code Spell Checker
 underlines, because no gate looked at them outside VS Code. ``rules/spelling.md``
 now runs ``spellcheck.bat check`` on every new or modified Markdown file (never
-on source code) before any commit choice, and has the user settle each word (accepted into
-``.vscode/settings.json`` or replaced), backticks or not; both commit gates
-point to it.
+on source code) before any commit choice, backticks or not; both commit gates
+point to it. Recommended dictionary additions are automatic; replacements
+require an explicit user choice, and unanswered replacements stay pending.
 """
 
 from __future__ import annotations
@@ -65,8 +65,8 @@ def test_commit_messages_carry_no_ai_attribution() -> None:
     assert "The message ends with the `What:` list" in rules
 
 
-def test_commit_gates_settle_every_spelling_finding_with_the_user() -> None:
-    """Every reported word is accepted or replaced by the user's choice before any commit choice.
+def test_commit_gates_add_recommended_words_and_ask_before_replacing() -> None:
+    """Recommended additions proceed automatically; text replacements require a user decision.
 
     Each question lists the word's alternatives, so adding it is never the only option.
     """
@@ -75,6 +75,10 @@ def test_commit_gates_settle_every_spelling_finding_with_the_user() -> None:
         'bin\\spellcheck.bat" check <file.md>',
         "Source code and other files are never spell-checked.",
         "inside backticks, a code block or plain text alike",
+        "add it automatically without asking for confirmation",
+        "ask the user before changing the text",
+        "leave unanswered replacements pending and their text unchanged",
+        "without waiting for answers about other words",
         "`Add to project settings.json`, then `Replace with <alternative>` for each alternative",
         "Never offer `Add to project settings.json` as the only option.",
         'bin\\spellcheck.bat" add-words <word>',
@@ -87,6 +91,10 @@ def test_commit_gates_settle_every_spelling_finding_with_the_user() -> None:
     grouping = _flat((ROOT / "instructions/group-commits-msg.md").read_text(encoding="utf-8"))
     assert "spell-check the same Markdown files, and only them" in grouping
     requestor = _flat((ROOT / "instructions/code-review-requestor.md").read_text(encoding="utf-8"))
+    for gate in (grouping, requestor):
+        assert "automatically add words recommended for addition" in gate
+        assert "ask the user before replacing words" in gate
+        assert "only explicitly chosen replacements" in gate
     assert (
         "Never show `Commit` while an unknown word or an unverified earlier decision or update remains."
     ) in requestor

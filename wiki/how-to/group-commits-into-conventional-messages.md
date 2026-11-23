@@ -41,8 +41,9 @@ ordered series of conventional commits, each with a `Why:` / `What:` body.
 
 5. Before its go-ahead menu, the skill lints the new or modified Markdown
    files and spell-checks the same files (never source code). It shows each unknown
-   word with its cSpell suggestions and asks you, word by word, to accept it
-   into `.vscode/settings.json` or to replace it; see
+   word with its cSpell suggestions, automatically adds words recommended
+   for addition to `.vscode/settings.json`, and asks you before replacing
+   words; see
    [Settle spelling before a commit](settle-spelling-before-a-commit.md).
    The menu appears only once both report nothing.
 
