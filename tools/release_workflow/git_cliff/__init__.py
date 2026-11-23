@@ -50,6 +50,12 @@ Step 6 adds the compatibility evidence harness, run by hand:
   current approval that admit its pin (split from `bundle` in code review);
 - `harness`: the developer entry point, which also records the review.
 
+Step 8 adds the launcher:
+
+- `launcher`: `gcliff`, started by `bin/gcliff.bat` through the bootstrap's
+  `gcliff-batch` kind; it runs the current worktree's pin with everything
+  passed through, and returns 69 for any failure before git-cliff starts.
+
 This initializer imports nothing, so loading the manifest loads no other
 module of the package.
 """

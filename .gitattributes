@@ -1,5 +1,6 @@
 uv.lock filter=uv-lock-public
 bin/release_workflow.bat text eol=crlf
 bin/release_alias.bat text eol=crlf
+bin/gcliff.bat text eol=crlf
 # Evidence bundles keep their exact bytes on every checkout: bundle.json records their SHA-256.
 tools/release_workflow/git_cliff/bundles/** -text

@@ -4,6 +4,9 @@ Explicitly named selectors are read once as data. All project services use the
 captured cwd and selected physical root; construction performs no managed writes.
 Step 1 of v0.14.0 version-sources: the parsed operation tokens travel from the
 request to the context unchanged; the batch-character rule covers them too.
+Step 8 of v0.14.0 git-cliff-provisioning: `gcliff-batch`, the gcliff
+launcher's entry kind, is known here, so `validate_arguments` applies the
+batch-character rule to git-cliff's arguments as well.
 """
 
 from __future__ import annotations
@@ -27,7 +30,7 @@ if TYPE_CHECKING:
 
     from tools.release_workflow.runtime_identity import RuntimeIdentity
 
-ENTRY_KINDS = frozenset({"explicit-native", "explicit-batch", "alias-batch"})
+ENTRY_KINDS = frozenset({"explicit-native", "explicit-batch", "alias-batch", "gcliff-batch"})
 _LEGACY = frozenset({
     "PRJ_DIR", "PRJ_DIR_UNIX", "PRJ_DIR_NAME", "VERSION_TXT_FILE", "POM_FILE",
     "PACKAGE_JSON_FILE", "HEADER_CHANGELOG_FILE", "DEV_WORKFLOW_DIR",
