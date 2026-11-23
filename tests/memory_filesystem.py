@@ -12,6 +12,8 @@ local source adapter lets the real Python loader read those in-memory files.
 The resume-paused artifact and review leaves join the scenarios: their
 read-only proofs compare whole checkout trees before and after each read.
 The resume-paused evidence leaf joins them for its session journal file read.
+The resume_paused command leaf and its acceptance scenarios join them too:
+each launch reads and writes the real checkout artifacts many times over.
 """
 
 from __future__ import annotations
@@ -102,6 +104,8 @@ _SCENARIOS = (
     "tests/unit/tools/test_resume_paused_claims/",
     "tests/unit/tools/test_resume_paused_validation/",
     "tests/unit/tools/test_resume_paused_evidence/",
+    "tests/unit/tools/test_resume_paused_cli/",
+    "tests/acceptance/resume_paused/",
 )
 _active_scenario = False
 _COPY_FUNCTION_POSITION = 3
