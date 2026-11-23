@@ -37,7 +37,6 @@ pwp="%LLM_SHARED_DIR%\bin\prompt_workflow.bat" progress $*$tif not errorlevel 1 
 
 pwi=set "PW_PROFILE=1"$t"%LLM_SHARED_DIR%\bin\prompt_workflow.bat" $*$tset "PW_PROFILE="$techo %PRJ_DIR_NAME%: prompt workflow profiled
 
-nd="%LLM_SHARED_DIR%\bin\new_draft.bat" $*$tif not errorlevel 1 echo %PRJ_DIR_NAME%: new draft done
 ndr="%LLM_SHARED_DIR%\bin\new_draft.bat" $*$tif not errorlevel 1 echo %PRJ_DIR_NAME%: new draft done
 
 ghog="%LLM_SHARED_DIR%\bin\ghog.bat" $*
