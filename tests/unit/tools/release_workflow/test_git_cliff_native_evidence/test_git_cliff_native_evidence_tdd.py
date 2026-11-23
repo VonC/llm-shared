@@ -35,6 +35,20 @@ died, and an abandoned transition mutex of a live holder keeping its record.
 Since code review round 1, the two guard checks also prove that the child's
 inherited handle names the guarded executable and that a guard-free control
 run of the same stand-in leaves the rename possible.
+
+Step 8 adds milestone `final`, the committed one: the full set of Steps 2, 4
+and 5 against the final sources, plus the inherited-guard check after a killed
+launcher run through the production `bin/gcliff.bat` and the admitted 2.14.2
+(`guard-held-by-gcliff-run-after-launcher-killed`): its warm-up prints
+`git-cliff 2.14.2`, and its sources add the launcher, the batch file and the
+modules on its path. A Step 5 record does not need that check; a final one
+does, and every negative record of Step 2 is still refused.
+
+Code review round 1 of Step 8 adds a second final check,
+`gcliff-status-with-inherited-errorlevel` (a caller variable named ERRORLEVEL
+hides neither status 2 nor 0, and git-cliff still sees it), and binds both
+final checks to the ownership rule `git_cliff_native_ownership.py`, which
+makes the launcher check act only on its own process tree.
 """
 
 from __future__ import annotations
@@ -55,7 +69,7 @@ if TYPE_CHECKING:
 
 _ROOT = Path(__file__).resolve().parents[5]
 _RECORD = Path(__file__).with_name("native_checks.v1.json")
-_MILESTONES = ("step-2", "step-4", "step-5")
+_MILESTONES = ("step-2", "step-4", "step-5", "final")
 _HOST_PATH = re.compile(r"[A-Za-z]:[\\/]|[\\/](?:Users|home)[\\/]")
 _COMMIT = re.compile(r"[0-9a-f]{40}")
 _NAME_LENGTH = 3
@@ -72,10 +86,16 @@ _LOCK = (*_CHILD, "tests/unit/tools/release_workflow/git_cliff_native_service.py
 _SERVICE = (*_LOCK, f"{_RELEASE}/windows_guard.py", f"{_CLIFF}/provisioning.py", f"{_CLIFF}/installation.py", f"{_CLIFF}/invocation.py",
             f"{_CLIFF}/messages.py")
 _SERVICE_WORKER = (*_SERVICE, f"{_RELEASE}/bootstrap.py", f"{_CLIFF}/download_worker.py", f"{_CLIFF}/network.py")
+_GCLIFF = (*_SERVICE_WORKER, f"{_CLIFF}/archive.py", f"{_CLIFF}/manifest.py", f"{_CLIFF}/launcher.py", f"{_RELEASE}/invocation.py",
+           f"{_RELEASE}/git.py", f"{_RELEASE}/paths.py", "bin/gcliff.bat", "tests/unit/tools/release_workflow/git_cliff_native_launcher.py",
+           "tests/unit/tools/release_workflow/git_cliff_native_ownership.py")
 _GUARD_AFTER_KILL: dict[str, object] = {"caller_dead": True, "child_alive": True, "inherited_handle_is_guard": True, "during_child": "refused",
                                          "child_ended": True, "after_child": "renamed", "control_without_guard": "renamed"}
 _STEP_5 = ("worker-ends-with-killed-caller", "git-cliff-run-ends-with-killed-caller", "guard-held-by-reuse-probe-after-caller-killed",
            "guard-held-by-git-cliff-run-after-caller-killed", "abandoned-mutex-keeps-lock-record")
+_FINAL = "guard-held-by-gcliff-run-after-launcher-killed"
+_ERRORLEVEL = "gcliff-status-with-inherited-errorlevel"
+_FINAL_SET = (_FINAL, _ERRORLEVEL)
 
 
 @dataclass(frozen=True)
@@ -111,6 +131,9 @@ _CHECKS = {
     "guard-held-by-git-cliff-run-after-caller-killed": _Due("step-5", _GUARD_AFTER_KILL, 60, _SERVICE),
     "abandoned-mutex-keeps-lock-record": _Due("step-5", {"mutex_abandoned": True, "holder_alive": True, "waiter_error": "LockWaitError",
                                                        "holder_named": True, "record_kept": True}, 30, _LOCK),
+    _FINAL: _Due("final", {"warm_up": "git-cliff 2.14.2", **_GUARD_AFTER_KILL}, 120, _GCLIFF),
+    _ERRORLEVEL: _Due("final", {"warm_up": "git-cliff 2.14.2", "failing_status": 2, "succeeding_status": 0, "child_saw": "seen=7"}, 120,
+                      _GCLIFF),
 }
 
 type Record = dict[str, Any]
@@ -168,7 +191,7 @@ def _timeout_refusals(timeout: Mapping[str, Any]) -> list[str]:
 @pytest.fixture(scope="session")
 def digests() -> dict[str, str]:
     """Hash every source a check exercises, once per session."""
-    return {path: digest(_ROOT / path) for path in dict.fromkeys((*_GUARD, *_WORKER, *_SERVICE_WORKER))}
+    return {path: digest(_ROOT / path) for path in dict.fromkeys((*_GUARD, *_WORKER, *_SERVICE_WORKER, *_GCLIFF))}
 
 
 @pytest.fixture(scope="session")
@@ -188,7 +211,7 @@ def _valid(digests: Mapping[str, str]) -> Record:
 
 def test_the_committed_record_passes_its_milestone(record: Record, digests: dict[str, str]) -> None:
     """Every due check passed, as expected, within its bound, against the current sources."""
-    assert (record["format"], record["milestone"]) == (1, "step-5")
+    assert (record["format"], record["milestone"]) == (1, "final")
     assert refusals(record, digests) == []
 
 
@@ -235,6 +258,31 @@ def test_a_step_5_record_needs_the_five_service_checks(digests: dict[str, str]) 
     assert refusals(record, digests) == []
     record["milestone"] = "step-5"
     assert refusals(record, digests) == [f"missing {identifier}" for identifier in _STEP_5]
+
+
+def test_a_final_record_needs_the_production_launcher_checks(digests: dict[str, str]) -> None:
+    """The final milestone adds both gcliff checks to the full Step 5 set, which a Step 5 record does not need."""
+    record = _valid(digests)
+    record["checks"] = [check for check in record["checks"] if check["id"] not in _FINAL_SET]
+    record["milestone"] = "step-5"
+    assert refusals(record, digests) == []
+    record["milestone"] = "final"
+    assert refusals(record, digests) == [f"missing {identifier}" for identifier in _FINAL_SET]
+    record["checks"] = [check for check in record["checks"] if check["id"] not in _STEP_5]
+    assert refusals(record, digests) == [f"missing {identifier}" for identifier in (*_STEP_5, *_FINAL_SET)]
+
+
+@pytest.mark.parametrize("identifier", _FINAL_SET)
+@pytest.mark.parametrize("source", ["bin/gcliff.bat", "tools/release_workflow/git_cliff/launcher.py",
+                                    "tests/unit/tools/release_workflow/git_cliff_native_ownership.py"])
+def test_the_final_checks_bind_the_launcher_its_batch_file_and_the_ownership_rule(identifier: str, source: str,
+                                                                                  digests: dict[str, str]) -> None:
+    """A stale digest of the batch launcher, the launcher module or the ownership rule refuses each final check."""
+    record = _valid(digests)
+    record["milestone"] = "final"
+    final = next(check for check in record["checks"] if check["id"] == identifier)
+    final["sources"][source] = "0" * 64
+    assert refusals(record, digests) == [f"{identifier}: stale source digest"]
 
 
 @pytest.mark.parametrize(("mutate", "reason"), [

@@ -6,8 +6,8 @@ by hand and never imported by a test, from the project root:
     python -m tests.unit.tools.release_workflow.git_cliff_native_checks --milestone step-5
         --output tests/unit/tools/release_workflow/test_git_cliff_native_evidence/native_checks.v1.json
 
-`--milestone` selects the cumulative due set; Step 8 adds its own milestone. Each check runs on stand-in children or the real
-download worker, on temporary paths outside the repository and
+`--milestone` selects the cumulative due set; Step 8 adds the last one, `final`. Each check up to Step 5 runs on stand-in
+children or the real download worker, on temporary paths outside the repository and
 `.tools/git-cliff/`, and ends every process it started. Since code review
 round 1 of Step 2, each check runs in its own runner process, this module
 started with `--run-check`, through `run_contained` with the check's bound as
@@ -61,6 +61,21 @@ refuses the rename once its caller is dead, until the child ends), and
 holder authorizes nothing). The `--helper` mode dispatches the service helpers
 to that module.
 
+Step 8 adds milestone `final`: every check of Steps 2, 4 and 5 again, against
+the final sources, plus `guard-held-by-gcliff-run-after-launcher-killed`, in
+`git_cliff_native_launcher.py`. It needs no stand-in: after the warm-up
+`bin/gcliff.bat --version`, the production launcher runs the admitted 2.14.2
+of this checkout's cache on a named pipe that is never written, the launcher
+is killed, and the inherited guard refuses the rename until the recorder ends
+the job, as the Step 5 check proved with a stand-in caller. Since code review
+round 1, that check acts only on the run descending from its own `cmd.exe`
+(`git_cliff_native_ownership.py`), and `gcliff-status-with-inherited-errorlevel`
+proves that a caller variable named ERRORLEVEL hides neither a failing nor a
+succeeding git-cliff status while git-cliff still receives it. Since round 2,
+the launcher check takes its run only once its own pipe names that client, so
+the guarded reuse probe is never observed in its place; a run that never opens
+the pipe (`NotReadyError`, a `TimeoutError`) is recorded `timed-out`.
+
 The record holds each check's outcome, expected and observed observations,
 bound, duration and the LF-normalized SHA-256 of the sources it exercises,
 plus the commit, the Windows build and the architecture. It is written with
@@ -82,6 +97,10 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
+from tests.unit.tools.release_workflow.git_cliff_native_launcher import (
+    check_gcliff_launcher_killed,
+    check_gcliff_status_with_inherited_errorlevel,
+)
 from tests.unit.tools.release_workflow.git_cliff_native_probes import (
     KERNEL,
     RECORDER_MODULE,
@@ -118,7 +137,7 @@ from tools.release_workflow.windows_child import (
 if TYPE_CHECKING:
     from collections.abc import Callable, Sequence
 
-_MILESTONES = ("step-2", "step-4", "step-5")
+_MILESTONES = ("step-2", "step-4", "step-5", "final")
 _HOST_PATH = re.compile(r"[A-Za-z]:[\\/]\S*|[\\/](?:Users|home)[\\/]\S*")
 _RELEASE = "tools/release_workflow"
 _CLIFF = f"{_RELEASE}/git_cliff"
@@ -130,6 +149,9 @@ _LOCK = (*_CHILD, "tests/unit/tools/release_workflow/git_cliff_native_service.py
 _SERVICE = (*_LOCK, f"{_RELEASE}/windows_guard.py", f"{_CLIFF}/provisioning.py", f"{_CLIFF}/installation.py", f"{_CLIFF}/invocation.py",
             f"{_CLIFF}/messages.py")
 _SERVICE_WORKER = (*_SERVICE, f"{_RELEASE}/bootstrap.py", f"{_CLIFF}/download_worker.py", f"{_CLIFF}/network.py")
+_GCLIFF = (*_SERVICE_WORKER, f"{_CLIFF}/archive.py", f"{_CLIFF}/manifest.py", f"{_CLIFF}/launcher.py", f"{_RELEASE}/invocation.py",
+           f"{_RELEASE}/git.py", f"{_RELEASE}/paths.py", "bin/gcliff.bat", "tests/unit/tools/release_workflow/git_cliff_native_launcher.py",
+           "tests/unit/tools/release_workflow/git_cliff_native_ownership.py")
 _GUARD_AFTER_KILL: dict[str, object] = {"caller_dead": True, "child_alive": True, "inherited_handle_is_guard": True, "during_child": "refused",
                                          "child_ended": True, "after_child": "renamed", "control_without_guard": "renamed"}
 _STALLED = "stalled-runner"
@@ -189,6 +211,11 @@ _CHECKS = (
     _Check("abandoned-mutex-keeps-lock-record", "step-5",
            {"mutex_abandoned": True, "holder_alive": True, "waiter_error": "LockWaitError", "holder_named": True, "record_kept": True}, 30,
            _LOCK, check_abandoned_mutex),
+    _Check("guard-held-by-gcliff-run-after-launcher-killed", "final", {"warm_up": "git-cliff 2.14.2", **_GUARD_AFTER_KILL}, 120, _GCLIFF,
+           check_gcliff_launcher_killed),
+    _Check("gcliff-status-with-inherited-errorlevel", "final",
+           {"warm_up": "git-cliff 2.14.2", "failing_status": 2, "succeeding_status": 0, "child_saw": "seen=7"}, 120, _GCLIFF,
+           check_gcliff_status_with_inherited_errorlevel),
 )
 
 
@@ -202,7 +229,7 @@ def _run_check(identifier: str, scratch: Path, output: Path) -> int:
     check = next(check for check in _CHECKS if check.identifier == identifier)
     try:
         report: dict[str, object] = {"observed": check.run(check.bound, scratch)}
-    except (CheckTimeoutError, subprocess.TimeoutExpired) as error:
+    except (CheckTimeoutError, subprocess.TimeoutExpired, TimeoutError) as error:
         report = {"outcome": "timed-out", "reason": _HOST_PATH.sub("<path>", str(error))}
     except Exception as error:  # noqa: BLE001 - a check that cannot run is recorded, never raised
         report = {"outcome": "cannot-run", "reason": _HOST_PATH.sub("<path>", f"{type(error).__name__}: {error}")}
