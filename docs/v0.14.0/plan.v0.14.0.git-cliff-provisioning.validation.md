@@ -1,16 +1,17 @@
 # v0.14.0 git-cliff-provisioning implementation tracking and validation
 
-No, it is not implemented.
+Yes, it is implemented.
 
 This document tracks the eight steps of the
 [implementation plan](plan.v0.14.0.git-cliff-provisioning.md) for item 3 of
-the sibling release tooling umbrella. Steps 1 to 4 are implemented: the pin
-manifest, the `[git-cliff]` domain, the download budget policy, the shared
-record decoder, the contained Windows children with the use guard and their
-native check record, the cache with its reuse check and its lock, and the
-download worker with archive verification and extraction. The provisioning
-service, the evidence harness, the reviewed admission of 2.14.2 and the
-`gcliff` launcher are still to be written.
+the sibling release tooling umbrella. All eight steps are implemented: the pin
+manifest, the `[git-cliff]` domain and the download budget policy; the
+contained Windows children with the use guard; the cache with its reuse check
+and its lock; the download worker with archive verification and extraction;
+the provisioning service with its invocation object; the evidence harness;
+the reviewed admission of 2.14.2; and the `gcliff` launcher with the
+integrated acceptance tests, the final native check record and the reference
+documentation.
 
 > Initial-skeleton note: this first version was written by the `write-plans`
 > skill, before any implementation check. It fills `Goal for Step N` and
@@ -2473,11 +2474,29 @@ impaired.
 
 ### Analysis of Step 8 implementation state
 
-Not started. Step 8 is not implemented because no implementation work has
-begun: no `bin/gcliff.bat`, `gcliff-batch` entry kind, launcher module or
-alias fragment exists, discovery cannot tell "no worktree here" (a plain
-directory, a bare repository, a `.git` directory) from a genuine failure, and
-no integrated acceptance test, final native record or reference page exists.
+Yes. Step 8 has been fully implemented.
+
+`bin/gcliff.bat`, the `gcliff-batch` entry kind and `git_cliff/launcher.py`
+run the pin of the worktree containing the current directory, or the default
+outside a worktree or without a pin, after validating the whole
+`.release.ini`; git-cliff's arguments, working directory, streams,
+environment and status pass through, and every failure before git-cliff
+starts returns 69. `git.py` gains the typed worktree presence and `paths.py`
+gains `find_worktree`, used only by `gcliff`. The integrated acceptance tests
+prove every Step 8 row of the acceptance ownership map against the shipped
+manifest, and the native record holds milestone `final` with 16 passed checks
+against the final sources. Code review round 1 found five gaps, all repaired:
+the final launcher check acts only on the run its own invocation started, a
+valid gcliff call keeps 69 when its cwd capture or stream setup fails, a
+console filter removal failure after git-cliff ended keeps git-cliff's status,
+the batch file returns the child's status even under a caller variable named
+`ERRORLEVEL`, and the operations free of git-cliff are checked on freshly
+imported command modules with every budget lookup watched. Round 2 closed the
+two remaining evidence gaps: the launcher check takes its run only once its
+own pipe names that client, so the guarded reuse probe is never observed in
+its place, and the budget watch covers the collection-time import too. The
+reference page and the two launcher and automation pages document the
+launcher, the cache, the budget variable and the statuses.
 
 ### Goal for Step 8
 
@@ -2520,24 +2539,325 @@ documentation.
 
 ### What was implemented for Step 8
 
-_(empty — no check has taken place yet.)_.
+The step delivers the plan's file list, two new test support modules, a new
+native check module and three test-side updates outside the list.
+
+- **Worktree presence (`git.py`)**: `WorktreePresence` (`INSIDE`,
+  `NO_WORKTREE`, `NO_REPOSITORY`) and `GitExecutionContext.worktree_presence`:
+  one `rev-parse --is-inside-work-tree` call through `run` with
+  `check=False`. `true` is inside, `false` (a bare repository or a `.git`
+  directory) is no worktree, exit 128 whose stderr starts with
+  `fatal: not a git repository` is no repository (the controlled environment
+  sets `LC_ALL=C`), and any other answer, a dubious ownership refusal
+  included, raises `GitCommandError`.
+- **`find_worktree` (`paths.py`)**: runs the existing configuration
+  inspection, then the presence query; it returns None without a worktree
+  and, inside one, the identity `discover_project` returns, through a shared
+  `_discovered` helper, so the configuration is inspected once. Every other
+  failure is `ProjectPathError("Cannot discover project from ...")`.
+  `discover_project` keeps its behavior and its tests.
+- **Entry kind (`invocation.py`, `bootstrap.py`)**: `ENTRY_KINDS` gains
+  `gcliff-batch`, so `validate_arguments` applies the batch guard to it.
+  `_ENGINES` maps it to `tools.release_workflow.git_cliff.launcher`,
+  `_UNNORMALIZED_KINDS` holds it with the worker kind, and a `Launcher`
+  protocol receives the git-cliff arguments with the original cwd, the
+  tooling root and the verified identity. `_FAILURE_STATUS` gives
+  a recognized `gcliff-batch` 69 for a readiness or invocation failure and for an
+  execution failure before or around the launcher; every other kind keeps 2
+  and 1. `requested_kind` reads the kind a well-formed prefix requests before
+  any fallible step (code review round 1), so a reserved `--entry-kind` in
+  gcliff arguments, or a failing cwd capture or stream setup, is 69 too.
+  `main` keeps its one status set literal, so the cross-site contract of
+  `test_codepage_tdd.py` passes unchanged.
+- **Launcher (`git_cliff/launcher.py`)**: `main(arguments, *, original_cwd,
+  tooling_root, runtime, environment=None, seams=None)` applies the batch
+  guard (its diagnostic names `cliff.toml` as the place for such values),
+  creates the Git context, finds the worktree, loads the whole configuration
+  inside one, takes `configured_pin` or the manifest default outside one,
+  resolves the budget once and provisions with caller `gcliff`. It then runs
+  the passthrough policy (`output="inherit"`, the given environment or, with
+  None, the process one inherited as is) inside `ignore_console_interrupts`
+  and returns the child's status. Every failure before the child, a refused
+  creation and an unconfirmed end too, writes one `gcliff: <detail>` line and
+  returns `GCLIFF_UNAVAILABLE = 69`; the invocation is closed on every path.
+  `LauncherSeams` holds the provisioning seams, the console filter and the
+  pin table; `production_seams` binds the Windows layer with the verified
+  runtime's interpreter for download workers.
+- **Batch launcher and alias (`bin/gcliff.bat`, `bin/gcliff.doskey`)**: the
+  release launcher with exactly four changes, as the source contract
+  checks: `_release_status=69` before the record checks (with a comment line),
+  `--entry-kind gcliff-batch`, `goto cleanup` in place of the normalization
+  lines, and (code review round 1) `set "ERRORLEVEL="` with its comment line
+  between the child and the status capture. `.gitattributes` gives it
+  `text eol=crlf` like the
+  release launchers. The fragment is the one line
+  `gcliff="%LLM_SHARED_DIR%\bin\gcliff.bat" $*`.
+- **Tests**: the launcher leaf `test_git_cliff_launcher/` (30 cases through
+  the launcher simulation, the provisioning world as the fake provisioning
+  seam and fake child launcher, a fake kernel for the console filter) covers
+  each launcher case of the plan, plus status 101, an interruption reported
+  by the run, a filter that cannot register, a removal that fails after the
+  run, a manifest admitting no pin and the production seams. `test_gcliff_source_tdd.py` checks the derivation
+  from the release launcher, the 69 assignment, the absent normalization, the
+  code page restore on both paths, the alias fragment and the attribute line.
+  The bootstrap, invocation, Git and paths leaves add the plan's cases. The
+  acceptance leaf gains `test_git_cliff_acceptance_tdd.py` (reuse with nothing
+  printed, no lock and no network; `2.15.0`, `v2.14.2`, `latest` and `2.7.0`
+  refused before any work; a truncated executable or a missing record repaired
+  online, the download diagnostic offline; a read-only checkout that writes
+  nothing; an older Windows; an engine caller returning 2 with its stage and
+  the project unchanged; `version`, `versions check` and a configuration load
+  on freshly imported command modules, loading only `manifest` and never
+  looking up the budget variable; a fresh checkout writing only below the
+  ignored cache) and
+  `test_gcliff_acceptance_tdd.py` (the warm-up then silent reuse, an invalid
+  `[source:npm]`, a bad git-cliff argument, the engine probe dropping
+  `GIT_CLIFF_*` while the run keeps them, and the budget rows through
+  `gcliff`: D and W for unset, `900` and `3600`, every refused form, a retry
+  inside D, the 15 s probe, a default waiter behind an 1800 s holder). Rows
+  that download select from a synthetic 2.14.2 table whose archive the fake
+  worker delivers; the others select from the shipped manifest.
+- **Test support**: `launcher_simulation.py` routes `worktree_presence` to the
+  sandbox and serves the gcliff entry with the given launcher seams;
+  `gcliff_simulation.py` (new) builds one scenario per test;
+  `repository_simulation.py` answers the presence from its declared worktrees
+  and declared presences or failures; `git_cliff_children_fake.py` sorts a
+  `gcliff --version` run, whose standard input is inherited, as a run.
+- **Native record**: `git_cliff_native_checks.py --milestone final` ran 16
+  checks, all `passed`, on the final sources, with the recorder timeout
+  demonstration: the 14 checks of Steps 2, 4 and 5 and the new
+  `guard-held-by-gcliff-run-after-launcher-killed` and
+  `gcliff-status-with-inherited-errorlevel` (`git_cliff_native_launcher.py`,
+  each within a 120 s bound). The first runs the warm-up
+  `bin\gcliff.bat --version` (`git-cliff 2.14.2`), then the production
+  launcher on a named pipe that is never written, so git-cliff waits with no
+  pending read on any handle its launcher shares. It selects the run and the
+  launcher its own invocation started, finds the job and guard among the
+  launcher's handle values, kills it, and observes git-cliff alive, its
+  inherited handle naming the executable, the rename refused, then allowed
+  once the recorder ended the job, and allowed during a guard-free control
+  run. The validator accepts the record for the current sources.
+- **By hand**: the first `bin\gcliff.bat --version` outside any worktree
+  downloaded, verified and published 2.14.2 into this checkout's cache in
+  9 s with the downloading and ready lines; the next call reused it silently;
+  a usage error returned git-cliff's 2; an argument with `^%` returned 69;
+  `git status` stayed clean.
+- **Documentation**: `wiki/reference/git-cliff-provisioning.md` (new) covers
+  the pin and the tested set, pin selection, running `gcliff`, the cache path
+  and ignore rule, the warm-up, the proxy and certificate rules, the budget
+  variable, the messages, the statuses and the evidence bundle with its
+  review; `aliases-and-launchers.md` gains the git-cliff launcher section,
+  `automation-and-direct-invocation.md` the provisioning availability and the
+  statuses 2 and 69, and `wiki/README.md` links the new page.
+- **Plan variance, final native check**: the plan reads that the
+  inherited-guard check after a killed launcher "now starts `bin\gcliff.bat`
+  instead of the stand-in caller". The final milestone keeps the Step 5
+  stand-in check, since it is part of "every check of Steps 2, 4 and 5", and
+  adds the production check under its own name; the validator requires both
+  at `final`.
+- **Code review round 1 repairs**:
+  - *Native check ownership*: `git_cliff_native_ownership.owned_run` picks,
+    from a process table, the one git-cliff run of the executable whose chain
+    of parents, each created no later than its child, reaches the check's own
+    `cmd.exe` by PID and creation time; none yet keeps the check waiting, two
+    or a run without a launcher stop it before anything is ended. The check
+    builds that table from a snapshot and opens the run and its launcher
+    checked against their recorded creation times before ending anything. The
+    unit leaf `test_git_cliff_native_ownership/` covers a foreign run of the
+    same image in either order, foreign runs only, two own runs, a run started
+    by the root, a reused root PID, a parent newer than its child, a missing
+    parent, an unreadable creation time and a parent cycle.
+  - *Early bootstrap failures*: fault injection at the cwd capture and the
+    stream setup gives 69 for a valid gcliff call and 2 or 1 for a release
+    kind or a malformed prefix.
+  - *Console filter removal*: `_run` keeps the confirmed outcome when leaving
+    the filter fails after git-cliff ended, reports one `gcliff:` line and
+    returns git-cliff's status; the launcher leaf adds that case beside the
+    registration failure.
+  - *Inherited `ERRORLEVEL`*: `bin/gcliff.bat` runs `set "ERRORLEVEL="` after
+    the child and before the status capture, inside its `setlocal`, so the
+    child inherits the caller's variable, the capture reads cmd's dynamic
+    status and the caller keeps its variable. The source contract checks the
+    order; the new final native check `gcliff-status-with-inherited-errorlevel`
+    runs the production batch file with `ERRORLEVEL=0` and a usage error
+    (status 2), then with `ERRORLEVEL=7` and a `get_env` template (status 0,
+    git-cliff printed `seen=7`).
+  - *Operations free of git-cliff*: the command entry points and the modules
+    they import lazily are imported once, at collection, from an unloaded
+    release package (about 0.09 s of CPU, more than one test lifecycle may
+    spend); `version`, `versions check` and a configuration load each run on
+    those fresh modules, load no `git_cliff` module but the manifest, and never
+    compare a variable name with the budget variable's, in the command
+    environment or in `os.environ`; a control test shows the watch recording a
+    budget resolution, a discarded lookup and an `os.environ` lookup.
+    `patch_git` takes the context class to patch, the freshly imported one
+    here.
+  - *Native record*: rerun at `final` after these repairs, 16 checks passed,
+    the launcher check in 10.4 s and the `ERRORLEVEL` check in 22.8 s, both
+    within 120 s.
+- **Code review round 2 repairs**:
+  - *Readiness of the run*: a launcher on a valid entry first runs a guarded
+    `--version` reuse probe of the same image, so the run is now the client
+    of the check's own pipe. `await_ready_run` waits until
+    `GetNamedPipeClientProcessId` names that client (it fails until a process
+    opens the pipe, which the probe never does), then `owned_run` with that
+    PID must find it descending from the check's own `cmd.exe`, or the check
+    stops before ending anything; no client within the bound is
+    `NotReadyError`, a timeout the recorder records `timed-out`. The control
+    run checks its own pipe's client the same way. With an injected clock,
+    the unit leaf covers the probe-to-run transition, a probe lingering in the
+    snapshot beside the run, a run that never opens its pipe and a pipe client
+    outside the check's own tree.
+  - *Import-time budget reads*: the collection-time fresh import now runs with
+    `os.environ` watched and restored at once after it, and the tests require
+    no recorded read; a control module served from memory looks the variable
+    up while it is imported and the watch records it.
+  - *Native record*: rerun at `final` after these repairs. A first run passed
+    15 checks; the Step 5 stand-in check
+    `guard-held-by-git-cliff-run-after-caller-killed`, whose code is
+    unchanged, observed the rename still refused after its job had ended, in
+    a run slower overall (another guard check took 15.4 s instead of about
+    5 s), consistent with a transient outside holder of the freshly written
+    stand-in executable. The rerun passed all 16 checks, that check in 16.4 s
+    of its 60 s bound, and is the committed record.
+- **Plan variance, file list**: `gcliff_simulation.py`,
+  `git_cliff_native_launcher.py`, `git_cliff_native_ownership.py` with its
+  unit leaf, `repository_simulation.py`, `git_cliff_children_fake.py`,
+  `.gitattributes` and the `git_cliff/__init__.py` docstring are outside the
+  plan's list, for the reasons above; the native check went to its own module
+  because `git_cliff_native_service.py` already had 412 lines.
+- **Plan variance, line counts** (advisory, all below 550): `launcher.py` 176
+  (expected 150); `bootstrap.py` 227 to 279 (+52, advisory +30);
+  `invocation.py` 199 to 202 (+3); `git.py` 348 to 384 (+36, advisory +12);
+  `paths.py` 164 to 203 (+39, advisory +12); `launcher_simulation.py` 210 to
+  230 (+20); `git_cliff_native_checks.py` 317 to 344 (+27), the new
+  `git_cliff_native_launcher.py` 378 and `git_cliff_native_ownership.py` 121;
+  the launcher test 290 (300), the source test 121 (90), the acceptance files
+  453 and 202 (300 and 220), the ownership test 157; the bootstrap,
+  invocation, Git, paths and native evidence tests 381, 212, 298, 234 and
+  313; `bin/gcliff.bat` 76 lines and `bin/gcliff.doskey` 1.
 
 ### New types or classes introduced for Step 8
 
-_(empty — no check has taken place yet.)_.
+- `tools.release_workflow.git.WorktreePresence` (enum) and the method
+  `GitExecutionContext.worktree_presence`.
+- `tools.release_workflow.paths.find_worktree`.
+- `tools.release_workflow.bootstrap.Launcher` (protocol) and the function
+  `requested_kind` (code review round 1).
+- `tools.release_workflow.git_cliff.launcher`: `LauncherSeams`,
+  `production_seams`, `main`, `GCLIFF_UNAVAILABLE`, `ENTRY_KIND`.
+- `bin/gcliff.bat`, `bin/gcliff.doskey`.
+- Tests: the leaves `test_git_cliff_launcher` and
+  `test_git_cliff_native_ownership`, the modules `test_gcliff_source_tdd.py`,
+  `test_git_cliff_acceptance_tdd.py`, `test_gcliff_acceptance_tdd.py`, the
+  support modules `gcliff_simulation.py` (`GcliffScenario`,
+  `gcliff_scenario`), `git_cliff_native_ownership.py` (`ProcessRecord`,
+  `OwnershipError`, `NotReadyError`, `owned_run`, `await_ready_run`) and
+  `git_cliff_native_launcher.py`
+  (`check_gcliff_launcher_killed`,
+  `check_gcliff_status_with_inherited_errorlevel`).
 
 ### Architecture check for Step 8
 
-_(empty — no check has taken place yet.)_.
+- **The launcher is an entry adapter**: it composes the configuration
+  reader, the manifest, the Git adapter, the path policy and the provisioning
+  service, and owns no domain rule: pin parsing and admission stay in the
+  manifest and the `[git-cliff]` domain, the environment policies and the
+  guard in the invocation object, the console filter in the Windows layer.
+- **Selection by the caller's directory only**: `find_worktree` decides from
+  Git's presence answer and the existing validator; the launcher never reads
+  git-cliff's arguments.
+- **Bootstrap tables stay module level**: the gcliff kind adds entries to
+  `_ENGINES`, `_UNNORMALIZED_KINDS` and `_FAILURE_STATUS`; `main` keeps its
+  single public status set.
+- **Dependency direction**: `paths` now imports `WorktreePresence` from
+  `git`, which imports neither `paths` nor any release domain module; no
+  module below the launcher imports it, and the command entry points, imported
+  fresh, load no `git_cliff` module beyond the manifest (the acceptance test
+  proves it on freshly imported modules since code review round 1).
+- **Process-free tests**: every launcher and acceptance case runs through the
+  launcher simulation and fakes; the real process checks stay in the native
+  recorder, outside pytest.
+
+No, there is nothing that needs to be addressed: no DDD-Hexagonal violation or
+smell is visible in this step.
 
 ### Performance check for Step 8
 
-_(empty — no check has taken place yet.)_.
+- **Launcher**: one Git version probe, one configuration inspection and one
+  presence query (plus one metadata read inside a worktree), one
+  `.release.ini` read, one budget resolution and the reuse check; each is
+  constant work for a call, with no loop over files or history.
+- **`worktree_presence`**: one Git process; a dictionary lookup classifies
+  its answer.
+- **Bootstrap**: dictionary lookups by kind.
+- **Native check**: outside pytest; its handle scan visits at most 16,384
+  handle values of one process, once, and its ownership table follows each
+  run's parents at most 16 levels, linear in the processes it records.
+
+No, there is no performance issue that needs to be addressed.
 
 ### Unit test coverage check for Step 8
 
-_(empty — no check has taken place yet.)_.
+The coverage gate measures `tools` only (`[tool.coverage.run] source`), with
+`*/tests/*` and `*/__init__.py` omitted, at `fail_under = 100`; the command
+printed by `pw scope day --full=cov` reports `cov=100` on the whole suite.
+
+- **`tools/release_workflow/git_cliff/launcher.py`**:
+  `test_git_cliff_launcher/` reaches every function and line: the argument
+  guard, the pin inside and outside a worktree and without a pin, the budget
+  failure, provisioning, the run with its normal return, a refused or
+  unconfirmed child, an interruption and a filter that cannot register, `main`
+  with and without seams, and `production_seams`; covered.
+- **`tools/release_workflow/git.py`**: `test_git/test_git_tdd.py` adds the
+  three answers and three refusals of `worktree_presence`; covered.
+- **`tools/release_workflow/paths.py`**: `test_paths/test_paths_tdd.py` adds
+  `find_worktree` inside a worktree, without one, the call order and both
+  failure kinds; `_discovered` and `_resolved_metadata` are also reached
+  through `discover_project` and `validate_project`; covered.
+- **`tools/release_workflow/bootstrap.py`**: `test_bootstrap/` adds the
+  gcliff readiness, invocation, execution and final-boundary failures, the
+  early cwd and stream failures, `requested_kind` on well-formed and malformed
+  prefixes, the unchanged statuses and the module selection; `_unnormalized`
+  is reached for both kinds; covered.
+- **`tools/release_workflow/invocation.py`**: `test_invocation/` adds the
+  entry kind and its batch guard; covered.
+- **Files outside the gate**: `bin/gcliff.bat`, `bin/gcliff.doskey`, the
+  record and the wiki pages have no Python symbol; the batch file and the
+  fragment are read by `test_gcliff_source_tdd.py`. In the test support,
+  every top-level name of `gcliff_simulation.py` is used by the three gcliff
+  test modules, every top-level name of `git_cliff_native_launcher.py` is
+  reached from its two checks, which the recorder catalogs, and every
+  top-level name of `git_cliff_native_ownership.py` is used by that module
+  and by its unit leaf.
+
+No, there is no unit-tested class below 100% that needs completing for Step 8.
+No, none of the top-level symbols of the files outside the gate is
+unreferenced.
 
 ### Feature integrity for Step 8
 
-_(empty — no check has taken place yet.)_.
+- **Release launchers**: `bin/release_workflow.bat` and
+  `bin/release_alias.bat` are unchanged; the release kinds keep their
+  statuses 2 and 1 for setup and execution failures and their normalization,
+  and the cross-site status contract passes unchanged.
+- **Discovery**: `discover_project`, `validate_project` and their callers
+  behave as before; only `gcliff` calls `find_worktree`.
+- **Engine commands**: `version` and `versions` import no provisioning
+  module and never look up the budget variable, as the acceptance test proves
+  while importing the command modules fresh and while executing them.
+- **Console aliases**: `senv.doskey` is unchanged; `gcliff` is not loaded by
+  `senv.bat` until a later item copies the fragment's line.
+- **Reporting or diagnostics**: provisioning keeps its messages; `gcliff`
+  adds one `gcliff: <detail>` line before returning 69, or after git-cliff
+  ended when leaving the console filter fails, and git-cliff's own output and
+  status are untouched, also under a caller variable named `ERRORLEVEL`.
+- **Native checks**: the final launcher check acts only on the client of its
+  own pipe, a run descending from its own invocation, so neither a concurrent
+  `gcliff` invocation nor its own reuse probe is ever ended or observed in
+  place of the run.
+- **Checkouts**: the first `gcliff` use writes only below the ignored
+  `.tools/git-cliff/`.
+
+No, there is no existing feature or reporting capability that appears
+impaired.

@@ -1631,7 +1631,7 @@ implementation mechanisms to the child designs.
 | --- | --- | --- | --- | --- | --- | --- |
 | 1 | Feature-request | Establish explicit release project identity | `release-project-root` | completed | `docs/v0.14.0/feature-request.v0.14.0.release-project-root.md` | `docs/v0.14.0/plan.v0.14.0.release-project-root.validation.md` |
 | 2 | Feature-request | Synchronize authoritative project versions | `version-sources` | completed | `docs/v0.14.0/feature-request.v0.14.0.version-sources.md` | `docs/v0.14.0/plan.v0.14.0.version-sources.validation.md` |
-| 3 | Feature-request | Provision pinned git-cliff automatically | `git-cliff-provisioning` | pending | - | - |
+| 3 | Feature-request | Provision pinned git-cliff automatically | `git-cliff-provisioning` | completed | `docs/v0.14.0/feature-request.v0.14.0.git-cliff-provisioning.md` | `docs/v0.14.0/plan.v0.14.0.git-cliff-provisioning.validation.md` |
 | 4 | Feature-request | Manage generated and curated changelogs | `changelog-management` | pending | - | - |
 | 5 | Feature-request | Complete the guarded build release lifecycle | `build-release-lifecycle` | pending | - | - |
 | 6 | Feature-request | Set up and upgrade sibling release tooling | `release-tooling-setup` | pending | - | - |
