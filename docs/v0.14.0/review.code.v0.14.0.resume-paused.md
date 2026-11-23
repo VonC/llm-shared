@@ -3545,7 +3545,7 @@ Result:
 
 Yes. Step 4 has been fully implemented.
 
-The round 1 P2 finding is resolved. The fresh locked verifier rejects PromptState.ERROR in _assignment before rebuilding an assignment, backfill or ownership issuance; _marked_receipt also refuses error snapshots. The requestor/reviewer regression validates a good receipt with the real validator, changes only Project root, then invokes the real locked claim and checks the unchanged coordination, transcript, prompt and receipt bytes (including the stored generation). The validator refusal table independently covers the invalid root.
+The round 1 P2 finding is resolved. The fresh locked verifier rejects PromptState.ERROR in _assignment before rebuilding an assignment, backfill or ownership issuance; `_marked_receipt` also refuses error snapshots. The requestor/reviewer regression validates a good receipt with the real validator, changes only Project root, then invokes the real locked claim and checks the unchanged coordination, transcript, prompt and receipt bytes (including the stored generation). The validator refusal table independently covers the invalid root.
 
 The unchanged marker, pane/input proof, marked ownership threading, receiving instructions and Claude background answer-wait rule retain the prior round's assessment. The narrow state guards add constant work and preserve the adapter boundaries and manual path. No architecture, performance or feature-integrity defect remains identified. Under plan Q05=A, the empty profile registry and live-host dependencies remain open for the Step 1 live matrix and Steps 6–8; this verdict covers Step 4's code deliverable.
 
@@ -6550,3 +6550,906 @@ Human choice: Commit
 Outcome: continue-owning-workflow
 
 <!-- review-entry-id: human-confirmation-round-3 -->
+
+## Round 1 by requestor - Step 8
+
+- Recorded: 2026-11-23T11:06:38+01:00
+- Exchange: code/code/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.resume-paused.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: unrecorded
+- Implementation step: 8
+- Outcome: request
+
+### Review identity for step 8 resume-paused (round 1)
+
+Umbrella draft: none
+Implementation plan: docs/v0.14.0/plan.v0.14.0.resume-paused.md
+Implementation step: 8
+Review round: 1
+
+### Code review evidence for step 8 resume-paused (round 1)
+
+request_index_tree: 6739d63a68afead0bee979425d4b4fa702307e00
+resolved_validation_set:
+
+- `ghog day --full=speed --whole-suite` (sources: project)
+
+test_scope:
+{"fingerprint": "686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6", "group": null, "proof": "speed", "requirement": "docs/v0.14.0/feature-request.v0.14.0.resume-paused.md", "scope": "whole"}
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: feat(resume-paused): render bulk resume results
+group 1 path: tools/resume_paused_report.py
+group 2: feat(resume-paused): ship the resume_paused command
+group 2 path: tools/resume_paused.py
+group 2 path: bin/resume_paused.bat
+group 2 path: tests/unit/tools/test_resume_paused_cli/__init__.py
+group 2 path: tests/unit/tools/test_resume_paused_cli/test_resume_paused_cli_tdd.py
+group 2 path: tests/unit/tools/test_resume_paused_report/__init__.py
+group 2 path: tests/unit/tools/test_resume_paused_report/test_resume_paused_report_tdd.py
+group 2 path: tests/memory_filesystem.py
+group 3: test(resume-paused): accept the installed workflow
+group 3 path: tests/acceptance/resume_paused/__init__.py
+group 3 path: tests/acceptance/resume_paused/fakes.py
+group 3 path: tests/acceptance/resume_paused/test_resume_paused_acceptance/__init__.py
+group 3 path: tests/acceptance/resume_paused/test_resume_paused_acceptance/test_resume_paused_cli_safety_tdd.py
+group 3 path: tests/acceptance/resume_paused/test_resume_paused_acceptance/test_resume_paused_delivery_tdd.py
+group 3 path: tests/acceptance/resume_paused/test_resume_paused_acceptance/test_resume_paused_continuation_tdd.py
+group 4: docs(resume-paused): document the bulk resume command
+group 4 path: README.md
+group 4 path: wiki/README.md
+group 4 path: wiki/how-to/pause-and-resume-a-session.md
+group 4 path: wiki/reference/resume-paused.md
+group 5: docs(resume-paused): record step 8 validation
+group 5 path: docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md
+staged path: README.md
+staged path: bin/resume_paused.bat
+staged path: docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md
+staged path: tests/acceptance/resume_paused/__init__.py
+staged path: tests/acceptance/resume_paused/fakes.py
+staged path: tests/acceptance/resume_paused/test_resume_paused_acceptance/__init__.py
+staged path: tests/acceptance/resume_paused/test_resume_paused_acceptance/test_resume_paused_cli_safety_tdd.py
+staged path: tests/acceptance/resume_paused/test_resume_paused_acceptance/test_resume_paused_continuation_tdd.py
+staged path: tests/acceptance/resume_paused/test_resume_paused_acceptance/test_resume_paused_delivery_tdd.py
+staged path: tests/memory_filesystem.py
+staged path: tests/unit/tools/test_resume_paused_cli/__init__.py
+staged path: tests/unit/tools/test_resume_paused_cli/test_resume_paused_cli_tdd.py
+staged path: tests/unit/tools/test_resume_paused_report/__init__.py
+staged path: tests/unit/tools/test_resume_paused_report/test_resume_paused_report_tdd.py
+staged path: tools/resume_paused.py
+staged path: tools/resume_paused_report.py
+staged path: wiki/README.md
+staged path: wiki/how-to/pause-and-resume-a-session.md
+staged path: wiki/reference/resume-paused.md
+```
+
+### Validation scope for step 8 resume-paused (round 1)
+
+Validation scope: the whole suite.
+
+### Requestor assessment for step 8 resume-paused (round 1)
+
+Step 8 is fully implemented, code-first under the user's 2026-11-20 amendment of plan Q05. The human-only `resume_paused` command (`tools/resume_paused.py` behind `bin/resume_paused.bat`) parses only the documented flags, refuses a recognized agent caller before any TUIOS listing, composes the Step 1 to 7 readers, planner, guarded delivery and marked takeover, and prints the compact lines rendered by `tools/resume_paused_report.py` with exit 0, 1 or 2. Help and the new reference page state the human-only contract and define the five `limits=claude-wait-scope` limits. Forty-seven acceptance scenarios drive the production composition over a fake `tuios` at the process boundary and real temporary checkouts, the receivers calling the real validator, receipt, journal and locked marked claim. The empty profile registry keeps every real pane unsupported, so a real launch fails closed before any input. The implementation check recorded `Yes. Step 8 has been fully implemented.`, which turned the validation plan's status to implemented while naming the open follow-ups.
+
+- Tests: `ghog day --full=speed --whole-suite` exit 0 at 2026-11-23T10:53:52+01:00 with 7493 tests, 100% coverage, no outlier and no exclusion, slowest call 0.31 s; the Step 8 leaves passed in focus first with `ghog single`. The walk ran on the code, tests and documentation now staged, except the validation plan, which the implementation check updated afterwards and which was linted and spell-checked on its own.
+- Static checks: the same walk's `check.bat` passes ty, pyright strict, ruff, radon, vulture, big files, Markdown, ShellCheck and the end-of-file check. The first walk failed on typing, lint and complexity findings in the new test files and was repaired before the green walk; markdownlint reports 0 issues and `spellcheck.bat check` nothing on the five changed Markdown files.
+- Coverage: 100% over `tools`; `test_resume_paused_cli` reaches `tools/resume_paused.py` and `test_resume_paused_report` reaches `tools/resume_paused_report.py`. The launcher is outside the gate and checked statically.
+- Architecture: `tools/resume_paused.py` is the composition root and the only module binding adapters to ports; the report module is pure; host formats stay behind `HostAdapters`, TUIOS behind the transport and its runner factory, Windows behind `ProcessLister`; nothing imports the command line.
+- Performance: linear parsing and rendering, one journal read per launch and none for an agent caller; the earlier steps' fresh evidence before each send is unchanged.
+- Feature integrity: readers, planner, delivery, takeover, manual workflows, the validator and the Step 4 harness are unchanged; joining the memory scratch filesystem affects only the two new test trees.
+- Open rows (validation plan): the Step 1 Q28=A code follow-up and live matrix, the host-dependent composition rows (command history, agent log, delivery profiles, result source, Claude ledger, Claude screens) and the deferred senv integration checklist.
+
+### Implementation report for step 8 resume-paused (round 1)
+
+The plan's Step 8 asks for the CLI, its launcher, the documentation, a CLI unit leaf and three acceptance modules over fake TUIOS, with the five limits defined in help and reference and no live TUIOS.
+
+- **Command line** (`tools/resume_paused.py`): `build_parser` and `parse_arguments` accept only `--dry-run`, `--clear`, the repeatable comma-split `--except` and `--switch-roles` lists and `--help`; abbreviations are off and any other argument or an empty name raises `UsageError`, so `main` prints the usage on standard error and returns 2 before composing a runtime. The help restates the human-only contract, the statuses, the exit codes and the five `CLAUDE_WAIT_LIMITS` entries. `execute` classifies the caller (`classify_caller` over the environment markers and `process_ancestry`), so an agent caller reads neither the journal nor TUIOS; `TUIOS_PANE_ID` names the protected caller pane inside TUIOS.
+- **Composition** (`tools/resume_paused.py`): `compose` binds `TuiosTransport`, the planner ports, one `PlanRecheck` of this request in `DeliveryPorts.checks`, and `MarkedTakeover` over `ReviewerWait` and `AllPaneIdleGuard`. `HostAdapters` bundles the host-profile adapters; `unpinned_hosts` returns the production bundle that proves nothing (unreadable history and log, unsupported screens, `UnpinnedProfiles`, `UnprovedAbsence`, `UnpinnedClaudeScreens`, `NoResults`, and per-proof `ClaudeInputProver` and `CodexInputProver` factories over the budget-bounded readers). `SavedExchanges` observes a saved exchange read-only, an unloadable checkout reading as damaged.
+- **Reporting** (`tools/resume_paused_report.py`): one line per prompt-bearing checkout, `PLAN`, `DONE`, `PENDING`, `SKIP`, `ERROR` or `FAIL`, with the pause, reason, switch, duplicate evidence (known resumer and time or `unknown`), then each target's identity with its marked command in a preview or its clear, outcome, receiver observation, reason and recovery Enter after a delivery; bracketed notes carry `limits=claude-wait-scope`. Run-wide refusals replace the lines, and two checkouts sharing a folder name are named by their full paths, a gap the acceptance found.
+- **Launcher** (`bin/resume_paused.bat`): self-locates llm-shared, selects the newest `venvs\python_3*llm-shared*` Python, forwards `%*` only to `tools\resume_paused.py`; tested statically, never executed.
+- **Documentation**: `README.md`, the how-to section "Resume every waiting pane at once" (the former planned-command paragraph replaced), `wiki/reference/resume-paused.md` and its wiki index entry.
+- **Unit leaves**: `tests/unit/tools/test_resume_paused_cli/` and `tests/unit/tools/test_resume_paused_report/`.
+- **Acceptance** (`tests/acceptance/resume_paused/`): `fakes.py` implements the fake `tuios` runner behind the real transport and receiving agents running the Step 4 harness with the real validator over live fake discovery. Four behaviors model the real receiving workflows where the harness simplifies, without changing it: `HostedCheckout` names the receiving host's agent id as resumer (the harness always wrote `claude`, which the takeover correctly refused for a Codex requestor), `MarkedHarness` claims again with the marker's `--override` on a role conflict (review-resume, "Continue a marked review role"; the switched pair needs it), receivers act when the launch waits rather than inside the ask (the synchronous form let a receiver's later typed input defeat the delivery's own latest-input proof), and a stopped receiver prints its `resume-paused <launch_id> failed` line. The three modules own the plan's Q03 cases; later-continuation cases declare the earlier takeover instead of replaying a launch, one transition per test.
+- **Deviations**: `tools/resume_paused.py` reached 665 physical lines, so the rendering moved to `tools/resume_paused_report.py` with its own leaf (command line now 501 lines). The two new test trees join `tests/memory_filesystem.py`'s scenario list, because a launch on native temporary files spent 0.19 s of CPU against the 0.1 s ceiling. `wiki/README.md` lists the reference page.
+
+Writer notes: `.reviews/a.resume-paused.step8.journal.md` and `.reviews/a.resume-paused.step8.handoff.md`.
+
+### Change summary for step 8 resume-paused (round 1)
+
+Nineteen staged paths in five `a.commit` groups, in this order:
+
+1. `feat(resume-paused): render bulk resume results`: `tools/resume_paused_report.py`.
+2. `feat(resume-paused): ship the resume_paused command`: `tools/resume_paused.py`, `bin/resume_paused.bat`, the `tests/unit/tools/test_resume_paused_cli` and `tests/unit/tools/test_resume_paused_report` packages (package file and tdd file each) and `tests/memory_filesystem.py`.
+3. `test(resume-paused): accept the installed workflow`: the `tests/acceptance/resume_paused` package (`__init__.py`, `fakes.py`, and the `test_resume_paused_acceptance` package with its cli_safety, delivery and continuation tdd files).
+4. `docs(resume-paused): document the bulk resume command`: `README.md`, `wiki/README.md`, `wiki/how-to/pause-and-resume-a-session.md` and `wiki/reference/resume-paused.md`.
+5. `docs(resume-paused): record step 8 validation`: `docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md`.
+
+The commit-plan checker reports the plan valid and ready. The code review transcript is not staged and goes to the residual commit.
+
+### Writer response for step 8 resume-paused (round 1)
+
+Writer response:
+
+First round of this step: no earlier feedback to answer and no disagreement. Please write file paths in code spans in answers, so names such as `__init__.py` cannot read as emphasis in the transcript. Agents must not execute `bin/resume_paused.bat`, help and dry run included; judge it from its source and the static test.
+
+### Reviewer focus for step 8 resume-paused (round 1)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-8-round-1 -->
+
+## Round 1 by reviewer - Step 8
+
+- Recorded: 2026-11-23T11:13:41+01:00
+- Exchange: code/code/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.resume-paused.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 8
+- Outcome: answer
+
+### Assessed index identity for step 8 resume-paused (exchange 1) (round 1)
+
+Baseline index tree: 6739d63a68afead0bee979425d4b4fa702307e00
+
+Assessed index tree: 2ddc857ce9a6649989f00702f8a3d42399a701d8
+
+### Implementation check for step 8 resume-paused (exchange 1) (round 1)
+
+Result:
+
+No. Step 8 has NOT been fully implemented.
+
+The CLI, reporting, docs and fake-TUIOS workflow are present. Four issues affect pre-send duplicate protection, reporting and exact argument forwarding.
+
+Validation plan effects:
+
+Updated only the Step 8 verdict, summary and missing-work rows in `docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md`. The recorded pre-edit blob matched the index. Staged the attributable review metadata. The requestor should reconcile the overall completion line and the Step 8 commit description when applying the findings.
+
+### Pre-repair mandatory checks and coverage for step 8 resume-paused (exchange 1) (round 1)
+
+The requestor reports 7,493 tests passing with 100% line coverage over `tools`. I inspected the composition, report, static batch checks and acceptance assertions. The CMD assertion itself encodes the wrong result. No additional test run was needed to establish these findings. Live profiles remain unpinned under the approved code-first plan.
+
+### Resolved validation set and sources for step 8 resume-paused (exchange 1) (round 1)
+
+Project default `ghog day --full=speed --whole-suite`. The bound round scope is `whole`, fingerprint `686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6`.
+
+### Resolver drift and direction for step 8 resume-paused (exchange 1) (round 1)
+
+No drift. The built-in speed command and the whole-suite selection match the request. No additional plan or request command was declared.
+
+### Repository state around validation for step 8 resume-paused (exchange 1) (round 1)
+
+The request and initial index both identified `6739d63a68afead0bee979425d4b4fa702307e00`. The before/after evidence reported only the expected Step 8 validation-plan change. The umbrella check was inapplicable.
+
+### Repair inventory for step 8 resume-paused (exchange 1) (round 1)
+
+Repairs made:
+
+- Polishing-only review metadata in `docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md`. Recorded the Step 8 verdict and missing work. No implementation repair.
+
+Paths staged:
+
+- `docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md`
+
+### Commit plan assessment for step 8 resume-paused (exchange 1) (round 1)
+
+Independent `commit-plan-check` returned `valid`, `ready=true`, five ordered groups covering all 19 staged paths and no diagnostics. The groups are `feat(resume-paused): render bulk resume results`, `feat(resume-paused): ship the resume_paused command`, `test(resume-paused): accept the installed workflow`, `docs(resume-paused): document the bulk resume command`, `docs(resume-paused): record step 8 validation`. The last group’s body needs updating after the revised verdict.
+
+### Findings and boundaries for step 8 resume-paused (exchange 1) (round 1)
+
+Unresolved findings:
+
+- `tools/resume_paused.py:349` binds `PlanRecheck` to the original `PlannerPorts`. `execute` reads `runtime.journal()` once, before planning. A resume entry appended after planning is invisible under the checkout guard, so a supported target can receive a duplicate clear or resume. An unreadable journal at that boundary also goes undetected.
+- `tools/resume_paused_report.py` formats every action using its saved role and host. The CMD-counterpart acceptance case explicitly expects `reviewer claude ... skipped: target-not-agent` for a live shell. Both preview and execution must identify that slot as having no LLM counterpart. The input suppression itself is correct.
+- `checkout_line` prints the prompt state and target identity, but a successful line omits each target’s saved routing source and validation result. A routing skip may also omit the affected target. The requirement’s “Preview and result reporting” section requires that information for each target.
+- `bin/resume_paused.bat:2` enables delayed expansion while forwarding `%*`. A legal selection such as `--except work!` can reach Python as `work`, potentially excluding a different checkout. The static launcher test checks the forwarding line but misses the expansion mode.
+
+Boundary-crossing work: None.
+
+### Writer instructions for step 8 resume-paused (exchange 1) (round 1)
+
+- Refresh the journal used by `PlanRecheck` at each pre-send safety check. Add a composition test where the journal gains a later resume entry after planning and before the first send, and another where it becomes unreadable. Verify the skip or error and zero input.
+- Render a non-agent in the saved reviewer slot as no LLM counterpart in preview and execution. Update the shell-counterpart acceptance test to require that outcome and to reject the Claude reviewer label.
+- Include each target’s saved or unresolved routing source and validation result or reason in the compact line. Cover a validated target and an unresolved target in reporting tests and update the reference examples.
+- Disable delayed expansion when forwarding arguments in `bin/resume_paused.bat` so `--except` and `--switch-roles` preserve literal exclamation marks. Extend the static launcher test.
+- Reconcile the validation plan and `a.commit` with the repaired result, rerun the required validation and publish a replacement round.
+
+### Decision rationale for step 8 resume-paused (exchange 1) (round 1)
+
+The exact identity and staged attribution pass. Implementation completeness and test adequacy remain open on four findings. The independent commit-plan check passed mechanically. The current findings and the stale Step 8 completion wording preclude a commit-ready recommendation.
+
+### Final reviewer decision for step 8 resume-paused (exchange 1) (round 1)
+
+Decision: changes-requested. The writer must address the concrete instructions and publish another review round. This advisory answer does not authorize a commit.
+
+<!-- review-entry-id: answer-step-8-round-1 -->
+
+## Round 2 by requestor - Step 8
+
+- Recorded: 2026-11-23T11:37:10+01:00
+- Exchange: code/code/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.resume-paused.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 8
+- Outcome: request
+
+### Review identity for step 8 resume-paused (round 2)
+
+Umbrella draft: none
+Implementation plan: docs/v0.14.0/plan.v0.14.0.resume-paused.md
+Implementation step: 8
+Review round: 2
+
+### Code review evidence for step 8 resume-paused (round 2)
+
+request_index_tree: 0b75d518c39f0f1e85acabd6cd94f100c4e82e57
+resolved_validation_set:
+
+- `ghog day --full=speed --whole-suite` (sources: project)
+
+test_scope:
+{"fingerprint": "686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6", "group": null, "proof": "speed", "requirement": "docs/v0.14.0/feature-request.v0.14.0.resume-paused.md", "scope": "whole"}
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: feat(resume-paused): render bulk resume results
+group 1 path: tools/resume_paused_report.py
+group 2: feat(resume-paused): ship the resume_paused command
+group 2 path: tools/resume_paused.py
+group 2 path: bin/resume_paused.bat
+group 2 path: tests/unit/tools/test_resume_paused_cli/__init__.py
+group 2 path: tests/unit/tools/test_resume_paused_cli/test_resume_paused_cli_tdd.py
+group 2 path: tests/unit/tools/test_resume_paused_report/__init__.py
+group 2 path: tests/unit/tools/test_resume_paused_report/test_resume_paused_report_tdd.py
+group 2 path: tests/memory_filesystem.py
+group 3: test(resume-paused): accept the installed workflow
+group 3 path: tests/acceptance/resume_paused/__init__.py
+group 3 path: tests/acceptance/resume_paused/fakes.py
+group 3 path: tests/acceptance/resume_paused/test_resume_paused_acceptance/__init__.py
+group 3 path: tests/acceptance/resume_paused/test_resume_paused_acceptance/test_resume_paused_cli_safety_tdd.py
+group 3 path: tests/acceptance/resume_paused/test_resume_paused_acceptance/test_resume_paused_delivery_tdd.py
+group 3 path: tests/acceptance/resume_paused/test_resume_paused_acceptance/test_resume_paused_continuation_tdd.py
+group 4: docs(resume-paused): document the bulk resume command
+group 4 path: README.md
+group 4 path: wiki/README.md
+group 4 path: wiki/how-to/pause-and-resume-a-session.md
+group 4 path: wiki/reference/resume-paused.md
+group 5: docs(resume-paused): record step 8 validation
+group 5 path: docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md
+staged path: README.md
+staged path: bin/resume_paused.bat
+staged path: docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md
+staged path: tests/acceptance/resume_paused/__init__.py
+staged path: tests/acceptance/resume_paused/fakes.py
+staged path: tests/acceptance/resume_paused/test_resume_paused_acceptance/__init__.py
+staged path: tests/acceptance/resume_paused/test_resume_paused_acceptance/test_resume_paused_cli_safety_tdd.py
+staged path: tests/acceptance/resume_paused/test_resume_paused_acceptance/test_resume_paused_continuation_tdd.py
+staged path: tests/acceptance/resume_paused/test_resume_paused_acceptance/test_resume_paused_delivery_tdd.py
+staged path: tests/memory_filesystem.py
+staged path: tests/unit/tools/test_resume_paused_cli/__init__.py
+staged path: tests/unit/tools/test_resume_paused_cli/test_resume_paused_cli_tdd.py
+staged path: tests/unit/tools/test_resume_paused_report/__init__.py
+staged path: tests/unit/tools/test_resume_paused_report/test_resume_paused_report_tdd.py
+staged path: tools/resume_paused.py
+staged path: tools/resume_paused_report.py
+staged path: wiki/README.md
+staged path: wiki/how-to/pause-and-resume-a-session.md
+staged path: wiki/reference/resume-paused.md
+```
+
+### Validation scope for step 8 resume-paused (round 2)
+
+Validation scope: the whole suite.
+
+### Requestor assessment for step 8 resume-paused (round 2)
+
+Step 8 is fully implemented, code-first under the user's 2026-11-20 amendment of plan Q05, after repairing the four round 1 findings. The human-only `resume_paused` command (`tools/resume_paused.py` behind `bin/resume_paused.bat`) parses only the documented flags, refuses a recognized agent caller before any TUIOS listing, composes the Step 1 to 7 readers, planner, guarded delivery and marked takeover, re-reads the session journal at every pre-send recheck, and prints the compact lines rendered by `tools/resume_paused_report.py` with exit 0, 1 or 2; each target names its routing source and validation result, and a shell slot reads as no LLM counterpart. Help and the reference page state the human-only contract and define the five `limits=claude-wait-scope` limits. Fifty-five acceptance scenarios drive the production composition over a fake `tuios` at the process boundary and real temporary checkouts, the receivers calling the real validator, receipt, journal and locked marked claim. The empty profile registry keeps every real pane unsupported, so a real launch fails closed before any input. The implementation check reads `Yes. Step 8 has been fully implemented.` again, with the round 1 repairs recorded and the open follow-ups named.
+
+- Tests: `ghog day --full=speed --whole-suite` exit 0 at 2026-11-23T11:33:37+01:00 with 7503 tests, 100% coverage, no outlier and no exclusion, slowest call 0.31 s (one pyright narrowing fix after the first post-repair walk); the Step 8 leaves passed in focus first with `ghog single`. The walk ran on the staged tree as it is now, apart from the validation plan and `a.commit` wording, updated afterwards and linted and spell-checked on their own.
+- Static checks: the same walk's `check.bat` passes ty, pyright strict, ruff, radon, vulture, big files, Markdown, ShellCheck and the end-of-file check; markdownlint reports 0 issues and `spellcheck.bat check` nothing on the changed Markdown files.
+- Coverage: 100% over `tools`; `test_resume_paused_cli` reaches `tools/resume_paused.py` and `test_resume_paused_report` reaches `tools/resume_paused_report.py`. The launcher is outside the gate and checked statically.
+- Architecture: `tools/resume_paused.py` is the composition root and the only module binding adapters to ports; the report module is pure; host formats stay behind `HostAdapters`, TUIOS behind the transport and its runner factory, Windows behind `ProcessLister`; nothing imports the command line.
+- Performance: linear parsing and rendering; one journal read for planning and one per pre-send recheck, none for an agent caller; the earlier steps' fresh evidence before each send is unchanged.
+- Feature integrity: readers, planner, delivery, takeover, manual workflows, the validator and the Step 4 harness are unchanged; joining the memory scratch filesystem affects only the two new test trees.
+- Open rows (validation plan): the Step 1 Q28=A code follow-up and live matrix, the host-dependent composition rows (command history, agent log, delivery profiles, result source, Claude ledger, Claude screens) and the deferred senv integration checklist.
+
+### Implementation report for step 8 resume-paused (round 2)
+
+The plan's Step 8 asks for the CLI, its launcher, the documentation, a CLI unit leaf and three acceptance modules over fake TUIOS, with the five limits defined in help and reference and no live TUIOS.
+
+- **Command line** (`tools/resume_paused.py`): `build_parser` and `parse_arguments` accept only `--dry-run`, `--clear`, the repeatable comma-split `--except` and `--switch-roles` lists and `--help`; abbreviations are off and any other argument or an empty name raises `UsageError`, so `main` prints the usage on standard error and returns 2 before composing a runtime. The help restates the human-only contract, the statuses, the exit codes and the five `CLAUDE_WAIT_LIMITS` entries. `execute` classifies the caller (`classify_caller` over the environment markers and `process_ancestry`), so an agent caller reads neither the journal nor TUIOS; `TUIOS_PANE_ID` names the protected caller pane inside TUIOS.
+- **Composition** (`tools/resume_paused.py`): `compose` binds `TuiosTransport`, the planner ports, one `PlanRecheck` of this request in `DeliveryPorts.checks`, and `MarkedTakeover` over `ReviewerWait` and `AllPaneIdleGuard`. `HostAdapters` bundles the host-profile adapters; `unpinned_hosts` returns the production bundle that proves nothing (unreadable history and log, unsupported screens, `UnpinnedProfiles`, `UnprovedAbsence`, `UnpinnedClaudeScreens`, `NoResults`, and per-proof `ClaudeInputProver` and `CodexInputProver` factories over the budget-bounded readers). `SavedExchanges` observes a saved exchange read-only, an unloadable checkout reading as damaged.
+- **Reporting** (`tools/resume_paused_report.py`): one line per prompt-bearing checkout, `PLAN`, `DONE`, `PENDING`, `SKIP`, `ERROR` or `FAIL`, with the pause, reason, switch, duplicate evidence (known resumer and time or `unknown`), then each target's identity with its marked command in a preview or its clear, outcome, receiver observation, reason and recovery Enter after a delivery; bracketed notes carry `limits=claude-wait-scope`. Run-wide refusals replace the lines, and two checkouts sharing a folder name are named by their full paths, a gap the acceptance found.
+- **Launcher** (`bin/resume_paused.bat`): self-locates llm-shared, selects the newest `venvs\python_3*llm-shared*` Python, forwards `%*` only to `tools\resume_paused.py`; tested statically, never executed.
+- **Documentation**: `README.md`, the how-to section "Resume every waiting pane at once" (the former planned-command paragraph replaced), `wiki/reference/resume-paused.md` and its wiki index entry.
+- **Unit leaves**: `tests/unit/tools/test_resume_paused_cli/` and `tests/unit/tools/test_resume_paused_report/`.
+- **Acceptance** (`tests/acceptance/resume_paused/`): `fakes.py` implements the fake `tuios` runner behind the real transport and receiving agents running the Step 4 harness with the real validator over live fake discovery. Four behaviors model the real receiving workflows where the harness simplifies, without changing it: `HostedCheckout` names the receiving host's agent id as resumer (the harness always wrote `claude`, which the takeover correctly refused for a Codex requestor), `MarkedHarness` claims again with the marker's `--override` on a role conflict (review-resume, "Continue a marked review role"; the switched pair needs it), receivers act when the launch waits rather than inside the ask (the synchronous form let a receiver's later typed input defeat the delivery's own latest-input proof), and a stopped receiver prints its `resume-paused <launch_id> failed` line. The three modules own the plan's Q03 cases; later-continuation cases declare the earlier takeover instead of replaying a launch, one transition per test.
+- **Deviations**: `tools/resume_paused.py` reached 665 physical lines, so the rendering moved to `tools/resume_paused_report.py` with its own leaf (command line now 509 lines, report 241; `tests/acceptance/resume_paused/fakes.py` is 606, in the 550 to 650 band). The two new test trees join `tests/memory_filesystem.py`'s scenario list, because a launch on native temporary files spent 0.19 s of CPU against the 0.1 s ceiling. `wiki/README.md` lists the reference page.
+
+- **Round 1 repairs**: `_replan` reads `runtime.journal()` at every recheck; `_target` adds the routing source and validation result and names a non-agent slot `no LLM counterpart` or `no LLM target`; `_verdict` adds `routing unresolved: no target validated or typed into` for the routing reasons; the launcher disables delayed expansion. Tests: two journal scenarios in the delivery module, the CMD case in preview and run, report-leaf cases for validated, unvalidated and unresolved targets, a CLI-leaf journal-read count, and the launcher's expansion mode.
+
+Writer notes: `.reviews/a.resume-paused.step8.journal.md` and `.reviews/a.resume-paused.step8.handoff.md`.
+
+### Change summary for step 8 resume-paused (round 2)
+
+Nineteen staged paths in five `a.commit` groups, in this order:
+
+1. `feat(resume-paused): render bulk resume results`: `tools/resume_paused_report.py`.
+2. `feat(resume-paused): ship the resume_paused command`: `tools/resume_paused.py`, `bin/resume_paused.bat`, the `tests/unit/tools/test_resume_paused_cli` and `tests/unit/tools/test_resume_paused_report` packages (package file and tdd file each) and `tests/memory_filesystem.py`.
+3. `test(resume-paused): accept the installed workflow`: the `tests/acceptance/resume_paused` package (`__init__.py`, `fakes.py`, and the `test_resume_paused_acceptance` package with its cli_safety, delivery and continuation tdd files).
+4. `docs(resume-paused): document the bulk resume command`: `README.md`, `wiki/README.md`, `wiki/how-to/pause-and-resume-a-session.md` and `wiki/reference/resume-paused.md`.
+5. `docs(resume-paused): record step 8 validation`: `docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md`.
+
+Membership, order and subjects are unchanged since round 1; the bodies of groups 1 to 5 now mention the round 1 repairs and the corrected scenario count. The reviewer's staged validation-plan edit was reconciled into group 5. The commit-plan checker reports the plan valid and ready. The code review transcript is not staged and goes to the residual commit.
+
+### Writer response for step 8 resume-paused (round 2)
+
+Writer response:
+
+All four round 1 findings are accepted and repaired; there is no disagreement. The reviewer's validation-plan edit (Step 8 "No" with a Missing work section) was reconciled after the repairs: Step 8 reads Yes again, its Missing work section is removed, and a round 1 paragraph records what was found and fixed.
+
+- **Journal at each send**: `compose` binds `PlanRecheck` to `_replan`, which replans with `replace(planner, journal=runtime.journal())`, so every pre-send recheck reads the session journal again. New acceptance cases in `test_resume_paused_delivery_tdd.py`: a resume entry recorded after the planning listing skips the first send (`journal-resumed`, exit 0), and a journal unreadable at that send fails it (`duplicate-uncertain`, exit 1); neither types anything. The CLI leaf also checks that two rechecks read the journal twice.
+- **Shell counterpart**: `_target` in `tools/resume_paused_report.py` names a `target-not-agent` slot `no LLM counterpart` (reviewer slot) or `no LLM target` (resumed slot), never by its saved role and host. The CMD acceptance case now requires that wording in the preview and after the run and rejects any `reviewer claude` label; the report leaf covers both slots and a delivered report.
+- **Routing source and validation**: every target now carries `(saved routing, validated)` or `(saved routing, not validated: <reason>)` for the target-absent, target-not-agent and identity-unavailable skips; a checkout stopped on its routing (missing, table-only, unresolved, pairing-ambiguous or invalid) adds `routing unresolved: no target validated or typed into`. The report leaf covers a validated target, unvalidated ones and each unresolved reason; the reference page shows preview and run examples in the new form.
+- **Launcher**: `bin/resume_paused.bat` uses `setlocal DisableDelayedExpansion`, so a literal `!` reaches Python; the static test requires that line and rejects `EnableDelayedExpansion`.
+
+I also corrected my round 1 count of acceptance scenarios: it was 53 then, not forty-seven; with the two journal cases it is 55. `a.commit` keeps its membership, order and subjects; its bodies now mention the repairs.
+
+### Reviewer focus for step 8 resume-paused (round 2)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-8-round-2 -->
+
+## Round 2 by reviewer - Step 8
+
+- Recorded: 2026-11-23T11:42:48+01:00
+- Exchange: code/code/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.resume-paused.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 8
+- Outcome: answer
+
+### Assessed index identity for step 8 resume-paused (exchange 1) (round 2)
+
+Baseline index tree: 0b75d518c39f0f1e85acabd6cd94f100c4e82e57
+
+Assessed index tree: 8d5f9e182d7093c49464e5e16e2a9aeede218e3e
+
+### Implementation check for step 8 resume-paused (exchange 1) (round 2)
+
+Result:
+
+No. Step 8 has NOT been fully implemented. Delivery refuses a target whose identity has changed. The compact result can still show the original agent as validated.
+
+Validation plan effects:
+
+Updated the Step 8 verdict, missing work and journal read frequency in `docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md`.
+
+### Pre-repair mandatory checks and coverage for step 8 resume-paused (exchange 1) (round 2)
+
+The writer reports 7,503 tests passing with 100% coverage. Static review traced the run path from the live identity check to the compact result and inspected the new tests. The shell test changes the pane before planning. It misses the change between planning and delivery. No reviewer test run was needed.
+
+### Resolved validation set and sources for step 8 resume-paused (exchange 1) (round 2)
+
+Project default `ghog day --full=speed --whole-suite`. The bound whole-suite scope fingerprint is `686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6`.
+
+### Resolver drift and direction for step 8 resume-paused (exchange 1) (round 2)
+
+The bound scope and resolved project command match the request.
+
+### Repository state around validation for step 8 resume-paused (exchange 1) (round 2)
+
+The request and initial index both identified `0b75d518c39f0f1e85acabd6cd94f100c4e82e57`. Evidence comparison found only the Step 8 validation edit. Its pre-edit blob matched the index, and the attributed metadata was staged. Assessed tree `8d5f9e182d7093c49464e5e16e2a9aeede218e3e`. No umbrella applies.
+
+### Repair inventory for step 8 resume-paused (exchange 1) (round 2)
+
+Repairs made:
+
+- Polishing-only review metadata in `docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md`. Recorded the remaining reporting defect and corrected the journal read description.
+
+Paths staged:
+
+- `docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md`
+
+### Commit plan assessment for step 8 resume-paused (exchange 1) (round 2)
+
+The independent checker returned `valid` and `ready=true` for five groups covering all 19 staged paths, with zero diagnostics. The validation group body still describes the step as complete.
+
+### Findings and boundaries for step 8 resume-paused (exchange 1) (round 2)
+
+Unresolved findings:
+
+- `tools/resume_paused_report.py:151` passes only `report.action` to `_target`. When an eligible Claude reviewer becomes a shell between the takeover decision and `pair.deliver`, the fresh `target_refusal` returns `target-not-agent` before input. `_report` keeps the planned action with `skip=None`. The compact line consequently labels the shell `reviewer claude` and `validated` alongside `skipped: target-not-agent`. A disappeared pane or changed host or checkout can also retain that validated label. The resumed-target path has the same issue.
+
+Boundary-crossing work: None.
+
+### Writer instructions for step 8 resume-paused (exchange 1) (round 2)
+
+- Use the live delivery identity verdict in the run result. Show a shell as `no LLM counterpart` or `no LLM target` as appropriate, and show the actual validation failure for an absent or changed target. Preserve valid identity for unrelated refusals such as a busy pane.
+- Add a fake-TUIOS acceptance case in which a valid agent becomes a shell before the protected send. Assert zero input to the changed target, its non-agent label and its failed validation reason. Cover other delivery identity refusals in renderer tests.
+- Reconcile the validation document and commit-plan completion wording with the result, validate the repair and submit the next round.
+
+### Decision rationale for step 8 resume-paused (exchange 1) (round 2)
+
+Identity and attribution pass, the commit-plan groups cover the index, and the writer supplied green validation evidence. Journal freshness and literal argument forwarding are repaired. The shell label and routing status are correct for planning-time refusals. Incorrect delivery-time identity reporting and the missing regression case keep Step 8 incomplete.
+
+### Final reviewer decision for step 8 resume-paused (exchange 1) (round 2)
+
+Decision: changes-requested. The writer must address the concrete instructions and publish another review round. This advisory answer does not authorize a commit.
+
+<!-- review-entry-id: answer-step-8-round-2 -->
+
+## Round 3 by requestor - Step 8
+
+- Recorded: 2026-11-23T11:52:45+01:00
+- Exchange: code/code/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.resume-paused.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 8
+- Outcome: request
+
+### Review identity for step 8 resume-paused (round 3)
+
+Umbrella draft: none
+Implementation plan: docs/v0.14.0/plan.v0.14.0.resume-paused.md
+Implementation step: 8
+Review round: 3
+
+### Code review evidence for step 8 resume-paused (round 3)
+
+request_index_tree: de38d60493abe143191a4a00f4b2ce457f583e76
+resolved_validation_set:
+
+- `ghog day --full=speed --whole-suite` (sources: project)
+
+test_scope:
+{"fingerprint": "686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6", "group": null, "proof": "speed", "requirement": "docs/v0.14.0/feature-request.v0.14.0.resume-paused.md", "scope": "whole"}
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: feat(resume-paused): render bulk resume results
+group 1 path: tools/resume_paused_report.py
+group 2: feat(resume-paused): ship the resume_paused command
+group 2 path: tools/resume_paused.py
+group 2 path: bin/resume_paused.bat
+group 2 path: tests/unit/tools/test_resume_paused_cli/__init__.py
+group 2 path: tests/unit/tools/test_resume_paused_cli/test_resume_paused_cli_tdd.py
+group 2 path: tests/unit/tools/test_resume_paused_report/__init__.py
+group 2 path: tests/unit/tools/test_resume_paused_report/test_resume_paused_report_tdd.py
+group 2 path: tests/memory_filesystem.py
+group 3: test(resume-paused): accept the installed workflow
+group 3 path: tests/acceptance/resume_paused/__init__.py
+group 3 path: tests/acceptance/resume_paused/fakes.py
+group 3 path: tests/acceptance/resume_paused/test_resume_paused_acceptance/__init__.py
+group 3 path: tests/acceptance/resume_paused/test_resume_paused_acceptance/test_resume_paused_cli_safety_tdd.py
+group 3 path: tests/acceptance/resume_paused/test_resume_paused_acceptance/test_resume_paused_delivery_tdd.py
+group 3 path: tests/acceptance/resume_paused/test_resume_paused_acceptance/test_resume_paused_continuation_tdd.py
+group 4: docs(resume-paused): document the bulk resume command
+group 4 path: README.md
+group 4 path: wiki/README.md
+group 4 path: wiki/how-to/pause-and-resume-a-session.md
+group 4 path: wiki/reference/resume-paused.md
+group 5: docs(resume-paused): record step 8 validation
+group 5 path: docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md
+staged path: README.md
+staged path: bin/resume_paused.bat
+staged path: docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md
+staged path: tests/acceptance/resume_paused/__init__.py
+staged path: tests/acceptance/resume_paused/fakes.py
+staged path: tests/acceptance/resume_paused/test_resume_paused_acceptance/__init__.py
+staged path: tests/acceptance/resume_paused/test_resume_paused_acceptance/test_resume_paused_cli_safety_tdd.py
+staged path: tests/acceptance/resume_paused/test_resume_paused_acceptance/test_resume_paused_continuation_tdd.py
+staged path: tests/acceptance/resume_paused/test_resume_paused_acceptance/test_resume_paused_delivery_tdd.py
+staged path: tests/memory_filesystem.py
+staged path: tests/unit/tools/test_resume_paused_cli/__init__.py
+staged path: tests/unit/tools/test_resume_paused_cli/test_resume_paused_cli_tdd.py
+staged path: tests/unit/tools/test_resume_paused_report/__init__.py
+staged path: tests/unit/tools/test_resume_paused_report/test_resume_paused_report_tdd.py
+staged path: tools/resume_paused.py
+staged path: tools/resume_paused_report.py
+staged path: wiki/README.md
+staged path: wiki/how-to/pause-and-resume-a-session.md
+staged path: wiki/reference/resume-paused.md
+```
+
+### Validation scope for step 8 resume-paused (round 3)
+
+Validation scope: the whole suite.
+
+### Requestor assessment for step 8 resume-paused (round 3)
+
+Step 8 is fully implemented, code-first under the user's 2026-11-20 amendment of plan Q05, after repairing the four round 1 findings and the round 2 finding. The human-only `resume_paused` command (`tools/resume_paused.py` behind `bin/resume_paused.bat`) parses only the documented flags, refuses a recognized agent caller before any TUIOS listing, composes the Step 1 to 7 readers, planner, guarded delivery and marked takeover, re-reads the session journal at every pre-send recheck, and prints the compact lines rendered by `tools/resume_paused_report.py` with exit 0, 1 or 2; each target names its routing source and validation result, a send refused on a changed live identity reports that failure, and a shell slot, at planning or at the send, reads as no LLM counterpart or target. Help and the reference page state the human-only contract and define the five `limits=claude-wait-scope` limits. Fifty-six acceptance scenarios drive the production composition over a fake `tuios` at the process boundary and real temporary checkouts, the receivers calling the real validator, receipt, journal and locked marked claim. The empty profile registry keeps every real pane unsupported, so a real launch fails closed before any input. The implementation check reads `Yes. Step 8 has been fully implemented.` again, with the round 1 and round 2 repairs recorded and the open follow-ups named.
+
+- Tests: `ghog day --full=speed --whole-suite` exit 0 at 2026-11-23T11:51:25+01:00 with 7514 tests, 100% coverage, no outlier and no exclusion, slowest call 0.31 s; the Step 8 leaves passed in focus first with `ghog single`. The walk ran on the staged tree as it is now, apart from the validation plan and `a.commit` wording, updated afterwards and linted and spell-checked on their own.
+- Static checks: the same walk's `check.bat` passes ty, pyright strict, ruff, radon, vulture, big files, Markdown, ShellCheck and the end-of-file check; markdownlint reports 0 issues and `spellcheck.bat check` nothing on the changed Markdown files.
+- Coverage: 100% over `tools`; `test_resume_paused_cli` reaches `tools/resume_paused.py` and `test_resume_paused_report` reaches `tools/resume_paused_report.py`. The launcher is outside the gate and checked statically.
+- Architecture: `tools/resume_paused.py` is the composition root and the only module binding adapters to ports; the report module is pure; host formats stay behind `HostAdapters`, TUIOS behind the transport and its runner factory, Windows behind `ProcessLister`; nothing imports the command line.
+- Performance: linear parsing and rendering; one journal read for planning and one per pre-send recheck, none for an agent caller; the earlier steps' fresh evidence before each send is unchanged.
+- Feature integrity: readers, planner, delivery, takeover, manual workflows, the validator and the Step 4 harness are unchanged; joining the memory scratch filesystem affects only the two new test trees.
+- Open rows (validation plan): the Step 1 Q28=A code follow-up and live matrix, the host-dependent composition rows (command history, agent log, delivery profiles, result source, Claude ledger, Claude screens) and the deferred senv integration checklist.
+
+### Implementation report for step 8 resume-paused (round 3)
+
+The plan's Step 8 asks for the CLI, its launcher, the documentation, a CLI unit leaf and three acceptance modules over fake TUIOS, with the five limits defined in help and reference and no live TUIOS.
+
+- **Command line** (`tools/resume_paused.py`): `build_parser` and `parse_arguments` accept only `--dry-run`, `--clear`, the repeatable comma-split `--except` and `--switch-roles` lists and `--help`; abbreviations are off and any other argument or an empty name raises `UsageError`, so `main` prints the usage on standard error and returns 2 before composing a runtime. The help restates the human-only contract, the statuses, the exit codes and the five `CLAUDE_WAIT_LIMITS` entries. `execute` classifies the caller (`classify_caller` over the environment markers and `process_ancestry`), so an agent caller reads neither the journal nor TUIOS; `TUIOS_PANE_ID` names the protected caller pane inside TUIOS.
+- **Composition** (`tools/resume_paused.py`): `compose` binds `TuiosTransport`, the planner ports, one `PlanRecheck` of this request in `DeliveryPorts.checks`, and `MarkedTakeover` over `ReviewerWait` and `AllPaneIdleGuard`. `HostAdapters` bundles the host-profile adapters; `unpinned_hosts` returns the production bundle that proves nothing (unreadable history and log, unsupported screens, `UnpinnedProfiles`, `UnprovedAbsence`, `UnpinnedClaudeScreens`, `NoResults`, and per-proof `ClaudeInputProver` and `CodexInputProver` factories over the budget-bounded readers). `SavedExchanges` observes a saved exchange read-only, an unloadable checkout reading as damaged.
+- **Reporting** (`tools/resume_paused_report.py`): one line per prompt-bearing checkout, `PLAN`, `DONE`, `PENDING`, `SKIP`, `ERROR` or `FAIL`, with the pause, reason, switch, duplicate evidence (known resumer and time or `unknown`), then each target's identity with its marked command in a preview or its clear, outcome, receiver observation, reason and recovery Enter after a delivery; bracketed notes carry `limits=claude-wait-scope`. Run-wide refusals replace the lines, and two checkouts sharing a folder name are named by their full paths, a gap the acceptance found.
+- **Launcher** (`bin/resume_paused.bat`): self-locates llm-shared, selects the newest `venvs\python_3*llm-shared*` Python, forwards `%*` only to `tools\resume_paused.py`; tested statically, never executed.
+- **Documentation**: `README.md`, the how-to section "Resume every waiting pane at once" (the former planned-command paragraph replaced), `wiki/reference/resume-paused.md` and its wiki index entry.
+- **Unit leaves**: `tests/unit/tools/test_resume_paused_cli/` and `tests/unit/tools/test_resume_paused_report/`.
+- **Acceptance** (`tests/acceptance/resume_paused/`): `fakes.py` implements the fake `tuios` runner behind the real transport and receiving agents running the Step 4 harness with the real validator over live fake discovery. Four behaviors model the real receiving workflows where the harness simplifies, without changing it: `HostedCheckout` names the receiving host's agent id as resumer (the harness always wrote `claude`, which the takeover correctly refused for a Codex requestor), `MarkedHarness` claims again with the marker's `--override` on a role conflict (review-resume, "Continue a marked review role"; the switched pair needs it), receivers act when the launch waits rather than inside the ask (the synchronous form let a receiver's later typed input defeat the delivery's own latest-input proof), and a stopped receiver prints its `resume-paused <launch_id> failed` line. The three modules own the plan's Q03 cases; later-continuation cases declare the earlier takeover instead of replaying a launch, one transition per test.
+- **Deviations**: `tools/resume_paused.py` reached 665 physical lines, so the rendering moved to `tools/resume_paused_report.py` with its own leaf (command line now 509 lines, report 241; `tests/acceptance/resume_paused/fakes.py` is 606, in the 550 to 650 band). The two new test trees join `tests/memory_filesystem.py`'s scenario list, because a launch on native temporary files spent 0.19 s of CPU against the 0.1 s ceiling. `wiki/README.md` lists the reference page.
+
+- **Round 1 repairs**: `_replan` reads `runtime.journal()` at every recheck; `_target` adds the routing source and validation result and names a non-agent slot `no LLM counterpart` or `no LLM target`; `_verdict` adds `routing unresolved: no target validated or typed into` for the routing reasons; the launcher disables delayed expansion. Tests: two journal scenarios in the delivery module, the CMD case in preview and run, report-leaf cases for validated, unvalidated and unresolved targets, a CLI-leaf journal-read count, and the launcher's expansion mode.
+
+- **Round 2 repair**: `_reported` passes a refused report's reason to `_target`; `_identity_failure` lets a delivery identity refusal from the fresh pre-send check outrank the planned identity, so the run line shows `not validated: <reason>` and a target that became a shell reads `no LLM counterpart` or `no LLM target`; unrelated refusals keep the validated identity. Tests: report-leaf cases for each identity refusal, both shell slots and a busy refusal; a continuation scenario where the reviewer becomes a shell between the takeover decision and the send.
+
+Writer notes: `.reviews/a.resume-paused.step8.journal.md` and `.reviews/a.resume-paused.step8.handoff.md`.
+
+### Change summary for step 8 resume-paused (round 3)
+
+Nineteen staged paths in five `a.commit` groups, in this order:
+
+1. `feat(resume-paused): render bulk resume results`: `tools/resume_paused_report.py`.
+2. `feat(resume-paused): ship the resume_paused command`: `tools/resume_paused.py`, `bin/resume_paused.bat`, the `tests/unit/tools/test_resume_paused_cli` and `tests/unit/tools/test_resume_paused_report` packages (package file and tdd file each) and `tests/memory_filesystem.py`.
+3. `test(resume-paused): accept the installed workflow`: the `tests/acceptance/resume_paused` package (`__init__.py`, `fakes.py`, and the `test_resume_paused_acceptance` package with its cli_safety, delivery and continuation tdd files).
+4. `docs(resume-paused): document the bulk resume command`: `README.md`, `wiki/README.md`, `wiki/how-to/pause-and-resume-a-session.md` and `wiki/reference/resume-paused.md`.
+5. `docs(resume-paused): record step 8 validation`: `docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md`.
+
+Membership, order and subjects are unchanged since round 1; the bodies of groups 1 to 5 mention the round 1 and round 2 repairs and the scenario count, now 56. The reviewer's staged validation-plan edits of rounds 1 and 2 were reconciled into group 5. The commit-plan checker reports the plan valid and ready. The code review transcript is not staged and goes to the residual commit.
+
+### Writer response for step 8 resume-paused (round 3)
+
+Writer response:
+
+The round 2 finding is accepted and repaired; there is no disagreement. The reviewer's validation-plan edit was reconciled after the repair: Step 8 reads Yes again, the Missing work section is removed, the round 1 paragraph is restored beside a round 2 paragraph, and the reviewer's journal-read bullet is kept under a `Reads` label.
+
+- **Delivery-time identity in the run line**: `_reported` in `tools/resume_paused_report.py` passes a refused report's reason to `_target`. Its `_identity_failure` returns the planning-time skip first, otherwise a delivery identity refusal from the fresh pre-send check (`target-absent`, `pane-ambiguous`, `target-session-changed`, `host-contradictory`, `target-not-agent`, `target-host-changed`, `target-identity-unavailable`, `target-checkout-changed`). That failure becomes the target's validation result, and `target-not-agent` turns the identity into `no LLM counterpart` or `no LLM target`. A refusal unrelated to identity, such as `pane-busy`, keeps `(saved routing, validated)`.
+- **Regression cases**: the report leaf covers each identity refusal (skipped or failed), both shell slots and a busy refusal. The continuation module adds a fake-TUIOS case where the Claude reviewer's live record becomes a plain shell inside the ledger decision, after the takeover chose to activate it and before the send: the fresh check refuses it, the reviewer pane gets no input, the requestor's claim stays current, and the line reads `no LLM counterpart ... (saved routing, not validated: target-not-agent): skipped: target-not-agent`.
+
+`a.commit` keeps its membership, order and subjects; the bodies of groups 1, 3 and 5 mention the round 2 repair and the 56 scenarios.
+
+### Reviewer focus for step 8 resume-paused (round 3)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-8-round-3 -->
+
+## Round 3 by reviewer - Step 8
+
+- Recorded: 2026-11-23T11:55:59+01:00
+- Exchange: code/code/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.resume-paused.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 8
+- Outcome: answer
+
+### Assessed index identity for step 8 resume-paused (exchange 1) (round 3)
+
+Baseline index tree: de38d60493abe143191a4a00f4b2ce457f583e76
+
+Assessed index tree: 682dcb75094a1a411a32fea7e4e8e629f32d2aa7
+
+### Implementation check for step 8 resume-paused (exchange 1) (round 3)
+
+Result:
+
+No. Step 8 has NOT been fully implemented. The repaired result is correct when delivery refuses the send to a changed target. A missing reviewer at the takeover check still appears validated.
+
+Validation plan effects:
+
+Recorded the Step 8 verdict and the missing pending-outcome case in `docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md`.
+
+### Pre-repair mandatory checks and coverage for step 8 resume-paused (exchange 1) (round 3)
+
+The writer reports 7,514 tests passing with 100% coverage in the whole-suite speed walk. I inspected the new shell-transition acceptance case, the renderer cases and the existing takeover test for an absent reviewer. The existing test establishes the pending outcome. The renderer drops its identity reason before formatting validation. No reviewer test execution was needed.
+
+### Resolved validation set and sources for step 8 resume-paused (exchange 1) (round 3)
+
+The project resolves `ghog day --full=speed --whole-suite` with the bound whole-suite fingerprint `686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6`.
+
+### Resolver drift and direction for step 8 resume-paused (exchange 1) (round 3)
+
+The configured command and round scope agree with the request.
+
+### Repository state around validation for step 8 resume-paused (exchange 1) (round 3)
+
+The request and initial index both identified `de38d60493abe143191a4a00f4b2ce457f583e76`. The post-assessment comparison found only the attributable Step 8 validation edit. The assessed index is `682dcb75094a1a411a32fea7e4e8e629f32d2aa7`. No umbrella applies.
+
+### Repair inventory for step 8 resume-paused (exchange 1) (round 3)
+
+Repairs made:
+
+- Polishing-only metadata in `docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md`. Recorded the remaining result-line defect.
+
+Paths staged:
+
+- `docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md`
+
+### Commit plan assessment for step 8 resume-paused (exchange 1) (round 3)
+
+Independent `commit-plan-check` returned `valid`, `ready=true`, five groups, 19 staged paths and zero diagnostics. The group membership, subjects and order fit the staged work. The validation group body needs reconciling with the revised verdict.
+
+### Findings and boundaries for step 8 resume-paused (exchange 1) (round 3)
+
+Unresolved findings:
+
+- `tools/resume_paused_report.py:172` considers `report.reason` only for `REFUSED`. `MarkedTakeover.decide` explicitly returns a pending gate with `target-absent` when its fresh listing lacks the reviewer. `_refused` preserves both as `ActionReport(PENDING, target-absent)`. With a previously valid planned reviewer, the result therefore prints `(saved routing, validated): pending: target-absent`. The absent-reviewer test in `tests/unit/tools/test_resume_paused_takeover/test_resume_paused_takeover_tdd.py:344` already exercises this production outcome. The new renderer tests supply `REFUSED` for every identity failure.
+
+Boundary-crossing work: None.
+
+### Writer instructions for step 8 resume-paused (exchange 1) (round 3)
+
+- Preserve a pending reviewer’s explicit target identity failure in the compact result. For `PENDING` with `target-absent`, report `not validated: target-absent` and retain `pending: target-absent`. Keep the ordinary pending label for waits unrelated to target identity.
+- Assert both outcomes in the renderer, including the exact pending outcome produced by the existing absent-reviewer takeover case. Reconcile Step 8 and the commit plan with the repaired result, validate and submit the next round.
+
+### Decision rationale for step 8 resume-paused (exchange 1) (round 3)
+
+The shell-transition acceptance case now exercises the requested boundary and verifies the requestor remains the owner. Renderer tests cover both shell slots, the other refused identity reasons and the busy control. Exact identity, attribution, writer validation evidence and commit grouping pass. The demonstrated pending case keeps implementation completeness and regression coverage open.
+
+### Final reviewer decision for step 8 resume-paused (exchange 1) (round 3)
+
+Decision: changes-requested. The writer must address the concrete instructions and publish another review round. This advisory answer does not authorize a commit.
+
+<!-- review-entry-id: answer-step-8-round-3 -->
+
+## Round 4 by requestor - Step 8
+
+- Recorded: 2026-11-23T12:06:34+01:00
+- Exchange: code/code/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.resume-paused.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 8
+- Outcome: request
+
+### Review identity for step 8 resume-paused (round 4)
+
+Umbrella draft: none
+Implementation plan: docs/v0.14.0/plan.v0.14.0.resume-paused.md
+Implementation step: 8
+Review round: 4
+
+### Code review evidence for step 8 resume-paused (round 4)
+
+request_index_tree: 28b18de8229d1ae2368da36a20d5ef5fe3bb03af
+resolved_validation_set:
+
+- `ghog day --full=speed --whole-suite` (sources: project)
+
+test_scope:
+{"fingerprint": "686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6", "group": null, "proof": "speed", "requirement": "docs/v0.14.0/feature-request.v0.14.0.resume-paused.md", "scope": "whole"}
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: feat(resume-paused): render bulk resume results
+group 1 path: tools/resume_paused_report.py
+group 2: feat(resume-paused): ship the resume_paused command
+group 2 path: tools/resume_paused.py
+group 2 path: bin/resume_paused.bat
+group 2 path: tests/unit/tools/test_resume_paused_cli/__init__.py
+group 2 path: tests/unit/tools/test_resume_paused_cli/test_resume_paused_cli_tdd.py
+group 2 path: tests/unit/tools/test_resume_paused_report/__init__.py
+group 2 path: tests/unit/tools/test_resume_paused_report/test_resume_paused_report_tdd.py
+group 2 path: tests/memory_filesystem.py
+group 3: test(resume-paused): accept the installed workflow
+group 3 path: tests/acceptance/resume_paused/__init__.py
+group 3 path: tests/acceptance/resume_paused/fakes.py
+group 3 path: tests/acceptance/resume_paused/test_resume_paused_acceptance/__init__.py
+group 3 path: tests/acceptance/resume_paused/test_resume_paused_acceptance/test_resume_paused_cli_safety_tdd.py
+group 3 path: tests/acceptance/resume_paused/test_resume_paused_acceptance/test_resume_paused_delivery_tdd.py
+group 3 path: tests/acceptance/resume_paused/test_resume_paused_acceptance/test_resume_paused_continuation_tdd.py
+group 4: docs(resume-paused): document the bulk resume command
+group 4 path: README.md
+group 4 path: wiki/README.md
+group 4 path: wiki/how-to/pause-and-resume-a-session.md
+group 4 path: wiki/reference/resume-paused.md
+group 5: docs(resume-paused): record step 8 validation
+group 5 path: docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md
+staged path: README.md
+staged path: bin/resume_paused.bat
+staged path: docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md
+staged path: tests/acceptance/resume_paused/__init__.py
+staged path: tests/acceptance/resume_paused/fakes.py
+staged path: tests/acceptance/resume_paused/test_resume_paused_acceptance/__init__.py
+staged path: tests/acceptance/resume_paused/test_resume_paused_acceptance/test_resume_paused_cli_safety_tdd.py
+staged path: tests/acceptance/resume_paused/test_resume_paused_acceptance/test_resume_paused_continuation_tdd.py
+staged path: tests/acceptance/resume_paused/test_resume_paused_acceptance/test_resume_paused_delivery_tdd.py
+staged path: tests/memory_filesystem.py
+staged path: tests/unit/tools/test_resume_paused_cli/__init__.py
+staged path: tests/unit/tools/test_resume_paused_cli/test_resume_paused_cli_tdd.py
+staged path: tests/unit/tools/test_resume_paused_report/__init__.py
+staged path: tests/unit/tools/test_resume_paused_report/test_resume_paused_report_tdd.py
+staged path: tools/resume_paused.py
+staged path: tools/resume_paused_report.py
+staged path: wiki/README.md
+staged path: wiki/how-to/pause-and-resume-a-session.md
+staged path: wiki/reference/resume-paused.md
+```
+
+### Validation scope for step 8 resume-paused (round 4)
+
+Validation scope: the whole suite.
+
+### Requestor assessment for step 8 resume-paused (round 4)
+
+Step 8 is fully implemented, code-first under the user's 2026-11-20 amendment of plan Q05, after repairing the four round 1 findings and the round 2 and round 3 findings. The human-only `resume_paused` command (`tools/resume_paused.py` behind `bin/resume_paused.bat`) parses only the documented flags, refuses a recognized agent caller before any TUIOS listing, composes the Step 1 to 7 readers, planner, guarded delivery and marked takeover, re-reads the session journal at every pre-send recheck, and prints the compact lines rendered by `tools/resume_paused_report.py` with exit 0, 1 or 2; each target names its routing source and validation result, a send refused on a changed live identity, or a reviewer the takeover left pending as `target-absent`, reports that failure, and a shell slot, at planning or at the send, reads as no LLM counterpart or target. Help and the reference page state the human-only contract and define the five `limits=claude-wait-scope` limits. Fifty-six acceptance scenarios drive the production composition over a fake `tuios` at the process boundary and real temporary checkouts, the receivers calling the real validator, receipt, journal and locked marked claim. The empty profile registry keeps every real pane unsupported, so a real launch fails closed before any input. The implementation check reads `Yes. Step 8 has been fully implemented.` again, with the round 1 to round 3 repairs recorded and the open follow-ups named.
+
+- Tests: `ghog day --full=speed --whole-suite` exit 0 at 2026-11-23T12:03:41+01:00 with 7515 tests, 100% coverage, no outlier and no exclusion, slowest call 0.31 s; the Step 8 leaves passed in focus first with `ghog single`. The walk ran on the staged tree as it is now, apart from the validation plan and `a.commit` wording, updated afterwards and linted and spell-checked on their own.
+- Static checks: the same walk's `check.bat` passes ty, pyright strict, ruff, radon, vulture, big files, Markdown, ShellCheck and the end-of-file check; markdownlint reports 0 issues and `spellcheck.bat check` nothing on the changed Markdown files.
+- Coverage: 100% over `tools`; `test_resume_paused_cli` reaches `tools/resume_paused.py` and `test_resume_paused_report` reaches `tools/resume_paused_report.py`. The launcher is outside the gate and checked statically.
+- Architecture: `tools/resume_paused.py` is the composition root and the only module binding adapters to ports; the report module is pure; host formats stay behind `HostAdapters`, TUIOS behind the transport and its runner factory, Windows behind `ProcessLister`; nothing imports the command line.
+- Performance: linear parsing and rendering; one journal read for planning and one per pre-send recheck, none for an agent caller; the earlier steps' fresh evidence before each send is unchanged.
+- Feature integrity: readers, planner, delivery, takeover, manual workflows, the validator and the Step 4 harness are unchanged; joining the memory scratch filesystem affects only the two new test trees.
+- Open rows (validation plan): the Step 1 Q28=A code follow-up and live matrix, the host-dependent composition rows (command history, agent log, delivery profiles, result source, Claude ledger, Claude screens) and the deferred senv integration checklist.
+
+### Implementation report for step 8 resume-paused (round 4)
+
+The plan's Step 8 asks for the CLI, its launcher, the documentation, a CLI unit leaf and three acceptance modules over fake TUIOS, with the five limits defined in help and reference and no live TUIOS.
+
+- **Command line** (`tools/resume_paused.py`): `build_parser` and `parse_arguments` accept only `--dry-run`, `--clear`, the repeatable comma-split `--except` and `--switch-roles` lists and `--help`; abbreviations are off and any other argument or an empty name raises `UsageError`, so `main` prints the usage on standard error and returns 2 before composing a runtime. The help restates the human-only contract, the statuses, the exit codes and the five `CLAUDE_WAIT_LIMITS` entries. `execute` classifies the caller (`classify_caller` over the environment markers and `process_ancestry`), so an agent caller reads neither the journal nor TUIOS; `TUIOS_PANE_ID` names the protected caller pane inside TUIOS.
+- **Composition** (`tools/resume_paused.py`): `compose` binds `TuiosTransport`, the planner ports, one `PlanRecheck` of this request in `DeliveryPorts.checks`, and `MarkedTakeover` over `ReviewerWait` and `AllPaneIdleGuard`. `HostAdapters` bundles the host-profile adapters; `unpinned_hosts` returns the production bundle that proves nothing (unreadable history and log, unsupported screens, `UnpinnedProfiles`, `UnprovedAbsence`, `UnpinnedClaudeScreens`, `NoResults`, and per-proof `ClaudeInputProver` and `CodexInputProver` factories over the budget-bounded readers). `SavedExchanges` observes a saved exchange read-only, an unloadable checkout reading as damaged.
+- **Reporting** (`tools/resume_paused_report.py`): one line per prompt-bearing checkout, `PLAN`, `DONE`, `PENDING`, `SKIP`, `ERROR` or `FAIL`, with the pause, reason, switch, duplicate evidence (known resumer and time or `unknown`), then each target's identity with its marked command in a preview or its clear, outcome, receiver observation, reason and recovery Enter after a delivery; bracketed notes carry `limits=claude-wait-scope`. Run-wide refusals replace the lines, and two checkouts sharing a folder name are named by their full paths, a gap the acceptance found.
+- **Launcher** (`bin/resume_paused.bat`): self-locates llm-shared, selects the newest `venvs\python_3*llm-shared*` Python, forwards `%*` only to `tools\resume_paused.py`; tested statically, never executed.
+- **Documentation**: `README.md`, the how-to section "Resume every waiting pane at once" (the former planned-command paragraph replaced), `wiki/reference/resume-paused.md` and its wiki index entry.
+- **Unit leaves**: `tests/unit/tools/test_resume_paused_cli/` and `tests/unit/tools/test_resume_paused_report/`.
+- **Acceptance** (`tests/acceptance/resume_paused/`): `fakes.py` implements the fake `tuios` runner behind the real transport and receiving agents running the Step 4 harness with the real validator over live fake discovery. Four behaviors model the real receiving workflows where the harness simplifies, without changing it: `HostedCheckout` names the receiving host's agent id as resumer (the harness always wrote `claude`, which the takeover correctly refused for a Codex requestor), `MarkedHarness` claims again with the marker's `--override` on a role conflict (review-resume, "Continue a marked review role"; the switched pair needs it), receivers act when the launch waits rather than inside the ask (the synchronous form let a receiver's later typed input defeat the delivery's own latest-input proof), and a stopped receiver prints its `resume-paused <launch_id> failed` line. The three modules own the plan's Q03 cases; later-continuation cases declare the earlier takeover instead of replaying a launch, one transition per test.
+- **Deviations**: `tools/resume_paused.py` reached 665 physical lines, so the rendering moved to `tools/resume_paused_report.py` with its own leaf (command line now 509 lines, report 241; `tests/acceptance/resume_paused/fakes.py` is 606, in the 550 to 650 band). The two new test trees join `tests/memory_filesystem.py`'s scenario list, because a launch on native temporary files spent 0.19 s of CPU against the 0.1 s ceiling. `wiki/README.md` lists the reference page.
+
+- **Round 1 repairs**: `_replan` reads `runtime.journal()` at every recheck; `_target` adds the routing source and validation result and names a non-agent slot `no LLM counterpart` or `no LLM target`; `_verdict` adds `routing unresolved: no target validated or typed into` for the routing reasons; the launcher disables delayed expansion. Tests: two journal scenarios in the delivery module, the CMD case in preview and run, report-leaf cases for validated, unvalidated and unresolved targets, a CLI-leaf journal-read count, and the launcher's expansion mode.
+
+- **Round 2 repair**: `_reported` passes a refused report's reason to `_target`; `_identity_failure` lets a delivery identity refusal from the fresh pre-send check outrank the planned identity, so the run line shows `not validated: <reason>` and a target that became a shell reads `no LLM counterpart` or `no LLM target`; unrelated refusals keep the validated identity. Tests: report-leaf cases for each identity refusal, both shell slots and a busy refusal; a continuation scenario where the reviewer becomes a shell between the takeover decision and the send.
+
+- **Round 3 repair**: `_reported` honors an identity reason for refused and pending reports, so the takeover's pending `target-absent` gate renders `not validated: target-absent` beside `pending: target-absent`; unrelated pending waits keep the validated identity. Test: the report leaf renders the exact report of the takeover's own absent-reviewer case and an unrelated pending wait.
+
+Writer notes: `.reviews/a.resume-paused.step8.journal.md` and `.reviews/a.resume-paused.step8.handoff.md`.
+
+### Change summary for step 8 resume-paused (round 4)
+
+Nineteen staged paths in five `a.commit` groups, in this order:
+
+1. `feat(resume-paused): render bulk resume results`: `tools/resume_paused_report.py`.
+2. `feat(resume-paused): ship the resume_paused command`: `tools/resume_paused.py`, `bin/resume_paused.bat`, the `tests/unit/tools/test_resume_paused_cli` and `tests/unit/tools/test_resume_paused_report` packages (package file and tdd file each) and `tests/memory_filesystem.py`.
+3. `test(resume-paused): accept the installed workflow`: the `tests/acceptance/resume_paused` package (`__init__.py`, `fakes.py`, and the `test_resume_paused_acceptance` package with its cli_safety, delivery and continuation tdd files).
+4. `docs(resume-paused): document the bulk resume command`: `README.md`, `wiki/README.md`, `wiki/how-to/pause-and-resume-a-session.md` and `wiki/reference/resume-paused.md`.
+5. `docs(resume-paused): record step 8 validation`: `docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md`.
+
+Membership, order and subjects are unchanged since round 1; the bodies of groups 1 to 5 mention the round 1 to round 3 repairs and the scenario count, 56. The reviewer's staged validation-plan edits of rounds 1 to 3 were reconciled into group 5. The commit-plan checker reports the plan valid and ready. The code review transcript is not staged and goes to the residual commit.
+
+### Writer response for step 8 resume-paused (round 4)
+
+Writer response:
+
+The round 3 finding is accepted and repaired; there is no disagreement. The reviewer's validation-plan edit was reconciled after the repair: Step 8 reads Yes again, the Missing work section is removed, and the round 3 paragraph now records the case as found and repaired.
+
+- **Pending identity failure**: `_reported` in `tools/resume_paused_report.py` now passes the reason of a refused or pending report (`_UNSENT`) to `_target`, so the takeover's pending gate for a reviewer missing from its fresh listing renders `(saved routing, not validated: target-absent): pending: target-absent`; the outcome stays `pending`. A grep of the takeover, proof, reviewer-wait and pane-guard modules shows `target-absent` is the only target-identity reason their gates emit (`requestor-pane-absent` and `pane-host-contradictory` concern other panes, not the target). A pending wait unrelated to identity, such as `claude-ledger-unavailable`, keeps `(saved routing, validated)`.
+- **Regression case**: the report leaf runs the existing absent-reviewer takeover case through `MarkedTakeover` (its `initial` helper and declared world), asserts the produced report is `PENDING` with `target-absent`, and renders it; it also renders an unrelated pending wait.
+
+`a.commit` keeps its membership, order and subjects; groups 1 and 5 mention the round 3 repair.
+
+### Reviewer focus for step 8 resume-paused (round 4)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-8-round-4 -->
+
+## Round 4 by reviewer - Step 8
+
+- Recorded: 2026-11-23T12:08:23+01:00
+- Exchange: code/code/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.resume-paused.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 8
+- Outcome: answer
+
+### Assessed index identity for step 8 resume-paused (exchange 1) (round 4)
+
+Baseline index tree: 28b18de8229d1ae2368da36a20d5ef5fe3bb03af
+
+Assessed index tree: 46afddf0083cf6a503ad9433184749d30d419044
+
+### Implementation check for step 8 resume-paused (exchange 1) (round 4)
+
+Result:
+
+Yes. Step 8 has been fully implemented. The run line now reports a missing reviewer as pending with failed target validation. Pending waits unrelated to identity retain the validated target. Previous rounds verified fresh journal checks, literal launcher arguments, and shell handling at planning and delivery.
+
+Validation plan effects:
+
+Confirmed the existing Step 8 verdict and recorded the round 4 regression evidence in `docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md`.
+
+### Pre-repair mandatory checks and coverage for step 8 resume-paused (exchange 1) (round 4)
+
+The writer reports 7,515 tests passing with 100% coverage in the whole-suite speed walk, with no outlier or exclusion. Static review checked the staged renderer and regression assertions. The new test obtains `PENDING, target-absent` from `MarkedTakeover`, renders it, and checks the unrelated ledger-wait control. No additional reviewer test run was needed. The live host matrix and profile pinning remain external evidence under the approved code-first plan.
+
+### Resolved validation set and sources for step 8 resume-paused (exchange 1) (round 4)
+
+The project resolves `ghog day --full=speed --whole-suite`. The captured whole-suite scope fingerprint is `686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6`.
+
+### Resolver drift and direction for step 8 resume-paused (exchange 1) (round 4)
+
+The request and the current project validation command and scope agree.
+
+### Repository state around validation for step 8 resume-paused (exchange 1) (round 4)
+
+The request and initial index both identified `28b18de8229d1ae2368da36a20d5ef5fe3bb03af`. The post-assessment comparison found only the Step 8 validation note. Its original blob matched the index and the attributed edit was staged. The assessed tree is `46afddf0083cf6a503ad9433184749d30d419044`. No umbrella applies.
+
+### Repair inventory for step 8 resume-paused (exchange 1) (round 4)
+
+Repairs made:
+
+- Polishing-only review metadata in `docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md`. Added the independent round 4 verification. The writer supplied the implementation and regression repairs before the request.
+
+Paths staged:
+
+- `docs/v0.14.0/plan.v0.14.0.resume-paused.validation.md`
+
+### Commit plan assessment for step 8 resume-paused (exchange 1) (round 4)
+
+Independent `commit-plan-check` returned `valid`, `ready=true`, with five ordered groups covering all 19 staged paths and zero diagnostics. The subjects, scope, ordering and validation group body match the assessed index.
+
+### Findings and boundaries for step 8 resume-paused (exchange 1) (round 4)
+
+Unresolved findings: None.
+
+Boundary-crossing work: None.
+
+### Writer instructions for step 8 resume-paused (exchange 1) (round 4)
+
+None.
+
+### Decision rationale for step 8 resume-paused (exchange 1) (round 4)
+
+Exact identity, Step 8 completeness, validation and static coverage, staged attribution, resolution of all carried findings, and commit grouping pass. The reviewer added only the validation note. The human owns the commit decision.
+
+### Final reviewer decision for step 8 resume-paused (exchange 1) (round 4)
+
+Decision: commit-ready (advisory). The evidence floor is complete, but this recommendation does not authorize a commit; authority remains at the durable human gate.
+
+<!-- review-entry-id: answer-step-8-round-4 -->
+
+## Round 4 by human - Step 8 - human-confirmation
+
+- Recorded: 2026-11-23T16:58:51+01:00
+- Exchange: code/code/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.resume-paused.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 8
+- Outcome: human-confirmation
+
+Human choice: Commit
+Outcome: continue-owning-workflow
+
+<!-- review-entry-id: human-confirmation-round-4 -->
