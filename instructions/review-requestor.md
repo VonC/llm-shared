@@ -260,7 +260,10 @@ not end or restart a bounded protocol wait.
 4. Without invoking or contacting a reviewer, call `wait-answer` once. This is
    one bounded in-process wait, not repeated
    short slices. Progress JSON is written only to standard error. Read the
-   single final standard-output object after the command returns.
+   single final standard-output object after the command returns. A Claude
+   requestor starts it as the
+   [Claude background answer wait](../rules/run_commands.md#claude-requestors-wait-for-answers-in-the-background)
+   requires, on every route.
 5. Read only the exact answer path returned in `paths.answer`. Let the
    specialized workflow assess or apply that feedback outside the protocol
    command.

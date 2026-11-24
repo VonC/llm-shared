@@ -4,6 +4,11 @@ Step 3 pairs a monotonic durable generation with a random plaintext token that
 never enters coordination. Only its SHA-256 digest is stored, so a displaced
 session can observe the newer generation without recovering its replacement
 secret.
+
+Fix (v0.15.0 resume-paused, Step 4): a claim may carry marked resume
+evidence. It always issues a new generation and records the evidence with
+that generation; every other newly issued claim clears an earlier binding,
+while an idempotent current-owner claim keeps it.
 """
 
 # ruff: noqa: EM101, TRY003
@@ -22,7 +27,10 @@ from tools.review_exchange_models import Actor, ReviewExchangeError, positive_in
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from tools.review_exchange_models_coordination import CoordinationRecord
+    from tools.review_exchange_models_coordination import (
+        CoordinationRecord,
+        MarkedClaimEvidence,
+    )
 
 _TOKEN_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]{31,255}$")
 
@@ -87,9 +95,14 @@ class OwnershipService:
         *,
         presented: OwnershipCapability | None = None,
         force: bool = False,
+        marked: MarkedClaimEvidence | None = None,
     ) -> OwnershipClaim:
-        """Return an ordinary idempotent claim or a generation-advancing pickup."""
-        if record.ownership_generation > 0 and record.owner is actor and not force:
+        """Return an ordinary idempotent claim or a generation-advancing pickup.
+
+        A marked claim always issues a generation and records its evidence with
+        it; any other issued generation clears an earlier marked binding.
+        """
+        if record.ownership_generation > 0 and record.owner is actor and not force and marked is None:
             if presented is None:
                 raise OwnershipRejectedError(
                     self.already_claimed_failure(record),
@@ -105,6 +118,7 @@ class OwnershipService:
             owner=actor,
             ownership_generation=generation,
             ownership_token_digest=self.digest(token),
+            marked_claim=None if marked is None else marked.issued(generation),
         )
         return OwnershipClaim(updated, capability)
 

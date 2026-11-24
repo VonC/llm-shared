@@ -48,6 +48,24 @@ described in [the author check](resume-session.md#check-which-agent-paused-the-p
 or report `unknown` when the line has none. A different or unknown id is
 not a diagnostic: resume-session asks the user before overriding it.
 
+Accept a usage receipt of schema 1, 2 or 3. Schema 2 adds `Paused by`,
+`Resumed by` and `Agent override` to schema 1; schema 3, written only by a
+marked resume, keeps every schema 2 line and adds `Launch id`,
+`Receiving pane` and `Assignment binding`. A receipt carries exactly the lines
+of its schema. Classify every schema by the same `Prompt`, `SHA-256` and
+`Project root` lines: the schema 3 lines are non-secret bindings that never
+change the classification. Any other schema, or a receipt missing a line of
+its schema, is an invalid receipt.
+
+For an unprocessed prompt, also name its saved routing, read only from its
+`resume-paused-routing` JSON block as
+[pause-session](pause-session.md#write-the-routing-json-block) writes it:
+`resolved`; `unresolved`, with the reasons its unknown parts record; `error`,
+when the block is malformed, repeated or contradicts its table or the prompt
+header; `table only`, for an earlier prose routing table without a block; or
+`none`. Status reports the saved record only: it never derives routing from a
+table and never checks the targets against live panes.
+
 | Observed state | Status and summary source |
 | --- | --- |
 | Complete prompt, no receipt | Unprocessed prompt found; summarize that prompt |
@@ -104,6 +122,8 @@ directly in the response; do not save a new artifact. Begin with one clear
 status line naming the actual prompt path relative to the consuming checkout,
 such as `.reviews/a.session-resume.local.md`. Honor the configured home; if it
 cannot be resolved, name `.review-artifacts.ini` and the diagnostic instead.
+For an unprocessed prompt, that line also names its saved routing state, and
+for a prompt already used by a schema 3 receipt, its receiving pane.
 
 Follow with exactly three numbered points: objective, progress, and next
 actions or blockers. Cite relative source paths and relevant dates within

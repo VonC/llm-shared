@@ -97,13 +97,31 @@ and evidence retain the longer history.
 The prompt's first line starts with the id of the agent that paused it:
 `claude`, `chatgpt` (ChatGPT or Codex), `gemini`, `copilot`, `grok`, or
 another host's lowercase name, as in `# claude: Resume session: ...`. If the
-checkout already holds a prompt from another agent that was never resumed,
-the pause asks before replacing it.
+checkout already holds an unused or new-since-use prompt from another agent,
+or from a different recorded pausing pane or saved session role of the same
+agent, the pause names the existing checkpoint's agent, pane and role and asks
+before replacing it. Declining preserves that checkpoint and stops the new
+pause. Legacy prompts without pane or role fields retain the agent-id check.
+An unknown pane or role is not by itself a difference; the remaining recorded
+fields are still compared.
+This protection runs at pause time; bulk resume gains no additional
+confirmation. Each checkout still holds one latest checkpoint.
 
 The prompt preserves the objective, user steering, permissions, decisions,
 verified state, dirty-work ownership, evidence, live runs, blockers and ordered
 next actions. Existing jobs can remain running. A saved prompt neither
 finishes those jobs nor grants new authority to an external system.
+
+The handoff also records automatic resume routing: the intended resumed agent
+and review roles, observed TUIOS session and pane identities, checkout and
+supporting evidence. The pause captures these from existing state and recorded
+user direction without asking you to select panes. Unavailable values are
+marked unknown without losing the rest of the checkpoint. The human-only
+[`resume_paused` command](#resume-every-waiting-pane-at-once) selects its
+targets from that saved information and validates it against live panes,
+without pane-selection arguments or follow-up questions. Missing or stale
+routing is reported without input to unresolved targets. The manual
+`resume-session` procedure below keeps working for one checkout at a time.
 
 Before leaving, check the reported file exists and that the saved next action
 matches where you intended to stop. The agent fills the
@@ -197,6 +215,37 @@ For an independent review, a bare `resume` invokes
 recover the broader saved task context; it still performs that review's
 ownership checks before continuing the exchange. Neither command approves a
 pending commit or review decision.
+
+## Resume every waiting pane at once
+
+Run `bin\resume_paused.bat` yourself from a terminal, inside a TUIOS pane or
+outside TUIOS, to resume every paused session whose pane waits in TUIOS. It
+is a shell command for humans, not an LLM command: agents must never run it,
+not even with `--dry-run` or `--help`, and refuse to when asked. Preview
+first; nothing is typed:
+
+```text
+C:\path\to\llm-shared\bin\resume_paused.bat --dry-run
+```
+
+Each checkout holding a resume prompt gets one line with the exact marked
+command for each saved target, then the count of panes left alone. When the
+preview is right, run it again without `--dry-run`. One launch resumes each
+saved target with a marker bound to it; the receiving `resume-session` or
+`review-resume` validates that marker and proceeds with no consent question.
+For a paused review pair, the requestor resumes first; its reviewer is
+activated only after its takeover is proved and no reviewer wait can still be
+running. Otherwise the reviewer is reported `PENDING`, and a later launch
+activates only that missing reviewer.
+
+Add `--clear` to clear each resumed conversation first, `--except NAME` to
+leave sessions, pane labels or checkout folders alone, and
+`--switch-roles NAME` to swap a saved requestor and reviewer pair. Exit status
+0 means success, expected skips or pending reviewers; 1 a failure, which is
+never retried by retyping; 2 invalid arguments. No host profile is pinned yet,
+so a real launch currently fails closed with no input. The
+[resume_paused reference](../reference/resume-paused.md) lists every argument,
+status and disclosed limit.
 
 ## Use the canonical files when discovery is unavailable
 

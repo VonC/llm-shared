@@ -1,13 +1,24 @@
-"""Mission dates, exact appends and real native lock contention on scratch files."""
+"""Mission dates, exact appends and real native lock contention on scratch files.
+
+The opener and rollback failure paths are covered too: the default local
+clock, the Windows handle and descriptor released when a later conversion
+fails, a stalled write, and a rollback that cannot restore the old size. The
+POSIX opener runs on every platform through a separate module instance loaded
+with `os.name` set to `posix` and a recording `fcntl` stand-in, so its create,
+reopen, busy and denied branches are proven where the suite runs.
+"""
 
 from __future__ import annotations
 
 import errno
+import importlib.util
 import io
 import os
+import sys
 from concurrent.futures import ThreadPoolExecutor
 from datetime import UTC, datetime
 from threading import Event
+from types import ModuleType
 from typing import TYPE_CHECKING
 
 import pytest
@@ -15,7 +26,7 @@ import pytest
 from tools import copy_conversation_journal as journal
 
 if TYPE_CHECKING:
-    from collections.abc import Buffer
+    from collections.abc import Buffer, Callable
     from pathlib import Path
     from typing import BinaryIO
 
@@ -213,6 +224,158 @@ def test_short_writes_are_completed(monkeypatch: pytest.MonkeyPatch) -> None:
     journal._write_all(stream, b"abcdef")
     assert stream.getvalue() == b"abcdef"
     assert flushed == [123]
+
+
+def test_stalled_write_fails_instead_of_looping() -> None:
+    """A stream that accepts no byte raises before flushing instead of spinning."""
+    class StalledStream(io.BytesIO):
+        def write(self, _data: Buffer) -> int:
+            return 0
+
+    stream = StalledStream()
+    with pytest.raises(OSError, match="made no progress"):
+        journal._write_all(stream, b"abcdef")
+    assert stream.getvalue() == b""
+
+
+def test_failed_rollback_reports_both_errors(monkeypatch: pytest.MonkeyPatch) -> None:
+    """When the old size cannot be restored, the caller is told to inspect the journal."""
+    class FrozenStream(io.BytesIO):
+        def truncate(self, _size: int | None = None) -> int:
+            msg = "read-only medium"
+            raise OSError(msg)
+
+    def fail(_stream: BinaryIO, _block: bytes) -> None:
+        msg = "disk full"
+        raise OSError(msg)
+
+    monkeypatch.setattr(journal, "_write_all", fail)
+    stream = FrozenStream(b"old")
+    expected = r"write failed \(disk full\); rollback failed \(read-only medium\); inspect the file"
+    with pytest.raises(journal.JournalError, match=expected) as caught:
+        journal._append_locked(stream, "new")
+    assert isinstance(caught.value.__cause__, OSError)
+    assert str(caught.value.__cause__) == "disk full"
+    assert stream.getvalue() == b"old"
+
+
+def test_local_now_samples_the_aware_local_clock() -> None:
+    """The default clock carries the offset that the 06:00 day start is read in."""
+    before = datetime.now(UTC)
+    now = journal.local_now()
+    after = datetime.now(UTC)
+    assert now.utcoffset() is not None
+    assert before <= now <= after
+
+
+@pytest.mark.skipif(os.name != "nt", reason="Win32 handles exist on Windows only")
+def test_windows_handle_is_closed_when_descriptor_creation_fails(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A failed handle-to-descriptor conversion closes the exclusive handle it opened."""
+    path = tmp_path / "daily.txt"
+    path.write_bytes(b"keep")
+
+    def refuse(_handle: int, _flags: int) -> int:
+        msg = "no descriptor"
+        raise OSError(msg)
+
+    with monkeypatch.context() as patch:
+        patch.setattr("msvcrt.open_osfhandle", refuse)
+        with pytest.raises(OSError, match="no descriptor"):
+            journal._open_windows(path)
+    assert path.read_bytes() == b"keep"
+
+
+@pytest.mark.skipif(os.name != "nt", reason="Win32 handles exist on Windows only")
+def test_windows_descriptor_is_closed_when_stream_creation_fails(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A failed stream wrapper closes the descriptor, which releases the exclusive handle."""
+    path = tmp_path / "daily.txt"
+    path.write_bytes(b"keep")
+    descriptors: list[int] = []
+
+    def refuse(descriptor: int, *_args: object, **_kwargs: object) -> BinaryIO:
+        descriptors.append(descriptor)
+        msg = "no stream"
+        raise OSError(msg)
+
+    with monkeypatch.context() as patch:
+        patch.setattr(journal.os, "fdopen", refuse)
+        with pytest.raises(OSError, match="no stream"):
+            journal._open_windows(path)
+    assert path.read_bytes() == b"keep"
+    _assert_closed(descriptors[0])
+
+
+def _assert_closed(descriptor: int) -> None:
+    """A descriptor the opener closed can no longer be queried.
+
+    The message text is localized; only its code prefix is stable.
+    """
+    with pytest.raises(OSError, match=r"^\[(?:WinError 6|Errno 9)\] ") as closed:
+        os.fstat(descriptor)
+    assert closed.value.errno == errno.EBADF
+
+
+def _posix_journal(monkeypatch: pytest.MonkeyPatch, flock: Callable[[int, int], None]) -> ModuleType:
+    """Load a separate journal module whose import-time platform test selects POSIX."""
+    fcntl = ModuleType("fcntl")
+    vars(fcntl).update(LOCK_EX=2, LOCK_NB=4, flock=flock)
+    monkeypatch.setitem(sys.modules, "fcntl", fcntl)
+    spec = importlib.util.spec_from_file_location("posix_copy_conversation_journal", journal.__file__)
+    assert spec is not None
+    assert spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    with monkeypatch.context() as patch:
+        patch.setattr(os, "name", "posix")
+        spec.loader.exec_module(module)
+    return module
+
+
+@pytest.mark.parametrize("existing", [False, True])
+def test_posix_opener_creates_or_reopens_then_locks(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, *, existing: bool,
+) -> None:
+    """A POSIX writer creates the daily file or reopens it untruncated, then locks without blocking."""
+    locks: list[tuple[int, int]] = []
+    posix = _posix_journal(monkeypatch, lambda descriptor, operation: locks.append((descriptor, operation)))
+    path = tmp_path / "daily.txt"
+    if existing:
+        path.write_bytes(b"keep")
+    stream, created = posix._open_posix(path)
+    with stream:
+        assert created is not existing
+        assert stream.readable()
+        assert stream.writable()
+        assert locks == [(stream.fileno(), 2 | 4)]
+    assert path.read_bytes() == (b"keep" if existing else b"")
+
+
+@pytest.mark.parametrize(
+    ("code", "raised", "reason"),
+    [
+        (errno.EAGAIN, errno.EAGAIN, "Journal lock is busy"),
+        (errno.EACCES, errno.EAGAIN, "Journal lock is busy"),
+        (errno.EPERM, errno.EPERM, "refused"),
+    ],
+)
+def test_posix_lock_failure_closes_the_descriptor(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, code: int, raised: int, reason: str,
+) -> None:
+    """Contention becomes the retryable busy error, other refusals propagate, and neither leaks."""
+    descriptors: list[int] = []
+
+    def refuse(descriptor: int, _operation: int) -> None:
+        descriptors.append(descriptor)
+        raise OSError(code, "refused")
+
+    posix = _posix_journal(monkeypatch, refuse)
+    with pytest.raises(OSError, match=reason) as caught:
+        posix._open_posix(tmp_path / "daily.txt")
+    assert (caught.value.errno, caught.value.strerror) == (raised, reason)
+    _assert_closed(descriptors[0])
 
 
 # eof

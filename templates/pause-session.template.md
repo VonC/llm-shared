@@ -13,9 +13,83 @@ it does not grant new permissions or restore review ownership.
 - Snapshot: {YYYY-MM-DDTHH:MM:SS+HH:MM}
 - Project root: `{absolute primary checkout path}`
 - Artifact home: `{absolute artifact home}`
-- Session role: {implementation, requestor, reviewer, documentation, other}
+- Session role: {one token, the routing session_role: implementation, requestor, reviewer, documentation or other}
 - Topic and step: {topic, step and umbrella position, or not applicable}
 - Paused at: {precise action boundary and reason for stopping}
+
+## Automatic resume routing
+
+{Fill from read-only evidence under instructions/pause-session.md, which
+gives each value and the exact table rendering. Preserve historical
+authorship separately from intended resume roles. Replace a part whose
+evidence is missing, stale or contradictory with `{"unknown": "<reason>"}`;
+for a single-agent pause, write `{"not_applicable": "<reason>"}` for the requestor,
+the reviewer and the exchange. Never ask the person to select routing, and
+never record ownership tokens. This handoff supplies target selection for one
+human-launched resume_paused invocation, which validates these identities
+against live panes before any input.}
+
+```json resume-paused-routing
+{
+  "schema": "resume-paused-routing",
+  "version": 1,
+  "pause": {
+    "checkout": "{resolved absolute checkout root, as Project root}",
+    "snapshot": "{Snapshot value}",
+    "author": "{agent id from the title}",
+    "session_role": "{Session role token}",
+    "pane": {
+      "host": "{agent id from the title}",
+      "session": "{TUIOS session string}",
+      "pane_id": "{full 36-character pane UUID}",
+      "label": "{pane name}"
+    }
+  },
+  "observation": {
+    "observed_at": "{YYYY-MM-DDTHH:MM:SS+HH:MM}",
+    "assignment_source": "{recorded user role-switch direction and its date, or verified current assignment}",
+    "evidence": "{read-only sources used}"
+  },
+  "targets": {
+    "resumed": {
+      "role": "{intended role}",
+      "host": "{claude or codex}",
+      "session": "{TUIOS session string}",
+      "pane_id": "{full 36-character pane UUID}",
+      "label": "{pane name}",
+      "checkout": "{the pause checkout}",
+      "agent_session_id": {quoted agent session id, or null},
+      "evidence": "{evidence tying this pane to its intended role}"
+    },
+    "requestor": {target object with role requestor, identical to resumed when it is the requestor},
+    "reviewer": {target object with role reviewer, identical to resumed when it is the reviewer}
+  },
+  "exchange": {
+    "family": "{code or specification}",
+    "document": "{checkout-relative path of the reviewed document or implementation plan}",
+    "implementation_step": {quoted plan step of a code review, or null},
+    "umbrella": {quoted checkout-relative umbrella draft path, or null},
+    "occurrence": {exchange occurrence, a positive integer},
+    "round": {round at pause, or null}
+  }
+}
+```
+
+| Routing item | Value |
+| --- | --- |
+| Routing schema | resume-paused-routing version 1 |
+| Pause checkout | {pause checkout} |
+| Pause snapshot | {pause snapshot} |
+| Pause author | {pause author} |
+| Saved session role | {saved session role} |
+| Pausing pane | {host} in TUIOS session {session}, pane {pane id}, label {label or none}; or unknown: {reason} |
+| Observed at | {observation time} |
+| Assignment source | {assignment source} |
+| Observation evidence | {observation evidence} |
+| Resumed agent | {role} on {host} in TUIOS session {session}, pane {pane id}, label {label or none}, checkout {checkout}, agent session {agent session id or none}; evidence: {evidence}; or unknown: {reason} |
+| Requestor | {the same target form, or not applicable: {reason}, or unknown: {reason}} |
+| Reviewer | {the same target form, or not applicable: {reason}, or unknown: {reason}} |
+| Review exchange | {family} review of {document}, implementation step {step or not applicable}, umbrella {umbrella or none}, occurrence {occurrence}, round at pause {round or none}; or not applicable: {reason}, or unknown: {reason} |
 
 ## Objective and latest user direction
 

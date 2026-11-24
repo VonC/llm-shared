@@ -72,7 +72,9 @@ that launcher instead of reconstructing nearby names.
    requestor.
    Do not pass `--timeout-seconds` to `wait-answer`; use the complete timeout
    configured by `a.review-mode`. Read its one final JSON result after the
-   bounded wait returns.
+   bounded wait returns. A Claude requestor starts it as the
+   [Claude background answer wait](../rules/run_commands.md#claude-requestors-wait-for-answers-in-the-background)
+   requires.
 6. When an intermediate answer requests substantive changes, apply accepted
    edits, assess disagreement, then call `consume-answer` with the truthful
    `reviewed-work-changed` value and the `disagreement` flag only when the
