@@ -6,6 +6,165 @@ release. The groundhog test loop (ghog), the prompt-workflow cycle (pw),
 and the commit and changelog helpers are mutualized across sibling
 projects.
 
+## [v0.15.0-SNAPSHOT unreleased] One Command, Every Waiting Pane - e18de9f11cf003445e7732f995d74e54a9038517
+
+resume_paused types each saved resume into the pane that paused it.
+
+- The Marker Carries the Consent
+  -- A launch-bound --resume-paused marker replaces repeated role questions.
+- Proof Before Keystrokes
+  -- No pane gets input until its identity, prompt and takeover check out.
+
+Release 0.15.0 adds `resume_paused`, a human-only command that resumes every
+checkout whose pause prompt is still unused, in the Claude or Codex TUIOS pane
+named by its saved routing. Each pause now records that routing as one
+`resume-paused-routing` JSON block. The command plans each checkout without
+writes, skips duplicates and protected panes, and types one marked resume
+command per pane through a shell-free transport. The receiving
+`resume-session` or `review-resume` validates the marker against its own
+latest input before treating it as consent, then writes a schema 3 receipt or
+a marked claim. A saved reviewer is activated only after the requestor's
+takeover is proved. Until the live host matrix pins a Claude and a Codex
+profile, real panes report `duplicate-uncertain` and receive no input.
+
+Claude requestors now start every `wait-answer` in the background, so a
+resumed reviewer can prove the requestor holds no other waiting work.
+Copy-conversation can append each export to a dated daily journal under
+`JOURNAL_MISSION`, with an exclusive file lock and rollback on a failed write;
+new tests cover its Windows and POSIX openers. Commit gates add recommended
+spelling words before asking, and review summaries keep relative paths.
+
+### Key changes (v0.15.0)
+
+- **Resume every waiting pane at once**: Run `bin\resume_paused.bat` from a
+  terminal, with `--dry-run`, `--clear`, `--except NAME` or
+  `--switch-roles NAME`. It refuses every launch from a recognized agent pane,
+  preview included, and prints one `PLAN`, `PENDING`, `DONE` or `ERROR` line
+  per checkout with the saved routing and validation result of each target.
+
+- **Carry the launch consent, not a capability**: Each marker binds the prompt
+  SHA-256, receiving pane, host, role and exchange. `resume_paused_validate`
+  proves the marked command is the pane's latest input before any receipt,
+  journal write or review claim; a mismatch stops without consuming the
+  prompt. Schema 3 receipts add the launch id, pane and assignment binding.
+
+- **Journal conversations by mission day**: Set `JOURNAL_MISSION` to an
+  absolute `YYYYMM-NAME` folder and copy-conversation appends each export to
+  `<name>YYYYMMDD.txt`, where the day starts at 06:00. A new file opens with a
+  French date heading; existing bytes and non-UTF-8 files are never rewritten.
+
+### 🚀 Features (v0.15.0)
+
+- *(copy)* Append to daily mission journals
+- *(journal)* Date new mission journal files
+- *(resume-paused)* Add host evidence adapters
+- *(resume-paused)* Add pause routing models
+- *(resume-paused)* Read pause prompts and receipts
+- *(resume-paused)* Observe the saved exchange
+- *(pause)* Write saved routing as one JSON block
+- *(session)* Accept schema 3 resume receipts
+- *(review)* Require Claude background answer waits
+- *(resume-paused)* Bind markers to one assignment
+- *(resume-paused)* Prove a receiving pane's input
+- *(review)* Record marked claims under the lock
+- *(resume-paused)* Validate marked receivers
+- *(session)* Resume from marked bulk launches
+- *(resume-paused)* Classify duplicate evidence
+- *(resume-paused)* Add the checkout plan model
+- *(resume-paused)* Plan each paused checkout
+- *(resume-paused)* Add the shell-free transport
+- *(resume-paused)* Add delivery ports and guard
+- *(resume-paused)* Replan one checkout per send
+- *(resume-paused)* Deliver guarded pane actions
+- *(resume-paused)* Expose claim and prompt evidence
+- *(resume-paused)* Observe each accepted receiver
+- *(resume-paused)* Prove takeover and no wait
+- *(resume-paused)* Guard Claude reviewer sends
+- *(resume-paused)* Activate verified reviewers
+- *(resume-paused)* Render bulk resume results
+- *(resume-paused)* Ship the resume_paused command
+- *(resume-paused)* Merge bulk pane resume
+
+### 🐛 Bug Fixes (v0.15.0)
+
+- *(review)* Write relative paths in spec review summaries
+- *(review)* Keep nature completion paths relative
+
+### 📚 Documentation (v0.15.0)
+
+- *(copy)* Explain mission journal behavior
+- *(spelling)* Add recommended words before commit
+- *(feature)* Record pre-consolidation questions
+- *(pause)* Record resume routing in handoffs
+- *(resume-paused)* Consolidate reviewed choices
+- *(design)* Record pre-consolidation questions
+- *(resume-paused)* Retain integration constraints
+- *(resume-paused)* Consolidate design decisions
+- *(plan)* Record pre-consolidation questions
+- *(resume-paused)* Clarify evidence IO costs
+- *(resume-paused)* Consolidate plan decisions
+- *(resume-paused)* Record plan review rounds
+- *(design)* Record pre-consolidation questions
+- *(resume-paused)* Settle profile evidence
+- *(design)* Record pre-consolidation questions
+- *(resume-paused)* Consolidate host contracts
+- *(resume-paused)* Retain design review rounds
+- *(design)* Record pre-consolidation questions
+- *(resume-paused)* Align generation validation
+- *(resume-paused)* Record generation design review
+- *(design)* Record pre-consolidation questions
+- *(resume-paused)* Refine attribution checks
+- *(resume-paused)* Record attribution review
+- *(design)* Record pre-consolidation questions
+- *(resume-paused)* Settle requestor wait decisions
+- *(resume-paused)* Record decision review history
+- *(design)* Record pre-consolidation questions
+- *(resume-paused)* Consolidate Q26 evidence limit
+- *(resume-paused)* Record Q26 review agreement
+- *(pause)* Restore the pinned choice wording
+- *(resume-paused)* Repair review transcript lint
+- *(resume-paused)* Record Step 1 decisions
+- *(resume-paused)* Record step 1 validation
+- *(resume-paused)* Retain step 1 review exchange
+- *(design)* Record pre-consolidation questions
+- *(resume-paused)* Consolidate Q27 and Q28
+- *(resume-paused)* Record Q27/Q28 review exchange
+- *(plan)* Record pre-consolidation questions
+- *(resume-paused)* Consolidate plan Q05 to Q07
+- *(resume-paused)* Record Q05-Q07 review exchange
+- *(resume-paused)* Add legacy routing study
+- *(resume-paused)* Record step 2 validation
+- *(resume-paused)* Retain step 2 review exchange
+- *(resume-paused)* Record step 3 validation
+- *(resume-paused)* Retain step 3 review exchange
+- *(resume-paused)* Record step 4 validation
+- *(resume-paused)* Retain step 4 review exchange
+- *(resume-paused)* Record step 5 validation
+- *(resume-paused)* Retain step 5 review exchange
+- *(resume-paused)* Amend Q05 for code-first steps
+- *(resume-paused)* Record step 6 validation
+- *(resume-paused)* Retain step 6 review exchange
+- *(resume-paused)* Record step 7 validation
+- *(resume-paused)* Retain step 7 review exchange
+- *(resume-paused)* Document the bulk resume command
+- *(resume-paused)* Record step 8 validation
+- *(resume-paused)* Retain step 8 review exchange
+- *(resume-paused)* Move the effort to v0.15.0
+- *(wiki)* Describe marked resumes in references
+
+### 🧪 Testing (v0.15.0)
+
+- *(resume-paused)* Check the pause routing contract
+- *(resume-paused)* Accept the installed workflow
+- *(journal)* Cover every journal opener path
+
+### ⚙️ Miscellaneous Tasks (v0.15.0)
+
+- *(git)* Ignore discarded Claude skills
+- *(shell)* Remove the nd draft alias
+- *(spelling)* Remove misspelled dictionary word
+- *(resume-paused)* Name v0.15.0 in sources
+
 ## [v0.14.0] - 2026-11-12 - Groundhog Shares the Stopwatch
 
 Consumer pytest runs choose lifecycle budgets, process audits, or both.

@@ -1,49 +1,46 @@
-0.14.0 -- Groundhog Shares the Stopwatch
+0.15.0-SNAPSHOT -- One Command, Every Waiting Pane
 
-Consumer pytest runs choose lifecycle budgets, process audits, or both.
+resume_paused types each saved resume into the pane that paused it.
 
-- CPU Gets the Final Say
-  -- Wall time stays visible; lifecycle timing follows the effective CPU limit.
-- Same Gates, New Burrows
-  -- Prepared shells carry shared pytest policies into each consumer checkout.
+- The Marker Carries the Consent
+  -- A launch-bound --resume-paused marker replaces repeated role questions.
+- Proof Before Keystrokes
+  -- No pane gets input until its identity, prompt and takeover check out.
 
-Release 0.14.0 makes the lifecycle gate and process audit independently
-available to consumer pytest runs on Python 3.12 or later. Shell preparation
-binds the selected policies to a project and shared checkout without importing
-the shared repository's tools or tests packages. Lifecycle timing passes when
-CPU stays within the effective budget, including an eligible band or accepted
-exception. Wall time remains visible; functional and process failures retain
-their own verdicts. Fixture ownership and worker reports keep permission use
-and timing records attributable across distributed runs.
+Release 0.15.0 adds `resume_paused`, a human-only command that resumes every
+checkout whose pause prompt is still unused, in the Claude or Codex TUIOS pane
+named by its saved routing. Each pause now records that routing as one
+`resume-paused-routing` JSON block. The command plans each checkout without
+writes, skips duplicates and protected panes, and types one marked resume
+command per pane through a shell-free transport. The receiving
+`resume-session` or `review-resume` validates the marker against its own
+latest input before treating it as consent, then writes a schema 3 receipt or
+a marked claim. A saved reviewer is activated only after the requestor's
+takeover is proved. Until the live host matrix pins a Claude and a Codex
+profile, real panes report `duplicate-uncertain` and receive no input.
 
-Groundhog prepares every pytest child and measures speed during the covered
-full run. Declared compatibility checks run fresh before saved-proof reuse.
-Session checkpoints, guarded journals and cross-checkout listings preserve
-work between conversations. Guided question decisions, terminal wait status,
-commit spelling checks and clean-tree pushes make human handoffs explicit.
-Shared prompt bodies and Codex skills linked to the clone reduce adapter
-copies. Release tooling adds the project-identity foundation: runtime checks,
-strict configuration, guarded writes and project locks.
+Claude requestors now start every `wait-answer` in the background, so a
+resumed reviewer can prove the requestor holds no other waiting work.
+Copy-conversation can append each export to a dated daily journal under
+`JOURNAL_MISSION`, with an exclusive file lock and rollback on a failed write;
+new tests cover its Windows and POSIX openers. Commit gates add recommended
+spelling words before asking, and review summaries keep relative paths.
 
 ### Key changes
 
-- **Select shared pytest policies**: Use lifecycle, process, both or neither
-  through prepared-shell activation. The loader checks selected sources before
-  registration, preserves consumer package identity and refuses stale project
-  bindings. Guarded settings and fixture-scoped process grants support gradual
-  adoption. Executable checks cover Python 3.12 and 3.13 and Windows shell
-  preparation; lifecycle timing uses the effective CPU budget.
+- **Resume every waiting pane at once**: Run `bin\resume_paused.bat` from a
+  terminal, with `--dry-run`, `--clear`, `--except NAME` or
+  `--switch-roles NAME`. It refuses every launch from a recognized agent pane,
+  preview included, and prints one `PLAN`, `PENDING`, `DONE` or `ERROR` line
+  per checkout with the saved routing and validation result of each target.
 
-- **Collect coverage and speed together**: Full runs judge call durations in
-  the same covered execution, with sys.monitoring line coverage. Grouped full
-  runs retain testmon records outside the selected group. Bounded workers,
-  normal Windows process priority and argument files for long selections
-  reduce contention and command-length failures. Unexplained pytest failures
-  fail the walk, and opted-in compatibility preflight precedes proof reuse.
+- **Carry the launch consent, not a capability**: Each marker binds the prompt
+  SHA-256, receiving pane, host, role and exchange. `resume_paused_validate`
+  proves the marked command is the pane's latest input before any receipt,
+  journal write or review claim; a mismatch stops without consuming the
+  prompt. Schema 3 receipts add the launch id, pane and assignment binding.
 
-- **Carry work through explicit handoffs**: Pause, resume, status and list
-  commands retain agent identity and private journal evidence. Copy-conversation
-  exports a trimmed transcript; guided decisions preserve human answers.
-  Independent review recovery supports corrected requests and explicit role
-  takeover. Commit gates check Markdown and spelling; merge-back uses explicit
-  merge commits, structured rewording and clean-tree pushes before handoff.
+- **Journal conversations by mission day**: Set `JOURNAL_MISSION` to an
+  absolute `YYYYMM-NAME` folder and copy-conversation appends each export to
+  `<name>YYYYMMDD.txt`, where the day starts at 06:00. A new file opens with a
+  French date heading; existing bytes and non-UTF-8 files are never rewritten.
