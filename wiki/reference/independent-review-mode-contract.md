@@ -42,6 +42,15 @@ does not authorize restarting the watcher or resetting protocol deadlines.
 recoverable; damaged, inconsistent, escalated and repair-required evidence stops
 the operation. Repeated status calls are not the wait interface.
 
+A Claude requestor starts every `wait-answer` in the background, on every
+route: a first round, a replacement round, a resumed exchange and a marked
+resume. It runs the shared launcher alone on one line, keeps the handle, ends
+the turn and resumes from the completion notification, as the
+[Claude background answer wait](../../rules/run_commands.md#claude-requestors-wait-for-answers-in-the-background)
+requires. A foreground wait, or one moved to the background after it started,
+leaves a later [`resume_paused`](resume-paused.md) reviewer activation pending,
+because it cannot prove that the requestor holds no other waiting work.
+
 A new agent process has no access to a prior process's plaintext ownership
 token. A bare `resume` authorizes automatic `claim` after migration and role
 inspection. A missing or stale capability causes lease-independent pickup,

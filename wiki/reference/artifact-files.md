@@ -215,7 +215,7 @@ file and move a legacy root copy of the same name into it once.
 | File in the artifact home | Contract |
 | --- | --- |
 | `a.session-resume.local.md` | One latest comprehensive resume prompt per checkout, independent of branch and topic; its first line starts with the pausing agent id, as in `# claude: Resume session: ...`; replaced only after a new pause snapshot is complete |
-| `a.session-resume.used.local.md` | Usage receipt identifying the prompt basename, exact-byte SHA-256, absolute checkout, timestamp with offset, whether `--force` was used, the pausing and resuming agent ids, and any user-approved agent override |
+| `a.session-resume.used.local.md` | Usage receipt identifying the prompt basename, exact-byte SHA-256, absolute checkout, timestamp with offset, whether `--force` was used, the pausing and resuming agent ids, and any user-approved agent override; a marked resume writes schema 3, which adds the launch id, receiving pane and assignment binding |
 
 These are retained private artifacts, never staged or committed, and are not
 `tmp` scratch removed by release preparation. Existing journals and handoffs
@@ -249,8 +249,11 @@ updates the receipt nor executes recorded actions. Its
 Before reconciling, the agent compares the prompt's agent id (`claude`,
 `chatgpt`, `gemini`, `copilot`, `grok` or another host name) with its own.
 A different or missing id stops the turn with a notice asking the user to
-consent to resuming here; `--force` does not skip that question. A pause asks
-the same question before replacing an unresumed prompt from another agent.
+consent to resuming here; `--force` does not skip that question. The one
+exception is a `--resume-paused` marker typed by the human-launched
+[`resume_paused`](resume-paused.md) command: once its validator accepts it, the
+marker is that launch's consent for this selection only. A pause asks the same
+question before replacing an unresumed prompt from another agent.
 
 Before recording use, the agent verifies required references, reconciles the
 checkout and live jobs, and samples the prompt digest and receipt again.
