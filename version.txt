@@ -1,4 +1,4 @@
-0.15.0-SNAPSHOT -- One Command, Every Waiting Pane
+0.15.0 -- One Command, Every Waiting Pane
 
 resume_paused types each saved resume into the pane that paused it.
 

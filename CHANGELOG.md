@@ -6,7 +6,7 @@ release. The groundhog test loop (ghog), the prompt-workflow cycle (pw),
 and the commit and changelog helpers are mutualized across sibling
 projects.
 
-## [v0.15.0-SNAPSHOT unreleased] One Command, Every Waiting Pane - e18de9f11cf003445e7732f995d74e54a9038517
+## [v0.15.0] - 2026-11-24 - One Command, Every Waiting Pane
 
 resume_paused types each saved resume into the pane that paused it.
 
