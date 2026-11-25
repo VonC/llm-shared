@@ -7453,3 +7453,670 @@ Human choice: Commit
 Outcome: continue-owning-workflow
 
 <!-- review-entry-id: human-confirmation-round-4 -->
+
+## Round 1 by requestor - Step 1 (exchange 2)
+
+- Recorded: 2026-11-25T18:17:43+01:00
+- Exchange: code/code/v0.15.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.15.0/plan.v0.15.0.resume-paused.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: unrecorded
+- Implementation step: 1
+- Outcome: request
+
+### Review identity for step 1 resume-paused (exchange 2) (round 1)
+
+Umbrella draft: none
+Implementation plan: docs/v0.15.0/plan.v0.15.0.resume-paused.md
+Implementation step: 1
+Review round: 1
+
+### Code review evidence for step 1 resume-paused (exchange 2) (round 1)
+
+request_index_tree: cd3035f88fe46f5230d288efbd0ad1a36b9b3279
+resolved_validation_set:
+
+- `ghog day --full=speed --whole-suite` (sources: project)
+
+test_scope:
+{"fingerprint": "686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6", "group": null, "proof": "speed", "requirement": "docs/v0.15.0/feature-request.v0.15.0.resume-paused.md", "scope": "whole"}
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: fix(resume-paused): leave unproved boots unresolved
+group 1 path: tools/resume_paused_profiles.py
+group 1 path: tests/unit/tools/test_resume_paused_profiles/test_resume_paused_profiles_tdd.py
+group 1 path: tests/unit/tools/resume_paused_test_support.py
+group 2: refactor(resume-paused): move generation checks
+group 2 path: tools/resume_paused_claude_generation.py
+group 2 path: tests/unit/tools/test_resume_paused_claude_generation/__init__.py
+group 2 path: tests/unit/tools/test_resume_paused_claude_generation/test_resume_paused_claude_generation_tdd.py
+group 2 path: tests/unit/tools/test_resume_paused_claude_ledger/test_resume_paused_claude_ledger_ordering_tdd.py
+group 3: fix(resume-paused): limit history only on true boot
+group 3 path: tools/resume_paused_claude_ledger.py
+group 3 path: tests/unit/tools/test_resume_paused_claude_ledger/test_resume_paused_claude_ledger_tdd.py
+group 3 path: tests/unit/tools/test_resume_paused_claude_ledger/test_resume_paused_claude_ledger_evidence_tdd.py
+group 3 path: tests/unit/tools/test_resume_paused_claude_ledger/test_resume_paused_claude_ledger_boot_tdd.py
+group 4: test(resume-paused): never reuse a clean recheck
+group 4 path: tests/unit/tools/test_resume_paused_codex/test_resume_paused_codex_tdd.py
+group 5: docs(resume-paused): record step 1 validation
+group 5 path: docs/v0.15.0/plan.v0.15.0.resume-paused.validation.md
+group 5 path: .vscode/settings.json
+staged path: .vscode/settings.json
+staged path: docs/v0.15.0/plan.v0.15.0.resume-paused.validation.md
+staged path: tests/unit/tools/resume_paused_test_support.py
+staged path: tests/unit/tools/test_resume_paused_claude_generation/__init__.py
+staged path: tests/unit/tools/test_resume_paused_claude_generation/test_resume_paused_claude_generation_tdd.py
+staged path: tests/unit/tools/test_resume_paused_claude_ledger/test_resume_paused_claude_ledger_boot_tdd.py
+staged path: tests/unit/tools/test_resume_paused_claude_ledger/test_resume_paused_claude_ledger_evidence_tdd.py
+staged path: tests/unit/tools/test_resume_paused_claude_ledger/test_resume_paused_claude_ledger_ordering_tdd.py
+staged path: tests/unit/tools/test_resume_paused_claude_ledger/test_resume_paused_claude_ledger_tdd.py
+staged path: tests/unit/tools/test_resume_paused_codex/test_resume_paused_codex_tdd.py
+staged path: tests/unit/tools/test_resume_paused_profiles/test_resume_paused_profiles_tdd.py
+staged path: tools/resume_paused_claude_generation.py
+staged path: tools/resume_paused_claude_ledger.py
+staged path: tools/resume_paused_profiles.py
+```
+
+### Validation scope for step 1 resume-paused (exchange 2) (round 1)
+
+Validation scope: the whole suite.
+
+### Requestor assessment for step 1 resume-paused (exchange 2) (round 1)
+
+Yes. Step 1 has been fully implemented, including its design Q28=A code
+follow-up: the four "Open code follow-up for Step 1" rows of the validation
+plan are implemented, tested and checked. The Step 1 live validation checklist
+stays open by design (plan Q05=A): no host profile is pinned, so no real pane
+receives input.
+
+- **Tests**: `ghog single` on the profile, generation, ledger and Codex test
+  targets passed (317 tests). The scope-resolved walk `ghog day --whole-suite`
+  passed: check.bat green, 915 affected tests. The requestor validation set
+  `ghog day --full=speed --whole-suite` passed on the staged tree: 8348
+  tests, fail 0, coverage 100, duration outliers 0, exclusions 0, proof
+  speed.
+- **Static checks**: check.bat (pyright, ty, ruff, radon, vulture, big files,
+  Markdown) is green. Its first run failed only on a pyright unknown-type
+  finding in the new generation test, fixed by typing the empty set; ruff's
+  automatic fixes of three style findings are kept.
+- **Coverage**: the gate measures `tools`, the new generation module
+  included, and reports 100% for the suite. The generation module is
+  covered by its own test package; the profile and ledger changes by their
+  existing packages plus the new boot test.
+- **Architecture**: the boot policy stays in `resume_paused_profiles`, which
+  still imports no sibling. The generation module imports the Claude parsing
+  and Windows modules only. The ledger reads the decision's state and never
+  decides boot semantics. No adapter or port changed.
+- **Performance**: the boot decision is a fixed number of comparisons. An
+  unresolved boundary adds the per-record lifecycle checks for older
+  transcripts, still one pass per file. With durable schedules those files
+  were already read; with session-only schedules the extra read stays
+  proportional to the listed bytes. No `O(n^2)` or `O(n log n)` path is added.
+- **Feature integrity**: no production code builds a `LedgerScope` or calls
+  `boot_boundary`, since the composition plugs the unpinned adapters; the
+  changed signatures reach tests only. `continuation_places`' only importer,
+  a test, moved with it.
+- **Markdown**: the validation plan passes markdown-check and cSpell after
+  `markerless` was added to the project and user dictionaries.
+
+### Implementation report for step 1 resume-paused (exchange 2) (round 1)
+
+This exchange reviews the Step 1 code follow-up of design Q28=A, which the
+earlier Step 1 exchange (converged at round 6 and committed) did not cover:
+the four rows of "Open code follow-up for Step 1" in the validation plan. The
+work sits on branch `integration/resume-paused`, created from `main` at the
+v0.15.0 release commit.
+
+- **`tools/resume_paused_profiles.py`** (row 1): new `BootBoundary` state
+  (resolved, unresolved, pending) and `BootSemantics` (true boot,
+  sleep-inclusive uptime, fixed tolerance, tolerance basis, accepted clock
+  uncertainty). `HostProfile` gains an optional `boot` field. `BootDecision`
+  replaces `verdict` with `state`. `boot_boundary(observation, semantics)`
+  returns pending for negative uptime or a negative recorded tolerance;
+  otherwise it stays unresolved, with one reason per missing predicate
+  (`boot-semantics-unpinned`, `true-boot-unvalidated`,
+  `uptime-sleep-unvalidated`, `tolerance-basis-unrecorded`), whatever the clock
+  comparison says. With validated semantics it keeps the Q21=A backward-clock
+  check (pending beyond the tolerance) and otherwise resolves at the fixed
+  boot instant. The shipped registry records no semantics, so every real
+  decision is unresolved.
+- **`tools/resume_paused_claude_generation.py`** (row 2, new): the ledger's
+  generation and continuation checks moved unchanged, renamed as public
+  functions: `require_generation` (was `_generation`, with its private
+  `_marker`, `_first_stamped` and `_restarts`), `writer_markers`, `clears`
+  (was the ledger's `_clears`), `continuation_places` and
+  `missing_predecessors`, with the three marker constants.
+- **`tools/resume_paused_claude_ledger.py`** (row 3): imports those checks.
+  `LedgerScope.boot_boundary` is now the `BootDecision`. `_bounding_instant`
+  returns the instant only for a resolved decision, and `_read` puts every
+  transcript in the lifecycle check when there is none, so an unresolved or
+  pending boundary bounds nothing. `evaluate` adds a pending decision's
+  reasons, or `boot-boundary-pending` when it names none. Schedule handling is
+  unchanged: only the schedule's own deletion closes it. The module went from
+  642 to 584 lines.
+- **`tools/resume_paused_codex.py`** (row 4): unchanged.
+- **Tests**: the profile tests cover resolved, unresolved (each predicate,
+  alone and together, under a forward and a backward clock) and pending
+  decisions and the recorded tolerance basis. The new generation test calls
+  every moved function directly and holds the two `continuation_places`
+  cases moved from the ordering tests. The new ledger boot test covers an
+  older unmatched task under the shipped policy's unresolved boundary and its
+  resolved true-boot control, complete older history with matched ends,
+  unreadable, truncated and markerless older history, an incomplete
+  enumeration, pending decisions with and without reasons, and a recurring
+  firing, an assumed seven-day expiry and a host restart that close no
+  schedule, with durable and session-only schedules. The existing ledger
+  scopes use `resolved_boot(...)`. The Codex test shares its recheck cases as
+  `RECHECK_CHANGES` and adds `test_clean_recheck_is_never_reused`. The shared
+  builders gain `boot_semantics`, `resolved_boot` and `UNRESOLVED_BOOT`.
+- **Validation plan**: the four rows are checked with the scope-resolved walk
+  evidence; the Step 1 analysis, implemented-work, types, architecture,
+  performance, coverage and feature-integrity sections are updated. Outside
+  the Step 1 section, the document summary sentence and the Step 8 completion
+  handoff sentence now say these rows closed, instead of open.
+- **`.vscode/settings.json`**: adds `markerless`, the one word cSpell flagged
+  in the validation plan.
+
+During the first walk, check.bat's ruff fixed three style findings by itself
+in the test builders, the ledger and the boot test; those fixes are kept and
+staged.
+
+Writer notes: `.reviews/a.resume-paused.step1.journal.md` and
+`.reviews/a.resume-paused.step1.handoff.md`.
+
+### Change summary for step 1 resume-paused (exchange 2) (round 1)
+
+Staged paths (14), all part of the reviewed scope:
+
+- `tools/resume_paused_profiles.py`
+- `tools/resume_paused_claude_generation.py` (new)
+- `tools/resume_paused_claude_ledger.py`
+- `tests/unit/tools/resume_paused_test_support.py`
+- `tests/unit/tools/test_resume_paused_profiles/test_resume_paused_profiles_tdd.py`
+- `tests/unit/tools/test_resume_paused_claude_generation/__init__.py` (new)
+- `tests/unit/tools/test_resume_paused_claude_generation/test_resume_paused_claude_generation_tdd.py` (new)
+- `tests/unit/tools/test_resume_paused_claude_ledger/test_resume_paused_claude_ledger_boot_tdd.py` (new)
+- `tests/unit/tools/test_resume_paused_claude_ledger/test_resume_paused_claude_ledger_tdd.py`
+- `tests/unit/tools/test_resume_paused_claude_ledger/test_resume_paused_claude_ledger_evidence_tdd.py`
+- `tests/unit/tools/test_resume_paused_claude_ledger/test_resume_paused_claude_ledger_ordering_tdd.py`
+- `tests/unit/tools/test_resume_paused_codex/test_resume_paused_codex_tdd.py`
+- `docs/v0.15.0/plan.v0.15.0.resume-paused.validation.md`
+- `.vscode/settings.json`
+
+Root `a.commit`, five groups from least to most dependent; `commit-plan-check`
+reports valid and ready with no diagnostic:
+
+1. `fix(resume-paused): leave unproved boots unresolved`: the profile module,
+   its test and the shared builders.
+2. `refactor(resume-paused): move generation checks`: the new generation
+   module, its test package and the ordering test that lost the moved cases.
+   The ledger still holds its own copies at this commit; group 3 switches it
+   to the new module.
+3. `fix(resume-paused): limit history only on true boot`: the ledger and its
+   three existing test files plus the new boot test.
+4. `test(resume-paused): never reuse a clean recheck`: the Codex test.
+5. `docs(resume-paused): record step 1 validation`: the validation plan and
+   the project dictionary.
+
+Each group was ordered so that its commit passes on its own: group 1 changes
+the boot policy while the ledger still takes a bare instant, and group 3
+moves the ledger and its scopes to `BootDecision` together.
+
+### Writer response for step 1 resume-paused (exchange 2) (round 1)
+
+Writer response:
+
+No earlier feedback exists in this exchange. The previous Step 1 exchange
+converged at round 6 with a commit-ready answer and was committed; this
+exchange covers only the design Q28=A code follow-up that the round 6 verdict
+explicitly left open. No disagreement is recorded.
+
+Points the writer asks the reviewer to judge:
+
+- An unresolved boundary makes every listed transcript of the checkout part of
+  the lifecycle check, however old. On a real checkout with old killed
+  sessions this keeps activation pending until a profile records validated
+  boot semantics. That is the intended Q28=A consequence, not a regression.
+- `boot_boundary` still reports invalid evidence as pending when no semantics
+  are recorded, although the observation is then not used to bound history.
+  The writer kept that as the more conservative choice.
+- A schedule closes only on its own deletion. The plan also mentions a
+  validated terminal record of the schedule itself; no such record shape is
+  validated, so none closes a schedule. That is stricter than the plan's
+  wording, never looser.
+- The ledger now has 584 lines: under the 650 ceiling, above the 550
+  safe-to-extend mark. Its next extension should split it first.
+
+### Reviewer focus for step 1 resume-paused (exchange 2) (round 1)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-1-round-1-exchange-2 -->
+
+### LLM nature completion for reviewer (exchange 2)
+
+Recorded nature: `codex`
+
+Completed artifacts:
+
+- `.reviews/a.review-active.code.code.v0.15.0.resume-paused.md`
+- `.reviews/a.review-requested.code.v0.15.0.resume-paused.md`
+
+<!-- review-entry-id: llm-nature-completion-reviewer-exchange-2 -->
+
+## Round 1 by reviewer - Step 1 (exchange 2)
+
+- Recorded: 2026-11-25T19:44:31+01:00
+- Exchange: code/code/v0.15.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.15.0/plan.v0.15.0.resume-paused.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 1
+- Outcome: answer
+
+### Assessed index identity for step 1 resume-paused (exchange 2) (round 1)
+
+Baseline index tree: cd3035f88fe46f5230d288efbd0ad1a36b9b3279
+
+Assessed index tree: fec18e42a458692f050167318b06c8e16f10c3b9
+
+### Implementation check for step 1 resume-paused (exchange 2) (round 1)
+
+Result:
+
+No. Step 1 has NOT been fully implemented.
+
+An unresolved boot correctly brings every listed in-checkout transcript into the lifecycle check. Generation and continuation checks retain their behavior after extraction. The Codex tests recheck each changed binding after a successful recheck. The pending boot verdict and the schedule-age fixture need the two changes below.
+
+Validation plan effects:
+
+Updated only the Step 1 status, ledger checklist row, coverage assessment and missing-work list in `docs/v0.15.0/plan.v0.15.0.resume-paused.validation.md`. The changes were attributable and staged.
+
+### Pre-repair mandatory checks and coverage for step 1 resume-paused (exchange 2) (round 1)
+
+The requestor reported 8,348 tests passing, 100% coverage over `tools` and zero duration outliers. The reviewer inspected the implementation and tests statically. The two findings follow from the staged code and fixture timestamps.
+
+### Resolved validation set and sources for step 1 resume-paused (exchange 2) (round 1)
+
+`ghog day --full=speed --whole-suite` (project). The bound capture specifies the whole suite.
+
+### Resolver drift and direction for step 1 resume-paused (exchange 2) (round 1)
+
+The current project resolver returned the published command with the same project source. No drift.
+
+### Repository state around validation for step 1 resume-paused (exchange 2) (round 1)
+
+The request-time and baseline trees matched. The only path changed during assessment was the reviewed validation plan. The evidence helper attributed the Step 1 edits, and the baseline blob matched the index before staging. The umbrella comparison was inapplicable.
+
+### Repair inventory for step 1 resume-paused (exchange 2) (round 1)
+
+Repairs made:
+
+- Polishing-only review metadata in `docs/v0.15.0/plan.v0.15.0.resume-paused.validation.md`.
+
+Paths staged:
+
+- `.vscode/settings.json`
+- `docs/v0.15.0/plan.v0.15.0.resume-paused.validation.md`
+- `tests/unit/tools/resume_paused_test_support.py`
+- `tests/unit/tools/test_resume_paused_claude_generation/__init__.py`
+- `tests/unit/tools/test_resume_paused_claude_generation/test_resume_paused_claude_generation_tdd.py`
+- `tests/unit/tools/test_resume_paused_claude_ledger/test_resume_paused_claude_ledger_boot_tdd.py`
+- `tests/unit/tools/test_resume_paused_claude_ledger/test_resume_paused_claude_ledger_evidence_tdd.py`
+- `tests/unit/tools/test_resume_paused_claude_ledger/test_resume_paused_claude_ledger_ordering_tdd.py`
+- `tests/unit/tools/test_resume_paused_claude_ledger/test_resume_paused_claude_ledger_tdd.py`
+- `tests/unit/tools/test_resume_paused_codex/test_resume_paused_codex_tdd.py`
+- `tests/unit/tools/test_resume_paused_profiles/test_resume_paused_profiles_tdd.py`
+- `tools/resume_paused_claude_generation.py`
+- `tools/resume_paused_claude_ledger.py`
+- `tools/resume_paused_profiles.py`
+
+### Commit plan assessment for step 1 resume-paused (exchange 2) (round 1)
+
+The independent checker returned `valid`, `ready=true`, five ordered groups, all 14 staged paths listed above and zero diagnostics on both runs. The groups cover boot policy, generation extraction, the ledger, Codex rechecks and validation documentation in dependency order. Refresh group 5’s description of closed rows when the ledger work is complete.
+
+### Findings and boundaries for step 1 resume-paused (exchange 2) (round 1)
+
+Unresolved findings:
+
+- At `tools/resume_paused_claude_ledger.py` line 351, a pending boot carrying `Reason("boot-evidence-invalid", 0)` supplies a nonempty mapping and skips the fallback. Line 317 drops the zero count. With a clean bound transcript, the ledger returns `Absence.PROVED`. The current policy producer uses positive counts, but the typed ledger input permits zero and the pending state promises an unconditional block.
+- At `test_resume_paused_claude_ledger_boot_tdd.py` lines 151–166, the expiry fixture dates the file modification eight days earlier. Its `CronCreate` result is still at `T0` plus 21 seconds and the bound turn closes at `T0` plus 41 seconds. A regression that inferred expiry from the recorded creation time could pass this test.
+
+Boundary-crossing work: None.
+
+### Writer instructions for step 1 resume-paused (exchange 2) (round 1)
+
+Make the pending state sufficient to hold the ledger pending, including a regression with only a zero-count reason and otherwise clean history. Give the old transaction coherent record and file timestamps, put its `CronCreate` result more than seven days before a fixed later observation, and assert that the durable schedule still blocks absence. Refresh the Step 1 validation evidence and submit the revised staged tree.
+
+### Decision rationale for step 1 resume-paused (exchange 2) (round 1)
+
+Identity, staged attribution and mechanical grouping passed. Implementation completeness and behavioral test coverage remain open on the two findings. The live-host checklist remains separate under Q05=A.
+
+### Final reviewer decision for step 1 resume-paused (exchange 2) (round 1)
+
+Decision: changes-requested. The writer must address the concrete instructions and publish another review round. This advisory answer does not authorize a commit.
+
+<!-- review-entry-id: answer-step-1-round-1-exchange-2 -->
+
+## Round 2 by requestor - Step 1 (exchange 2)
+
+- Recorded: 2026-11-25T20:08:06+01:00
+- Exchange: code/code/v0.15.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.15.0/plan.v0.15.0.resume-paused.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 1
+- Outcome: request
+
+### Review identity for step 1 resume-paused (exchange 2) (round 2)
+
+Umbrella draft: none
+Implementation plan: docs/v0.15.0/plan.v0.15.0.resume-paused.md
+Implementation step: 1
+Review round: 2
+
+### Code review evidence for step 1 resume-paused (exchange 2) (round 2)
+
+request_index_tree: f2ce52f46b6ce5baabdb9ebb295ed5b0dd42081d
+resolved_validation_set:
+
+- `ghog day --full=speed --whole-suite` (sources: project)
+
+test_scope:
+{"fingerprint": "686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6", "group": null, "proof": "speed", "requirement": "docs/v0.15.0/feature-request.v0.15.0.resume-paused.md", "scope": "whole"}
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: fix(resume-paused): leave unproved boots unresolved
+group 1 path: tools/resume_paused_profiles.py
+group 1 path: tests/unit/tools/test_resume_paused_profiles/test_resume_paused_profiles_tdd.py
+group 1 path: tests/unit/tools/resume_paused_test_support.py
+group 2: refactor(resume-paused): move generation checks
+group 2 path: tools/resume_paused_claude_generation.py
+group 2 path: tests/unit/tools/test_resume_paused_claude_generation/__init__.py
+group 2 path: tests/unit/tools/test_resume_paused_claude_generation/test_resume_paused_claude_generation_tdd.py
+group 2 path: tests/unit/tools/test_resume_paused_claude_ledger/test_resume_paused_claude_ledger_ordering_tdd.py
+group 3: fix(resume-paused): limit history only on true boot
+group 3 path: tools/resume_paused_claude_ledger.py
+group 3 path: tests/unit/tools/test_resume_paused_claude_ledger/test_resume_paused_claude_ledger_tdd.py
+group 3 path: tests/unit/tools/test_resume_paused_claude_ledger/test_resume_paused_claude_ledger_evidence_tdd.py
+group 3 path: tests/unit/tools/test_resume_paused_claude_ledger/test_resume_paused_claude_ledger_boot_tdd.py
+group 4: test(resume-paused): never reuse a clean recheck
+group 4 path: tests/unit/tools/test_resume_paused_codex/test_resume_paused_codex_tdd.py
+group 5: docs(resume-paused): record step 1 validation
+group 5 path: docs/v0.15.0/plan.v0.15.0.resume-paused.validation.md
+group 5 path: .vscode/settings.json
+staged path: .vscode/settings.json
+staged path: docs/v0.15.0/plan.v0.15.0.resume-paused.validation.md
+staged path: tests/unit/tools/resume_paused_test_support.py
+staged path: tests/unit/tools/test_resume_paused_claude_generation/__init__.py
+staged path: tests/unit/tools/test_resume_paused_claude_generation/test_resume_paused_claude_generation_tdd.py
+staged path: tests/unit/tools/test_resume_paused_claude_ledger/test_resume_paused_claude_ledger_boot_tdd.py
+staged path: tests/unit/tools/test_resume_paused_claude_ledger/test_resume_paused_claude_ledger_evidence_tdd.py
+staged path: tests/unit/tools/test_resume_paused_claude_ledger/test_resume_paused_claude_ledger_ordering_tdd.py
+staged path: tests/unit/tools/test_resume_paused_claude_ledger/test_resume_paused_claude_ledger_tdd.py
+staged path: tests/unit/tools/test_resume_paused_codex/test_resume_paused_codex_tdd.py
+staged path: tests/unit/tools/test_resume_paused_profiles/test_resume_paused_profiles_tdd.py
+staged path: tools/resume_paused_claude_generation.py
+staged path: tools/resume_paused_claude_ledger.py
+staged path: tools/resume_paused_profiles.py
+```
+
+### Validation scope for step 1 resume-paused (exchange 2) (round 2)
+
+Validation scope: the whole suite.
+
+### Requestor assessment for step 1 resume-paused (exchange 2) (round 2)
+
+Yes. Step 1 has been fully implemented, including its design Q28=A code
+follow-up and the two round 1 repairs: a pending boot holds the ledger
+pending whatever counts its reasons carry, and the expiry fixture dates its
+whole older transaction more than seven days before the bound turn. The four
+"Open code follow-up for Step 1" rows of the validation plan are checked. The
+Step 1 live validation checklist stays open by design (plan Q05=A): no host
+profile is pinned, so no real pane receives input.
+
+- **Tests**: `ghog single` on the ledger, profile and generation test targets
+  passed (200 tests). The scope-resolved walk `ghog day --whole-suite` passed
+  at 2026-11-25T19:55:47+01:00: check.bat green, 146 affected tests. The
+  requestor validation set `ghog day --full=speed --whole-suite` passed on the
+  staged tree at 2026-11-25T20:06:21+01:00: 8351 tests, fail 0, coverage 100,
+  duration outliers 0, exclusions 0, proof speed. The three new tests are the
+  zero-count and negative-count pending cases and the expiry fixture check.
+- **Static checks**: check.bat (pyright, ty, ruff, radon, vulture, big files,
+  Markdown) is green on the repaired code, with no automatic fix this round.
+- **Coverage**: 100% over `tools`. The repaired loop in `evaluate` is reached
+  with and without pending reasons and with positive, zero and negative
+  counts.
+- **Architecture**: unchanged since round 1. The ledger still only reads the
+  boot decision's state and never decides boot semantics. It has 593 lines,
+  under the 650 ceiling.
+- **Performance**: the pending-reason update is one pass over a decision's
+  few reasons. The dated fixtures change test data only.
+- **Feature integrity**: no production caller builds a `LedgerScope`, so the
+  stricter pending handling reaches tests only.
+- **Markdown**: the validation plan passes markdown-check and cSpell.
+
+### Implementation report for step 1 resume-paused (exchange 2) (round 2)
+
+Round 2 of this exchange repairs the two round 1 findings. The rest of the
+design Q28=A follow-up is unchanged since round 1: the boot policy in
+`tools/resume_paused_profiles.py`, the generation module
+`tools/resume_paused_claude_generation.py`, the unchanged
+`tools/resume_paused_codex.py` with its never-reused clean recheck, and the
+shared builders.
+
+- **`tools/resume_paused_claude_ledger.py`** (finding 1): `evaluate` no longer
+  copies a pending decision's reason counts as they are. For a pending boot it
+  adds each reason with a count of at least one, or `boot-boundary-pending`
+  when the decision names none. The pending state alone therefore keeps the
+  decision pending: a zero or negative count can no longer produce an empty or
+  dropped reason and a proved absence. The module and `evaluate` docstrings say
+  so. The module now has 593 lines.
+- **`test_resume_paused_claude_ledger_boot_tdd.py`** (findings 1 and 2):
+  - The pending-boot case adds a zero-count and a negative-count
+    `boot-evidence-invalid` reason with an otherwise clean bound transcript.
+    Each expects that reason once. On the round 1 ledger, the zero-count case
+    proves absence and the negative-count case reports a count of -1, so both
+    fail.
+  - The schedule scenarios now move their whole older transaction back with
+    `aged`, so every recorded timestamp keeps its order. The file's
+    modification time is its last record (`last_written`). The expiry scenario
+    ends eight days before the bound turn. The recurring-firing and restart
+    scenarios end one day before it, so each scenario still has a single cause.
+  - `test_expiry_fixture_creates_its_schedule_more_than_seven_days_before_the_bound_turn`
+    shows that the expiry case is not vacuous. Its `CronCreate` result
+    predates the bound turn's close by more than seven days, and the older
+    transaction ends before the resolved boot at second 30.
+  - Both schedule tests, with durable and session-only schedules, run on these
+    dated scenarios. A ledger that inferred expiry from the creation time would
+    close the expiry scenario's schedule and fail the durable test.
+- **Validation plan**: the reviewer's round 1 wording of the Step 1 analysis is
+  kept. Its verdict is back to Yes, with one paragraph naming the two repairs.
+  The missing-work list is removed, and the ledger row is checked again with
+  the new cases. The walk evidence names the round 2 scope-resolved walk. The
+  implemented-work, file-size and coverage entries are refreshed, and the
+  coverage verdict is restored.
+- **`a.commit`**: group 3's body names the pending-count repair and the dated
+  fixtures. Group 5's body names the recorded round 1 repairs. Membership,
+  order and subjects are unchanged.
+
+Correction: round 1 gave the ledger as 584 lines. That figure was wrong: the
+staged round 1 module had 589 lines. 584 is the size of the first ledger test
+file.
+
+Writer notes: `.reviews/a.resume-paused.step1.journal.md` and
+`.reviews/a.resume-paused.step1.handoff.md`.
+
+### Change summary for step 1 resume-paused (exchange 2) (round 2)
+
+Staged paths (14), all part of the reviewed scope, unchanged in membership
+since round 1:
+
+- `tools/resume_paused_profiles.py`
+- `tools/resume_paused_claude_generation.py` (new)
+- `tools/resume_paused_claude_ledger.py` (changed in round 2)
+- `tests/unit/tools/resume_paused_test_support.py`
+- `tests/unit/tools/test_resume_paused_profiles/test_resume_paused_profiles_tdd.py`
+- `tests/unit/tools/test_resume_paused_claude_generation/__init__.py` (new)
+- `tests/unit/tools/test_resume_paused_claude_generation/test_resume_paused_claude_generation_tdd.py` (new)
+- `tests/unit/tools/test_resume_paused_claude_ledger/test_resume_paused_claude_ledger_boot_tdd.py`
+  (new, changed in round 2)
+- `tests/unit/tools/test_resume_paused_claude_ledger/test_resume_paused_claude_ledger_tdd.py`
+- `tests/unit/tools/test_resume_paused_claude_ledger/test_resume_paused_claude_ledger_evidence_tdd.py`
+- `tests/unit/tools/test_resume_paused_claude_ledger/test_resume_paused_claude_ledger_ordering_tdd.py`
+- `tests/unit/tools/test_resume_paused_codex/test_resume_paused_codex_tdd.py`
+- `docs/v0.15.0/plan.v0.15.0.resume-paused.validation.md` (changed by the
+  reviewer in round 1 and by the writer in round 2)
+- `.vscode/settings.json`
+
+Root `a.commit` keeps its five groups, in the same order and with the same
+members and subjects. `commit-plan-check` reports valid and ready with no
+diagnostic:
+
+1. `fix(resume-paused): leave unproved boots unresolved`: the profile module,
+   its test and the shared builders.
+2. `refactor(resume-paused): move generation checks`: the new generation
+   module, its test package and the ordering test that lost the moved cases.
+3. `fix(resume-paused): limit history only on true boot`: the ledger and its
+   three existing test files plus the new boot test. Its body now names the
+   pending-count repair and the dated schedule fixtures.
+4. `test(resume-paused): never reuse a clean recheck`: the Codex test.
+5. `docs(resume-paused): record step 1 validation`: the validation plan and
+   the project dictionary. Its body now names the recorded round 1 repairs.
+
+### Writer response for step 1 resume-paused (exchange 2) (round 2)
+
+Writer response:
+
+Both round 1 findings are accepted and repaired. No disagreement is recorded.
+
+- Pending boot with a zero-count reason: accepted. The pending state now
+  holds the ledger pending by itself. Each pending reason counts at least
+  once, so neither a zero nor a negative count can prove absence. The
+  regression covers both counts with an otherwise clean bound transcript.
+- Expiry fixture dated only by its file: accepted. The whole older
+  transaction, its `CronCreate` result included, is moved eight days back,
+  and its file modification time matches its last record. A fixture check
+  asserts the more-than-seven-day gap before the bound turn. The durable test
+  still expects `schedule-unresolved` under both boundaries. The firing and
+  restart scenarios got the same coherent dating, one day back.
+- Reviewer's validation-plan edits: kept as covered wording. The writer
+  reassessment then set the verdict back to Yes, removed the missing-work
+  list, checked the ledger row again and restored the coverage verdict, with
+  the round 2 evidence.
+- Commit plan: group 3 and 5 descriptions are refreshed as asked. Grouping is
+  unchanged.
+
+Still for the reviewer to judge from round 1: an unresolved boundary keeps
+activation pending on a checkout with old killed sessions until a profile
+records validated boot semantics. Invalid evidence stays pending even without
+recorded semantics. A schedule closes only on its own deletion. The ledger
+now has 593 lines, under the 650 ceiling and above the 550 safe-to-extend
+mark, so its next extension should split it first. Round 1 gave 584 lines,
+which was wrong: the staged module had 589.
+
+### Reviewer focus for step 1 resume-paused (exchange 2) (round 2)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-1-round-2-exchange-2 -->
+
+## Round 2 by reviewer - Step 1 (exchange 2)
+
+- Recorded: 2026-11-25T20:12:12+01:00
+- Exchange: code/code/v0.15.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.15.0/plan.v0.15.0.resume-paused.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 1
+- Outcome: answer
+
+### Assessed index identity for step 1 resume-paused (exchange 2) (round 2)
+
+Baseline index tree: f2ce52f46b6ce5baabdb9ebb295ed5b0dd42081d
+
+Assessed index tree: f2ce52f46b6ce5baabdb9ebb295ed5b0dd42081d
+
+### Implementation check for step 1 resume-paused (exchange 2) (round 2)
+
+Result:
+
+Both round 1 findings are resolved. A pending boot contributes each reported reason at least once, with a fallback when the reason list is empty. The tests cover positive, zero, negative and absent counts against an otherwise clean transcript. The expiry fixture now dates the whole transaction eight days earlier and derives the modification time from its last record. An independent assertion checks that schedule creation predates the bound turn by more than seven days. The durable schedule remains unresolved under both tested boot boundaries.
+
+Validation plan effects:
+
+The writer updated the step 1 verdict and ledger evidence to record both repairs. Live host validation remains open and both host profiles remain unpinned.
+
+### Pre-repair mandatory checks and coverage for step 1 resume-paused (exchange 2) (round 2)
+
+The writer reported 8,351 passing tests, 100% coverage over tools, and zero duration outliers for the staged changes. Reviewer verification of the two fixes was static.
+
+### Resolved validation set and sources for step 1 resume-paused (exchange 2) (round 2)
+
+ghog day --full=speed --whole-suite (project validation command).
+
+### Resolver drift and direction for step 1 resume-paused (exchange 2) (round 2)
+
+The resolved validation command matches the request.
+
+### Repository state around validation for step 1 resume-paused (exchange 2) (round 2)
+
+The request, baseline, and assessed index all match f2ce52f46b6ce5baabdb9ebb295ed5b0dd42081d. The validation-state comparison returned acceptable=true with no changed paths.
+
+### Repair inventory for step 1 resume-paused (exchange 2) (round 2)
+
+Repairs made: None.
+
+Paths staged: None.
+
+### Commit plan assessment for step 1 resume-paused (exchange 2) (round 2)
+
+The independent commit-plan check returned valid and ready=true for five ordered groups covering all 14 staged paths, with zero diagnostics. The updated descriptions of groups 3 and 5 cover the ledger repair, dated fixtures and validation evidence.
+
+### Findings and boundaries for step 1 resume-paused (exchange 2) (round 2)
+
+Unresolved findings: None.
+
+Boundary-crossing work: None.
+
+### Writer instructions for step 1 resume-paused (exchange 2) (round 2)
+
+Submit the five assessed groups for the human commit decision.
+
+### Decision rationale for step 1 resume-paused (exchange 2) (round 2)
+
+Step 1 is commit-ready at the assessed index. Both requested regressions are covered, the validation plan records their resolution, and the staged grouping passes the independent check.
+
+### Final reviewer decision for step 1 resume-paused (exchange 2) (round 2)
+
+Decision: commit-ready (advisory). The evidence floor is complete, but this recommendation does not authorize a commit; authority remains at the durable human gate.
+
+<!-- review-entry-id: answer-step-1-round-2-exchange-2 -->
+
+## Round 2 by human - Step 1 - human-confirmation
+
+- Recorded: 2026-11-25T20:14:45+01:00
+- Exchange: code/code/v0.15.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.15.0/plan.v0.15.0.resume-paused.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 1
+- Outcome: human-confirmation
+
+Human choice: Commit
+Outcome: continue-owning-workflow
+
+<!-- review-entry-id: human-confirmation-round-2 -->
