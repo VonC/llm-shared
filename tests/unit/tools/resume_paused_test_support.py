@@ -4,18 +4,30 @@ Step 1 of v0.15.0 resume-paused shares these builders with later unit and
 acceptance tests. They build declared process listings, Codex release layouts
 and session files, and Claude transcript records without touching a real host,
 a real pane or the filesystem. Scenario assertions stay in each test.
+
+Fix (design Q28=A follow-up): ``boot_semantics`` builds synthetic validated
+boot semantics, and ``resolved_boot`` and ``UNRESOLVED_BOOT`` give the ledger
+tests a resolved or an unresolved boot decision.
 """
 
 from __future__ import annotations
 
 import json
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from tools.resume_paused_claude import ClaudeLedgerProfile, TranscriptFile
 from tools.resume_paused_codex import MANIFEST_NAME, SessionFile
-from tools.resume_paused_profiles import Host, HostProfile, ProfileRegistry
+from tools.resume_paused_profiles import (
+    BootBoundary,
+    BootDecision,
+    BootSemantics,
+    Host,
+    HostProfile,
+    ProfileRegistry,
+    Reason,
+)
 from tools.resume_paused_windows import GLOBALROOT, ImageWalk, ProcessRecord
 
 SHELL_PID = 10
@@ -59,6 +71,27 @@ def codex_manifest(**changes: Any) -> bytes:  # noqa: ANN401
 def codex_registry() -> ProfileRegistry:
     """Pin the synthetic Codex release; the shipped registry stays empty."""
     return ProfileRegistry((HostProfile(Host.CODEX, CODEX_VERSION, frozenset({OS_BUILD}), "synthetic", CODEX_DIGEST),))
+
+
+def boot_semantics(**changes: Any) -> BootSemantics:  # noqa: ANN401
+    """Build synthetic validated boot semantics, with declared changes; no real build is validated."""
+    values: dict[str, Any] = {
+        "true_boot": True,
+        "sleep_inclusive_uptime": True,
+        "tolerance": timedelta(seconds=5),
+        "tolerance_basis": "synthetic measured jitter",
+        "clock_uncertainty": "synthetic five-second step",
+    }
+    values.update(changes)
+    return BootSemantics(**values)
+
+
+def resolved_boot(seconds: int) -> BootDecision:
+    """Return a boot decision resolved at the declared instant."""
+    return BootDecision(BootBoundary.RESOLVED, at(seconds), ())
+
+
+UNRESOLVED_BOOT = BootDecision(BootBoundary.UNRESOLVED, None, (Reason("boot-semantics-unpinned"),))
 
 
 @dataclass

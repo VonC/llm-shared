@@ -4,11 +4,18 @@ Step 1 of v0.15.0 resume-paused: the shipped registry pins nothing, a pinned
 profile needs version, OS build and digest to agree, recognized agent callers
 are rejected inside and outside TUIOS, and the Q21 comparison only detects a
 net backward clock movement.
+
+Fix (design Q28=A follow-up): a boot decision resolves only from boot
+semantics a pinned profile records as validated (true boot, sleep-inclusive
+uptime, fixed tolerance with its basis and accepted clock uncertainty). Each
+missing predicate leaves it unresolved with its own reason, whatever the clock
+comparison says, and the profile keeps the recorded tolerance basis.
 """
 
 from __future__ import annotations
 
 from datetime import timedelta
+from typing import Any
 
 import pytest
 
@@ -17,11 +24,13 @@ from tests.unit.tools.resume_paused_test_support import (
     CODEX_VERSION,
     OS_BUILD,
     at,
+    boot_semantics,
     codex_registry,
 )
 from tools.resume_paused_profiles import (
     DISCLOSED_LIMITS,
     SUPPORTED_PROFILES,
+    BootBoundary,
     BootObservation,
     CallerOrigin,
     Host,
@@ -33,6 +42,9 @@ from tools.resume_paused_profiles import (
     boot_boundary,
     classify_caller,
 )
+
+FORWARD = BootObservation(boot_created_at=at(0), now=at(600), uptime=timedelta(seconds=300))
+BACKWARD = BootObservation(boot_created_at=at(100), now=at(300), uptime=timedelta(seconds=206))
 
 
 def test_shipped_registry_supports_no_host_version() -> None:
@@ -92,35 +104,74 @@ def test_caller_classification(
     assert decision.reasons == reasons
 
 
-def test_boot_boundary_uses_the_fixed_boot_instant() -> None:
-    """A forward clock step keeps the fixed instant as the history boundary."""
-    observation = BootObservation(boot_created_at=at(0), now=at(600), uptime=timedelta(seconds=300))
+def test_validated_boot_semantics_resolve_the_fixed_boot_instant() -> None:
+    """With every predicate validated, a forward clock step keeps the fixed instant as the boundary."""
+    decision = boot_boundary(FORWARD, boot_semantics())
 
-    decision = boot_boundary(observation, timedelta(seconds=5))
-
-    assert decision.verdict is Verdict.SUPPORTED
+    assert decision.state is BootBoundary.RESOLVED
     assert decision.boundary == at(0)
     assert decision.reasons == ()
 
 
 def test_boot_boundary_stays_pending_on_backward_clock_movement() -> None:
-    """A computed boot earlier than the fixed one beyond tolerance is pending."""
-    observation = BootObservation(boot_created_at=at(100), now=at(300), uptime=timedelta(seconds=206))
+    """A computed boot earlier than the fixed one beyond the validated tolerance is pending."""
+    assert boot_boundary(BACKWARD, boot_semantics(tolerance=timedelta(seconds=6))).state is BootBoundary.RESOLVED
+    pending = boot_boundary(BACKWARD, boot_semantics(tolerance=timedelta(seconds=5)))
 
-    assert boot_boundary(observation, timedelta(seconds=6)).verdict is Verdict.SUPPORTED
-    pending = boot_boundary(observation, timedelta(seconds=5))
-
-    assert pending.verdict is Verdict.PENDING
+    assert pending.state is BootBoundary.PENDING
     assert pending.boundary is None
     assert pending.reasons == (Reason("clock-backward-beyond-tolerance"),)
 
 
-@pytest.mark.parametrize(("uptime", "tolerance"), [(-1, 5), (10, -1)])
-def test_boot_boundary_rejects_invalid_evidence(uptime: int, tolerance: int) -> None:
-    """Negative uptime or tolerance is invalid evidence, never a boundary."""
-    observation = BootObservation(boot_created_at=at(0), now=at(60), uptime=timedelta(seconds=uptime))
+@pytest.mark.parametrize(
+    ("semantics", "expected"),
+    [
+        (None, ("boot-semantics-unpinned",)),
+        ({"true_boot": False}, ("true-boot-unvalidated",)),
+        ({"sleep_inclusive_uptime": False}, ("uptime-sleep-unvalidated",)),
+        ({"tolerance_basis": " "}, ("tolerance-basis-unrecorded",)),
+        ({"clock_uncertainty": ""}, ("tolerance-basis-unrecorded",)),
+        (
+            {"true_boot": False, "sleep_inclusive_uptime": False, "tolerance_basis": ""},
+            ("true-boot-unvalidated", "uptime-sleep-unvalidated", "tolerance-basis-unrecorded"),
+        ),
+    ],
+)
+@pytest.mark.parametrize("observation", [FORWARD, BACKWARD])
+def test_unvalidated_boot_semantics_leave_the_boundary_unresolved(
+    semantics: dict[str, Any] | None, expected: tuple[str, ...], observation: BootObservation,
+) -> None:
+    """Each predicate no profile validated keeps the boundary unresolved, whatever the clock comparison says."""
+    decision = boot_boundary(observation, None if semantics is None else boot_semantics(**semantics))
 
-    assert boot_boundary(observation, timedelta(seconds=tolerance)).reasons == (Reason("boot-evidence-invalid"),)
+    assert decision.state is BootBoundary.UNRESOLVED
+    assert decision.boundary is None
+    assert decision.reasons == tuple(Reason(code) for code in expected)
+
+
+@pytest.mark.parametrize(("uptime", "tolerance"), [(-1, None), (-1, 5), (10, -1)])
+def test_boot_boundary_rejects_invalid_evidence(uptime: int, tolerance: int | None) -> None:
+    """Negative uptime, with or without semantics, or a negative recorded tolerance is invalid evidence, never a boundary."""
+    observation = BootObservation(boot_created_at=at(0), now=at(60), uptime=timedelta(seconds=uptime))
+    semantics = None if tolerance is None else boot_semantics(tolerance=timedelta(seconds=tolerance))
+
+    decision = boot_boundary(observation, semantics)
+
+    assert decision.state is BootBoundary.PENDING
+    assert decision.reasons == (Reason("boot-evidence-invalid"),)
+
+
+def test_pinned_profile_records_its_boot_semantics_and_tolerance_basis() -> None:
+    """A profile pins no boot semantics by default; the recorded ones resolve the boundary and keep their basis."""
+    unpinned = HostProfile(Host.CLAUDE, "2.1.325", frozenset({OS_BUILD}), "synthetic")
+    pinned = HostProfile(Host.CLAUDE, "2.1.325", frozenset({OS_BUILD}), "synthetic", boot=boot_semantics())
+
+    assert unpinned.boot is None
+    assert boot_boundary(FORWARD, unpinned.boot).state is BootBoundary.UNRESOLVED
+    assert pinned.boot is not None
+    assert (pinned.boot.tolerance, pinned.boot.tolerance_basis) == (timedelta(seconds=5), "synthetic measured jitter")
+    assert pinned.boot.clock_uncertainty == "synthetic five-second step"
+    assert boot_boundary(FORWARD, pinned.boot).state is BootBoundary.RESOLVED
 
 
 def test_disclosed_limits_name_the_five_residual_limits() -> None:

@@ -9,6 +9,14 @@ input can be justified by this module.
 
 Fix (code review round 1, R5 and R7): ``loads_strict`` decodes host evidence
 and rejects an object that repeats a key.
+
+Fix (design Q28=A follow-up): a boot decision has an explicit
+``BootBoundary`` state. It is resolved only from the ``BootSemantics`` a
+pinned ``HostProfile`` records as validated: a true boot, uptime that counts
+sleep and hibernation, and a fixed tolerance with its basis and the clock
+uncertainty it accepts. Without all of them the boundary stays unresolved with
+a classified reason, whatever the clock comparison says, and bounds no
+history. The shipped registry records no semantics.
 """
 
 from __future__ import annotations
@@ -132,12 +140,35 @@ class CommandRunner(Protocol):
 
 
 @dataclass(frozen=True)
+class BootSemantics:
+    """The boot evidence one host profile records as validated (designs Q21=A, Q28=A).
+
+    ``true_boot`` records that the boot process's creation marks a true boot,
+    Windows fast startup included, and ``sleep_inclusive_uptime`` that uptime
+    counts time spent in sleep and hibernation. ``tolerance`` is the fixed
+    tolerance of the clock comparison, ``tolerance_basis`` what that value
+    rests on and ``clock_uncertainty`` the clock movement it accepts within the
+    disclosed Q21=A limit. A case recorded as not reproduced stays ``False``:
+    that label is not evidence. A wider tolerance loosens the comparison; it
+    never strengthens it.
+    """
+
+    true_boot: bool
+    sleep_inclusive_uptime: bool
+    tolerance: timedelta
+    tolerance_basis: str
+    clock_uncertainty: str
+
+
+@dataclass(frozen=True)
 class HostProfile:
     """One validated host version with the evidence that pins it.
 
     ``image_sha256`` is the loaded-image digest of a Codex release; Claude
     profiles leave it ``None``. ``evidence`` names the section of the profile
-    evidence document recording the validation.
+    evidence document recording the validation. ``boot`` holds the boot
+    semantics that validation recorded (design Q28=A follow-up); without them
+    no boot decision resolves.
     """
 
     host: Host
@@ -145,6 +176,7 @@ class HostProfile:
     os_builds: frozenset[int]
     evidence: str
     image_sha256: str | None = None
+    boot: BootSemantics | None = None
 
 
 @dataclass(frozen=True)
@@ -235,6 +267,20 @@ def classify_caller(environment: Mapping[str, str], ancestry: Sequence[str] | No
     return CallerDecision(CallerOrigin.AGENT if agent else CallerOrigin.UNPROVED, tuple(reasons))
 
 
+class BootBoundary(StrEnum):
+    """How a boot decision bounds the transcript history (designs Q21=A, Q28=A).
+
+    Only ``RESOLVED`` lets the boot instant bound ordinary work. ``UNRESOLVED``
+    bounds nothing: every earlier record stays in scope. ``PENDING`` keeps
+    activation pending, because the evidence is invalid or the clock moved
+    backward beyond the validated tolerance.
+    """
+
+    RESOLVED = "resolved"
+    UNRESOLVED = "unresolved"
+    PENDING = "pending"
+
+
 @dataclass(frozen=True)
 class BootObservation:
     """Fixed boot-process creation instant with the current time and uptime."""
@@ -246,25 +292,62 @@ class BootObservation:
 
 @dataclass(frozen=True)
 class BootDecision:
-    """History boundary, or pending when the clock moved backward since boot."""
+    """History boundary with its explicit state.
 
-    verdict: Verdict
+    Fix (design Q28=A follow-up): ``state`` replaces the former verdict, so an
+    unresolved boundary is never mistaken for a resolved one. ``boundary`` is
+    the fixed boot instant of a ``RESOLVED`` decision and ``None`` otherwise.
+    An unresolved decision names each boot predicate no profile validated; a
+    pending one names the invalid evidence or the backward clock movement.
+    """
+
+    state: BootBoundary
     boundary: datetime | None
     reasons: tuple[Reason, ...]
 
 
-def boot_boundary(observation: BootObservation, tolerance: timedelta) -> BootDecision:
-    """Select history from the fixed boot instant, never from now minus uptime.
+def _unvalidated(semantics: BootSemantics | None) -> tuple[Reason, ...]:
+    """Name each boot predicate the profile does not record as validated."""
+    if semantics is None:
+        return (Reason("boot-semantics-unpinned"),)
+    gaps = (
+        (not semantics.true_boot, "true-boot-unvalidated"),
+        (not semantics.sleep_inclusive_uptime, "uptime-sleep-unvalidated"),
+        (not (semantics.tolerance_basis.strip() and semantics.clock_uncertainty.strip()), "tolerance-basis-unrecorded"),
+    )
+    return tuple(Reason(code) for missing, code in gaps if missing)
 
-    The computed instant only detects a net backward clock movement (Q21=A): a
-    computed boot earlier than the fixed one beyond ``tolerance`` stays pending.
+
+def boot_boundary(observation: BootObservation, semantics: BootSemantics | None) -> BootDecision:
+    """Select history from the fixed boot instant only when a profile validated its semantics.
+
+    Fix (design Q28=A follow-up): the boundary resolves only when the pinned
+    profile records a true boot, sleep-inclusive uptime and its fixed
+    tolerance with that tolerance's basis and accepted clock uncertainty.
+    Otherwise it stays unresolved with a classified reason, whatever the clock
+    comparison would say. With validated semantics, the computed instant only
+    detects a net backward clock movement (Q21=A): a computed boot earlier than
+    the fixed one beyond the tolerance stays pending. The boundary is never
+    current time minus uptime.
+
+    Args:
+        observation: The fixed boot-process creation instant, current time and uptime.
+        semantics: The boot semantics the pinned profile records, or ``None``
+            when no profile records them.
+
+    Returns:
+        A resolved decision at the fixed boot instant, an unresolved one with
+        its reasons, or a pending one for invalid evidence or a backward clock.
     """
-    if observation.uptime.total_seconds() < 0 or tolerance.total_seconds() < 0:
-        return BootDecision(Verdict.PENDING, None, (Reason("boot-evidence-invalid"),))
+    if observation.uptime.total_seconds() < 0 or (semantics is not None and semantics.tolerance.total_seconds() < 0):
+        return BootDecision(BootBoundary.PENDING, None, (Reason("boot-evidence-invalid"),))
+    unvalidated = _unvalidated(semantics)
+    if semantics is None or unvalidated:
+        return BootDecision(BootBoundary.UNRESOLVED, None, unvalidated)
     computed = observation.now - observation.uptime
-    if computed < observation.boot_created_at - tolerance:
-        return BootDecision(Verdict.PENDING, None, (Reason("clock-backward-beyond-tolerance"),))
-    return BootDecision(Verdict.SUPPORTED, observation.boot_created_at, ())
+    if computed < observation.boot_created_at - semantics.tolerance:
+        return BootDecision(BootBoundary.PENDING, None, (Reason("clock-backward-beyond-tolerance"),))
+    return BootDecision(BootBoundary.RESOLVED, observation.boot_created_at, ())
 
 
 # eof
