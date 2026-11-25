@@ -5,6 +5,11 @@ release whose process linkage, allocation walk, class 44 identity, digest,
 manifest and OS build agree, and rechecks them before input. The input proof
 needs exactly one session file whose latest typed input is the delivered
 command, with the pre-input version; every other outcome is unsupported.
+
+Fix (design Q28=A follow-up): the real-updater experiment stays deferred, so
+the module is unchanged and every recheck stays mandatory. A clean recheck is
+never reused: each change of the process, image, path or manifest is still
+reported by the next recheck after a clean one.
 """
 
 # ruff: noqa: RUF001
@@ -66,6 +71,18 @@ QUERY = CodexInputQuery(text=COMMAND, cwd="C:\\Work\\Checkout\\", delivered_at=a
 SECOND_CHILD = (ProcessRecord(SHELL_PID, 1, "cmd.exe"), ProcessRecord(HOST_PID, SHELL_PID, "codex.exe"), ProcessRecord(21, SHELL_PID, "codex.exe"))
 PARTIAL_WALK = ImageWalk(complete=False, regions=1, mapped_names=(CODEX_NATIVE,))
 DOUBLE_WALK = ImageWalk(complete=True, regions=2, mapped_names=(CODEX_NATIVE, CODEX_NATIVE))
+RECHECK_CHANGES: list[tuple[dict[str, Any], str]] = [
+    ({"listing": (ProcessRecord(SHELL_PID, 1, "cmd.exe"), ProcessRecord(22, SHELL_PID, "codex.exe"))}, "codex-child-not-single"),
+    ({"listing": SECOND_CHILD}, "codex-child-not-single"),
+    ({"listing": None}, "process-listing-unavailable"),
+    ({"created": CREATED + 1}, "process-binding-changed"),
+    ({"native": "\\Device\\Volume3\\renamed\\codex.exe"}, "process-binding-changed"),
+    ({"walk": PARTIAL_WALK}, "image-walk-incomplete"),
+    ({"walk": DOUBLE_WALK}, "image-allocation-not-single"),
+    ({"status": 0xC0000001}, "image-identity-rejected"),
+    ({"files": {MANIFEST_PATH: codex_manifest(variant="other")}}, "manifest-changed"),
+    ({"files": {}}, "manifest-unavailable"),
+]
 
 
 def test_release_layout_is_parsed_from_the_native_image_name() -> None:
@@ -208,27 +225,27 @@ def test_recheck_passes_while_every_binding_is_unchanged() -> None:
     assert api.closed == [7, 1020]
 
 
-@pytest.mark.parametrize(
-    ("change", "reason"),
-    [
-        ({"listing": (ProcessRecord(SHELL_PID, 1, "cmd.exe"), ProcessRecord(22, SHELL_PID, "codex.exe"))}, "codex-child-not-single"),
-        ({"listing": SECOND_CHILD}, "codex-child-not-single"),
-        ({"listing": None}, "process-listing-unavailable"),
-        ({"created": CREATED + 1}, "process-binding-changed"),
-        ({"native": "\\Device\\Volume3\\renamed\\codex.exe"}, "process-binding-changed"),
-        ({"walk": PARTIAL_WALK}, "image-walk-incomplete"),
-        ({"walk": DOUBLE_WALK}, "image-allocation-not-single"),
-        ({"status": 0xC0000001}, "image-identity-rejected"),
-        ({"files": {MANIFEST_PATH: codex_manifest(variant="other")}}, "manifest-changed"),
-        ({"files": {}}, "manifest-unavailable"),
-    ],
-)
+@pytest.mark.parametrize(("change", "reason"), RECHECK_CHANGES)
 def test_recheck_reports_each_changed_binding(change: dict[str, Any], reason: str) -> None:
     """A replaced child, restarted process, renamed image or new manifest stops input."""
     api = FakeWindowsApi()
     prover = CodexImageProver(api, codex_registry())
     proof = prover.prove(SHELL_PID).proof
     assert proof is not None
+    for name, value in change.items():
+        setattr(api, name, value)
+
+    assert prover.recheck(proof) == (Reason(reason),)
+
+
+@pytest.mark.parametrize(("change", "reason"), RECHECK_CHANGES)
+def test_clean_recheck_is_never_reused(change: dict[str, Any], reason: str) -> None:
+    """With the real-updater experiment deferred (Q28=A), a change after a clean recheck is still reported."""
+    api = FakeWindowsApi()
+    prover = CodexImageProver(api, codex_registry())
+    proof = prover.prove(SHELL_PID).proof
+    assert proof is not None
+    assert prover.recheck(proof) == ()
     for name, value in change.items():
         setattr(api, name, value)
 
