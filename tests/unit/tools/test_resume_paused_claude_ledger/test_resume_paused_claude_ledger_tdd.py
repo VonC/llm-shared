@@ -28,6 +28,11 @@ read, a schedule-only one included.
 Fix (code review round 4): the unlinked call and result case gives its result
 an object container, so it keeps its single linkage reason; the round 4
 regressions live in ``test_resume_paused_claude_ledger_evidence_tdd.py``.
+
+Fix (design Q28=A follow-up): the scopes carry a resolved ``BootDecision``
+instead of a bare instant, so these cases keep their true-boot meaning; the
+unresolved and pending boundaries are covered in
+``test_resume_paused_claude_ledger_boot_tdd.py``.
 """
 
 from __future__ import annotations
@@ -50,6 +55,7 @@ from tests.unit.tools.resume_paused_test_support import (
     jsonl,
     record,
     reply,
+    resolved_boot,
     session_start,
     task_ended,
     tool_call,
@@ -72,7 +78,7 @@ from tools.resume_paused_profiles import (
 
 BOUND = "bound.jsonl"
 PROCESS = ProcessIdentity(HOST_PID, filetime(at(1)))
-SCOPE = LedgerScope(checkout=CHECKOUT, boot_boundary=at(0), bound_path=BOUND, session_id=SESSION_ID, process=PROCESS)
+SCOPE = LedgerScope(checkout=CHECKOUT, boot_boundary=resolved_boot(0), bound_path=BOUND, session_id=SESSION_ID, process=PROCESS)
 WATCHER = ("PowerShell", {"backgroundTaskId": "task1"})
 MARKED = "/resume-session rp1:launch-1"
 LAUNCHER = '& "C:\\tools\\bin\\review_exchange.bat"'
@@ -238,7 +244,7 @@ def test_transcript_before_boot_is_read_for_schedules_only() -> None:
     """A true boot bounds old task starts but never discards a schedule."""
     old = closed_turn(WATCHER, ("CronCreate", {"id": "job1"}))
     source = FakeTranscriptSource({"old.jsonl": jsonl(old), BOUND: jsonl(closed_turn())}, {"old.jsonl": at(0)})
-    scope = replace(SCOPE, boot_boundary=at(30))
+    scope = replace(SCOPE, boot_boundary=resolved_boot(30))
 
     durable = ClaudeLedger(claude_profile(), source, lambda: PROCESS).evaluate(scope)
     session_only = ClaudeLedger(claude_profile(durable_schedules=False), source, lambda: PROCESS).evaluate(scope)
@@ -264,7 +270,7 @@ def test_pre_boot_transcript_must_still_be_classified(old: list[dict[str, Any]] 
     data = old if isinstance(old, bytes) else jsonl(old)
     source = FakeTranscriptSource({"old.jsonl": data, BOUND: jsonl(closed_turn())}, {"old.jsonl": at(0)})
 
-    decision = ClaudeLedger(claude_profile(), source, lambda: PROCESS).evaluate(replace(SCOPE, boot_boundary=at(30)))
+    decision = ClaudeLedger(claude_profile(), source, lambda: PROCESS).evaluate(replace(SCOPE, boot_boundary=resolved_boot(30)))
 
     assert reasons(decision) == expected
 

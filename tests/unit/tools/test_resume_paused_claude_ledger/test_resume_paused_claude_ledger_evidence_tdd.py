@@ -15,6 +15,9 @@ absent, or whose ancestor is absent further up a chain of clears, is pending;
 so is a predecessor excluded as another checkout's transcript. An unreadable or
 incomplete predecessor stays pending under its own read reason, a predecessor
 older than boot stays under the boot rule, and a complete chain proves absence.
+
+Fix (design Q28=A follow-up): the boot rule needs a resolved ``BootDecision``;
+the predecessor case now states one.
 """
 
 from __future__ import annotations
@@ -33,6 +36,7 @@ from tests.unit.tools.resume_paused_test_support import (
     jsonl,
     record,
     reply,
+    resolved_boot,
     session_start,
     typed,
 )
@@ -138,9 +142,9 @@ def test_unreadable_incomplete_or_foreign_predecessor_is_pending(earlier: list[d
 
 
 def test_predecessor_before_boot_stays_under_the_boot_rule() -> None:
-    """A listed earlier file older than the boot boundary is bounded by boot, not reported missing."""
+    """A listed earlier file older than a resolved boot boundary is bounded by boot, not reported missing."""
     files: dict[str, bytes | None] = {OLD: jsonl(closed_turn(WATCHER)), OTHER: jsonl(CLEARED), BOUND: jsonl(closed_turn())}
-    scope = replace(LINKED, boot_boundary=at(30))
+    scope = replace(LINKED, boot_boundary=resolved_boot(30))
 
     decision = ClaudeLedger(claude_profile(), FakeTranscriptSource(files, {OLD: at(0)}), lambda: PROCESS).evaluate(scope)
 

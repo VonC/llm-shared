@@ -66,6 +66,19 @@ Fix (code review round 5):
   the scope. An earlier file missing from the enumeration, or excluded as
   another checkout's transcript, counts ``continuation-predecessor-missing``,
   so a cleared file never proves a complete generation over lost history.
+
+Fix (design Q28=A follow-up): an unproved boot boundary discharges no ordinary
+work. ``LedgerScope.boot_boundary`` is the ``BootDecision`` itself: only a
+resolved one bounds the lifecycle check to files modified since the boot. An
+unresolved one bounds nothing, so every listed in-checkout transcript gets the
+lifecycle check and its missing, unreadable or incomplete history stays
+pending under its existing reasons. A pending one adds each of its reasons at
+least once, so the pending state alone keeps absence pending, even with
+zero-count reasons (Q28=A review round 1). A
+schedule still closes only on its own deletion: no recurring firing, assumed
+expiry or host restart ends one. The generation and continuation checks moved
+unchanged to ``tools.resume_paused_claude_generation`` first, since this
+module stood at 642 of its 650 lines.
 """
 
 from __future__ import annotations
@@ -85,20 +98,28 @@ from tools.resume_paused_claude import (
     parse_transcript,
     record_shape,
 )
+from tools.resume_paused_claude_generation import (
+    clears,
+    continuation_places,
+    missing_predecessors,
+    require_generation,
+    writer_markers,
+)
 from tools.resume_paused_claude_graph import INPUT_SHAPE, TranscriptGraph, repeated
-from tools.resume_paused_profiles import DISCLOSED_LIMITS, ReadAccount, Reason
-from tools.resume_paused_windows import filetime_to_datetime
+from tools.resume_paused_profiles import (
+    DISCLOSED_LIMITS,
+    BootBoundary,
+    ReadAccount,
+    Reason,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterable
     from datetime import datetime
 
     from tools.resume_paused_claude import TranscriptFile, TranscriptSource
-    from tools.resume_paused_profiles import ProcessIdentity
+    from tools.resume_paused_profiles import BootDecision, ProcessIdentity
 
-_COMPACT_MARKER: Final = "SessionStart:compact"
-_CLEAR_MARKER: Final = "SessionStart:clear"
-_SESSION_START: Final = "SessionStart:"
 _REPORT: Final = "report"
 
 
@@ -113,7 +134,10 @@ class Absence(StrEnum):
 class LedgerScope:
     """What one absence decision covers.
 
-    ``bound_path`` is the transcript of the pane's reported session id and
+    ``boot_boundary`` is the boot decision. Only a resolved one bounds the
+    lifecycle check to files modified since the boot; an unresolved one leaves
+    every listed transcript in it, and a pending one keeps the decision
+    pending. ``bound_path`` is the transcript of the pane's reported session id and
     ``process`` the generation of the pane's single Claude child, observed
     before the read. ``markers`` are the SessionStart forms accepted as the
     first timestamped record. ``identity_source`` is how TUIOS learned the
@@ -127,7 +151,7 @@ class LedgerScope:
     """
 
     checkout: str
-    boot_boundary: datetime
+    boot_boundary: BootDecision
     bound_path: str
     session_id: str
     process: ProcessIdentity
@@ -179,10 +203,9 @@ def _placement(facts: tuple[RecordFact, ...], checkout: str) -> bool | None:
     return inside.pop() if len(inside) == 1 else None
 
 
-def _restarts(fact: RecordFact) -> bool:
-    """Tell whether a record is a SessionStart other than a compaction."""
-    hook = fact.hook or ""
-    return hook.startswith(_SESSION_START) and hook != _COMPACT_MARKER
+def _bounding_instant(boot: BootDecision) -> datetime | None:
+    """Return the instant that bounds ordinary history; only a resolved boot decision has one."""
+    return boot.boundary if boot.state is BootBoundary.RESOLVED else None
 
 
 def _versions(facts: tuple[RecordFact, ...]) -> set[str]:
@@ -199,42 +222,6 @@ def _marked_uuid(facts: tuple[RecordFact, ...]) -> str | None:
 def _requestor_calls(facts: Iterable[RecordFact]) -> set[tuple[str, ...]]:
     """Return each recognized requestor call as the single-result tuple that answers it."""
     return {(call,) for fact in facts for call, kind in fact.exchange_calls if kind is ExchangeCall.REQUESTOR}
-
-
-def _first_stamped(facts: tuple[RecordFact, ...]) -> RecordFact | None:
-    """Return the first record that carries a timestamp."""
-    return next((fact for fact in facts if fact.timestamp is not None), None)
-
-
-def continuation_places(pairs: Iterable[tuple[str, str]]) -> dict[str, tuple[str, int]]:
-    """Number each transcript along its single proved continuation chain.
-
-    A session clears into one next file, so a proved pair is kept only when
-    its earlier file has no other successor and its later file no other
-    predecessor; a branching or looping link places nothing. Each kept file
-    is visited once: the work and the result grow with the number of pairs,
-    never with their product.
-
-    Args:
-        pairs: The proved (earlier path, later path) continuation pairs.
-
-    Returns:
-        For each placed path, the head of its chain and its position in it.
-    """
-    links = list(pairs)
-    successors = Counter(first for first, _ in links)
-    predecessors = Counter(last for _, last in links)
-    step = {first: last for first, last in links if successors[first] == 1 and predecessors[last] == 1}
-    followers = set(step.values())
-    places: dict[str, tuple[str, int]] = {}
-    for head in step:
-        node: str | None = None if head in followers else head
-        position = 0
-        while node is not None:
-            places[node] = (head, position)
-            position += 1
-            node = step.get(node)
-    return places
 
 
 def _earliest(first: datetime | None, second: datetime | None) -> datetime | None:
@@ -278,59 +265,9 @@ def _outside(values: Iterable[str], allowed: frozenset[str]) -> int:
     return sum(1 for value in values if value not in allowed)
 
 
-def _clears(facts: tuple[RecordFact, ...]) -> bool:
-    """Tell whether a transcript begins with a clear marker."""
-    first = _first_stamped(facts)
-    return first is not None and first.attachment == "hook_success" and first.hook == _CLEAR_MARKER
-
-
 def _call_names(facts: tuple[RecordFact, ...]) -> dict[str, str]:
     """Return the tool name of each call identifier a transcript records."""
     return {call: name for fact in facts for call, name in fact.calls}
-
-
-def _missing_predecessors(continuations: frozenset[tuple[str, str]], listed: frozenset[str], outside: set[str]) -> int:
-    """Count proved continuations into a listed file whose earlier file is missing from the scope.
-
-    The pair names the earlier file, so its absence from the enumeration, or
-    its exclusion as another checkout's transcript, is detected missing
-    history: the later file cannot prove that the earlier one held no other
-    work. Each link of a chain is checked, so a missing ancestor is counted
-    too. An unreadable or incomplete earlier file is counted by its own read
-    reason, and one older than the boot boundary stays under the boot rule.
-    """
-    return sum(1 for earlier, later in continuations if later in listed and (earlier not in listed or earlier in outside))
-
-
-def _writer_markers(*, continued: bool) -> frozenset[str]:
-    """Return the first markers accepted for a transcript other than the bound one.
-
-    A startup marker opens a complete generation. A clear marker does only
-    when the caller proved that this file continues an earlier file of the
-    same process: the requestor's own acceptance of a clear never extends to
-    another writer.
-    """
-    return STARTUP_MARKERS | {_CLEAR_MARKER} if continued else STARTUP_MARKERS
-
-
-def _marker(first: RecordFact | None, markers: frozenset[str], process: ProcessIdentity | None, reasons: Counter[str]) -> None:
-    """Require the first timestamped record to be an accepted marker, after the process creation when known."""
-    if first is None or first.timestamp is None or first.attachment != "hook_success" or first.hook not in markers:
-        reasons["generation-marker-missing"] += 1
-    elif process is not None and first.timestamp < filetime_to_datetime(process.created_at):
-        reasons["generation-marker-before-process"] += 1
-
-
-def _generation(facts: tuple[RecordFact, ...], markers: frozenset[str], process: ProcessIdentity | None, reasons: Counter[str]) -> None:
-    """Require one complete generation: an accepted first marker and no later restart.
-
-    A missing or unaccepted first marker means missing history, and a later
-    SessionStart other than a compaction means another generation wrote into
-    the file. Both are pending.
-    """
-    first = _first_stamped(facts)
-    _marker(first, markers, process, reasons)
-    reasons["generation-restarted"] += sum(1 for fact in facts if fact is not first and _restarts(fact))
 
 
 @dataclass(frozen=True)
@@ -371,7 +308,7 @@ class _Tally:
         clear marker, and every earlier file a continuation names must be in
         the scope.
         """
-        self.reasons["continuation-predecessor-missing"] += _missing_predecessors(self.continuations, self.listed, self.outside)
+        self.reasons["continuation-predecessor-missing"] += missing_predecessors(self.continuations, self.listed, self.outside)
         places = continuation_places(pair for pair in self.continuations if pair[1] in self.cleared)
         tasks, reused_tasks = _unmatched(self.task_starts, self.task_ends, places)
         schedules, reused_schedules = _unmatched(self.schedule_starts, self.schedule_ends, places)
@@ -402,11 +339,20 @@ class ClaudeLedger:
         self._rebind = rebind
 
     def evaluate(self, scope: LedgerScope) -> LedgerDecision:
-        """Prove absence only when every in-scope record is complete and matched."""
+        """Prove absence only when every in-scope record is complete and matched.
+
+        A pending boot decision adds each of its reasons at least once, or
+        ``boot-boundary-pending`` when it names none: the pending state alone
+        keeps absence pending, whatever counts its reasons carry.
+        """
         tally = _Tally(scope.continuations)
         listing = self._source.list_files()
         if listing is None:
             return LedgerDecision(Absence.PENDING, (Reason("enumeration-incomplete"),), tally.account)
+        boot = scope.boot_boundary
+        if boot.state is BootBoundary.PENDING:
+            for reason in boot.reasons or (Reason("boot-boundary-pending"),):
+                tally.reasons[reason.code] += max(reason.count, 1)
         tally.listed = frozenset(file.path for file in listing)
         tally.reasons["bound-transcript-missing"] += scope.bound_path not in tally.listed
         tally.reasons["session-identity-unreported"] += scope.identity_source != _REPORT
@@ -416,9 +362,14 @@ class ClaudeLedger:
         return tally.decision()
 
     def _read(self, file: TranscriptFile, scope: LedgerScope, tally: _Tally) -> None:
-        """Read one transcript: classification and schedules always, lifecycle since boot."""
+        """Read one transcript: classification and schedules always, lifecycle since a resolved boot.
+
+        Without a resolved boot boundary, every transcript gets the lifecycle
+        check, however old: an unproved boot discharges no ordinary work.
+        """
         bound = file.path == scope.bound_path
-        recent = bound or file.modified >= scope.boot_boundary
+        since = _bounding_instant(scope.boot_boundary)
+        recent = bound or since is None or file.modified >= since
         if not (recent or self._profile.durable_schedules):
             return
         marked = scope.marked_input if bound else None
@@ -429,7 +380,7 @@ class ClaudeLedger:
             tally.outside.add(file.path)
             return
         transcript = _Transcript(file.path, facts, bound, TranscriptGraph(facts))
-        if _clears(facts):
+        if clears(facts):
             tally.cleared.add(file.path)
         self._classify(facts, tally.reasons)
         self._calls(transcript, tally.reasons)
@@ -519,18 +470,18 @@ class ClaudeLedger:
             tally.schedule_ends.append(event)
 
     def _lifecycle(self, transcript: _Transcript, scope: LedgerScope, tally: _Tally) -> None:
-        """Check a transcript since boot: its generation, binding, graph, closure and task events.
+        """Check a transcript in the lifecycle scope: its generation, binding, graph, closure and task events.
 
         Every transcript needs a complete generation. The bound one is checked
         against the scope's markers and the pane's process; any other writer's
-        transcript against ``_writer_markers``, with no process of its own.
+        transcript against ``writer_markers``, with no process of its own.
         """
         facts = transcript.facts
         excluded: frozenset[str] = frozenset()
         if transcript.bound:
             excluded = self._bound(transcript, scope, tally.reasons)
         else:
-            _generation(facts, _writer_markers(continued=transcript.path in tally.continued), None, tally.reasons)
+            require_generation(facts, writer_markers(continued=transcript.path in tally.continued), None, tally.reasons)
         self._graph(transcript, tally.reasons)
         self._closure(transcript, tally.reasons)
         statuses = self._profile.terminal_statuses
@@ -543,7 +494,7 @@ class ClaudeLedger:
     def _bound(self, transcript: _Transcript, scope: LedgerScope, reasons: Counter[str]) -> frozenset[str]:
         """Bind the pane's transcript; return the start records its requestor exception covers."""
         facts = transcript.facts
-        _generation(facts, scope.markers, scope.process, reasons)
+        require_generation(facts, scope.markers, scope.process, reasons)
         reasons["session-mismatch"] += {fact.session for fact in facts if fact.session} != {scope.session_id}
         return self._requestor_starts(transcript, reasons) if scope.marked_input is not None else frozenset()
 
