@@ -5,15 +5,17 @@ per finding. R3-1: the requestor exception covers one start record, so an
 earlier or later start sharing its task id stays pending, with or without a
 terminal record. R3-2: a pinned leaf recorded at or after its turn's final
 record, or without an instant, is pending, while a leaf recorded before it
-still proves. R3-3: continuation chains are numbered in one pass; a long
-chain yields one place per file, and a branching or looping link closes
-nothing.
+still proves. R3-3: a branching or looping continuation link closes nothing.
+
+Fix (design Q28=A follow-up): ``continuation_places`` moved to
+``tools.resume_paused_claude_generation``, and its two direct R3-3 cases (one
+place per file along a long chain, nothing placed for a branch or a loop)
+moved to ``test_resume_paused_claude_generation_tdd.py``.
 """
 
 from __future__ import annotations
 
 from dataclasses import replace
-from itertools import pairwise
 from typing import Any
 
 import pytest
@@ -42,11 +44,10 @@ from tests.unit.tools.test_resume_paused_claude_ledger.test_resume_paused_claude
     reasons,
     side,
 )
-from tools.resume_paused_claude_ledger import Absence, continuation_places
+from tools.resume_paused_claude_ledger import Absence
 
 SHARED = {"backgroundTaskId": "wait1"}
 REUSED = {"background-start-unmatched": 1, "task-id-reused": 1}
-CHAIN_LENGTH = 1000
 
 
 def later_start_sharing_the_exempt_id() -> list[dict[str, Any]]:
@@ -91,31 +92,6 @@ def test_pinned_leaf_needs_an_instant_on_its_closing_record() -> None:
 
     assert reasons(decide({BOUND: [*undated, side("leaf", "in", 30)]}, leaf_shapes=LEAVES)) == {"leaf-after-closing": 1}
     assert decide({BOUND: [*closed_turn(), side("leaf", "in", 30)]}, leaf_shapes=LEAVES).absence is Absence.PROVED
-
-
-def test_long_continuation_chain_is_numbered_once_per_file() -> None:
-    """A chain of a thousand clears yields one place per file, not one entry per reachable pair."""
-    names = [f"s{index}.jsonl" for index in range(CHAIN_LENGTH + 1)]
-
-    places = continuation_places(pairwise(names))
-
-    assert len(places) == CHAIN_LENGTH + 1
-    assert places[names[0]] == (names[0], 0)
-    assert places[names[-1]] == (names[0], CHAIN_LENGTH)
-
-
-@pytest.mark.parametrize(
-    "pairs",
-    [
-        {("a", "b"), ("a", "c")},
-        {("a", "c"), ("b", "c")},
-        {("a", "b"), ("b", "a")},
-        {("a", "a")},
-    ],
-)
-def test_branching_or_looping_continuation_places_nothing(pairs: set[tuple[str, str]]) -> None:
-    """Two successors, two predecessors and a loop are ambiguous: no file is placed."""
-    assert continuation_places(pairs) == {}
 
 
 def test_ambiguous_continuation_closes_no_start() -> None:
