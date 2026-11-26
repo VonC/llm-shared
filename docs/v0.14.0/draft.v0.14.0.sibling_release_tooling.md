@@ -162,7 +162,7 @@ The aim is that no project needs an `init.bat` at all.
 | `PRJ_DIR` / `PRJ_DIR_NAME` required | The engine receives the project root as an argument from the project `build.bat` (`%~dp0`), and derives the name itself |
 | `changelog-header.md` required | Checked only by the `changelog` command, and only in generated-changelog mode |
 | `filter.changelog` git config | Written in all three repositories' `.git/config`, but no `.gitattributes` maps `CHANGELOG.md` to it: dead today. Dropped, since the heading it was meant to clean no longer carries a hash (see "No hash in the snapshot changelog heading") |
-| Aliases `b`, `brel`, `br`, `crel`, `gv`, `uc`, `uver`, `uverr`, `uvf` | llm-shared `senv.doskey`, pointing at llm-shared launchers |
+| Aliases `b`, `brel`, `br`, `crel`, `gv`, `uc`, `uver`, `uverr`, `uvf` | llm-shared `senv.doskey`, pointing at llm-shared launchers. No alias is named `uv` or `uvr`: `uv` is the Python package manager, and the old `uv`/`uvr` aliases that my-project's pin `5720c4b` still defines were renamed `uver`/`uverr` in `f90bfc6` (user direction, 2026-11-25) |
 | Aliases `a`, `t`, `s`, `i`, `p`, `d`, `r`, `senv`, `lsenv`, `usenv`, `psenv`, `hsenv`, `hlsenv`, `psenve`, `cdp`, `fsenv` | Stay with each project `senv.bat` (workspace-halo already defines its own `i`, `cdp`, `fsenv`) |
 | `VERSION_TXT_FILE`, `POM_FILE`, `PACKAGE_JSON_FILE`, `HEADER_CHANGELOG_FILE`, `DEV_WORKFLOW_DIR`, `PRJ_DIR_unix` | Computed inside the engine from the project root; no environment variable to export |
 | `local_path` / `local_path_msg` | Computed and never read: drop |
@@ -783,6 +783,18 @@ pattern = ^APP_SERVICE_VERSION=(.+)$
 form = snapshot
 ```
 
+Two changelog words recur below. A section is the part of a changelog file
+that starts at a level-two `## ...` heading and runs over every line under
+it, up to the next level-two heading; most sections name a release, such as
+`## [v0.14.0] - 2026-11-12 - Groundhog Shares the Stopwatch` with its commit
+list, or workspace-halo's `## 0.0.24` with its bullets. Sections are what
+rendering preserves, archives move and curated validation looks for. Release
+notes are the text a person writes about a release: in generated mode, the
+body of `version.txt` below its first line, which the engine copies into the
+target version's section; in curated mode, the bullets or paragraphs under
+the release's heading. The release notes a released section already holds, with any other
+text an author added there, are its editorial or historical notes.
+
 `generated` means commit-derived changelog text owned by the engine. `curated`
 means author-maintained release notes, such as marketplace-facing bullets.
 Neither mode changes the version-source forms or the consuming build gate.
@@ -813,7 +825,11 @@ of inclusive archive ranges, each stored as
 `docs/CHANGELOG.vA.B.C-vD.E.F.md`. Without ranges, the default remains a single
 root file; setup proposes an initial split based on existing history. The
 example above puts releases `0.1.0` through `0.13.9` in the named archive and
-stable releases from `0.14.0` onward in the root file.
+stable releases from `0.14.0` onward in the root file. An archive is such a
+file: it holds the released sections of one older range, newest first, and
+is declared by one `[changelog-archive:...]` configuration section. It is
+unrelated to archiving the `senv_dev_workflow` repository mentioned above,
+which means making that repository read-only.
 
 Compare version triples numerically, never as strings; do not infer ranges
 from current file sizes or silently choose new boundaries. Each stable release
@@ -931,12 +947,10 @@ So a Python runner can replace Perl completely:
 - project rules move to `.changelog-fixes.toml`, a declarative file with one
   pattern and one replacement per rule:
 
-cSpell: disable
-
   ```toml
   [[rule]]
-  pattern = 'sumary'
-  replace = 'summary'
+  pattern = ' _main '
+  replace = ' `_main` '
 
   [[rule]]
   pattern = '\[v4\.1\.0\] -\s*?[\r\n]'
@@ -946,8 +960,6 @@ cSpell: disable
   pattern = '(?<!`)__init__\.py'
   replace = '`__init__.py`'
   ```
-
-cSpell: enable
 
 - `fixes <root> convert` writes `.changelog-fixes.toml` from an existing
   `.changelog.fixes`, reading only the `push` pairs and the `=>` lines. Any
@@ -964,8 +976,8 @@ cSpell: enable
 - `brel` never creates the file: a new untracked file would make the tree
   dirty mid-release, outside the release commit. When the TOML is missing,
   `brel` uses the transition reader instead, reading the same subset of
-  `.changelog.fixes` in memory, and notes that the next `/prepare-release`
-  will convert it automatically;
+  `.changelog.fixes` in memory, and prints a notice that the next
+  `/prepare-release` will convert it automatically;
 - once `.changelog-fixes.toml` exists, it is the only rule file read; a
   `.changelog.fixes` still present beside it gets a one-line warning that it is
   ignored and can be deleted;
