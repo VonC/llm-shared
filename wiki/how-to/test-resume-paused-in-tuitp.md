@@ -1,5 +1,9 @@
 # Test resume_paused in an independent tuitp desktop
 
+## Invocation model
+
+A human operator runs the live cases from a Windows terminal inside the disposable guest and records what appeared in each pane. An agent or a human can run the offline companion and list cases from the candidate checkout.
+
 Run the automated companion from a Windows candidate checkout. It exercises the resume unit and acceptance tests with fake TUIOS and temporary files. The second command lists the live cases and their step counts. Both commands work outside the lab.
 
 ```powershell
@@ -47,6 +51,8 @@ For the other cases, substitute the case name, make the indicated operator gestu
 | --- | --- |
 | `bulk` | Preview both saved pauses, deliver both, then repeat. Check both replies. The repeated launch must skip both checkouts. `bravo` uses its own artifact-home declaration. |
 | `clear` | Leave a short completed conversation visible in each target before the first step. Preview with clear enabled, deliver, then repeat. Observe the fresh conversation on each host and check both receipts. |
+| `already-cleared` | After seeding, manually submit `/clear` in Claude secondary. Leave the new conversation idle. Run the step and check that Claude reports `already cleared`, receives just the resume and gives its reply. The case requires a public clear event in this guest's TUIOS integration. Codex should receive both commands. |
+| `manual` | After seeding, invoke the native unmarked resume in Claude primary for the Codex pause saved in `alpha`. Decline the author override and wait for the question to close. Run the step and check that the report identifies the manual Claude attempt, Codex peer receives no input and the prompt is still unused. |
 | `names` | Advance through an unmatched exclusion, an unmatched switch and a switch on a single-agent pause. Each launch must refuse or diagnose its named checkout with zero dispatches. |
 | `exclude` | Exclude `bravo` on the first launch. The second launch must consume only its still-unused pause. |
 | `routes` | Run against a legacy pause in `alpha` and an absent target UUID in `bravo`. Expect distinct routing and target diagnostics. |

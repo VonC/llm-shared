@@ -10,6 +10,17 @@ This section supersedes the version, image, transcript, agent-log and Windows bu
 4. Check the OS for live shared review waiters in the checkout immediately before reviewer delivery, in addition to the existing ownership and idle checks. The kernel process table already excludes processes terminated by a full reboot and retains surviving waiters after hibernation. This makes the decision independent of wall-clock comparisons and boot-event timestamp tolerances. An inaccessible or ambiguous waiter keeps the reviewer pending. Ownership generations fence later protocol transitions.
 5. Preserve the human-only CLI, five disclosed reviewer limits and separate senv startup checklist. Keep historical profile studies as evidence of the superseded approach.
 
+An unmarked Windows receiver records the first counted manual attempt for
+the exact unused, routed prompt under the same checkout guard. The planner
+and final dispatch check see it across panes. A declined override retains
+the attempt. Consent, receipt and claim checks still run independently.
+
+For an optional Claude clear, a public TUIOS event tail can establish a clear
+strictly after the pause. Require the requested session and pane, contiguous
+sequence numbers back from the current head, and only status or turn-end
+events after the clear. Fall back to a fresh, visibly confirmed clear on
+insufficient evidence. The editor's shell-count indicator is report-only.
+
 ## Original design and decision history
 
 Reference requirement: [resume-paused feature request](feature-request.v0.15.0.resume-paused.md).

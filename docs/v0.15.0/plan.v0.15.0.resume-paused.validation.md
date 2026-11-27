@@ -19,12 +19,12 @@ Use `tests\acceptance\resume_paused\lab.bat verify` for the automated companion.
 | AC | Guest cases | Additional automated evidence |
 | --- | --- | --- |
 | 1. Discovery and artifact homes | `bulk`, `damaged` | `test_resume_paused_cli_safety_tdd.py` checks independent checkouts and a custom home. |
-| 2. Duplicate suppression | `bulk`, `concurrent`, `history`, `stall` | `test_resume_paused_evidence_tdd.py` exercises receipt, journal, override and command evidence. |
+| 2. Duplicate suppression | `bulk`, `manual`, `concurrent`, `history`, `stall` | The public terminal and manual receiver tests exercise a cross-pane attempt before consent, a held checkout guard, a replacement digest and the final dispatch check. The evidence tests cover receipt, journal, override and command signals. |
 | 3. Saved targets, overrides and names | `exclude`, `names`, `routes`, `switch`, `history`, `copied` | `test_resume_paused_planner_tdd.py` covers unsupported authors, ambiguous assignments and caller protection. |
 | 4. Protected input | `draft`, `busy`, `blocked` | `test_resume_paused_cli_safety_tdd.py` exercises busy, draft and question states. |
-| 5. Clear and background diagnostics | `clear` | `test_resume_paused_public_terminal_tdd.py` checks fresh clear evidence and editor changes on both hosts. `test_resume_paused_delivery_tdd.py` exercises unconfirmed clear and the historical redundant-clear adapter. |
+| 5. Clear and background diagnostics | `clear`, `already-cleared` | The public terminal tests check fresh clears on both hosts, a styled shell count, a post-pause Claude clear and fallback for a later prompt, stale clear, sequence gap or different pane. |
 | 6. Exact selector and independent workers | `bulk`, `concurrent` | `test_resume_paused_transport_tdd.py` covers argument boundaries. `test_resume_paused_public_terminal_tdd.py` rejects a mismatched confirmation UUID. |
-| 7. Acceptance, failure and one recovery Enter | `stall`, `recovery` | `test_resume_paused_public_terminal_tdd.py` checks changed ownership/editor state and complete receiver failure lines on both hosts. |
+| 7. Acceptance, failure and one recovery Enter | `stall`, `recovery`, `pair` | The public terminal tests check a bound consumption receipt, a current marked reviewer claim, explicit failure on both hosts and the single Codex recovery Enter with unchanged input and ownership. A lost send retains its reservation across launches. |
 | 8. Read-only preview | `bulk`, `clear`, `copied` | `test_resume_paused_cli_safety_tdd.py` also asserts zero TUIOS input calls. |
 | 9. Receiver writes and exchange fencing | `pair`, `later`, `copied` | `test_resume_paused_claims_binding_tdd.py` checks the locked claim. `test_resume_paused_live_lab_tdd.py` independently rejects wrong receipts and generations. |
 | 10. Offline-compatible tests and runtime compatibility | `verify` runs without the guest | `test_resume_paused_public_terminal_tdd.py` exercises production composition over fake TUIOS. The project check includes the Python compatibility gate. |
@@ -33,9 +33,11 @@ Use `tests\acceptance\resume_paused\lab.bat verify` for the automated companion.
 | 13. Human caller and reviewer-only classification | `caller`, `later` | `test_resume_paused_cli_safety_tdd.py` proves early refusal. `test_resume_paused_evidence_tdd.py` checks historical roles and native command forms. |
 | 14. Pause capture and routing | `capture`, `capture-pair`, `routes`, `switch` | The native capture cases adopt two single-agent pauses and one paired review pause. `test_resume_paused_pause_contract_tdd.py` and `test_resume_paused_routing_tdd.py` cover replacement guards, missing fields and conflicting evidence. |
 
-For AC5 and AC7 the current rollout confirms a fresh terminal clear and a bound shared receipt or marked claim. Historical private-log tests describe the earlier adapter. A live case earns a pass only after the guest evidence and the operator observations in its row agree.
+For AC5, a contiguous public event tail may establish that Claude already cleared after the pause. Otherwise the launcher confirms a fresh terminal clear. For AC7, the launcher checks the bound shared receipt or current marked claim. A live case earns a pass only after the guest evidence and the operator observations in its row agree.
 
 On 2026-11-26, `lab.bat cases` listed 22 scenarios and `lab.bat verify` exited 0 with zero failures, warnings or expected failures. The companion exercised native paired-pause adoption and confirmed that a case with a missing visible reply can retain a failed operator verdict after its command checks pass. Installed-host and power-transition results remain open pending a human guest run.
+
+On 2026-11-27, the candidate based on `620820b9` included the manual-attempt guard, Claude clear diagnostics and two additional guest cases. The catalogue listed 24 scenarios and the offline companion passed. At 11:00 CET, `ghog day --full=cov --whole-suite` completed a fresh run of 8,465 tests with 100% coverage and zero failures, warnings or expected failures. The installed-host cases below still require operator observations.
 
 ### Human-run checks still open
 

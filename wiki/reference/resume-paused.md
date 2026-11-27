@@ -34,7 +34,7 @@ resume_paused [--dry-run] [--clear] [--except NAME[,NAME...]] [--switch-roles NA
 | Argument | Effect |
 | --- | --- |
 | `--dry-run` | Types nothing. Reports each prompt-bearing checkout with its exact marked commands, any clear, the conditional reviewer and every skip reason. |
-| `--clear` | Clears the resumed conversation first and confirms the clear before resuming. Claude uses `/clear` and Codex uses `/new`. A counterpart is never cleared. |
+| `--clear` | Claude uses `/clear` and Codex uses `/new`. A Claude clear after the pause with a proven quiet TUIOS event tail is reported as already cleared. Otherwise the launcher confirms a fresh clear before resuming. The option applies to the resumed agent only. |
 | `--except NAME[,NAME...]` | Excludes TUIOS sessions, pane labels or checkout folder names, matched exactly and case-insensitively. Repeatable. An unmatched name refuses the whole run. |
 | `--switch-roles NAME[,NAME...]` | Swaps the saved requestor and reviewer of a saved requestor pause with a recorded pair, by TUIOS session or checkout folder name. Repeatable. An unmatched name refuses the whole run; a matched checkout without such a pair fails. A switched pair needs the switch again on every later launch. |
 | `-h`, `--help` | Prints the help, which restates the human-only contract and the limits below. |
@@ -48,7 +48,7 @@ name is a syntax error, exit status 2, before any discovery.
 2. Lists every pane once across TUIOS sessions; a failed listing refuses the
    run.
 3. Plans each checkout holding a resume prompt: a used prompt reports its
-   receipt; the private session journal, a prior dispatch for this prompt, or an outstanding author-override question in any pane can suppress another resume; the saved targets are validated against the
+   receipt; the private session journal, a manual attempt or prior dispatch for this prompt, or an outstanding author-override question in any pane can suppress another resume; the saved targets are validated against the
    live panes by full pane UUID, session, checkout and host; protected panes
    (the caller's own, excluded, blocked, holding a draft, busy, not ready)
    are skipped.
@@ -142,7 +142,7 @@ The launcher checks for live shared `wait-request` and `wait-any-request` proces
 
 Current Codex and Claude installations use TUIOS readiness and the visible empty editor. A styled empty-editor suggestion distinguishes the editor from an unsent draft. With suggestions hidden or a visually ambiguous blank input, the launcher leaves the pane alone. A changed editor layout produces a diagnostic for the affected checkout. Each host supplies its native resume, review-resume and clear commands. A schema 3 usage receipt proves the resumed pane consumed the saved prompt. The counterpart's current marked claim proves it took ownership.
 
-Before typing, the launcher reserves the operation in `a.resume-paused.<prompt digest>.<phase>.local.json` in the checkout's configured review artifact home. A dry run creates no reservation. On an unconfirmed send, inspect the named pane, its usage receipt and current review ownership before acting. A clear reservation alone means the conversation may already have been cleared. If the command is still in the editor, review it there. If delivery failed and the prompt is unused, the operator can resume manually after checking the session. Leave the reservation in place to protect against automatic replay. A manual resume that has produced no receipt, journal entry or visible override question leaves no durable evidence for the launcher. Complete an ongoing manual resume before launching the bulk command.
+Before typing, the launcher reserves the operation in `a.resume-paused.<prompt digest>.<phase>.local.json` in the checkout's configured review artifact home. A dry run creates no reservation. On an unconfirmed send, inspect the named pane, its usage receipt and current review ownership before acting. A clear reservation alone means the conversation may already have been cleared. If the command is still in the editor, review it there. If delivery failed and the prompt is unused, the operator can resume manually after checking the session. Leave the reservation in place to protect against automatic replay. On Windows, the manual receiver registers a counted attempt in `a.resume-paused.<prompt digest>.manual.local.json` before asking for consent. Bulk launches in any pane skip those prompt bytes even if the operator declines the override. A replacement prompt has its own digest.
 
 If a Codex shell inherits a different pane UUID from a shared app-server, receiver validation refuses the marked command. Inspect the intended pane and the dispatch before resuming manually.
 

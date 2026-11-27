@@ -215,9 +215,10 @@ signals is sufficient:
   rather than still waiting. Receipt-only reporting is addressed by Q08.
 - The session journal has a resume entry for the checkout later than the
   pause time.
-- After the pause time, a pane received `resume-session` or `review-resume`,
-  evidenced by a Claude agent-log `prompt` line or the command on a Codex
-  screen. Q14=A counts `resume-session` in any pane and also `review-resume`,
+- A receiver registered a manual attempt for these exact prompt bytes, or a
+  launcher reserved a marked dispatch for them. The manual registration covers
+  the interval before the author question, journal entry or receipt. Q14=A
+  counts `resume-session` in any pane and also `review-resume`,
   except reviewer-role continuation when the saved pause was not a reviewer's.
   Q26=A identifies reviewer-only continuation by the selected role, including
   native command prefixes and trailing explanatory context. A stopped attempt or
@@ -328,12 +329,11 @@ by another run. Skip changed targets without input and report the reason.
 
 When `--clear` is supplied, clear the selected conversation before resuming:
 
-- For Claude, enter `/clear`, press Enter, wait until the pane is quiet,
-  and confirm `session started (clear)` in its agent log. Skip the clear
-  when the log already records one after the pause time and no later `prompt`
-  line follows it (Q12=A). Skip only that redundant clear; still resume.
-- For Codex, use its new-conversation command, to be confirmed for the
-  version in use (`/new` or `/clear`), and confirm the result on screen.
+- Claude uses `/clear` and Codex uses `/new`. Confirm a fresh clear through
+  an empty editor and a changed agent session identity or a new clear banner.
+- Skip a redundant Claude clear when its public TUIOS event sequence proves a
+  clear after the pause and a quiet tail through the current head (Q12=A).
+  Missing or uncertain evidence requires a fresh clear.
 
 If a clear cannot be confirmed, stop processing that pane without sending
 its resume command. Clearing must respect the protected-pane rules above.
@@ -357,10 +357,9 @@ before delivery. Under Q07=A, an uncertain selector prevents input for that
 checkout, reports an error and fails the invocation.
 
 Use one worker per selected pane and dispatch across panes concurrently.
-Confirm that Claude took the command through the matching agent-log
-`prompt` line. Confirm that Codex took it through the command on screen
-followed by `• Working`. An `ask-agent` response of `ok` or state `idle`
-alone is insufficient.
+Confirm resume on either host through the schema 3 receipt bound to this
+prompt, pane, launch and assignment. Confirm counterpart activation through
+its marked claim at the current ownership generation.
 
 Readiness before typing (Q03) and submission after typing are distinct.
 Q11=C permits one bounded Codex recovery for this run's proven unsubmitted
@@ -373,8 +372,8 @@ the unchanged exact command on the input line, no placeholder below it and no
 Only when that evidence proves text ownership and non-submission, and a fresh
 Q13 check permits input, send Enter once with `tuios send-keys -s S -w ID Enter`,
 where `ID` is the full id of the pane that received the command. Never omit
-`-w`, retype the command or repeat Enter. Recheck for the command followed by
-`Working` and, for a clear, its required new-conversation result. If ownership,
+`-w`, retype the command or repeat Enter. Recheck the bound receipt, current
+marked claim or visible clear transition for the operation. If ownership,
 submission or eligibility is uncertain, send no further input. If acceptance
 remains unproved, report unconfirmed and fail the invocation. Record whether
 the recovery Enter was used. Claude has no Enter recovery; uncertain acceptance
@@ -439,8 +438,8 @@ does for takeover.
    them under Q04=A.
 6. Resolve exactly one pane per delivery selector, use shell-free argument
    lists, and process independent target panes concurrently.
-7. Require Claude log evidence or Codex screen evidence that the command
-   was taken, and reflect unconfirmed planned deliveries in the exit status.
+7. Require the bound receipt for a resume or the current marked claim for a
+   counterpart on either host. Fail an unconfirmed planned delivery.
    Permit only Q11=C's single targeted Enter for proven tool-owned unsubmitted
    Codex input, across clear, resume and reviewer commands; never retype or
    retry uncertain delivery. Report recovery use and apply Q10=A outcomes.
