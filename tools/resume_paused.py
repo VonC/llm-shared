@@ -52,6 +52,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Final, NoReturn, Protocol, TextIO
 
 from tools.resume_paused_artifacts import read_checkout_snapshot
+from tools.resume_paused_clear_log import TerminalClearLog
 from tools.resume_paused_delivery import deliver_run
 from tools.resume_paused_delivery_checks import PlanRecheck
 from tools.resume_paused_delivery_model import (
@@ -104,7 +105,6 @@ if TYPE_CHECKING:
     from tools.resume_paused_delivery_model import (
         AgentLog,
         GuardPort,
-        LogEvent,
         ProfileGate,
         ProverFactory,
         Refusal,
@@ -115,7 +115,6 @@ if TYPE_CHECKING:
         PaneObservation,
         ScreenProbe,
     )
-    from tools.resume_paused_input import PaneRecord
     from tools.resume_paused_models import CanonicalRoot
     from tools.resume_paused_pane_guard import ClaudeScreens
     from tools.resume_paused_plan_model import CheckoutPlan
@@ -224,14 +223,6 @@ def parse_arguments(argv: Sequence[str]) -> Options:
     """Parse the documented arguments, or raise ``UsageError``."""
     args = build_parser().parse_args(list(argv))
     return Options(args.dry_run, args.clear, _flatten(args.excepts), _flatten(args.switch_roles), args.help)
-
-
-class _UnreadableLog:
-    """Unused legacy log port for terminal-based delivery."""
-
-    def events(self, pane: PaneRecord) -> tuple[LogEvent, ...] | None:
-        """Report the pane's log unreadable."""
-        del pane
 
 
 class SystemClock:
@@ -348,7 +339,7 @@ def terminal_hosts(runner_for: Callable[[float], CommandRunner], exchanges: Exch
     """Use the public TUIOS terminal and shared dispatch, receipt and claim evidence."""
     screens = TerminalScreens(TuiosTransport(runner_for, physical=True))
     return HostAdapters(
-        DispatchHistory(), screens, _UnreadableLog(), screens, {}, UnprovedAbsence(), screens, screens, SharedDelivery(exchanges),
+        DispatchHistory(), screens, TerminalClearLog(runner_for), screens, {}, UnprovedAbsence(), screens, screens, SharedDelivery(exchanges),
     )
 
 

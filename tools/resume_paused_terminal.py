@@ -24,6 +24,7 @@ _RGB = 2
 _DIM = 2
 _MODAL = re.compile(r"esc(?:ape)? to (?:cancel|close)|enter to (?:select|confirm)", re.IGNORECASE)
 _CLEAR_BANNERS = {"Conversation cleared", "Conversation cleared.", "New conversation started", "New conversation started.", "Context cleared"}
+_SHELL_STATUS = r"\s*(?:[^\r\n]+? · )?[1-9]\d* (?:background )?(?:shells?|terminals?)(?: running)?(?: · .+)?\s*"
 
 
 @dataclass(frozen=True)
@@ -168,7 +169,7 @@ class TerminalScreens:
     def profile(self, pane: PaneRecord) -> DeliveryProfile | None:
         """Select the native commands of a recognized host."""
         host = pane_host(pane)
-        return DeliveryProfile(host, COMMANDS[host].clear) if host is not None else None
+        return DeliveryProfile(host, COMMANDS[host].clear, background_pattern=_SHELL_STATUS) if host is not None else None
 
     def results(self, pane: PaneRecord, timeout: float) -> tuple[str, ...]:
         """Expose only compact result-line candidates from the visible terminal."""

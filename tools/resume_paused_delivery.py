@@ -43,7 +43,12 @@ from tools.resume_paused_marker import marker_in_command, receiver_failed
 from tools.resume_paused_models import ArtifactError, timestamp_instant
 from tools.resume_paused_plan_model import ActionKind, CheckoutOutcome
 from tools.resume_paused_profiles import Host
-from tools.resume_paused_terminal import clear_observed, editor_state, result_lines
+from tools.resume_paused_terminal import (
+    clear_observed,
+    editor_state,
+    plain,
+    result_lines,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Sequence
@@ -141,7 +146,7 @@ def cleared(before: Sequence[str], after: Sequence[str], screen: InputScreen) ->
 def background_shell(lines: Sequence[str], pattern: str) -> bool:
     """Return whether a capture shows the profile's background-shell line."""
     compiled = _pattern(pattern)
-    return compiled is not None and any(compiled.fullmatch(line) for line in lines)
+    return compiled is not None and any(compiled.fullmatch(plain(line)) for line in lines)
 
 
 def _empty_input(lines: tuple[str, ...] | None, screen: InputScreen | None) -> tuple[str, ...] | Refusal:
@@ -346,7 +351,7 @@ class _ActionDelivery:
         prepared = self.prepare(Phase.CLEAR)
         if isinstance(prepared, Refusal):
             return self._report(DeliveryOutcome.REFUSED, prepared, ClearOutcome.NONE)
-        if not self.ports.shared and prepared.profile.host is Host.CLAUDE and self._redundant(prepared.pane):
+        if prepared.profile.host is Host.CLAUDE and self._redundant(prepared.pane):
             return ClearOutcome.REDUNDANT
         sent = self._send(prepared, Phase.CLEAR, prepared.profile.clear_command, self._cleared(prepared))
         if isinstance(sent, Refusal):
