@@ -1,6 +1,51 @@
 # v0.15.0 resume-paused implementation tracking and validation
 
-Yes, it is implemented.
+## Version-independent rollout validation
+
+The rollout uses public terminal observations and shared checkout artifacts for current Codex and Claude installations. The following observations were made on 2026-11-26.
+
+| Evidence | Result |
+| --- | --- |
+| Automated project checks | `ghog day --whole-suite` exited 0. Project checks passed, including ty, Pyright, Ruff, the Python compatibility check, Radon, Vulture, Markdown and ShellCheck. Groundhog reported 571 affected tests selected, zero failures, zero warnings and zero expected failures. The configured walk used `full=none` and did not measure coverage. |
+| Focused regression run | `ghog single --whole-suite` passed for the six files covering public terminal acceptance, live waiters, input classification, receiver instructions, release dependency declarations and lifecycle permission declarations. The new terminal and waiter files contain 22 cases, including complete failure lines from both hosts before a receipt and an echoed instruction that must time out unconfirmed. |
+| Production adapters over simulated TUIOS | Both native clear and resume commands produced a schema 3 receipt in a temporary checkout. Tests exercised a copied preview, an uncertain send followed by another launch, a mismatched selector UUID, a changed editor or ownership during recovery, reviewer continuation with an active or unobservable waiter, and a damaged checkout alongside a healthy one. |
+| Read-only sample of 12 installed panes | The production eligibility checks recognized 3 Codex and 2 Claude editors as ready and empty. They withheld 1 busy Claude, 2 Claude drafts or ambiguous empty rows, 1 blocked Codex, 1 busy Codex, 1 Codex with unknown activity and 1 Codex with an unrecognized screen. |
+| Public selection and waiter observation | TUIOS returned a selection token for the exact target UUID. The process census found no live shared reviewer waiter for this checkout. Windows Kernel-Boot event 27 recorded type 2 on November 26 and type 0 on November 12. Reviewer decisions use the currently observable processes and the current ownership generation, independently of those historical timestamps. |
+
+### Independent tuitp acceptance
+
+Use `tests\acceptance\resume_paused\lab.bat verify` for the automated companion. The installed-host run uses the same checkout and current Codex and Claude installations in an isolated guest. Each row below names a live case and an automated test module included by the companion. The AC numbers refer to the [14 acceptance criteria](feature-request.v0.15.0.resume-paused.md#acceptance-criteria-for-resume-paused). The [operator guide](../../wiki/how-to/test-resume-paused-in-tuitp.md) gives the setup, gestures, and evidence to keep.
+
+| AC | Guest cases | Additional automated evidence |
+| --- | --- | --- |
+| 1. Discovery and artifact homes | `bulk`, `damaged` | `test_resume_paused_cli_safety_tdd.py` checks independent checkouts and a custom home. |
+| 2. Duplicate suppression | `bulk`, `concurrent`, `history`, `stall` | `test_resume_paused_evidence_tdd.py` exercises receipt, journal, override and command evidence. |
+| 3. Saved targets, overrides and names | `exclude`, `names`, `routes`, `switch`, `history`, `copied` | `test_resume_paused_planner_tdd.py` covers unsupported authors, ambiguous assignments and caller protection. |
+| 4. Protected input | `draft`, `busy`, `blocked` | `test_resume_paused_cli_safety_tdd.py` exercises busy, draft and question states. |
+| 5. Clear and background diagnostics | `clear` | `test_resume_paused_public_terminal_tdd.py` checks fresh clear evidence and editor changes on both hosts. `test_resume_paused_delivery_tdd.py` exercises unconfirmed clear and the historical redundant-clear adapter. |
+| 6. Exact selector and independent workers | `bulk`, `concurrent` | `test_resume_paused_transport_tdd.py` covers argument boundaries. `test_resume_paused_public_terminal_tdd.py` rejects a mismatched confirmation UUID. |
+| 7. Acceptance, failure and one recovery Enter | `stall`, `recovery` | `test_resume_paused_public_terminal_tdd.py` checks changed ownership/editor state and complete receiver failure lines on both hosts. |
+| 8. Read-only preview | `bulk`, `clear`, `copied` | `test_resume_paused_cli_safety_tdd.py` also asserts zero TUIOS input calls. |
+| 9. Receiver writes and exchange fencing | `pair`, `later`, `copied` | `test_resume_paused_claims_binding_tdd.py` checks the locked claim. `test_resume_paused_live_lab_tdd.py` independently rejects wrong receipts and generations. |
+| 10. Offline-compatible tests and runtime compatibility | `verify` runs without the guest | `test_resume_paused_public_terminal_tdd.py` exercises production composition over fake TUIOS. The project check includes the Python compatibility gate. |
+| 11. Requestor before reviewer, correct receiver | `pair`, `switch`, `copied` | `test_resume_paused_continuation_tdd.py` exercises the ordered claims and an agent pane becoming a shell. |
+| 12. Reviewer-only continuation | `later`, `switch`, `hibernate`, `reboot` | `test_resume_paused_continuation_tdd.py` covers already active and uncertain reviewers. `test_resume_paused_waiters_tdd.py` checks the process census. |
+| 13. Human caller and reviewer-only classification | `caller`, `later` | `test_resume_paused_cli_safety_tdd.py` proves early refusal. `test_resume_paused_evidence_tdd.py` checks historical roles and native command forms. |
+| 14. Pause capture and routing | `capture`, `capture-pair`, `routes`, `switch` | The native capture cases adopt two single-agent pauses and one paired review pause. `test_resume_paused_pause_contract_tdd.py` and `test_resume_paused_routing_tdd.py` cover replacement guards, missing fields and conflicting evidence. |
+
+For AC5 and AC7 the current rollout confirms a fresh terminal clear and a bound shared receipt or marked claim. Historical private-log tests describe the earlier adapter. A live case earns a pass only after the guest evidence and the operator observations in its row agree.
+
+On 2026-11-26, `lab.bat cases` listed 22 scenarios and `lab.bat verify` exited 0 with zero failures, warnings or expected failures. The companion exercised native paired-pause adoption and confirmed that a case with a missing visible reply can retain a failed operator verdict after its command checks pass. Installed-host and power-transition results remain open pending a human guest run.
+
+### Human-run checks still open
+
+- From a human shell, preview and then deliver to disposable installed Codex and Claude panes. Check the actual clear transition, marked command, receipt, review ownership and compact result. Include a Codex shell started through the shared app-server to check its receiving pane identity.
+- Exercise a real TUIOS stall, refusal, unsent draft and two concurrent human launches. Check that the intended pane alone receives input and that an uncertain delivery keeps its reservation.
+- Repeat reviewer continuation after hibernation with a surviving waiter and after a full reboot with restored panes. Verify the live waiter and ownership observations and count the actual reviewers.
+
+The separate senv `tuitp` startup/restoration integration remains deferred. The checks above concern already-running panes.
+
+## Historical eight-step validation
 
 Track the eight steps of [the implementation plan](plan.v0.15.0.resume-paused.md). All eight are implemented and checked, code-first under the amended plan Q05: no host profile is pinned, so no real pane receives input yet. The Step 1 Q28=A code follow-up rows closed on 2026-11-25. The Step 1 live validation checklist, the host-dependent composition rows of Steps 5 to 7 and the deferred senv integration checklist remain open, as each section records.
 

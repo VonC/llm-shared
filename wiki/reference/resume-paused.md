@@ -34,7 +34,7 @@ resume_paused [--dry-run] [--clear] [--except NAME[,NAME...]] [--switch-roles NA
 | Argument | Effect |
 | --- | --- |
 | `--dry-run` | Types nothing. Reports each prompt-bearing checkout with its exact marked commands, any clear, the conditional reviewer and every skip reason. |
-| `--clear` | Clears the resumed conversation first and confirms the clear before resuming. A Claude clear already logged after the pause, with no later prompt, is skipped as redundant. A counterpart is never cleared. |
+| `--clear` | Clears the resumed conversation first and confirms the clear before resuming. Claude uses `/clear` and Codex uses `/new`. A counterpart is never cleared. |
 | `--except NAME[,NAME...]` | Excludes TUIOS sessions, pane labels or checkout folder names, matched exactly and case-insensitively. Repeatable. An unmatched name refuses the whole run. |
 | `--switch-roles NAME[,NAME...]` | Swaps the saved requestor and reviewer of a saved requestor pause with a recorded pair, by TUIOS session or checkout folder name. Repeatable. An unmatched name refuses the whole run; a matched checkout without such a pair fails. A switched pair needs the switch again on every later launch. |
 | `-h`, `--help` | Prints the help, which restates the human-only contract and the limits below. |
@@ -48,8 +48,7 @@ name is a syntax error, exit status 2, before any discovery.
 2. Lists every pane once across TUIOS sessions; a failed listing refuses the
    run.
 3. Plans each checkout holding a resume prompt: a used prompt reports its
-   receipt; duplicate-resume evidence from any pane of the checkout, excluded
-   panes included, suppresses it; the saved targets are validated against the
+   receipt; the private session journal, a prior dispatch for this prompt, or an outstanding author-override question in any pane can suppress another resume; the saved targets are validated against the
    live panes by full pane UUID, session, checkout and host; protected panes
    (the caller's own, excluded, blocked, holding a draft, busy, not ready)
    are skipped.
@@ -107,7 +106,7 @@ omitted 3 pane(s) without a prompt-bearing target; dry run, nothing typed
 A run, for example:
 
 ```text
-PENDING api: 'Fix the parser' paused by claude at 2026-11-07 00:06, prompt unused; requestor codex work/Codex api 77e5f39c (saved routing, validated): cleared, accepted, claimed g2; reviewer claude work/Claude api 2fd92f30 (saved routing, validated): pending: claude-ledger-unavailable [limits=claude-wait-scope]
+PENDING api: 'Fix the parser' paused by claude at 2026-11-07 00:06, prompt unused; requestor codex work/Codex api 77e5f39c (saved routing, validated): cleared, accepted, claimed g2; reviewer claude work/Claude api 2fd92f30 (saved routing, validated): pending: reviewer-wait-active [limits=claude-wait-scope]
 DONE docs: 'Update the guide' paused by claude at 2026-11-07 00:30, prompt unused; requestor claude docs/Claude docs 0c4d5e6f (saved routing, validated): accepted, claimed g2; no LLM counterpart docs/cmd 1a2b3c4d (saved routing, not validated: target-not-agent): skipped: target-not-agent
 SKIP old: 'Legacy pause' paused by claude at 2026-11-06 18:10, prompt unused; skip routing-missing; routing unresolved: no target validated or typed into
 omitted 3 pane(s) without a prompt-bearing target
@@ -127,32 +126,25 @@ A dry run applies the same classification and name-validation failures.
 
 Every Claude reviewer activation outcome, and every preview showing a
 conditional Claude activation, carries `limits=claude-wait-scope`. Before a
-Claude reviewer is activated, the absence of waiting work in its root is
-checked only within these five disclosed limits:
+Claude reviewer is activated, the launcher checks the current shared reviewer waiters, ownership and visible panes. Five limits qualify those observations.
 
 | Limit | Meaning |
 | --- | --- |
 | `detached-foreground-or-hook-work` | Processes detached by completed foreground commands or hooks may be missed (Q20=A). |
 | `hook-configuration-history-unavailable` | Earlier hook-handler configuration history is unavailable (Q20=A). |
 | `undetectable-backward-clock-change` | Backward clock changes since the last OS boot, offsetting ones included, can remain undetectable (Q21=A). |
-| `roots-without-records` | Work of Claude roots with no records in the read set can be missed: persistence-disabled roots, other configuration roots, transcripts removed without detectable evidence and unrecorded work surviving a recorded parent's validated end after ordinary exit, kill, `TaskStop` or timeout (Q26=A). |
+| `roots-without-records` | Claude work outside visible panes and shared review waiters may be missed, including work surviving a parent’s exit, kill, `TaskStop` or timeout (Q26=A). |
 | `running-local-command-not-yet-recorded` | A local shell command still running whose input is not yet recorded, and work it starts meanwhile, can be missed in a Claude root that has no TUIOS pane (Q27=B). |
 
-The code supplements the reviewer outcome; it never claims an absence
-outside that scope. Open recorded parents and unmatched starts still block,
-and every live Claude pane of the checkout must read idle immediately before
-the send.
+The launcher checks for live shared `wait-request` and `wait-any-request` processes in the checkout. A surviving waiter after hibernation keeps the reviewer pending. A full restart removes that process. Unavailable process evidence also keeps the reviewer pending. An activation still requires the requestor's current marked claim and fresh idle-pane evidence. The ownership generation fences competing claims.
 
-## Supported hosts and validation limits of resume_paused
+## Supported hosts and delivery evidence
 
-No Claude or Codex host profile is pinned yet: the live validation matrix has
-not run. Until both are pinned, the command reads no command history, agent
-log or screen as proof and selects no delivery profile, so every real pane
-stays unsupported. A prompt-bearing checkout with a live pane is then
-reported `ERROR` with `duplicate-uncertain`, and nothing is typed anywhere.
-The automated acceptance scenarios run the whole workflow over fake TUIOS and
-synthetic host profiles with real temporary artifacts; live Windows launcher
-and pane-delivery behavior remains human evidence.
+Current Codex and Claude installations use TUIOS readiness and the visible empty editor. A styled empty-editor suggestion distinguishes the editor from an unsent draft. With suggestions hidden or a visually ambiguous blank input, the launcher leaves the pane alone. A changed editor layout produces a diagnostic for the affected checkout. Each host supplies its native resume, review-resume and clear commands. A schema 3 usage receipt proves the resumed pane consumed the saved prompt. The counterpart's current marked claim proves it took ownership.
+
+Before typing, the launcher reserves the operation in `a.resume-paused.<prompt digest>.<phase>.local.json` in the checkout's configured review artifact home. A dry run creates no reservation. On an unconfirmed send, inspect the named pane, its usage receipt and current review ownership before acting. A clear reservation alone means the conversation may already have been cleared. If the command is still in the editor, review it there. If delivery failed and the prompt is unused, the operator can resume manually after checking the session. Leave the reservation in place to protect against automatic replay. A manual resume that has produced no receipt, journal entry or visible override question leaves no durable evidence for the launcher. Complete an ongoing manual resume before launching the bulk command.
+
+If a Codex shell inherits a different pane UUID from a shared app-server, receiver validation refuses the marked command. Inspect the intended pane and the dispatch before resuming manually.
 
 Prompts and schema 3 receipts keep the lines the installed `tuitp` launcher
 reads. Its launch-time integration with this command is a separate, open

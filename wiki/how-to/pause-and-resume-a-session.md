@@ -242,10 +242,12 @@ Add `--clear` to clear each resumed conversation first, `--except NAME` to
 leave sessions, pane labels or checkout folders alone, and
 `--switch-roles NAME` to swap a saved requestor and reviewer pair. Exit status
 0 means success, expected skips or pending reviewers; 1 a failure, which is
-never retried by retyping; 2 invalid arguments. No host profile is pinned yet,
-so a real launch currently fails closed with no input. The
+never retried by retyping; 2 invalid arguments. Codex and Claude use the current TUIOS editor and the checkout's usage receipt. An unfamiliar editor layout is reported for the affected checkout. The
 [resume_paused reference](../reference/resume-paused.md) lists every argument,
 status and disclosed limit.
+
+To exercise bulk resume with disposable Codex and Claude panes, follow
+[Test resume_paused in an independent tuitp desktop](test-resume-paused-in-tuitp.md).
 
 ## Use the canonical files when discovery is unavailable
 

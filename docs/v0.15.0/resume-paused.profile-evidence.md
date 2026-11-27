@@ -22,6 +22,92 @@ has not validated a complete profile. An observed
 version alone does not establish a supported input, result, clearing or
 task-state profile. Claude ledger completeness remains unproved.
 
+## Live validation campaign from 2026-11-26
+
+The Step 1 live validation checklist resumed on 2026-11-26. The user chose
+the split of work: the implementation agent sends diagnostic input only to
+disposable Claude and Codex instances it starts in its own TUIOS session, and
+the user performs host-level steps (hibernation, restart, clock steps and a
+probe in a human shell). The user then left host auto-update on and asked
+that resume-paused work whatever the Claude version, rather than pin one
+version: that direction reopens the version-pinned profile model and is not
+yet a consolidated design decision. The first runs below are read-only: they
+sent no input, changed no setting and read native files only in memory,
+retaining counts, versions and shape names.
+
+### Read-only host baseline on 2026-11-26
+
+| Fact | Observed value |
+| --- | --- |
+| `RtlGetVersion` | status 0, build 26200; update revision 9911 (9711 on 2026-11-12 to 14) |
+| Host versions | Claude Code 2.1.332, Codex CLI 0.172.0, TUIOS 0.13.3 with its pure-Go backend |
+| Boot-process creation (session 0) | `Registry` first; `System` and `smss.exe` 14.6 s later, 5 ms apart |
+| Uptime from `GetTickCount64` | 13.4 days |
+| Uptime from `QueryUnbiasedInterruptTime` | 4.95 days shorter: standby and hibernation excluded |
+| Current time minus `GetTickCount64` | 2.2 s after `System` creation, 16.8 s after `Registry` creation |
+| Fast startup | disabled by system policy (`HiberbootEnabled` 0) |
+| Sleep states | S0 low-power idle and hibernation; S1 to S3 and hybrid sleep unavailable |
+
+`GetTickCount64` counted the 4.95 days of standby and hibernation since boot
+that `QueryUnbiasedInterruptTime` excludes, so only the former is a
+sleep-inclusive uptime candidate. After 13.4 days the computed boot instant
+lay after the fixed creation instants, never before them. These are single
+observations, not the Q21=A validation: the hibernation, restart and clock-step
+runs remain. Fast startup cannot be reproduced on this machine while the
+policy holds.
+
+### Read-only Claude transcript census on 2026-11-26
+
+The Step 1 parser read every transcript of the checkout's encoded project
+directory and of one encoded sub-directory: 38 files, 148485349 bytes and
+52212 records, all accepted, each written by a single Claude version. They span
+twelve versions, from 2.1.319 to 2.1.332, within two weeks. The checkout's
+encoded name extends the encoded names of two other directories (the home
+folder and the main checkout), so a name-prefix rule alone would attribute it
+to them; the recorded `cwd` of every record that carries one was the checkout
+or a directory inside it.
+
+For the three 2.1.332 transcripts:
+
+- Each generation began with `SessionStart:startup` or `SessionStart:clear`
+  `hook_success` as its first timestamped record. Every Stop summary named the
+  same single TUIOS handler.
+- Non-object tool results came from PowerShell and Bash only with `is_error`
+  set and no started task, and from `ToolSearch` once without an error.
+- 118 chain tips were tool results, the fan-out shape reported on
+  2026-11-13; other tips were one each of `turn_duration`, `local_command`,
+  `away_summary` and an in-flight tool call.
+- Inputs attached to `turn_duration`, `hook_success`, `compact_boundary`,
+  `informational`, `away_summary`, a tool result or another input. Some user
+  inputs carry no `origin`; their kinds still need a controlled run.
+
+Every version from 2.1.319 on writes `api-request-blob` records whose message
+content repeats `tool_use` blocks of earlier assistant records, and
+occasionally a `tool_result` block. Because the record graph collects calls
+and results from every record, a real transcript shows `tool-call-duplicate`
+for each repeated identifier: 128 in one 2.1.332 transcript, 227 in one
+2.1.325 transcript, including the 31-record print-mode control of
+2026-11-14. The failure is closed, since the transcript stays pending, but no
+real transcript of these versions could prove absence until calls and results
+are read only from the record kinds that own them. The synthetic fixtures held
+no such record. The user's direction of 2026-11-26 is not to repair this for
+each release but to stop depending on host transcript formats, so that any LLM
+can resume a session; that direction is not yet a consolidated design
+decision.
+
+### Read-only Codex session-root census on 2026-11-26
+
+The configured Codex session root held 810 regular JSONL files, all in
+year, month and day partitions, 5836655123 bytes in total, from 38 CLI
+versions. Every modification time was a multiple of 100 ns with a sub-second
+part. The 21 files of version 0.172.0 ended with a final newline; 18 held one
+`session_meta` record and 3 held two, and the input proof rejects a file with
+more than one. Their user messages appeared only as `response_item` messages
+with role `user`: 170 with one `input_text` block and 18 with two. No
+`event_msg` `user_message` record was present. The controlled Codex runs must
+show which of these shapes a typed input takes and what a second
+`session_meta` means.
+
 ## Adapter delivery with an empty profile registry on 2026-11-15
 
 The four Step 1 modules and their tests now exist: profile policy, the

@@ -1,5 +1,17 @@
 # Design v0.15.0: resume paused agent panes
 
+## Current delivery contract (2026-11-26)
+
+This section supersedes the version, image, transcript, agent-log and Windows build requirements in the original eight-step design, including ledger item 2. Automatic updates stay enabled. The supported host table supplies native commands and editor recognition for Claude and Codex. Unknown hosts or layouts get a local diagnostic.
+
+1. TUIOS must identify the saved checkout, session, host and pane and report it ready. Inspect physical ANSI rows for an empty editor. Treat unknown geometry, unstyled text, a held draft, busy state and a request for user input as reasons to withhold input. A status message on a ready pane can describe completed work. Resolve the selector again with TUIOS and use its confirmation token for exactly the intended UUID.
+2. Before typing, exclusively create a dispatch file in the validated ignored artifact home, keyed by the exact prompt digest and operation (resume or counterpart). This closes the gap between typing and a receiver writing its receipt, including a launcher crash. Swapping roles shares the same resume slot. A preview creates no file. A partial or unconfirmed dispatch blocks automatic retries. A person may resolve it after checking the pane. Clear has its own reservation and requires a visible clear transition before resume.
+3. The receiver matches its TUIOS pane environment to fresh discovery, the exact dispatched command and current assignment. Codex carries the validated pane UUID and launch ID across protected operations. A matching schema 3 receipt confirms consumption. A counterpart requires its current marked claim. Output text and transport success cannot establish acceptance.
+4. Check the OS for live shared review waiters in the checkout immediately before reviewer delivery, in addition to the existing ownership and idle checks. The kernel process table already excludes processes terminated by a full reboot and retains surviving waiters after hibernation. This makes the decision independent of wall-clock comparisons and boot-event timestamp tolerances. An inaccessible or ambiguous waiter keeps the reviewer pending. Ownership generations fence later protocol transitions.
+5. Preserve the human-only CLI, five disclosed reviewer limits and separate senv startup checklist. Keep historical profile studies as evidence of the superseded approach.
+
+## Original design and decision history
+
 Reference requirement: [resume-paused feature request](feature-request.v0.15.0.resume-paused.md).
 The requirement's [29 confirmed decisions](feature-request.v0.15.0.resume-paused.md#requirement-clarifications-for-resume-paused)
 govern this design, including their later amendments.
