@@ -65,6 +65,7 @@ from tools.resume_paused_evidence import (
     input_eligibility,
 )
 from tools.resume_paused_input import pane_host
+from tools.resume_paused_manual import manual_evidence
 from tools.resume_paused_marker import (
     MARKER_FLAG,
     LiveExchange,
@@ -373,10 +374,7 @@ class _CheckoutPlanner:
             return _verdict(base, _Refusal(reason, "; ".join(reading.reasons)))
         if reading.state is not RoutingState.RESOLVED:
             return _verdict(base, _Refusal(_ROUTING_SKIPS[reading.state]))
-        history = self.ports.history
-        if isinstance(history, DispatchHistory):
-            history = history.for_snapshot(snapshot)
-        return self._fresh(base, prompt, cast("SavedRouting", reading.routing), history)
+        return self._fresh(base, prompt, cast("SavedRouting", reading.routing), snapshot)
 
     def _used(self, base: CheckoutPlan, receipt: UsageReceipt, prompt: PromptMetadata, routing: SavedRouting | None) -> CheckoutPlan:
         """Report the receipt; only the resumed requestor's saved pair may continue its reviewer."""
@@ -401,8 +399,14 @@ class _CheckoutPlanner:
             return self._refused(base, examined)
         return self._bind(base, prompt, routing, (examined,))
 
-    def _fresh(self, base: CheckoutPlan, prompt: PromptMetadata, routing: SavedRouting, history: CommandHistory) -> CheckoutPlan:
+    def _fresh(self, base: CheckoutPlan, prompt: PromptMetadata, routing: SavedRouting, snapshot: CheckoutSnapshot) -> CheckoutPlan:
         """Suppress on checkout-wide duplicate evidence, fail on uncertainty, then plan the targets."""
+        history = self.ports.history
+        if isinstance(history, DispatchHistory):
+            attempt = manual_evidence(snapshot)
+            if attempt:
+                return _verdict(replace(base, duplicates=(attempt,)), _Refusal(SkipReason.ALREADY_RESUMING))
+            history = history.for_snapshot(snapshot)
         pause = PauseFacts(self.root, timestamp_instant(prompt.snapshot), reviewer=routing.pause.session_role is SessionRole.REVIEWER)
         verdict = classify_duplicates(pause, self.panes, history, self.index.activity, self.ports.journal)
         base = replace(base, duplicates=verdict.evidence)

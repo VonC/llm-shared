@@ -11,6 +11,15 @@ isolation from `instructions/review-requestor.md` throughout this workflow.
 
 ## Inspect the interrupted review
 
+For a directly invoked unmarked Windows review resume, record the attempt
+before inspection or a role question. From the checkout run
+`& "<LLM_SHARED_DIR>\bin\resume_paused_manual.bat" --command 'review-resume' --host <claude or codex>`.
+When the invocation selects a single role, pass `'review-resume reviewer'`
+or `'review-resume requestor'` as the command. Leave ambiguous selections
+unqualified. A reviewer-only continuation leaves a non-reviewer pause
+available. Stop on a helper failure. A role restored from a parent
+`resume-session` uses that parent's attempt or marked reservation.
+
 Read [`../rules/run_commands.md`](../rules/run_commands.md), then run the
 shared launcher from the caller repository:
 

@@ -20,6 +20,23 @@ checkpoint looks unused. Do not scan all `.reviews` Markdown for a likely
 prompt or interpret `a.prompt.txt` as this file; notes replace the prompt only
 through the [notes fallback](#resume-from-the-latest-notes-without-a-prompt).
 
+For an unmarked invocation on Windows, run the manual receiver helper from
+the checkout as the first prompt check, before reading task context or asking
+for author consent:
+
+```powershell
+& "<LLM_SHARED_DIR>\bin\resume_paused_manual.bat" --command resume-session --host <claude or codex>
+```
+
+Use this for `--force` as well. For a routable unused prompt the helper
+prints a filename containing the exact prompt SHA-256. Check that digest
+against the prompt you inspect below. If it changes, repeat the helper and
+the author check for the replacement. A guard refusal means another launch
+has the checkout or coordination failed. Stop before consuming the prompt.
+An attempt records neither consent nor use and survives a declined override.
+The helper leaves used, missing and legacy unroutable prompts to the normal
+checks below. Marked receivers use their validator directly.
+
 At invocation time, check the exact prompt and flag paths, rather than a
 remembered listing. Hash the prompt's exact bytes with SHA-256; normalize
 the hexadecimal digest to lowercase. The flag must match the fields in

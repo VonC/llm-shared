@@ -13,6 +13,7 @@ from typing import TYPE_CHECKING
 from tools.resume_paused_artifacts import PromptState, read_checkout_snapshot
 from tools.resume_paused_delivery_model import Phase
 from tools.resume_paused_evidence import ObservedCommand
+from tools.resume_paused_manual import manual_evidence
 from tools.resume_paused_marker import (
     LiveExchange,
     marker_in_command,
@@ -157,6 +158,8 @@ def _require_stage(durable: Durable, phase: Phase, pane_id: str, intended: Promp
             raise ArtifactError("dispatch-takeover-changed")
     elif durable.snapshot.state not in {PromptState.UNUSED, PromptState.NEW_SINCE_USE}:
         raise ArtifactError("dispatch-prompt-consumed")
+    elif manual_evidence(durable.snapshot):
+        raise ArtifactError("manual-resume-attempt")
 
 
 def _save(snapshot: CheckoutSnapshot, reservation: Dispatch, phase: Phase) -> None:
