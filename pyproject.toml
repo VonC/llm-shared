@@ -240,7 +240,9 @@ patterns = ["*.py"]
 ignore_patterns = []
 
 [dependency-groups]
-release = []
+release = [
+    "psutil>=7.2.2",
+]
 dev = [
     {include-group = "release"},
     "build",
