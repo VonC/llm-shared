@@ -19,6 +19,7 @@ A fake clock moves only when the run waits. Nothing starts a process.
 from __future__ import annotations
 
 import io
+import json
 import threading
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
@@ -86,7 +87,13 @@ from tools.resume_paused_marker import (
     marker_in_command,
 )
 from tools.resume_paused_models import PROMPT_NAME, SessionRole
-from tools.resume_paused_profiles import CommandResult, Host, ReadAccount
+from tools.resume_paused_profiles import (
+    CommandResult,
+    Host,
+    ReadAccount,
+    as_mapping,
+    loads_strict,
+)
 from tools.resume_paused_validation import ReceiverValidator
 from tools.review_exchange_models import ReviewExchangeError, ReviewRole
 from tools.review_resume_identity import claim_selected
@@ -127,6 +134,7 @@ class FakePane:
     typing: str = "submit"
     clears: bool = True
     results: list[str] = field(default_factory=list[str])
+    physical_editor: tuple[str, ...] | None = None
 
     @property
     def host(self) -> Host | None:
@@ -202,10 +210,13 @@ class FakeTuios:
 
     def _listing(self, arguments: Sequence[str]) -> CommandResult:
         """Answer ``list-agents --json`` from every declared pane, after the declared listing effect."""
-        del arguments
         if self.on_listing is not None:
             self.on_listing(sum(1 for call in self.calls if call[1] == "list-agents"))
         activity = {key: pane.activity for key, pane in self.panes.items() if pane.activity is not None}
+        if "--select" in arguments:
+            selected = self._matches(arguments[arguments.index("--select") + 1])
+            answer = as_mapping(loads_strict(listing_json([pane.record for pane in selected], activity)))
+            return CommandResult(self.discovery_exit, json.dumps(answer | {"confirm": "fake-selection"}))
         return CommandResult(self.discovery_exit, listing_json([pane.record for pane in self.panes.values()], activity))
 
     def _capture(self, arguments: Sequence[str]) -> CommandResult:
@@ -222,35 +233,46 @@ class FakeTuios:
         """Answer ``send-keys``: the full pane id follows ``-w``."""
         return CommandResult(0 if self._enter(arguments[5]) else 1, "")
 
-    def _ask(self, selector: str, command: str) -> bool:
-        """Type the command into the one pane the glob selector names."""
+    def _matches(self, selector: str) -> list[FakePane]:
+        """Resolve the public session and name glob selector."""
         terms = dict(term.split(":", 1) for term in selector.split(" "))
-        matches = [
+        return [
             pane for pane in self.panes.values()
             if fnmatchcase(pane.record.session.casefold(), terms["session"].casefold())
             and fnmatchcase(pane.record.name.casefold(), terms["name"].casefold())
         ]
+
+    def _ask(self, selector: str, command: str) -> bool:
+        """Type the command into the one pane the glob selector names."""
+        matches = self._matches(selector)
         if len(matches) != 1:
             return False
         pane = matches[0]
         if pane.typing == "submit":
             self._submit(pane, command)
         elif pane.typing == "hold":
-            pane.screen = (EMPTY[0], PROMPT + command, FOOTER)
+            if pane.physical_editor:
+                pane.screen = ("\u203a " + command, *pane.physical_editor[1:])
+            else:
+                pane.screen = (EMPTY[0], PROMPT + command, FOOTER)
         return True
 
     def _enter(self, pane_id: str) -> bool:
         """Submit the command a Codex pane holds unsubmitted."""
         pane = self.panes[pane_id]
         assert pane.screen is not None
-        self._submit(pane, pane.screen[1].removeprefix(PROMPT))
+        command = pane.screen[0].removeprefix("\u203a ") if pane.physical_editor else pane.screen[1].removeprefix(PROMPT)
+        self._submit(pane, command)
         return True
 
     def _submit(self, pane: FakePane, command: str) -> None:
         """Record the typed input, then its host's trace: a Claude log event or a fresh Codex screen; queue the agent."""
         now = self.clock.now()
         pane.typed.append((command, now))
-        if pane.host is Host.CLAUDE:
+        if pane.physical_editor is not None:
+            cleared = (CLEARED,) if command in {"/clear", "/new"} and pane.clears else ()
+            pane.screen = (*cleared, *pane.physical_editor)
+        elif pane.host is Host.CLAUDE:
             _log_claude(pane, command, now)
         elif pane.host is Host.CODEX:
             _redraw_codex(pane, command)
@@ -420,14 +442,14 @@ class WorldResults:
         return () if live is None else tuple(live.results)
 
 
-def single_agent(pane_id: str = REQUESTOR_PANE, label: str = "requestor | pane") -> Callable[[dict[str, object]], None]:
+def single_agent(pane_id: str = REQUESTOR_PANE, label: str = "requestor | pane", host: Host = Host.CODEX) -> Callable[[dict[str, object]], None]:
     """Return the routing change of a single-agent Codex implementation pause of one pane."""
 
     def change(mapping: dict[str, object]) -> None:
         """Route only the resumed implementation agent; no pair and no exchange apply."""
         part(mapping, "pause")["session_role"] = "implementation"
         targets = part(mapping, "targets")
-        part(targets, "resumed").update(role="implementation", host="codex", pane_id=pane_id, label=label)
+        part(targets, "resumed").update(role="implementation", host=host.value, pane_id=pane_id, label=label)
         absent = {"not_applicable": "single agent"}
         targets.update(requestor=absent, reviewer=dict(absent))
         mapping["exchange"] = dict(absent)

@@ -53,11 +53,9 @@ from tools.resume_paused_delivery_model import (
     SendStep,
     UnpinnedProfiles,
 )
-from tools.resume_paused_evidence import JournalIndex, PaneObservation, ScreenVerdict
+from tools.resume_paused_evidence import JournalIndex, PaneObservation
 from tools.resume_paused_input import (
     LIST_AGENTS,
-    ClaudeInputProver,
-    CodexInputProver,
     PaneRecord,
     SubprocessRunner,
 )
@@ -89,7 +87,6 @@ ROOT = CanonicalRoot.from_path(API)
 PAUSED = "2026-11-17T17:37:18+01:00"
 LAUNCHES = (f"{1:032x}", f"{2:032x}")
 HUMAN_ENV = {"USERPROFILE": "C:\\Users\\person"}
-OS_BUILD = 26200
 
 
 def agent_json(pane: PaneRecord, activity: PaneActivity | None) -> dict[str, object]:
@@ -101,7 +98,7 @@ def agent_json(pane: PaneRecord, activity: PaneActivity | None) -> dict[str, obj
     if activity is not None:
         record |= {
             "state": activity.state, "blocked_by": activity.blocked_by, "draft_held": activity.draft_held,
-            "message": activity.question, "ready": activity.ready,
+            "question": activity.question, "ready": activity.ready,
         }
     return record
 
@@ -247,7 +244,8 @@ def test_syntax_errors_exit_2_before_any_runtime_is_built(argv: list[str]) -> No
 def help_text() -> str:
     """Print the help without composing any runtime and return it with its whitespace folded."""
     out = io.StringIO()
-    assert cli.main(["--help"], stdout=out, runtime=no_runtime) == cli.EXIT_SUCCESS
+    world = World()
+    assert cli.main(["--help"], stdout=out, runtime=lambda: runtime(world, ListingRunner(world))) == cli.EXIT_SUCCESS
     return " ".join(out.getvalue().split())
 
 
@@ -286,7 +284,7 @@ def test_help_defines_each_of_the_five_wait_scope_limits(code: str, meaning: str
         ({}, ("powershell.exe", "codex.exe"), "agent-ancestor"),
     ],
 )
-@pytest.mark.parametrize("argv", [[], ["--dry-run"]])
+@pytest.mark.parametrize("argv", [[], ["--dry-run"], ["--help"]])
 def test_a_recognized_agent_caller_is_refused_before_discovery(
     argv: list[str], environ: dict[str, str], ancestry: tuple[str, ...], signals: str,
 ) -> None:
@@ -367,15 +365,14 @@ def test_every_recheck_reads_the_session_journal_again() -> None:
     assert reads == [0, 1]
 
 
-def test_unpinned_host_adapters_prove_nothing() -> None:
-    """While no profile is pinned: unreadable history and log, unsupported screens and profiles, real prover factories."""
-    hosts = cli.unpinned_hosts({"USERPROFILE": "C:\\Users\\person"}, lambda seconds: SubprocessRunner(timeout=seconds))
-    pane = live(REQUESTOR_PANE)
-    assert (hosts.history.commands(pane), hosts.log.events(pane), hosts.profiles.profile(pane)) == (None, None, None)
-    assert hosts.probe.probe(pane) is ScreenVerdict.UNSUPPORTED
-    assert isinstance(hosts.provers[Host.CLAUDE](lambda: 1.0), ClaudeInputProver)
-    assert isinstance(hosts.provers[Host.CODEX](lambda: 1.0), CodexInputProver)
-    assert isinstance(hosts.absence, UnprovedAbsence)
+def test_terminal_adapters_select_the_known_hosts() -> None:
+    """The default uses the shared dispatch and the terminal command table."""
+    hosts = cli.default_runtime({}).hosts
+    profile = hosts.profiles.profile(live(REQUESTOR_PANE))
+    assert profile is not None
+    assert profile.clear_command == "/clear"
+    assert hosts.shared is not None
+    assert hosts.provers == {}
 
 
 def test_default_runtime_reads_the_journal_and_saved_pauses_read_only(tmp_path: Path) -> None:
@@ -386,14 +383,6 @@ def test_default_runtime_reads_the_journal_and_saved_pauses_read_only(tmp_path: 
     assert composed.read_snapshot(CanonicalRoot.from_path(root)).state is PromptState.NO_PROMPT
     assert isinstance(composed.runner_for(2.0), SubprocessRunner)
     assert cli.default_runtime({}).journal().error == "session journal path unknown: USERPROFILE is unset"
-
-
-def test_host_evidence_files_are_read_whole_or_reported_unreadable(tmp_path: Path) -> None:
-    """The unpinned adapters' file reader returns exact bytes, and ``None`` for a missing file."""
-    evidence = tmp_path / "session.jsonl"
-    evidence.write_bytes(b'{"type": "user"}\n')
-    assert cli._read_file(str(evidence)) == b'{"type": "user"}\n'  # noqa: SLF001 - the reader is a private composition seam
-    assert cli._read_file(str(tmp_path / "missing.jsonl")) is None  # noqa: SLF001 - the reader is a private composition seam
 
 
 def test_saved_exchanges_observes_read_only_and_reports_an_unloadable_checkout_damaged(tmp_path: Path) -> None:
@@ -437,7 +426,7 @@ def test_process_ancestry_reads_the_caller_chain_or_reports_it_unavailable() -> 
     assert cli.process_ancestry(_unavailable, lambda: 30) is None
 
 
-def test_system_clock_and_lazy_os_build(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_system_clock(monkeypatch: pytest.MonkeyPatch) -> None:
     """The real clock is timezone-aware and sleeps through ``time.sleep``; the OS build is read only on demand."""
     slept: list[float] = []
     monkeypatch.setattr(cli.time, "sleep", slept.append)
@@ -445,14 +434,5 @@ def test_system_clock_and_lazy_os_build(monkeypatch: pytest.MonkeyPatch) -> None
     clock.sleep(0.5)
     assert slept == [0.5]
     assert clock.now().tzinfo is not None
-
-    class _Build:
-        def os_build(self) -> int:
-            """Return a declared build."""
-            return OS_BUILD
-
-    monkeypatch.setattr(cli, "Win32Api", _Build)
-    assert cli._os_build() == OS_BUILD  # noqa: SLF001 - the lazy reader is a private composition seam
-
 
 # eof

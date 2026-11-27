@@ -138,6 +138,11 @@ class PaneActivity:
         """Return whether the pane waits on the person."""
         return bool(self.blocked_by) or self.state in _BLOCKED_STATES
 
+    @property
+    def resting(self) -> bool:
+        """Whether the current TUIOS activity permits input to an empty editor."""
+        return self.state in _IDLE_STATES and self.ready is True and not (self.blocked or self.question or self.draft_held)
+
 
 @dataclass(frozen=True)
 class PaneObservation:
@@ -159,8 +164,15 @@ def _activity(record: Mapping[str, object]) -> PaneActivity:
     draft, ready = record.get("draft_held", False), record.get("ready")
     if not isinstance(draft, bool) or not (ready is None or isinstance(ready, bool)):
         raise ArtifactError(_MALFORMED)
+    state = _string(record.get("state", ""))
+    blocked = _string(record.get("blocked_by", ""))
+    needs = record.get("needs_you", False)
+    if not isinstance(needs, bool):
+        raise ArtifactError(_MALFORMED)
+    message = _string(record.get("message", ""))
+    question = _string(record.get("question", "")) or (message if any((needs, blocked, state in _BLOCKED_STATES)) else "")
     return PaneActivity(
-        _string(record.get("state", "")), _string(record.get("blocked_by", "")), draft, _string(record.get("message", "")), ready,
+        state, blocked or ("needs-you" if needs else ""), draft, question, ready,
     )
 
 
@@ -248,7 +260,7 @@ def _status(activity: PaneActivity | None) -> Eligibility | None:
     """Classify from TUIOS activity alone; ``None`` for a working pane, which needs more evidence."""
     if activity is None:
         return Eligibility(Activity.UNKNOWN)
-    if activity.blocked:
+    if activity.blocked or activity.question:
         return Eligibility(Activity.BLOCKED)
     if activity.draft_held:
         return Eligibility(Activity.DRAFT)
@@ -260,6 +272,11 @@ def _status(activity: PaneActivity | None) -> Eligibility | None:
 def input_eligibility(pane: PaneRecord, host: Host, activity: PaneActivity | None, probe: ScreenProbe) -> Eligibility:
     """Classify one pane; a busy Claude pane skips at once, a busy Codex pane gets one capture."""
     status = _status(activity)
+    if getattr(probe, "require_empty", False):
+        if status is None or status.activity is not Activity.ELIGIBLE:
+            return status or Eligibility(Activity.BUSY)
+        verdict = probe.probe(pane)
+        return Eligibility(Activity.UNKNOWN, "screen-unsupported") if verdict is ScreenVerdict.UNSUPPORTED else Eligibility(_SCREEN[verdict].activity)
     if status is not None:
         return status
     if host is not Host.CODEX:

@@ -105,7 +105,7 @@ def _recovery_ready(activity: PaneActivity | None) -> Refusal | None:
     """Refuse the recovery Enter to a blocked, draft-holding, not-ready or unknown pane."""
     if activity is None or activity.state not in _RECOVERY_STATES:
         return Refusal("pane-state-unknown")
-    if activity.blocked:
+    if activity.blocked or activity.question:
         return Refusal("pane-blocked")
     if activity.draft_held:
         return Refusal("pane-draft")
@@ -139,6 +139,8 @@ def target_refusal(phase: Phase, action: PlannedAction, observation: PaneObserva
         return refusal
     activity = observation.activity.get(located.pane_id)
     if phase is Phase.RECOVERY:
+        if getattr(context.probe, "require_empty", False) and activity is not None and activity.state not in _IDLE_STATES:
+            return Refusal("pane-busy")
         refusal = _recovery_ready(activity)
     else:
         eligibility = input_eligibility(located, action.host, activity, context.probe)

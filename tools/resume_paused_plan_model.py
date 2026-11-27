@@ -80,6 +80,7 @@ class ErrorReason(StrEnum):
     CHECKOUT_UNREADABLE = "checkout-unreadable"
     EVIDENCE_INVALID = "evidence-invalid"
     ROUTING_INVALID = "routing-invalid"
+    SCREEN_UNSUPPORTED = "screen-unsupported"
     DUPLICATE_UNCERTAIN = "duplicate-uncertain"
     SWITCH_NOT_APPLICABLE = "switch-not-applicable"
     SWITCH_MISMATCH = "switch-mismatch"

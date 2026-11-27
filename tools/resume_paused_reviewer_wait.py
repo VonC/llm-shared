@@ -46,7 +46,7 @@ from tools.resume_paused_profiles import Host
 from tools.review_exchange_models import Actor
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence
+    from collections.abc import Callable, Sequence
     from datetime import datetime
 
     from tools.resume_paused_claude_ledger import LedgerDecision
@@ -165,6 +165,7 @@ class ReviewerWait:
     history: CommandHistory
     probe: ScreenProbe
     absence: WaitAbsence
+    live_wait: Callable[[CanonicalRoot], str] | None = None
 
     def commands(self, reviewer: PaneRecord) -> tuple[ObservedCommand, ...] | None:
         """Return the reviewer pane's typed commands, oldest first, ``None`` when unreadable."""
@@ -183,6 +184,11 @@ class ReviewerWait:
             return WaitVerdict(Refusal("reviewer-history-unreadable"))
         if prior_delivery(commands, scope.reviewer, scope.since):
             return WaitVerdict(Refusal("reviewer-delivery-uncertain"))
+        if self.live_wait:
+            reason = self.live_wait(scope.root)
+            if not reason and self.probe.probe(scope.reviewer) is not ScreenVerdict.IDLE_EMPTY:
+                reason = "reviewer-editor-unproved"
+            return WaitVerdict(Refusal(reason) if reason else None)
         return self._codex(scope.reviewer) if host is Host.CODEX else self._claude(scope)
 
     def _codex(self, reviewer: PaneRecord) -> WaitVerdict:

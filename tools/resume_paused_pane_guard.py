@@ -17,12 +17,11 @@ directory is the checkout or lies inside it; a Claude pane whose directory
 cannot be read cannot be excluded and keeps activation pending.
 
 Each pane must rest in TUIOS (idle or done, ready, no question, no draft) and
-its fresh capture must read idle under the pinned Claude screen profile
-(``ClaudeScreens``), whose idle signature rejects a running local command. A
+its fresh capture must show the recognized Claude empty editor through
+``ClaudeScreens``. A
 busy, unreadable or unknown-layout pane keeps activation pending. The guard
 has its own fixed budget: each capture is bounded by the time left in it, and
-none starts, nor is a capture acted on, once it is spent. ``UnpinnedClaudeScreens``
-reads every screen as unknown while no Claude profile is pinned (plan Q05).
+none starts, nor is a capture acted on, once it is spent.
 Other phases and Codex reviewers pass unchanged; reporting the fifth limit in
 ``limits=claude-wait-scope`` never replaces this guard.
 

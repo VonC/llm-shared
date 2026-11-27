@@ -118,12 +118,14 @@ def test_malformed_listing_is_refused(text: str) -> None:
     [
         (CLAUDE_PANE, Host.CLAUDE),
         (CODEX_PANE, Host.CODEX),
+        (replace(CODEX_PANE, apps=(), name="review", harness="codex"), Host.CODEX),
+        (replace(CODEX_PANE, harness="gemini"), None),
         (replace(CODEX_PANE, apps=(), name="codex review"), Host.CODEX),
         (replace(CODEX_PANE, apps=(), name="Codex"), Host.CODEX),
         (replace(CODEX_PANE, apps=(), name="Codex rp", harness="other"), None),
         (replace(CODEX_PANE, apps=(), name="shell"), None),
     ],
-    ids=["claude harness", "codex app", "codex name", "bare codex name", "name with other harness", "unknown"],
+    ids=["claude harness", "codex app", "codex harness", "other harness", "codex name", "bare codex name", "name with other harness", "unknown"],
 )
 def test_host_follows_strong_evidence_first(record: PaneRecord, host: Host | None) -> None:
     """The name fallback applies only without a harness or program-status app."""

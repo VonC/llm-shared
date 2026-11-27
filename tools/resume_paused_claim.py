@@ -15,8 +15,8 @@ requestor's schema 3 receipt for the prompt's bytes.
 
 A refusal raises before anything is written, naming one reason code. The
 verifier returns only non-secret evidence for the coordination record. It
-reads no host session file and needs no TUIOS: the separate fresh validator
-call before the claim supplies the pane and complete-input proof.
+checks the reservation, terminal pane identity and generation under the lock.
+The separate fresh validator also checks the live pane and its assignment.
 
 Fix (code review round 1): an error checkout snapshot, such as one whose
 receipt names another checkout, keeps the prompt, routing and receipt it parsed
@@ -37,6 +37,7 @@ from tools.resume_paused_artifacts import (
     RoutingState,
     read_checkout_snapshot,
 )
+from tools.resume_paused_dispatch import authorized
 from tools.resume_paused_input import CarriedIdentity
 from tools.resume_paused_marker import (
     Assignment,
@@ -45,12 +46,15 @@ from tools.resume_paused_marker import (
     resolve_assignment,
 )
 from tools.resume_paused_models import ArtifactError, SessionRole
+from tools.resume_paused_plan_model import ActionKind
+from tools.resume_paused_planner import marked_command
 from tools.resume_paused_profiles import Host
 from tools.review_exchange_models import ReviewExchangeError, ReviewRole
 from tools.review_exchange_models_coordination import MarkedClaimEvidence
 
 if TYPE_CHECKING:
     from argparse import Namespace
+    from collections.abc import Mapping
     from pathlib import Path
 
     from tools.resume_paused_artifacts import CheckoutSnapshot, UsageReceipt
@@ -150,9 +154,22 @@ def _require_receipt(snapshot: CheckoutSnapshot, marker: Marker, assignment: Ass
         raise ArtifactError("receipt-not-bound")
 
 
+def _check_dispatch(  # noqa: PLR0913 - the locked generation and exact receiver identity
+    snapshot: CheckoutSnapshot, marker: Marker, host: Host, carried: CarriedIdentity | None,
+    *, generation: int, environ: Mapping[str, str], own: bool,
+) -> None:
+    """Repeat authorization under the ownership transition lock."""
+    kind = ActionKind.RESUME if own or marker.role is SessionRole.REQUESTOR else ActionKind.REVIEWER
+    dispatch = authorized(snapshot, marked_command(host, kind, marker), host, environ)
+    if dispatch.generation != generation:
+        raise ArtifactError("dispatch-generation-changed")
+    if carried is not None and carried.session_id != marker.pane_id:
+        raise ArtifactError("carried-pane-mismatch")
+
+
 def _evidence(  # noqa: PLR0913 - the locked record, its occurrence and the four claim inputs
     project_root: Path, raw_marker: str, role: ReviewRole, host: Host, carried: CarriedIdentity | None,
-    record: CoordinationRecord, occurrence: int,
+    record: CoordinationRecord, occurrence: int, environ: Mapping[str, str] | None,
 ) -> MarkedClaimEvidence:
     """Verify one marked claim against current evidence and return what it records."""
     marker = Marker.parse(raw_marker)
@@ -166,19 +183,24 @@ def _evidence(  # noqa: PLR0913 - the locked record, its occurrence and the four
         raise ArtifactError("host-mismatch")
     if assignment.digest() != marker.binding:
         raise ArtifactError("binding-mismatch")
-    _require_receipt(snapshot, marker, assignment)
+    own = consumed_by(snapshot, marker)
+    if environ is not None:
+        _check_dispatch(snapshot, marker, host, carried, generation=record.ownership_generation, environ=environ, own=own)
+    if not own:
+        _require_receipt(snapshot, marker, assignment)
     return MarkedClaimEvidence(marker.launch_id, marker.pane_id, host.value, marker.binding, record.round_number, occurrence)
 
 
-def marked_claim_verifier(
+def marked_claim_verifier(  # noqa: PLR0913 - the optional terminal identity accompanies the existing claim arguments
     project_root: Path, raw_marker: str, role: ReviewRole, host: Host, carried: CarriedIdentity | None,
+    *, environ: Mapping[str, str] | None = None,
 ) -> MarkedClaimVerifier:
     """Return the verifier ``claim_selected`` runs under the transition lock."""
 
     def verify(record: CoordinationRecord, occurrence: int) -> MarkedClaimEvidence:
         """Refuse with one reason code, or return the non-secret claim evidence."""
         try:
-            return _evidence(project_root, raw_marker, role, host, carried, record, occurrence)
+            return _evidence(project_root, raw_marker, role, host, carried, record, occurrence, environ)
         except ArtifactError as error:
             raise _refused(str(error)) from error
 
@@ -196,7 +218,7 @@ def verifier_from_arguments(args: Namespace, project_root: Path, role: ReviewRol
     session: str | None = getattr(args, "carried_session", None)
     launch: str | None = getattr(args, "carried_launch_id", None)
     carried = None if session is None and launch is None else CarriedIdentity(session or "", launch or "")
-    return marked_claim_verifier(project_root, raw_marker, role, host, carried)
+    return marked_claim_verifier(project_root, raw_marker, role, host, carried, environ=os.environ)
 
 
 __all__ = ["consumed_by", "marked_claim_verifier", "requestor_consumed", "verifier_from_arguments"]

@@ -45,6 +45,7 @@ from tests.unit.tools.test_resume_paused_routing.test_resume_paused_routing_tdd 
 from tools.llm_nature import LlmNature
 from tools.resume_paused_artifacts import render_routing_section
 from tools.resume_paused_claim import marked_claim_verifier, verifier_from_arguments
+from tools.resume_paused_dispatch import Dispatch
 from tools.resume_paused_input import CarriedIdentity
 from tools.resume_paused_marker import LiveExchange, Marker
 from tools.resume_paused_models import (
@@ -292,16 +293,30 @@ def test_unreadable_saved_pause_refuses_the_claim(tmp_path: Path) -> None:
         claim(scenario, ReviewRole.REQUESTOR, LlmNature.CODEX, verifier)
 
 
-def test_claim_arguments_carry_the_marker_and_codex_identity(tmp_path: Path) -> None:
+def test_claim_arguments_carry_the_marker_and_codex_identity(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """The claim command accepts the raw marker and both carried values and builds the verifier."""
     scenario, marker = requestor_scenario(tmp_path)
     args = parser_for("claim").parse_args([
         "claim", "--document", PLAN, "--role", "requestor", "--round", "1", "--occurrence", "1",
-        "--resume-paused-marker", marker.render(), "--carried-session", SESSION_ID, "--carried-launch-id", REQUESTOR_LAUNCH,
+        "--resume-paused-marker", marker.render(), "--carried-session", REQUESTOR_PANE, "--carried-launch-id", REQUESTOR_LAUNCH,
     ])
     verifier = verifier_from_arguments(args, scenario.root, ReviewRole.REQUESTOR, LlmNature.CODEX)
     assert verifier is not None
+    monkeypatch.setenv("TUIOS_PANE_ID", REVIEWER_PANE)
+    with pytest.raises(ReviewExchangeError, match="receiver-pane-mismatch"):
+        claim(scenario, ReviewRole.REQUESTOR, LlmNature.CODEX, verifier)
+    monkeypatch.setenv("TUIOS_PANE_ID", REQUESTOR_PANE)
+    with pytest.raises(ReviewExchangeError, match="dispatch-mismatch"):
+        claim(scenario, ReviewRole.REQUESTOR, LlmNature.CODEX, verifier)
+    digest = PromptDigest.of(scenario.prompt).value
+    record = scenario.store.read_coordination(required=True)
+    assert record is not None
+    Dispatch(f"$llm-shared:resume-session --resume-paused {marker.render()}", record.ownership_generation).save(
+        scenario.root / ".reviews" / f"a.resume-paused.{digest}.resume.local.json",
+    )
     generation = claim(scenario, ReviewRole.REQUESTOR, LlmNature.CODEX, verifier)
+    with pytest.raises(ReviewExchangeError, match="dispatch-generation-changed"):
+        claim(scenario, ReviewRole.REQUESTOR, LlmNature.CODEX, verifier)
     assert stored_binding(scenario.store) == MarkedClaimEvidence(REQUESTOR_LAUNCH, REQUESTOR_PANE, "codex", marker.binding, 1, 1).issued(generation)
 
 

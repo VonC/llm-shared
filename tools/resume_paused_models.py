@@ -48,7 +48,7 @@ _AGENT_ID_RE: Final = re.compile(r"[a-z0-9-]+")
 _UUID_RE: Final = re.compile(r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}")
 _HEX64_RE: Final = re.compile(r"[0-9a-f]{64}")
 _DRIVE_RE: Final = re.compile(r"[A-Za-z]:\\")
-_RECOGNIZED_AGENTS: Final = {"claude": Host.CLAUDE, "chatgpt": Host.CODEX}
+_RECOGNIZED_AGENTS: Final = {"claude": Host.CLAUDE, "chatgpt": Host.CODEX, "codex": Host.CODEX}
 _FORBIDDEN_SEGMENT_CHARACTERS: Final = frozenset('<>:"|?*')
 
 

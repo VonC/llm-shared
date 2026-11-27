@@ -193,7 +193,9 @@ def pane_host(record: PaneRecord) -> Host | None:
         raise ArtifactError("host-contradictory")
     if claude:
         return Host.CLAUDE
-    if codex or (not record.harness and not record.apps and _CODEX_NAME.fullmatch(record.name)):
+    if record.harness:
+        return Host.CODEX if record.harness == _CODEX_APP else None
+    if codex or (not record.apps and _CODEX_NAME.fullmatch(record.name)):
         return Host.CODEX
     return None
 

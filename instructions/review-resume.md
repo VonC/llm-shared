@@ -160,11 +160,10 @@ Immediately before `claim`, run the read-only validator from the checkout root
 with the complete command exactly as typed:
 
 ```powershell
-& "<LLM_SHARED_DIR>\bin\resume_paused_validate.bat" --command "<complete typed command>" --host <claude or codex>
+& "<LLM_SHARED_DIR>\bin\resume_paused_validate.bat" --command '<complete typed command>' --host <claude or codex>
 ```
 
-On exit 0, claim with the marker and, for Codex, the identity carried from the
-first validation:
+On exit 0, claim with the marker. For Codex, pass the TUIOS pane UUID and launch ID from the first validation to both the repeated validator call and the claim.
 
 ```powershell
 & "<LLM_SHARED_DIR>\bin\review_exchange.bat" claim --document <document> --role <role> --round <round> --occurrence <occurrence> --resume-paused-marker <marker> --carried-session <session_id> --carried-launch-id <launch_id>
@@ -172,8 +171,7 @@ first validation:
 
 Under the transition lock, the claim rebuilds the assignment from the current
 prompt, routing and locked exchange, requires the receipt that consumed the
-prompt, and records the marked binding with the generation it issues. A
-reviewer claims only after the requestor's receipt exists. Any change refuses
+prompt, and matches the receiver pane and exact dispatch to the preceding ownership generation. A counterpart needs its requestor's receipt. A reviewer resuming its own saved prompt needs its own receipt. The claim records the marked binding with its new generation. Any change refuses
 before a write. On a refusal of either command, print
 `resume-paused <launch_id> failed` first, then the reasons, and stop without a
 fallback consent question. On success, keep the capability in the session,

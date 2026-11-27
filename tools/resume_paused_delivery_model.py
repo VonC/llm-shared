@@ -53,6 +53,7 @@ if TYPE_CHECKING:
     from collections.abc import Callable, Mapping, Sequence
     from datetime import datetime
 
+    from tools.resume_paused_dispatch import SharedDelivery
     from tools.resume_paused_evidence import PaneObservation, ScreenProbe
     from tools.resume_paused_guard import GuardLease
     from tools.resume_paused_input import InputProver, PaneRecord
@@ -279,7 +280,7 @@ class PaneTransport(Protocol):
         """Capture the pane's unwrapped lines, or ``None`` on failure."""
         ...
 
-    def ask(self, selector: str, command: str, timeout: float) -> AskOutcome:
+    def ask(self, selector: str, command: str, timeout: float, pane_id: str = "") -> AskOutcome:
         """Type one command through the resolved selector."""
         ...
 
@@ -368,6 +369,7 @@ class DeliveryPorts:
     probe: ScreenProbe
     checks: tuple[PreSendCheck, ...] = ()
     takeover: Takeover = field(default_factory=NoTakeover)
+    shared: SharedDelivery | None = None
 
 
 __all__ = [

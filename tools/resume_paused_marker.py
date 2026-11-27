@@ -282,6 +282,18 @@ class ResultLine:
         return line
 
 
+def receiver_failed(lines: tuple[str, ...], launch_id: str) -> bool:
+    """Recognize a complete failure result for the current launch."""
+    for line in lines:
+        try:
+            result = ResultLine.parse(line)
+        except ArtifactError:
+            continue
+        if result.launch_id == launch_id and result.outcome == "failed":
+            return True
+    return False
+
+
 __all__ = [
     "ASSIGNMENT_SCHEMA",
     "ASSIGNMENT_VERSION",

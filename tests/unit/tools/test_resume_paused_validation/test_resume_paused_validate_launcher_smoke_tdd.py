@@ -16,16 +16,11 @@ import io
 import json
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 import pytest
 
 from tools import resume_paused_validation as module
-from tools.resume_paused_input import (
-    CarriedIdentity,
-    ClaudeInputProver,
-    CodexInputProver,
-)
+from tools.resume_paused_input import CarriedIdentity
 from tools.resume_paused_marker import Marker
 from tools.resume_paused_models import SessionRole
 from tools.resume_paused_profiles import Host, ReadAccount
@@ -37,15 +32,11 @@ from tools.resume_paused_validation import (
     main,
 )
 
-if TYPE_CHECKING:
-    from tools.resume_paused_validation import BuildReader
-
 LAUNCHER = Path(__file__).resolve().parents[4] / "bin" / "resume_paused_validate.bat"
 LAUNCH = "0123456789abcdef0123456789abcdef"
 MARKER = Marker(LAUNCH, "77e5f39c-0536-4cbb-a057-f4a1f5c715b0", SessionRole.REQUESTOR, "a" * 64)
 REFUSED = 3
 INVALID = 2
-OS_BUILD = 26200
 
 
 class RecordingValidator:
@@ -126,38 +117,13 @@ def test_invalid_input_and_failures_exit_two_with_one_json_object(argv: list[str
     assert (code, data["valid"], data["reasons"]) == (INVALID, False, ["invalid-input"])
 
 
-def test_default_composition_covers_both_hosts_without_native_calls(tmp_path: Path) -> None:
-    """The composed validator holds a prover per host and reads the OS build only on demand."""
-    calls: list[str] = []
-
-    class FakeApi:
-        """Declared Windows build reader."""
-
-        def os_build(self) -> int:
-            """Return the declared build."""
-            calls.append("build")
-            return OS_BUILD
-
-    def factory() -> BuildReader:
-        """Build the declared reader in place of the Win32 one."""
-        return FakeApi()
-
-    composed = default_validator({"USERPROFILE": str(tmp_path)}, lambda: datetime(2026, 11, 19, tzinfo=UTC), api_factory=factory)
+def test_default_composition_binds_the_receiving_terminal() -> None:
+    """Both receivers validate against the same shared dispatch."""
+    environ = {"TUIOS_PANE_ID": MARKER.pane_id}
+    composed = default_validator(environ, lambda: datetime(2026, 11, 19, tzinfo=UTC))
     assert isinstance(composed, ReceiverValidator)
-    claude, codex = composed.provers[Host.CLAUDE], composed.provers[Host.CODEX]
-    assert isinstance(claude, ClaudeInputProver)
-    assert isinstance(codex, CodexInputProver)
-    assert calls == []
-    assert claude._os_build() == OS_BUILD  # noqa: SLF001 - the deferred native read is the composition's contract
-    assert calls == ["build"]
-
-
-def test_host_files_are_read_whole_or_not_at_all(tmp_path: Path) -> None:
-    """An unreadable evidence file reads as ``None``, never as empty evidence."""
-    present = tmp_path / "t.jsonl"
-    present.write_bytes(b"{}\n")
-    assert module._read_file(str(present)) == b"{}\n"  # noqa: SLF001 - the composition's file reader
-    assert module._read_file(str(tmp_path / "missing.jsonl")) is None  # noqa: SLF001
+    assert composed.environ is environ
+    assert composed.provers == {}
 
 
 def test_clock_is_timezone_aware() -> None:

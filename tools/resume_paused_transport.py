@@ -1,32 +1,12 @@
 """Shell-free TUIOS transport of the human-launched bulk resume.
 
-Step 6 of v0.15.0 resume-paused types into panes only through two argument
-lists, run directly without a shell, so no shell or MSYS layer can rewrite a
-leading ``/`` or interpret a metacharacter of the marked command:
-
-- ``ask_arguments``: ``tuios ask-agent --select 'session:S name:N' --yes
-  --stall-timeout 60000 --timeout 100000 --lines 1 --json -- <command>``, the
-  selector form the requirement proved from any pane. ``--`` ends the options,
-  so the command is one inert argument whatever it contains;
-- ``enter_arguments``: ``tuios send-keys -s S -w <full pane id> Enter``, the
-  single Codex recovery Enter, targeted by the full pane UUID.
-
-TUIOS splits selector terms on spaces and matches each value as a glob, so a
-space in a live session or pane name becomes the documented ``*`` wildcard. A
-name holding another glob character or a non-printing one has no exact glob
-and is refused. ``resolve_selector`` then requires that the selector, read
-more broadly than TUIOS reads it (case-insensitive, a wildcard crossing any
-character), matches exactly one listed pane, the validated full UUID; any
-collision is an error before input.
-
-``TuiosTransport`` adapts the delivery's transport port, so the selector
-syntax stays here: ``select`` resolves the selector, and fresh discovery,
-captures, the ask and the Enter each run on a runner bounded by the seconds
-the delivery grants, the remaining budget of the send in progress. Every send
-starts with its ask, so the ask's process bound and its ``--timeout`` are the
-same 100 seconds. The caller's environment, ``TUIOS_*`` variables included,
-is inherited unchanged. An ask's exit code is report-only: it never proves
-that a command was taken.
+Production captures physical ANSI rows and confirms the live selector through
+`list-agents --select ... --json`. Each ask uses the daemon's token for the
+one expected, ready pane. The selector encodes spaces as wildcards, so both
+the initial listing and the daemon's latest selection must be unambiguous.
+The command follows `--` as one argument. A recovery Enter addresses the
+TUIOS session and full pane UUID directly. The transport exit code is
+diagnostic. Shared receipts and marked claims establish acceptance.
 """
 
 from __future__ import annotations
@@ -35,8 +15,10 @@ import re
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Final
 
-from tools.resume_paused_evidence import observe_panes
-from tools.resume_paused_input import TuiosDiscovery
+from tools.resume_paused_evidence import observe_panes, parse_activity
+from tools.resume_paused_input import TuiosDiscovery, parse_agents
+from tools.resume_paused_models import ArtifactError
+from tools.resume_paused_profiles import as_mapping, loads_strict
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Sequence
@@ -64,6 +46,7 @@ class AskOutcome:
     """Exit code of one ask; report-only, never acceptance evidence."""
 
     exit_code: int
+    refusal: str = ""
 
 
 def selector_value(text: str) -> str | None:
@@ -113,9 +96,10 @@ class TuiosTransport:
     for that bound, so no blocking call outlives its send's deadline.
     """
 
-    def __init__(self, runner_for: Callable[[float], CommandRunner]) -> None:
+    def __init__(self, runner_for: Callable[[float], CommandRunner], *, physical: bool = False) -> None:
         """Keep the factory of argument-list runners bounded by a number of seconds."""
         self._runner_for = runner_for
+        self._physical = physical
 
     def observe(self, timeout: float) -> PaneObservation | None:
         """List every live pane and its activity once, or ``None`` when discovery failed."""
@@ -126,12 +110,43 @@ class TuiosTransport:
         return resolve_selector(panes, target)
 
     def capture(self, pane: PaneRecord, timeout: float) -> tuple[str, ...] | None:
-        """Capture the pane's unwrapped lines by session and full UUID."""
-        return TuiosDiscovery(self._runner_for(timeout)).capture(pane)
+        """Capture the physical or unwrapped rows requested by this transport."""
+        runner = self._runner_for(timeout)
+        if self._physical:
+            result = runner.run(("tuios", "capture-pane", "-s", pane.session, "-w", pane.pane_id, "--ansi", "--trim"))
+            return tuple(result.stdout.splitlines()) if result.exit_code == 0 else None
+        return TuiosDiscovery(runner).capture(pane)
 
-    def ask(self, selector: str, command: str, timeout: float) -> AskOutcome:
+    def _confirm(self, selector: str, pane_id: str, timeout: float) -> str | None:
+        """Bind the selector to exactly the intended UUID using the daemon's confirmation token."""
+        result = self._runner_for(timeout).run(("tuios", "list-agents", "--select", selector, "--json"))
+        if result.exit_code:
+            return None
+        try:
+            panes = parse_agents(result.stdout)
+            activity = parse_activity(result.stdout).get(pane_id)
+            token = as_mapping(loads_strict(result.stdout)).get("confirm")
+        except (ArtifactError, ValueError, RecursionError):
+            return None
+        if not activity or not activity.resting:
+            return None
+        if len(panes) == 1 and panes[0].pane_id == pane_id and isinstance(token, str) and token:
+            return token
+        return None
+
+    def ask(self, selector: str, command: str, timeout: float, pane_id: str = "") -> AskOutcome:
         """Type one command through the resolved selector and wait for the pane to settle."""
-        return AskOutcome(self._runner_for(timeout).run(ask_arguments(selector, command)).exit_code)
+        args = ask_arguments(selector, command)
+        if self._physical:
+            confirm = self._confirm(selector, pane_id, min(5.0, timeout))
+            if confirm is None:
+                return AskOutcome(1, "selector-confirmation-unavailable")
+            timeout = min(timeout, 65.0)
+            args = (
+                "tuios", "ask-agent", "--select", selector, "--confirm", confirm, "--ready-timeout", "1",
+                "--stall-timeout", str(STALL_TIMEOUT_MS), "--timeout", "60000", "--lines", "1", "--json", "--", command,
+            )
+        return AskOutcome(self._runner_for(timeout).run(args).exit_code)
 
     def enter(self, session: str, pane_id: str, timeout: float) -> bool:
         """Press Enter once in the pane with this full UUID; ``True`` when TUIOS sent it."""

@@ -76,8 +76,8 @@ from tools.resume_paused_delivery_model import (
 from tools.resume_paused_marker import (
     LiveExchange,
     Marker,
-    ResultLine,
     marker_in_command,
+    receiver_failed,
     resolve_assignment,
 )
 from tools.resume_paused_models import ArtifactError, SessionRole, timestamp_instant
@@ -131,9 +131,8 @@ CLAUDE_WAIT_LIMITS: Final[Mapping[str, str]] = MappingProxyType(dict(zip(DISCLOS
     "processes detached by completed foreground commands or hooks may be missed (Q20=A)",
     "earlier hook-handler configuration history is unavailable (Q20=A)",
     "backward clock changes since the last OS boot, offsetting ones included, can remain undetectable (Q21=A)",
-    "work of Claude roots with no records in the read set can be missed: persistence-disabled roots, other "
-    "configuration roots, transcripts removed without detectable evidence and unrecorded work surviving a recorded "
-    "parent's validated end after ordinary exit, kill, TaskStop or timeout (Q26=A)",
+    "Claude work outside visible panes and shared review waiters may be missed, including work surviving a "
+    "parent's exit, kill, TaskStop or timeout (Q26=A)",
     "a local shell command still running whose input is not yet recorded, and work it starts meanwhile, can be "
     "missed in a Claude root that has no TUIOS pane (Q27=B)",
 ), strict=True)))
@@ -300,18 +299,7 @@ class _Watch:
         lines = self._ports.results.results(pane, self.bound())
         if self.spent() or not lines:
             return None
-        return _Seen(ReceiverState.FAILED, "receiver-failed") if self._failed(lines) else None
-
-    def _failed(self, lines: tuple[str, ...]) -> bool:
-        """Return whether a well-formed result line reports this launch failed; other lines prove nothing."""
-        for line in lines:
-            try:
-                result = ResultLine.parse(line)
-            except ArtifactError:
-                continue
-            if result.launch_id == self._launch_id and result.outcome == FAILED_RESULT:
-                return True
-        return False
+        return _Seen(ReceiverState.FAILED, "receiver-failed") if receiver_failed(lines, self._launch_id) else None
 
     def durable(self, root: CanonicalRoot) -> Durable | _Seen | None:
         """Read the durable records once, ``None`` when the bound is spent before, between or after the two reads."""
@@ -370,7 +358,7 @@ class _ReviewerGate:
     def check(self, step: SendStep) -> Refusal | None:
         """Refuse the send unless the takeover still holds and the live round still binds the delivered command.
 
-        Before a recovery Enter only the durable takeover is read.
+        Recovery rechecks the durable takeover and any live shared waiter.
         """
         gate = self._takeover.decide(self._activation, step.observation, wait=step.phase is not Phase.RECOVERY)
         if gate.refusal is None and gate.command != step.action.command:
@@ -468,7 +456,7 @@ class MarkedTakeover:
 
         ``wait`` is ``False`` only before a Codex recovery Enter, whose pane
         already holds the reviewer command: the durable takeover is refreshed
-        without judging the pane's wait.
+        and the live shared waiter check runs again.
         """
         pane = _locate(observation, activation.action.pane_id)
         if observation is None or pane is None:
@@ -480,7 +468,13 @@ class MarkedTakeover:
         command = _rebound(activation.action, proved[0])
         if command is None:
             return _Gate(Refusal("reviewer-marker-unreadable", failed=True))
-        gate = self._wait(activation, *proved, candidate) if wait else _Gate(None)
+        gate = _Gate(None)
+        if wait:
+            gate = self._wait(activation, *proved, candidate)
+        elif self._ports.wait.live_wait is not None:
+            reason = self._ports.wait.live_wait(activation.root)
+            if reason:
+                gate = _Gate(Refusal(reason), pending=True)
         return gate if gate.refusal is not None else replace(gate, command=command)
 
     def _takeover(self, activation: Activation, candidate: _Candidate) -> tuple[Durable, Proof] | _Gate:

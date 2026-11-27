@@ -17,12 +17,9 @@ into one run, and renders the run's result:
    runners, the saved-pause reader, the saved-exchange observer, the session
    journal index, the nonblocking checkout guard, the ``PlanRecheck`` of this
    request before every send (with a fresh journal read), and the marked
-   takeover with its reviewer wait
-   and design Q27=B all-pane idle guard. The host-profile adapters arrive in
-   one ``HostAdapters`` bundle. No host profile is pinned yet (plan Q05), so
-   ``unpinned_hosts`` reads no command history or agent log, proves no screen,
-   selects no delivery profile and proves no reviewer absence: a real run
-   fails closed before any input.
+   takeover with its reviewer wait and all-pane idle guard. The shipping
+   adapters observe the public terminal, reserve each dispatch under the
+   checkout guard and confirm acceptance from shared receipt or claim evidence.
 4. ``render_run`` (``tools.resume_paused_report``) prints one compact line per
    prompt-bearing checkout and the omitted-pane count; every Claude reviewer
    outcome and conditional Claude preview carries ``limits=claude-wait-scope``.
@@ -39,8 +36,7 @@ a resume recorded after planning skips the send and an unreadable journal at
 that boundary fails it, with no input either way.
 
 Agents never run this command, help and preview included; tests drive
-``main`` with an injected ``Runtime``. Nothing here writes an artifact; only
-the delivery types into panes.
+``main`` with an injected ``Runtime``. Dry runs only read evidence.
 """
 
 from __future__ import annotations
@@ -56,40 +52,27 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Final, NoReturn, Protocol, TextIO
 
 from tools.resume_paused_artifacts import read_checkout_snapshot
-from tools.resume_paused_budget import (
-    BoundedCapture,
-    BoundedSessionStore,
-    BoundedTranscriptSource,
-    BoundedVersions,
-)
-from tools.resume_paused_claude import DirectoryTranscriptSource
-from tools.resume_paused_codex import DirectorySessionStore
 from tools.resume_paused_delivery import deliver_run
 from tools.resume_paused_delivery_checks import PlanRecheck
 from tools.resume_paused_delivery_model import (
     CALL_BOUND_SECONDS,
     DeliveryPorts,
-    UnpinnedProfiles,
+    Phase,
+    SendStep,
 )
+from tools.resume_paused_dispatch import DispatchHistory, SharedDelivery
 from tools.resume_paused_evidence import (
     JournalIndex,
-    ScreenVerdict,
     journal_path,
     read_session_journal,
 )
 from tools.resume_paused_guard import CheckoutGuard
-from tools.resume_paused_input import (
-    ClaudeInputProver,
-    CodexInputProver,
-    SubprocessRunner,
-    UnpinnedCodexVersions,
-)
+from tools.resume_paused_input import SubprocessRunner
 from tools.resume_paused_marker import new_launch_id
-from tools.resume_paused_pane_guard import AllPaneIdleGuard, UnpinnedClaudeScreens
+from tools.resume_paused_pane_guard import AllPaneIdleGuard
 from tools.resume_paused_plan_model import PlanRequest
 from tools.resume_paused_planner import PlannerPorts, plan_checkout, plan_run
 from tools.resume_paused_profiles import (
-    SUPPORTED_PROFILES,
     CallerOrigin,
     Host,
     classify_caller,
@@ -104,10 +87,11 @@ from tools.resume_paused_reviewer_wait import ReviewerWait, UnprovedAbsence
 from tools.resume_paused_takeover import (
     CLAUDE_WAIT_LIMITS,
     MarkedTakeover,
-    NoResults,
     TakeoverPorts,
 )
+from tools.resume_paused_terminal import TerminalScreens
 from tools.resume_paused_transport import TuiosTransport
+from tools.resume_paused_waiters import waiter_reason
 from tools.resume_paused_windows import Win32Api, ancestry_names
 from tools.review_artifact_configuration import ReviewArtifactConfiguration
 from tools.review_exchange_models import ReviewExchangeError
@@ -123,16 +107,15 @@ if TYPE_CHECKING:
         LogEvent,
         ProfileGate,
         ProverFactory,
-        Remaining,
+        Refusal,
         Sleeper,
     )
     from tools.resume_paused_evidence import (
         CommandHistory,
-        ObservedCommand,
         PaneObservation,
         ScreenProbe,
     )
-    from tools.resume_paused_input import InputProver, PaneRecord
+    from tools.resume_paused_input import PaneRecord
     from tools.resume_paused_models import CanonicalRoot
     from tools.resume_paused_pane_guard import ClaudeScreens
     from tools.resume_paused_plan_model import CheckoutPlan
@@ -149,7 +132,6 @@ EXIT_SUCCESS: Final = 0
 EXIT_FAILURE: Final = 1
 EXIT_USAGE: Final = 2
 NAMES: Final = "NAME[,NAME...]"
-_CODEX_RESOLUTION_NS: Final = 100
 _DESCRIPTION: Final = """\
 Resume every paused agent session that waits in a TUIOS pane, from the
 routing saved in each checkout's pause handoff, with no further question.
@@ -170,9 +152,9 @@ Exit status: 0 success, expected skips or pending reviewers; 1 any failure;
 2 invalid arguments.
 
 limits=claude-wait-scope is printed with every Claude reviewer activation
-outcome and every preview showing a conditional Claude activation. The
-absence of waiting work in the reviewer's Claude root is checked only within
-these five disclosed limits:
+outcome and every preview showing a conditional Claude activation. The launcher
+checks live shared reviewer waiters, current ownership and visible panes.
+These five limits apply to work outside those observations:
 """
 
 
@@ -209,7 +191,7 @@ def build_parser() -> argparse.ArgumentParser:
         formatter_class=argparse.RawDescriptionHelpFormatter, add_help=False, allow_abbrev=False,
     )
     parser.add_argument("--dry-run", action="store_true", help="type nothing; report every intended command, clear and skip reason")
-    parser.add_argument("--clear", action="store_true", help="clear the resumed conversation first; a redundant Claude clear is skipped")
+    parser.add_argument("--clear", action="store_true", help="clear the resumed conversation and confirm its empty editor before resuming")
     parser.add_argument(
         "--except", dest="excepts", action="append", type=_names, default=[], metavar=NAMES,
         help="exclude TUIOS sessions, pane labels or checkout folders (exact, case-insensitive); repeatable",
@@ -244,25 +226,8 @@ def parse_arguments(argv: Sequence[str]) -> Options:
     return Options(args.dry_run, args.clear, _flatten(args.excepts), _flatten(args.switch_roles), args.help)
 
 
-class _UnreadableHistory:
-    """``CommandHistory`` while no agent-log or screen-command form is pinned: every history is unreadable."""
-
-    def commands(self, pane: PaneRecord) -> tuple[ObservedCommand, ...] | None:
-        """Report the pane's history unreadable, which keeps duplicate protection uncertain."""
-        del pane
-
-
-class _UnsupportedScreen:
-    """``ScreenProbe`` while no Codex screen profile is pinned: no capture proves anything."""
-
-    def probe(self, pane: PaneRecord) -> ScreenVerdict:
-        """Report the capture unsupported."""
-        del pane
-        return ScreenVerdict.UNSUPPORTED
-
-
 class _UnreadableLog:
-    """``AgentLog`` while no Claude logged form is pinned: every agent log is unreadable."""
+    """Unused legacy log port for terminal-based delivery."""
 
     def events(self, pane: PaneRecord) -> tuple[LogEvent, ...] | None:
         """Report the pane's log unreadable."""
@@ -300,7 +265,7 @@ class SavedExchanges:
 
 @dataclass(frozen=True)
 class HostAdapters:
-    """Host-profile adapters: unpinned in production (plan Q05), declared by tests."""
+    """Terminal and shared evidence adapters, with injectable ports for synthetic host tests."""
 
     history: CommandHistory
     probe: ScreenProbe
@@ -310,6 +275,7 @@ class HostAdapters:
     absence: WaitAbsence
     screens: ClaudeScreens
     results: ResultSource
+    shared: SharedDelivery | None = None
 
 
 @dataclass(frozen=True)
@@ -348,53 +314,41 @@ def _replan(
 def compose(runtime: Runtime, request: PlanRequest, journal: JournalIndex) -> RunPorts:
     """Bind the planner, delivery and takeover of one launch to its runtime."""
     hosts, clock = runtime.hosts, runtime.clock
-    transport = TuiosTransport(runtime.runner_for)
+    transport = TuiosTransport(runtime.runner_for, physical=hosts.shared is not None)
     planner = PlannerPorts(runtime.read_snapshot, runtime.exchanges, hosts.history, hosts.probe, journal, runtime.launch_id)
     takeover = MarkedTakeover(TakeoverPorts(
         clock, runtime.sleeper, transport, runtime.read_snapshot, runtime.exchanges,
-        ReviewerWait(hosts.history, hosts.probe, hosts.absence), AllPaneIdleGuard(transport, hosts.screens, clock), hosts.results,
+        ReviewerWait(hosts.history, hosts.probe, hosts.absence, waiter_reason if hosts.shared else None), AllPaneIdleGuard(transport, hosts.screens, clock), hosts.results,
     ))
     recheck = PlanRecheck(partial(_replan, request, planner, runtime.journal))
+    check = _DispatchRecheck(runtime, request, planner) if hosts.shared else recheck
     delivery = DeliveryPorts(
-        transport, runtime.guard, clock, runtime.sleeper, hosts.profiles, hosts.log, hosts.provers, hosts.probe, (recheck,), takeover,
+        transport, runtime.guard, clock, runtime.sleeper, hosts.profiles, hosts.log, hosts.provers, hosts.probe, (check,), takeover, hosts.shared,
     )
     return RunPorts(transport, planner, delivery)
 
 
-def _read_file(path: str) -> bytes | None:
-    """Read one host evidence file completely, or ``None`` when unreadable."""
-    try:
-        return Path(path).read_bytes()
-    except OSError:
-        return None
+@dataclass(frozen=True)
+class _DispatchRecheck:
+    runtime: Runtime
+    request: PlanRequest
+    planner: PlannerPorts
+
+    def check(self, step: SendStep) -> Refusal | None:
+        """Replan while discounting only this action's own reservation and recovery editor."""
+        hosts = self.runtime.hosts
+        probe = hosts.probe
+        if step.phase is Phase.RECOVERY and isinstance(probe, TerminalScreens):
+            probe = replace(probe, recovery_pane=step.pane.pane_id)
+        planner = replace(self.planner, history=DispatchHistory(step.action.command), probe=probe)
+        return PlanRecheck(partial(_replan, self.request, planner, self.runtime.journal)).check(step)
 
 
-def _os_build() -> int | None:
-    """Read the OS build only when a Claude proof reaches profile selection."""
-    return Win32Api().os_build()
-
-
-def unpinned_hosts(environ: Mapping[str, str], runner_for: Callable[[float], CommandRunner]) -> HostAdapters:
-    """Compose the host adapters while no host profile is pinned: nothing is read as proof."""
-    home = Path(environ.get("USERPROFILE", ""))
-    transcripts = DirectoryTranscriptSource(str(home / ".claude" / "projects"), _read_file)
-    sessions = DirectorySessionStore(str(home / ".codex" / "sessions"), _read_file)
-    capture = TuiosTransport(runner_for).capture
-
-    def claude(remaining: Remaining) -> InputProver:
-        """Build one Claude proof's prover over the budget-bounded transcripts."""
-        return ClaudeInputProver(BoundedTranscriptSource(transcripts, remaining), SUPPORTED_PROFILES, _os_build)
-
-    def codex(remaining: Remaining) -> InputProver:
-        """Build one Codex proof's prover over the budget-bounded session files, capture and versions."""
-        return CodexInputProver(
-            BoundedSessionStore(sessions, remaining), BoundedCapture(capture, remaining),
-            BoundedVersions(UnpinnedCodexVersions(), remaining), _CODEX_RESOLUTION_NS,
-        )
-
+def terminal_hosts(runner_for: Callable[[float], CommandRunner], exchanges: ExchangeObserver) -> HostAdapters:
+    """Use the public TUIOS terminal and shared dispatch, receipt and claim evidence."""
+    screens = TerminalScreens(TuiosTransport(runner_for, physical=True))
     return HostAdapters(
-        _UnreadableHistory(), _UnsupportedScreen(), _UnreadableLog(), UnpinnedProfiles(), {Host.CLAUDE: claude, Host.CODEX: codex},
-        UnprovedAbsence(), UnpinnedClaudeScreens(), NoResults(),
+        DispatchHistory(), screens, _UnreadableLog(), screens, {}, UnprovedAbsence(), screens, screens, SharedDelivery(exchanges),
     )
 
 
@@ -431,11 +385,12 @@ def _read_journal(path: Path | None) -> JournalIndex:
 
 
 def default_runtime(environ: Mapping[str, str]) -> Runtime:
-    """Compose a human launch over TUIOS, the real clock, the native guard and the unpinned host adapters."""
+    """Compose a human launch over TUIOS, the real clock, the native guard and terminal adapters."""
     clock = SystemClock()
+    exchanges = SavedExchanges(clock.now)
     return Runtime(
-        environ, process_ancestry, _bounded_runner, clock, clock, CheckoutGuard(), unpinned_hosts(environ, _bounded_runner),
-        _read_snapshot, partial(_read_journal, journal_path(environ)), SavedExchanges(clock.now),
+        environ, process_ancestry, _bounded_runner, clock, clock, CheckoutGuard(), terminal_hosts(_bounded_runner, exchanges),
+        _read_snapshot, partial(_read_journal, journal_path(environ)), exchanges,
     )
 
 
@@ -447,6 +402,8 @@ def _caller_pane(environ: Mapping[str, str]) -> str | None:
 def execute(options: Options, runtime: Runtime) -> tuple[list[str], int]:
     """Classify the caller, plan every checkout, deliver unless previewing, and render the result."""
     caller = classify_caller(runtime.environ, runtime.ancestry())
+    if options.help and caller.origin is not CallerOrigin.AGENT:
+        return [build_parser().format_help().rstrip("\n")], EXIT_SUCCESS
     request = PlanRequest(caller, _caller_pane(runtime.environ), options.dry_run, options.clear, options.excepts, options.switch_roles)
     agent = caller.origin is CallerOrigin.AGENT
     ports = compose(runtime, request, JournalIndex() if agent else runtime.journal())
@@ -470,9 +427,6 @@ def main(
     except UsageError as error:
         err.write(f"usage: {USAGE}\n{PROGRAM}: error: {error}\n")
         return EXIT_USAGE
-    if options.help:
-        out.write(build_parser().format_help())
-        return EXIT_SUCCESS
     lines, code = execute(options, runtime() if runtime is not None else default_runtime(os.environ))
     out.write("".join(f"{line}\n" for line in lines))
     return code
@@ -498,7 +452,7 @@ __all__ = [
     "main",
     "parse_arguments",
     "process_ancestry",
-    "unpinned_hosts",
+    "terminal_hosts",
 ]
 
 

@@ -178,8 +178,9 @@ class FakeTransport:
             self.on_capture(sum(1 for call in self.calls if call[0] == "capture"))
         return self._next(self.captures.get(pane.pane_id, [None]))
 
-    def ask(self, selector: str, command: str, timeout: float) -> AskOutcome:
+    def ask(self, selector: str, command: str, timeout: float, pane_id: str = "") -> AskOutcome:
         """Record the ask and run its declared effect."""
+        del pane_id
         self.calls.append(("ask", selector, command))
         self.bounds.append(("ask", timeout))
         if self.on_ask is not None:

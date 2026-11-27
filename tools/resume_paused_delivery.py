@@ -1,79 +1,16 @@
-"""Guarded, deadline-driven pane delivery of the human-launched bulk resume.
+"""Guarded delivery of human-launched resume actions to Claude and Codex.
 
-Step 6 of v0.15.0 resume-paused executes the Step 5 plan, one safe action at
-a time per checkout, while independent checkouts progress concurrently:
+Independent checkout workers hold a per-checkout guard across clear, resume
+and conditional reviewer activation. Each public-terminal send requires
+fresh TUIOS activity, an empty editor and an exclusive dispatch reservation.
+The transport binds its selection to the pane UUID. A clear requires a visible
+transition, a resume requires its usage receipt and a reviewer requires its
+current marked claim. A compact failure result can end the wait early.
 
-1. ``deliver_run`` delivers nothing for a dry run or a run-wide refusal; it
-   runs one worker per planned checkout on a thread pool, and at most one
-   input operation is active per pane across the run.
-2. Each worker takes its checkout's OS guard without waiting (a held guard
-   skips the checkout) and holds it across the whole protected sequence:
-   the resume action first, then each conditional reviewer through the
-   injected ``Takeover`` (Step 7), which may deliver it under the same guard.
-   The guard is released on every exit.
-3. Immediately before every clear, resume, reviewer command and recovery
-   Enter, one fresh observation is taken and the target must pass
-   ``target_refusal`` (identity, protections, eligibility), the transport's
-   selector must resolve to exactly its full UUID (``PaneTransport.select``
-   keeps the TUIOS syntax in the adapter), every injected pre-send check must pass,
-   and the pane's pinned delivery profile must be selected again, unchanged.
-   A failed check stops that send without input. No profile is pinned yet
-   (plan Q05), so every real pane is refused before any input.
-4. ``--clear`` clears only the resumed conversation, never a counterpart. A
-   Claude clear is skipped as redundant when the agent log shows a clear after
-   the pause and no later prompt; the resume is still delivered. Otherwise the
-   clear must be confirmed (Claude: a clear event after the send and a ready
-   pane; Codex: one more pinned cleared line than before, on an empty input
-   box); an unconfirmed clear fails the action and no resume follows.
-5. Every send (the clear and the command) has its own fixed 100-second budget,
-   recovery included (design Q05=A); the transport's 60-second stall bound
-   lies inside it. Acceptance needs the supported profile and Step 1's full
-   latest-input proof, plus, for Claude, the command's prompt event in the
-   agent log. Observation backs off from half a second to five seconds and
-   never passes the deadline. Unproved acceptance at the deadline is an
-   unconfirmed failure; nothing is ever retyped.
-6. Only Codex may get one recovery Enter per send: the pre-input capture
-   must prove the input box empty, then a capture must show exactly this
-   send's command as the whole input box, once on screen, with exactly the
-   pinned footer below it; the fresh recovery checks run, then a last capture
-   must be identical. The deadline is never reset. Any other capture, an edit
-   between captures, a failed check or an expired budget withholds it for good.
-7. A background-shell line in the pre-input capture is reported only: no
-   shell is enumerated, stopped or duplicated.
-
-Fix (code review round 1): the recovery Enter's checks resolve the selector
-again from their fresh listing, while the Enter still names the full UUID.
-Every blocking transport call of a send is bounded by its remaining budget,
-and a proof, capture or check that completes at or after the deadline is
-never acted on. The whole input box is read: every line below the input
-line must be the pinned footer, so a multiline draft never reads as the
-command, and the last ownership capture follows the slow recovery checks. A
-Codex clear is confirmed only by one more pinned cleared line than the
-pre-clear capture shows, so an old banner with an unrelated screen change
-never confirms it.
-
-Fix (code review round 2): each acceptance proof uses a prover built for the
-remaining budget, so the Codex prover's nested capture is bounded by it; no
-step starts once a slow log read, listing, check or capture spent the budget.
-The lines below the input line must be exactly the pinned footer layout, so
-a footer-shaped draft line, a repeated footer or a missing one never reads
-as an empty or owned input box.
-
-Fix (code review round 3): the prover factory receives the send's
-remaining-time callable, so every nested read of a proof is bounded by the
-time left when it starts (``tools.resume_paused_budget``), and the injected
-checks stop before each check once the budget is spent.
-
-Fix (Step 7): every resume report goes through ``Takeover.received``, which
-observes an accepted receiver under its own post-acceptance bound before any
-conditional reviewer is decided; the worker names its checkout as
-``PairDelivery.root``.
-
-Fix (Step 7 code review round 1): the worker names its plan's accepted
-prompt as ``PairDelivery.digest``, and its own report of a Claude reviewer
-whose requestor was not accepted carries ``limits=claude-wait-scope``.
-
-Nothing here writes an artifact, parses arguments or reads a conversation.
+Each send has a 100-second budget including the 60-second transport stall
+bound. Only Codex can receive one recovery Enter after unchanged editor,
+assignment and ownership checks. Uncertain sends retain their reservation.
+Legacy injected adapters exercise the earlier host-profile contracts.
 """
 
 from __future__ import annotations
@@ -101,9 +38,12 @@ from tools.resume_paused_delivery_model import (
     Refusal,
     SendStep,
 )
-from tools.resume_paused_models import timestamp_instant
+from tools.resume_paused_evidence import ScreenVerdict
+from tools.resume_paused_marker import marker_in_command, receiver_failed
+from tools.resume_paused_models import ArtifactError, timestamp_instant
 from tools.resume_paused_plan_model import ActionKind, CheckoutOutcome
 from tools.resume_paused_profiles import Host
+from tools.resume_paused_terminal import clear_observed, editor_state, result_lines
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Sequence
@@ -131,7 +71,7 @@ CAPTURE_GAP_SECONDS: Final = 1.0
 MAX_WORKERS: Final = 8
 _READY_STATES: Final = frozenset({"idle", "done"})
 
-type _Acceptance = Callable[[datetime, datetime, tuple[str, ...]], bool]
+type _Acceptance = Callable[[datetime, datetime, tuple[str, ...]], bool | Refusal]
 
 
 class InputLine(StrEnum):
@@ -273,7 +213,13 @@ class _Recovery:
         first = self._delivery.ports.transport.capture(self._prepared.pane, self._delivery.bound(self._deadline))
         if self._remaining() <= 0:
             return
-        reading = InputLine.OTHER if first is None else read_input(first, command, self._screen)
+        if self._delivery.ports.shared and first is not None:
+            if editor_state(Host.CODEX, first, command) is ScreenVerdict.IDLE_EMPTY:
+                reading = InputLine.COMMAND
+            else:
+                reading = InputLine.EMPTY if editor_state(Host.CODEX, first) is ScreenVerdict.IDLE_EMPTY else InputLine.OTHER
+        else:
+            reading = InputLine.OTHER if first is None else read_input(first, command, self._screen)
         if reading is InputLine.OTHER:
             self._withhold("capture")
         elif reading is InputLine.COMMAND:
@@ -286,6 +232,8 @@ class _Recovery:
         if self._remaining() <= 0:
             return
         refusal = self._delivery.prepare(Phase.RECOVERY, self._deadline)
+        if not isinstance(refusal, Refusal):
+            refusal = self._delivery.dispatch(refusal, self._phase, recovery=True)
         if isinstance(refusal, Refusal):
             self._withhold(refusal.reason)
             return
@@ -388,7 +336,7 @@ class _ActionDelivery:
             return Refusal("host-profile-unsupported", failed=True)
         if self._profile is not None and profile != self._profile:
             return Refusal("profile-changed", failed=True)
-        if profile.host not in self.ports.provers:
+        if not self.ports.shared and profile.host not in self.ports.provers:
             return Refusal("input-proof-unavailable", failed=True)
         self._profile = profile
         return _Prepared(pane, selector, profile)
@@ -398,7 +346,7 @@ class _ActionDelivery:
         prepared = self.prepare(Phase.CLEAR)
         if isinstance(prepared, Refusal):
             return self._report(DeliveryOutcome.REFUSED, prepared, ClearOutcome.NONE)
-        if prepared.profile.host is Host.CLAUDE and self._redundant(prepared.pane):
+        if not self.ports.shared and prepared.profile.host is Host.CLAUDE and self._redundant(prepared.pane):
             return ClearOutcome.REDUNDANT
         sent = self._send(prepared, Phase.CLEAR, prepared.profile.clear_command, self._cleared(prepared))
         if isinstance(sent, Refusal):
@@ -420,17 +368,28 @@ class _ActionDelivery:
         before = self._pre_input(prepared)
         if isinstance(before, Refusal):
             return before
+        refusal = self.dispatch(prepared, phase)
+        if refusal:
+            return refusal
         started = self.ports.clock.now()
         deadline = started + ACTION_BUDGET
-        asked = self.ports.transport.ask(prepared.selector, text, self.remaining(deadline))
+        asked = self.ports.transport.ask(prepared.selector, text, self.remaining(deadline), prepared.pane.pane_id)
+        if asked.refusal:
+            return Refusal(asked.refusal, failed=True)
         if asked.exit_code:
             self.notes.append(f"{phase.value}-ask-exit-{asked.exit_code}")
         recovery = _Recovery(self, prepared, phase, deadline) if prepared.profile.host is Host.CODEX else None
+        return self._observe(deadline, partial(accepted, started, deadline, before), recovery, text)
+
+    def _observe(self, deadline: datetime, accepted: Callable[[], bool | Refusal], recovery: _Recovery | None, text: str) -> DeliveryOutcome | Refusal:
+        """Wait for durable acceptance and allow at most one owned recovery Enter."""
         wait = FIRST_WAIT_SECONDS
         while self.remaining(deadline) > 0:
-            proved = accepted(started, deadline, before)
+            proved = accepted()
             if self.remaining(deadline) <= 0:
                 break
+            if isinstance(proved, Refusal):
+                return proved
             if proved:
                 return DeliveryOutcome.ACCEPTED
             if recovery is not None:
@@ -441,12 +400,28 @@ class _ActionDelivery:
                 wait = min(wait * 2, WAIT_CAP_SECONDS)
         return DeliveryOutcome.UNCONFIRMED
 
+    def dispatch(self, prepared: _Prepared, phase: Phase, *, recovery: bool = False) -> Refusal | None:
+        """Fence uncertain sends before handing the command to the terminal."""
+        if self.ports.shared:
+            try:
+                self.ports.shared.check(prepared.pane, self._action, phase, self._worker.digest, recovery=recovery)
+            except ArtifactError as error:
+                return Refusal(str(error), failed=True)
+        return None
+
     def _pre_input(self, prepared: _Prepared) -> tuple[str, ...] | Refusal:
         """Capture the pane before typing: report background shells, require a readable log or an empty Codex input box."""
         pane, profile = prepared.pane, prepared.profile
         lines = self.ports.transport.capture(pane, CALL_BOUND_SECONDS)
         if lines is not None and background_shell(lines, profile.background_pattern):
             self._note("background-shell")
+        if self.ports.shared:
+            if lines is None:
+                return Refusal("capture-failed", failed=True)
+            verdict = editor_state(profile.host, lines)
+            if verdict is ScreenVerdict.DRAFT:
+                return Refusal("pane-draft")
+            return lines if verdict is ScreenVerdict.IDLE_EMPTY else Refusal("screen-unsupported", failed=True)
         if profile.host is not Host.CLAUDE:
             return _empty_input(lines, profile.screen)
         if self.ports.log.events(pane) is None:
@@ -466,6 +441,19 @@ class _ActionDelivery:
         review round 3), and it never starts once a slow log read spent the
         budget.
         """
+        shared = self.ports.shared
+        if shared:
+            launch_id = marker_in_command(command).launch_id
+
+            def observed(_start: datetime, deadline: datetime, _before: tuple[str, ...]) -> bool | Refusal:
+                if shared.accepted(prepared.pane, self._action, self._worker.digest):
+                    return True
+                if self.expired(deadline):
+                    return False
+                rows = self.ports.transport.capture(prepared.pane, self.bound(deadline))
+                return Refusal("receiver-failed", failed=True) if receiver_failed(result_lines(rows), launch_id) else False
+
+            return observed
         pane, factory = prepared.pane, self.ports.provers[prepared.profile.host]
         claude = prepared.profile.host is Host.CLAUDE
 
@@ -492,7 +480,22 @@ class _ActionDelivery:
             after = self.ports.transport.capture(pane, self.bound(deadline))
             return after is not None and cleared(before, after, cast("InputScreen", screen))
 
+        if self.ports.shared:
+            return partial(self._terminal_clear, prepared)
         return claude if prepared.profile.host is Host.CLAUDE else codex
+
+    def _terminal_clear(self, prepared: _Prepared, started: datetime, deadline: datetime, before: tuple[str, ...]) -> bool:
+        """Confirm a fresh ready editor with a changed public session ID or a new clear banner."""
+        del started
+        observation = self.ports.transport.observe(self.bound(deadline))
+        if observation is None or self.expired(deadline):
+            return False
+        pane = prepared.pane
+        target = target_refusal(Phase.CLEAR, self._action, observation, self._worker.context)
+        if isinstance(target, Refusal) or self.expired(deadline):
+            return False
+        rows = self.ports.transport.capture(target, self.bound(deadline))
+        return clear_observed(prepared.profile.host, before, rows, pane, target)
 
     def _logged(self, pane: PaneRecord, kind: LogKind, since: datetime, text: str | None = None) -> bool:
         """Return whether the agent log holds such an event since the send."""

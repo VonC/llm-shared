@@ -13,10 +13,8 @@ returns a capability. For one complete typed command it:
 4. rebuilds the assignment and requires the marker binding and receiver host;
 5. checks the consumption stage: an unconsumed prompt or one consumed by this
    launch's schema 3 receipt, or for a reviewer the requestor's receipt;
-6. proves the receiving pane from live discovery (full UUID, TUIOS session,
-   checkout and host), never from an inherited ``TUIOS_PANE_ID``;
-7. proves the marked command as the pane's latest complete typed input, at or
-   after the pause snapshot, through the pinned host profile (Q14, Q15).
+6. matches the terminal's pane UUID to live discovery, checkout, host and session;
+7. requires the exact command and current ownership generation in the shared reservation.
 
 The result is typed non-secret JSON: validity, reason codes, launch id, pane,
 role, host, consumption, live exchange, the Codex session identity to carry
@@ -45,15 +43,12 @@ from tools.resume_paused_artifacts import (
     read_checkout_snapshot,
 )
 from tools.resume_paused_claim import consumed_by, requestor_consumed
-from tools.resume_paused_claude import DirectoryTranscriptSource
-from tools.resume_paused_codex import DirectorySessionStore
+from tools.resume_paused_delivery_model import Phase
+from tools.resume_paused_dispatch import authorized, command_phase
 from tools.resume_paused_input import (
     CarriedIdentity,
-    ClaudeInputProver,
-    CodexInputProver,
     SubprocessRunner,
     TuiosDiscovery,
-    UnpinnedCodexVersions,
     pane_host,
 )
 from tools.resume_paused_marker import (
@@ -70,10 +65,9 @@ from tools.resume_paused_models import (
     SessionRole,
     timestamp_instant,
 )
-from tools.resume_paused_profiles import SUPPORTED_PROFILES, Host, ReadAccount
+from tools.resume_paused_profiles import Host, ReadAccount
 from tools.resume_paused_review import ExchangeObservationKind, observe_saved_exchange
 from tools.resume_paused_routing import SavedExchange
-from tools.resume_paused_windows import Win32Api
 from tools.review_artifact_configuration import ReviewArtifactConfiguration
 from tools.review_exchange_models import ReviewExchangeError
 from tools.review_exchange_paths import load_review_configuration
@@ -87,8 +81,6 @@ if TYPE_CHECKING:
 
 OPERATION: Final = "resume-paused-validate"
 _UNCONSUMED: Final = frozenset({PromptState.UNUSED, PromptState.NEW_SINCE_USE})
-_CODEX_RESOLUTION_NS: Final = 100
-
 
 @dataclass(frozen=True)
 class ValidationRequest:
@@ -107,6 +99,7 @@ class _Progress:
     marker: Marker | None = None
     consumed: bool = False
     live: LiveExchange | None = None
+    generation: int | None = None
     carried_session: str | None = None
     account: ReadAccount = field(default_factory=ReadAccount)
 
@@ -163,9 +156,18 @@ def _routing(snapshot: CheckoutSnapshot) -> tuple[PromptMetadata, SavedRouting]:
     return prompt, reading.routing
 
 
-def _stage(snapshot: CheckoutSnapshot, marker: Marker, assignment: Assignment) -> bool:
+def _check_dispatch(snapshot: CheckoutSnapshot, request: ValidationRequest, environ: Mapping[str, str], generation: int | None, pane: PaneRecord) -> None:
+    """Match the exact reservation and the Codex identity carried between writes."""
+    dispatch = authorized(snapshot, request.command, request.host, environ)
+    if dispatch.generation != generation:
+        raise ArtifactError("dispatch-generation-changed")
+    if request.carried is not None and request.carried.session_id != pane.pane_id:
+        raise ArtifactError("carried-pane-mismatch")
+
+
+def _stage(snapshot: CheckoutSnapshot, marker: Marker, assignment: Assignment, *, counterpart: bool) -> bool:
     """Return whether this launch already consumed the prompt; refuse any other consumption."""
-    if marker.role is SessionRole.REVIEWER and assignment.pair is not None:
+    if counterpart:
         if not requestor_consumed(snapshot, assignment):
             raise ArtifactError("requestor-receipt-missing")
         return False
@@ -184,21 +186,15 @@ class Validator(Protocol):
         ...
 
 
-class BuildReader(Protocol):
-    """The one Windows observation the default composition needs: the OS build."""
-
-    def os_build(self) -> int | None:
-        """Return the OS build number, or ``None`` when it cannot be read."""
-        ...
-
-
 class ReceiverValidator:
     """Validate one marked receiver from fresh evidence on every call."""
 
     def __init__(
         self, discovery: PaneDiscovery, provers: Mapping[Host, InputProver], wall_clock: Callable[[], datetime],
+        environ: Mapping[str, str] | None = None,
     ) -> None:
         """Keep the live discovery, the host input provers and the clock."""
+        self.environ = environ
         self.discovery = discovery
         self.provers = provers
         self._wall_clock = wall_clock
@@ -235,12 +231,21 @@ class ReceiverValidator:
             raise ArtifactError("binding-mismatch")
         if assignment.receiver.host is not request.host:
             raise ArtifactError("host-mismatch")
-        progress.consumed = _stage(snapshot, marker, assignment)
         pane = self._pane(assignment, routing.pause.checkout, request.host)
+        if self.environ is not None:
+            _check_dispatch(snapshot, request, self.environ, progress.generation, pane)
+            progress.consumed = _stage(snapshot, marker, assignment, counterpart=command_phase(request.command, request.host) is Phase.REVIEWER)
+            progress.carried_session = pane.pane_id if request.host is Host.CODEX else None
+            return
+        progress.consumed = _stage(snapshot, marker, assignment, counterpart=marker.role is SessionRole.REVIEWER and assignment.pair is not None)
+        self._prove_input(request, progress, pane, timestamp_instant(prompt.snapshot))
+
+    def _prove_input(self, request: ValidationRequest, progress: _Progress, pane: PaneRecord, since: datetime) -> None:
+        """Apply the input prover supplied by legacy adapters."""
         prover = self.provers.get(request.host)
         if prover is None:
             raise ArtifactError("host-profile-unsupported")
-        evidence = prover.prove(pane, request.command, timestamp_instant(prompt.snapshot), carried)
+        evidence = prover.prove(pane, request.command, since, request.carried)
         progress.charge(evidence.account)
         if not evidence.proved:
             raise ArtifactError(evidence.reasons[0] if evidence.reasons else "input-unproved")
@@ -260,6 +265,7 @@ class ReceiverValidator:
         progress.charge(observed.account)
         if observed.kind is not ExchangeObservationKind.OBSERVED or observed.occurrence is None or observed.round_number is None:
             raise ArtifactError(f"exchange-{observed.kind.value}")
+        progress.generation = observed.ownership_generation
         return LiveExchange(observed.occurrence, observed.round_number)
 
     def _pane(self, assignment: Assignment, checkout: CanonicalRoot, host: Host) -> PaneRecord:
@@ -284,30 +290,9 @@ class ReceiverValidator:
         return pane
 
 
-def _read_file(path: str) -> bytes | None:
-    """Read one host evidence file completely, or ``None`` when unreadable."""
-    try:
-        return Path(path).read_bytes()
-    except OSError:
-        return None
-
-
-def default_validator(
-    environ: Mapping[str, str], wall_clock: Callable[[], datetime], *, api_factory: Callable[[], BuildReader] = Win32Api,
-) -> ReceiverValidator:
-    """Compose the validator over TUIOS, the user's host evidence folders and the pinned registry."""
-    home = Path(environ.get("USERPROFILE", ""))
-    discovery = TuiosDiscovery(SubprocessRunner())
-
-    def os_build() -> int | None:
-        """Read the OS build only when a Claude proof reaches profile selection."""
-        return api_factory().os_build()
-
-    claude = ClaudeInputProver(DirectoryTranscriptSource(str(home / ".claude" / "projects"), _read_file), SUPPORTED_PROFILES, os_build)
-    codex = CodexInputProver(
-        DirectorySessionStore(str(home / ".codex" / "sessions"), _read_file), discovery, UnpinnedCodexVersions(), _CODEX_RESOLUTION_NS,
-    )
-    return ReceiverValidator(discovery, {Host.CLAUDE: claude, Host.CODEX: codex}, wall_clock)
+def default_validator(environ: Mapping[str, str], wall_clock: Callable[[], datetime]) -> ReceiverValidator:
+    """Validate shared dispatch, fresh pane identity and ownership at the receiver."""
+    return ReceiverValidator(TuiosDiscovery(SubprocessRunner()), {}, wall_clock, environ)
 
 
 class _ArgumentParser(argparse.ArgumentParser):
@@ -358,7 +343,6 @@ def _now() -> datetime:
 
 __all__ = [
     "OPERATION",
-    "BuildReader",
     "ReceiverValidator",
     "ValidationRequest",
     "ValidationResult",

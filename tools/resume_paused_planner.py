@@ -55,6 +55,7 @@ from dataclasses import dataclass, replace
 from typing import TYPE_CHECKING, Final, Protocol, cast
 
 from tools.resume_paused_artifacts import PromptState, RoutingState
+from tools.resume_paused_dispatch import DispatchHistory
 from tools.resume_paused_evidence import (
     Activity,
     DuplicateEvidence,
@@ -92,6 +93,7 @@ from tools.resume_paused_plan_model import (
 from tools.resume_paused_profiles import CallerOrigin, Host
 from tools.resume_paused_review import ExchangeObservationKind
 from tools.resume_paused_routing import RoutingTarget, SavedExchange, Unresolved
+from tools.resume_paused_terminal import COMMANDS
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterable, Mapping
@@ -175,19 +177,11 @@ _EXCHANGE_REFUSALS: Final = {
     ExchangeObservationKind.BUSY: SkipReason.EXCHANGE_BUSY,
     ExchangeObservationKind.SELECTION_CHANGED: ErrorReason.EXCHANGE_SELECTION_CHANGED,
 }
-_NATIVE: Final = {
-    (Host.CLAUDE, ActionKind.RESUME): "/resume-session",
-    (Host.CODEX, ActionKind.RESUME): "$llm-shared:resume-session",
-    (Host.CLAUDE, ActionKind.REVIEWER): "/review-resume",
-    (Host.CODEX, ActionKind.REVIEWER): "$llm-shared:review-resume",
-    (Host.CLAUDE, ActionKind.CONTINUE_REVIEWER): "/review-resume",
-    (Host.CODEX, ActionKind.CONTINUE_REVIEWER): "$llm-shared:review-resume",
-}
-
 
 def marked_command(host: Host, kind: ActionKind, marker: Marker) -> str:
     """Return the native command of this host and action kind followed by the rendered marker."""
-    return f"{_NATIVE[host, kind]} {MARKER_FLAG} {marker.render()}"
+    native = COMMANDS[host].resume if kind is ActionKind.RESUME else COMMANDS[host].reviewer
+    return f"{native} {MARKER_FLAG} {marker.render()}"
 
 
 def _root_of(pane: PaneRecord) -> CanonicalRoot | None:
@@ -379,7 +373,10 @@ class _CheckoutPlanner:
             return _verdict(base, _Refusal(reason, "; ".join(reading.reasons)))
         if reading.state is not RoutingState.RESOLVED:
             return _verdict(base, _Refusal(_ROUTING_SKIPS[reading.state]))
-        return self._fresh(base, prompt, cast("SavedRouting", reading.routing))
+        history = self.ports.history
+        if isinstance(history, DispatchHistory):
+            history = history.for_snapshot(snapshot)
+        return self._fresh(base, prompt, cast("SavedRouting", reading.routing), history)
 
     def _used(self, base: CheckoutPlan, receipt: UsageReceipt, prompt: PromptMetadata, routing: SavedRouting | None) -> CheckoutPlan:
         """Report the receipt; only the resumed requestor's saved pair may continue its reviewer."""
@@ -404,10 +401,10 @@ class _CheckoutPlanner:
             return self._refused(base, examined)
         return self._bind(base, prompt, routing, (examined,))
 
-    def _fresh(self, base: CheckoutPlan, prompt: PromptMetadata, routing: SavedRouting) -> CheckoutPlan:
+    def _fresh(self, base: CheckoutPlan, prompt: PromptMetadata, routing: SavedRouting, history: CommandHistory) -> CheckoutPlan:
         """Suppress on checkout-wide duplicate evidence, fail on uncertainty, then plan the targets."""
         pause = PauseFacts(self.root, timestamp_instant(prompt.snapshot), reviewer=routing.pause.session_role is SessionRole.REVIEWER)
-        verdict = classify_duplicates(pause, self.panes, self.ports.history, self.index.activity, self.ports.journal)
+        verdict = classify_duplicates(pause, self.panes, history, self.index.activity, self.ports.journal)
         base = replace(base, duplicates=verdict.evidence)
         if verdict.evidence:
             return _verdict(base, _Refusal(_DUPLICATE_SKIPS[verdict.evidence[0].signal]))
@@ -436,6 +433,8 @@ class _CheckoutPlanner:
         if refusal is not None or not check_activity:
             return slot, refusal, notes
         eligibility = input_eligibility(located, target.host, self.index.activity.get(located.pane_id), self.ports.probe)
+        if eligibility.note == "screen-unsupported":
+            return slot, _Refusal(ErrorReason.SCREEN_UNSUPPORTED, target.pane_id), notes
         skip = _ACTIVITY_SKIPS.get(eligibility.activity)
         return slot, None if skip is None else _Refusal(skip, eligibility.activity.value), notes + ((eligibility.note,) if eligibility.note else ())
 
