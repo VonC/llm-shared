@@ -57,6 +57,7 @@ from tools.resume_paused_reviewer_wait import (
 from tools.review_exchange_models import Actor
 
 if TYPE_CHECKING:
+    from tools.resume_paused_models import CanonicalRoot
     from tools.resume_paused_review import ExchangeSnapshot
 
 SINCE = timestamp_instant("2026-11-18T07:25:09+01:00")
@@ -193,3 +194,16 @@ def test_the_history_is_read_through_the_port() -> None:
     history = FakeHistory({REVIEWER_PANE: (typed(ENTRY),)})
     classification = ReviewerWait(history, FakeProbe(), UnprovedAbsence())
     assert classification.commands(REVIEWER) == (typed(ENTRY),)
+
+
+def test_absent_live_waiter_still_requires_an_empty_reviewer_editor() -> None:
+    """A reviewer draft remains protected after its last waiter exits."""
+    classification, _ = wait(ScreenVerdict.DRAFT)
+
+    def no_waiter(_root: CanonicalRoot) -> str:
+        return ""
+
+    live = replace(classification, live_wait=no_waiter)
+    decision = live.verdict(scope(), Host.CODEX, IDLE, ())
+    assert decision.refusal is not None
+    assert decision.refusal.reason == "reviewer-editor-unproved"

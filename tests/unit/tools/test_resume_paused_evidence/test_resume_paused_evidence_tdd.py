@@ -141,7 +141,7 @@ def test_failed_or_malformed_discovery_is_not_absence(result: CommandResult) -> 
     "text",
     [
         "[]", "{", json.dumps({"agents": {}}), listing(agent(state=3)), listing(agent(blocked_by=None)),
-        listing(agent(message=[])), listing(agent(ready="yes")), listing(agent(window_id="c6a64568")),
+        listing(agent(message=[])), listing(agent(ready="yes")), listing(agent(needs_you=1)), listing(agent(window_id="c6a64568")),
     ],
 )
 def test_activity_parsing_is_strict(text: str) -> None:

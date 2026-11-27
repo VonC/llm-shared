@@ -39,7 +39,7 @@ WAITING = Row("PENDING", ("reviewer-wait-active",), ("resume",))
 PAIR_CASES = frozenset({"pair", "capture-pair", "later", "switch", "hibernate", "reboot"})
 SINGLE_PREVIEW = Step(("--dry-run",), Row("PLAN", ("$llm-shared:resume-session",)))
 CALLER = Row("REFUSED", ("agent-caller",))
-DUAL_CASES = frozenset({"bulk", "clear", "exclude", "concurrent", "names", "routes", "damaged", "capture", "history"})
+DUAL_CASES = frozenset({"bulk", "clear", "already-cleared", "exclude", "concurrent", "names", "routes", "damaged", "capture", "history"})
 
 _BOTH_REPLIES = "Check that Codex peer replied RP-ACK-alpha and Claude secondary replied RP-ACK-bravo."
 _PAIR_OBSERVED = "Check that Codex primary resumed first and exactly one Claude primary reviewer started."
@@ -48,6 +48,8 @@ OBSERVATIONS = {
     "capture": _BOTH_REPLIES,
     "concurrent": _BOTH_REPLIES + " Check for one resume per target across both launchers.",
     "clear": "Check that both conversations cleared before resuming. " + _BOTH_REPLIES,
+    "already-cleared": "Check that Claude secondary resumed without receiving another clear. " + _BOTH_REPLIES,
+    "manual": "Check that Claude primary declined the override and Codex peer received no input.",
     "exclude": "Check that Claude secondary waited for the second launch. " + _BOTH_REPLIES,
     "damaged": "Check that Claude secondary replied RP-ACK-bravo and the malformed alpha pause stayed untouched.",
     "draft": "Check that RP-UNSENT-472 is still editable in Codex peer.",
@@ -75,6 +77,8 @@ CASES: dict[str, tuple[Step, ...]] = {
         Step(("--switch-roles", "absent"), Row("REFUSED", ("switch-unmatched",)), code=1),
         Step((*SWITCH, "--except", "bravo"), Row("ERROR", ("switch-not-applicable",)), Row("SKIP", ("excluded",)), code=1),
     ),
+    "manual": (Step(("--clear",), Row("SKIP", ("already-resuming", "resume-session (claude)"))),),
+    "already-cleared": (Step(("--clear",), CLEAR, Row("DONE", ("already cleared, accepted",), ("resume",))),),
     "exclude": (Step(("--except", "bravo"), DELIVER, Row("SKIP", ("excluded",))), Step((), USED, DELIVER)),
     "routes": (Step((), Row("SKIP", ("routing-missing",)), Row("SKIP", ("target-absent",))),),
     "history": (Step((), Row("SKIP", ("unsupported-pauser",)), Row("SKIP", ("journal-resumed", "evidence journal: chatgpt"))),),
@@ -92,7 +96,7 @@ CASES: dict[str, tuple[Step, ...]] = {
     ),
     "hibernate": (Step((), WAITING), Step((), Row("PENDING", ("reviewer-wait-active",))), Step((), CONTINUE)),
     "reboot": (Step(EXCLUDE_REVIEWER, MISSING), Step((), CONTINUE)),
-    "stall": (Step((), Row("FAIL", ("unconfirmed",), ("resume",)), code=1), Step((), Row("SKIP", ("already-resuming",)))),
+    "stall": (Step((), Row("FAIL", ("unconfirmed",), ("resume",)), code=1), Step((), Row("ERROR", ("duplicate-uncertain",)), code=1)),
     "recovery": (Step((), Row("DONE", ("accepted", "recovery enter"), ("resume",))),),
     "capture": (PREVIEW, Step((), DELIVER, DELIVER)),
     "copied": (SINGLE_PREVIEW, SINGLE_PREVIEW, SINGLE_PREVIEW),

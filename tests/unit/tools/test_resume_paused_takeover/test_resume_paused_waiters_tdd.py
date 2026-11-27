@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 import psutil
 import pytest
@@ -57,6 +57,18 @@ def test_unreadable_process_and_unrelated_command(tmp_path: Path) -> None:
     assert waiter_reason(root, lambda: [waiter]) == ""
     waiter.cmdline.side_effect = psutil.AccessDenied(100)
     assert waiter_reason(root, lambda: [waiter]) == "reviewer-wait-unknown"
+
+
+def test_waiter_without_a_checkout_or_readable_command(tmp_path: Path) -> None:
+    """Unknown Python waiters keep activation pending while other processes are ignored."""
+    root = CanonicalRoot.from_path(tmp_path / "target")
+    waiter = process(tmp_path / "elsewhere")
+    with patch("tools.resume_paused_waiters.Path.exists", return_value=False):
+        assert waiter_reason(root, lambda: [waiter]) == "reviewer-wait-unknown"
+    waiter.cmdline.return_value = []
+    assert waiter_reason(root, lambda: [waiter]) == "reviewer-wait-unknown"
+    waiter.name.return_value = "editor.exe"
+    assert waiter_reason(root, lambda: [waiter]) == ""
 
 
 # eof

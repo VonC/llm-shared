@@ -264,4 +264,17 @@ def test_the_planned_requestor_is_the_declared_pane() -> None:
     assert planned_step(World()).pane.pane_id == REQUESTOR_PANE
 
 
+@pytest.mark.parametrize("phase", [Phase.RESUME, Phase.RECOVERY])
+def test_terminal_mode_preserves_a_working_pane(phase: Phase) -> None:
+    """A working pane remains busy even if its editor capture looks idle."""
+    class TerminalProbe(Probe):
+        """Require a resting target for physical terminal input."""
+
+        require_empty = True
+
+    listing = observation(record(CODEX_PANE), activity={CODEX_PANE: WORKING})
+    ctx = TargetContext.of(API, HUMAN, TerminalProbe(ScreenVerdict.IDLE_EMPTY))
+    assert refused(listing, phase, action(CODEX_PANE), ctx) == ("pane-busy", False)
+
+
 # eof

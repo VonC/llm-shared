@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import io
+import json
 from dataclasses import replace
 from functools import partial
 from typing import TYPE_CHECKING
@@ -19,16 +20,20 @@ from tests.acceptance.resume_paused.fakes import (
     scenario_routing,
     single_agent,
 )
+from tests.acceptance.resume_paused.live_cases import CASES
+from tests.acceptance.resume_paused.live_checks import _matches
 from tools import resume_paused as cli
 from tools.resume_paused_artifacts import read_checkout_snapshot
 from tools.resume_paused_claim import marked_claim_verifier
+from tools.resume_paused_clear_log import TerminalClearLog
 from tools.resume_paused_delivery_model import Phase
 from tools.resume_paused_dispatch import read_dispatch
 from tools.resume_paused_evidence import ScreenVerdict
 from tools.resume_paused_input import CarriedIdentity, TuiosDiscovery
+from tools.resume_paused_manual import record_attempt
 from tools.resume_paused_marker import marker_in_command
 from tools.resume_paused_models import RECEIPT_NAME, SessionRole
-from tools.resume_paused_profiles import Host
+from tools.resume_paused_profiles import CommandResult, Host
 from tools.resume_paused_terminal import COMMANDS, clear_observed, editor_state
 from tools.resume_paused_transport import TuiosTransport
 from tools.resume_paused_validation import ValidationRequest, default_validator
@@ -37,6 +42,7 @@ from tools.review_exchange_models_coordination import MarkedClaimEvidence
 from tools.review_resume_identity import claim_selected
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
     from pathlib import Path
 
     from tests.acceptance.resume_paused.fakes import FakePane
@@ -119,11 +125,15 @@ def test_lost_send_is_reserved_across_launches(tmp_path: Path) -> None:
     configure(scenario, scenario.requestor, Host.CODEX)
     scenario.requestor.typing = "drop"
     code, report = run(scenario)
-    assert code == 1
+    stall, retry = CASES["stall"]
+    assert code == stall.code
+    assert _matches(report.splitlines()[0], stall.alpha), report
     assert "acceptance-unproved" in report
     calls = scenario.tuios.inputs()
     assert len(calls) == 1
-    run(scenario)
+    code, report = run(scenario)
+    assert code == retry.code, report
+    assert _matches(report.splitlines()[0], retry.alpha), report
     assert scenario.tuios.inputs() == calls
 
 
@@ -243,6 +253,83 @@ def test_a_changed_session_still_needs_an_empty_editor(tmp_path: Path, host: Hos
     assert editor_state(host, typed) is ScreenVerdict.DRAFT
     assert not clear_observed(host, empty, typed, original, current)
     assert clear_observed(host, empty, empty, original, current)
+
+
+@pytest.mark.parametrize(("command", "expected", "code"), [
+    ("resume-session", "already-resuming", 0), ("review-resume requestor", "already-resuming", 0),
+    ("review-resume reviewer", "PLAN ", 0), ("review-resume", "manual-review-role-uncertain", 1),
+])
+def test_manual_receiver_before_receipt_in_another_pane(tmp_path: Path, command: str, expected: str, code: int) -> None:
+    """Manual entry protects the same bytes in every pane while preserving reviewer-only continuation."""
+    scenario = Scenario(tmp_path)
+    scenario.single()
+    configure(scenario, scenario.requestor, Host.CODEX)
+    snapshot = read_checkout_snapshot(scenario.root)
+    record_attempt(snapshot, command, Host.CLAUDE, REVIEWER_PANE, scenario.guard)
+    actual, report = run(scenario, "--clear", "--dry-run")
+    assert actual == code, report
+    assert expected in report
+    if expected == "already-resuming":
+        assert REVIEWER_PANE[:8] in report
+    if command == "resume-session":
+        _, delivery = run(scenario, "--clear")
+        assert _matches(delivery.splitlines()[0], CASES["manual"][0].alpha), delivery
+    assert not scenario.tuios.inputs()
+    assert snapshot.home
+    assert not (snapshot.home / RECEIPT_NAME).exists()
+
+
+def _clear_log(scenario: Scenario, pane: FakePane, tail: str, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Expose the supplied public event tail only for the target-specific query."""
+    start = int(scenario.clock.now().timestamp()) * 10**9 if tail != "older" else 1
+    events = [{"seq": 9, "at": start, "kind": "session_start", "text": "clear"},
+              {"seq": 10, "at": start + 1, "kind": "prompt" if tail == "later-prompt" else "state", "text": "idle"}]
+    payload = {"success": True, "entries": events, "last_seq": 11 if tail == "gap" else 10,
+               "session": pane.record.session, "window": REVIEWER_PANE if tail == "wrong-pane" else REQUESTOR_PANE}
+    original = scenario.tuios.run
+    log_args = ("tuios", "agent-log", "-s", pane.record.session, "-w", REQUESTOR_PANE, "--limit", "256", "--json")
+
+    def answer(arguments: Sequence[str]) -> CommandResult:
+        return CommandResult(0, json.dumps(payload)) if tuple(arguments) == log_args else original(arguments)
+
+    monkeypatch.setattr(scenario.tuios, "run", answer)
+
+
+@pytest.mark.parametrize("tail", ["quiet", "later-prompt", "older", "gap", "wrong-pane"])
+def test_optional_claude_clear_proof(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, tail: str) -> None:
+    """Only a post-pause clear with a complete quiet tail saves an ask; shell reporting is independent."""
+    scenario = Scenario(tmp_path)
+    scenario.checkout.publish(scenario_routing(scenario.root, single_agent(host=Host.CLAUDE)), role="implementation")
+    pane = scenario.pane(REQUESTOR_PANE, Host.CLAUDE)
+    configure(scenario, pane, Host.CLAUDE)
+    pane.screen = (*CLAUDE, "  \x1b[2m2 shells\x1b[0m")
+    _clear_log(scenario, pane, tail, monkeypatch)
+    code, report = run(scenario, "--clear")
+    assert code == 0, report
+    assert "background-shell" in report
+    if tail == "quiet":
+        expected = CASES["already-cleared"][0].bravo
+        assert expected
+        assert _matches(report.splitlines()[0], expected), report
+    asks = [call[-1] for call in scenario.tuios.inputs()]
+    assert asks[-1].startswith("/resume-session ")
+    assert asks[:-1] == ([] if tail == "quiet" else ["/clear"])
+    assert ("already cleared" in report) == (tail == "quiet")
+
+
+@pytest.mark.parametrize("payload", ["{", '{"entries":[]}', '{"last_seq":"1"}', '{"last_seq":1,"entries":[{"seq":1,"kind":"turn_end"}]}'])
+def test_unusable_clear_log_supplies_no_proof(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, payload: str) -> None:
+    """Malformed JSON, missing or invalid sequence heads and tails without a clear all require a fresh clear."""
+    scenario = Scenario(tmp_path)
+    pane = scenario.reviewer.record
+    if payload != "{":
+        payload = json.dumps({"success": True, "session": pane.session, "window": pane.pane_id} | json.loads(payload))
+
+    def answer(_arguments: Sequence[str]) -> CommandResult:
+        return CommandResult(0, payload)
+
+    monkeypatch.setattr(scenario.tuios, "run", answer)
+    assert not TerminalClearLog(scenario.tuios.runner_for).events(pane)
 
 
 # eof

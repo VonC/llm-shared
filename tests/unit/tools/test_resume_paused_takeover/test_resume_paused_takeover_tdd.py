@@ -84,6 +84,7 @@ from tools.resume_paused_reviewer_wait import WaitScope
 from tools.resume_paused_takeover import (
     CLAUDE_WAIT_LIMITS,
     CLAUDE_WAIT_SCOPE,
+    MarkedTakeover,
     NoResults,
     TakeoverPorts,
     preview_notes,
@@ -93,6 +94,7 @@ from tools.review_exchange_models import Actor
 if TYPE_CHECKING:
     from tools.resume_paused_artifacts import CheckoutSnapshot
     from tools.resume_paused_input import PaneRecord
+    from tools.resume_paused_models import CanonicalRoot
     from tools.resume_paused_review import ExchangeSnapshot
 
 type Route = Callable[[TakeoverWorld], tuple[ActionReport, FakePair]]
@@ -421,6 +423,22 @@ def test_a_takeover_superseded_before_the_recovery_enter_stops_it() -> None:
     world = TakeoverWorld(exchanges=exchanges(taken(), taken(), exchange(marker(), owner=Actor.REVIEWER)))
     report, pair = initial(world, claiming(world, (Phase.REVIEWER, Phase.RECOVERY)))
     assert (verdict(report), pair.delivered) == ((DeliveryOutcome.PENDING, "claim-superseded", False), [])
+
+
+def test_a_waiter_starting_before_recovery_withholds_enter() -> None:
+    """Initial and pre-send observations are clear until recovery finds a live waiter."""
+    world = TakeoverWorld()
+    ports = world.ports()
+    reasons = iter(("", "", "reviewer-wait-active"))
+
+    def waiter(_root: CanonicalRoot) -> str:
+        return next(reasons)
+
+    wait = replace(ports.wait, live_wait=waiter)
+    takeover = MarkedTakeover(replace(ports, wait=wait))
+    pair = claiming(world, (Phase.REVIEWER, Phase.RECOVERY))
+    report = takeover.reviewer(pair, resumed(), planned(ActionKind.REVIEWER, Host.CODEX))
+    assert (verdict(report), pair.delivered) == ((DeliveryOutcome.PENDING, "reviewer-wait-active", False), [])
 
 
 def test_an_independent_delivery_failure_is_reported_unchanged() -> None:
